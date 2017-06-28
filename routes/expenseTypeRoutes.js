@@ -15,5 +15,13 @@ router.get('/read/:id', function(req, res) {
   console.log("get request recieved");
   res.status(200).send('request recieved for id' + req.params.id);
 });
+//update route
+router.put('/update/:id',function(req,res){
+  let id = req.params.id;
+  console.log(id);
+  res.status(200).send('ID recived: '+id);
+});
+//delete route
+
 
 module.exports = router;
