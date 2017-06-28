@@ -8,21 +8,34 @@ var fs = require('fs');
 //TODO -> fix naming convention
 var addToJson = function(newExpenseType){
   let filePath = 'json/mock_json.json';
-  var jsonFile = fs.readFileSync(filePath);
-  var jsonParsed = JSON.parse(jsonFile);
+  let jsonFile = fs.readFileSync(filePath);
+  let jsonParsed = JSON.parse(jsonFile);
   console.log(jsonParsed);
   jsonParsed.push(newExpenseType);
   var arrayJSON = JSON.stringify(jsonParsed, null, 2);
   fs.writeFileSync(filePath, arrayJSON);
 }
 
-// TODO: in order to read a json with name ID, you have to have an entry that corresponds with that ID
-var readFromJson = function(id){
+//read in the json file
+//parse existing json to an array
+//iterate through the json and find the appropriate value and return it
+var readFromJson = function(passedID){
+  let filePath = 'json/mock_json.json';
+  let jsonFile = fs.readFileSync(filePath);
+  let jsonParsed = JSON.parse(jsonFile);
+  for (let i = 0; i<jsonParsed.length; i++)
+  {
+    if (jsonParsed[i].id == passedID)
+    {
+      return jsonParsed[i];
+    }
+  }
 
 }
 
 jsonModify = {
-  addToJson
+  addToJson,
+  readFromJson
 }
 
 module.exports = jsonModify;
