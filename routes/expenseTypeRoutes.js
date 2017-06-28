@@ -3,9 +3,8 @@ var router = express.Router();
 var expenseTypes = require('../js/expenseTypes');
 var jsonModify = require('../js/jsonModify');
 /* create expense type listing. */
-router.put('/create/:id/:name/:budget/:over', function(req, res) {
+router.put('/create/:id/:name/:budget/:odFlag', function(req, res) {
   let input = req.params;
-  console.log(req.params);
   let newExpenseType = expenseTypes.addExpense(input.id, input.name, input.budget, input.odFlag);
   jsonModify.addToJson(newExpenseType);
   res.status(200).send('created ID: '+input.id);
