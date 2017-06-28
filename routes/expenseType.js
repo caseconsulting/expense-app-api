@@ -3,18 +3,19 @@ var router = express.Router();
 
 
 /* GET users listing. */
-router.put('/', function(req, res) {
+router.put('/:id/:name/:budget/:over', function(req, res) {
   res.sendStatus(200);
-  //console.log(req.params.id);
-  addExpense(req.params.id, req.params.name, req.params.budget, req.params.overdraftFlag);
+  console.log(req.params);
+  // console.log(req.query);
+  addExpense(req.params.id, req.params.name, req.params.budget, req.params.odFlag);
 });
 
 var expenseTypes=[];
 
-function addExpense(newId, newName, newBudget, newOverdraftFlag) {
+function addExpense(newId, newName, newBudget, newodFlag) {
   //the inputs will be checked on client site before being passed
-  console.log('id: '+ newId +' name: '+newName +' budget: '+newBudget +' overdraftFlag: '+newOverdraftFlag);
-  var newExpense = { id: newId, name: newName, budget: newBudget, overdraftFlag: newOverdraftFlag };
+  console.log('id: '+ newId + ' name: ' + newName + ' budget: ' + newBudget + ' odFlag: ' + newodFlag);
+  var newExpense = { id: newId, name: newName, budget: newBudget, overdraftFlag: newodFlag };
   expenseTypes.push(newExpense);
   console.log(expenseTypes);
 }
