@@ -9,7 +9,11 @@ router.put('/create/:id/:name/:budget/:over', function(req, res) {
   let newExpenseType = expenseTypes.addExpense(input.id, input.name, input.budget, input.odFlag);
   jsonModify.addToJson(newExpenseType);
   res.sendStatus(200);
+});
 
+router.get('/read/:id', function(req, res) {
+  console.log("get request recieved");
+  res.status(200).send('request recieved for id' + req.params.id);
 });
 
 module.exports = router;

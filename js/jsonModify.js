@@ -16,6 +16,10 @@ var addToJson = function(newExpenseType){
   fs.writeFileSync(filePath, arrayJSON);
 }
 
+// TODO: in order to read a json with name ID, you have to have an entry that corresponds with that ID
+var readFromJson = function(id){
+
+}
 
 jsonModify = {
   addToJson
