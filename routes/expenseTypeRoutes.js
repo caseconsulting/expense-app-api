@@ -1,12 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const expenseTypes = require('../js/expenseTypes');
 const jsonModify = require('../js/jsonModify');
-/* create expense type listing. */
+const uuid = require('uuid/v4');
+
+function add({name, budget, odFlag}) {
+  console.log(name, budget, odFlag);
+  return {id: uuid(), name, budget, odFlag};
+}
+
+function update(id, {name, budget, odFlag}) {
+  console.log(name, budget, odFlag);
+  return {id, name, budget, odFlag};
+}
+
+
 function create(req, res) {
   //response is passed in body
-  const newExpenseType = expenseTypes.add(req.body);
-  //const newExpenseType = expenseTypes.addExpense(input.name, input.budget, input.odFlag);
+  const newExpenseType = add(req.body);
   jsonModify.addToJson(newExpenseType);
   res.status(200).send(newExpenseType);
 }
@@ -26,7 +36,7 @@ function showList(req, res) {
 function update(req,res){
   const input = req.body;
   console.log(input);
-  const newExpenseType = expenseTypes.update(req.params.id, req.body);
+  const newExpenseType = update(req.params.id, req.body);
   jsonModify.updateJsonEntry(newExpenseType);
   res.status(200).send(newExpenseType);
 }
