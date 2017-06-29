@@ -51,16 +51,14 @@ function removeFromJson(passedID, callback) {
 
 function updateJsonEntry(newJsonObj, callback)
 {
-  const position = _.findIndex(jsonParsed, matches(newJsonObj.id));
-  if (position > -1)
-  {
-    removeFromJson(newJsonObj.id) //remove the old item
-    addToJson(newJsonObj,callback);
-  }
-  else {
-    const err = {message:'Object not found :( '};
-    callback(err);
-  }
+    removeFromJson(newJsonObj.id, err => {
+      if(err){
+        callback(err);
+      }
+      else{
+        addToJson(newJsonObj,callback);
+      }
+    });  
 }
 
 function getJson()
