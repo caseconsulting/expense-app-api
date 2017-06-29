@@ -45,16 +45,30 @@ var readFromJson = function(passedID){
 }
 
 var removeFromJson = function(passedID) {
-      let position = findObjectPosition(passedID); //for loop to find position
-      jsonParsed.splice(position,1); //removes type from array
-      var arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
-      fs.writeFileSync(filePath, arrayJSON); //writes json
-    }
+  let position = findObjectPosition(passedID); //for loop to find position
+  jsonParsed.splice(position,1); //removes type from array
+  var arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
+  fs.writeFileSync(filePath, arrayJSON); //writes json
+}
+
+var updateJsonEntry = function(newExpenseType)
+{
+  let position = findObjectPosition(newExpenseType.id);
+  if (position >= 0)
+  {
+    removeFromJson(newExpenseType.id) //remove the old item
+    addToJson(newExpenseType);
+  }
+
+}
+
+
 
 jsonModify = {
   addToJson,
   readFromJson,
-  removeFromJson
+  removeFromJson,
+  updateJsonEntry
 }
 
 module.exports = jsonModify;
