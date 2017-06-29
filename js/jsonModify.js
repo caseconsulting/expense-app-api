@@ -1,7 +1,7 @@
-var fs = require('fs');
-let filePath = 'json/mock_json.json';
-let jsonFile = fs.readFileSync(filePath);
-let jsonParsed = JSON.parse(jsonFile);
+const fs = require('fs');
+const filePath = 'json/mock_json.json';
+const jsonFile = fs.readFileSync(filePath);
+const jsonParsed = JSON.parse(jsonFile);
 
 //read in the json file
 //parse existing json to an array
@@ -9,12 +9,12 @@ let jsonParsed = JSON.parse(jsonFile);
 //stringify the array (JSON>stringify)
 //overwrite json
 //TODO -> fix naming convention
-var addToJson = function(newExpenseType){
+function addToJson(newExpenseType){
   console.log(jsonParsed);
-  let position = findObjectPosition(newExpenseType.id);
+  const position = findObjectPosition(newExpenseType.id);
   if (position == -1){
     jsonParsed.push(newExpenseType);
-    var arrayJSON = JSON.stringify(jsonParsed, null, 2);
+    const arrayJSON = JSON.stringify(jsonParsed, null, 2);
     fs.writeFileSync(filePath, arrayJSON);
   }
   else {
@@ -25,7 +25,7 @@ var addToJson = function(newExpenseType){
 
 //iterate through the array
 //find the object with the passed in ID
-var findObjectPosition = function(passedID){
+function findObjectPosition(passedID){
   for (let i = 0; i<jsonParsed.length; i++)
   {
     if (jsonParsed[i].id == passedID)
@@ -39,12 +39,12 @@ var findObjectPosition = function(passedID){
 //read in the json file
 //parse existing json to an array
 //iterate through the json and find the appropriate value and return it
-var readFromJson = function(passedID){
-  let position = findObjectPosition(passedID);
+function readFromJson(passedID){
+  const position = findObjectPosition(passedID);
   return jsonParsed[position];
 }
 
-var removeFromJson = function(passedID) {
+function removeFromJson(passedID) {
   const position = findObjectPosition(passedID); //for loop to find position
   const output = jsonParsed.splice(position,1); //removes type from array
   const arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
@@ -52,9 +52,9 @@ var removeFromJson = function(passedID) {
   return output;
 }
 
-var updateJsonEntry = function(newExpenseType)
+function updateJsonEntry(newExpenseType)
 {
-  let position = findObjectPosition(newExpenseType.id);
+  const position = findObjectPosition(newExpenseType.id);
   if (position >= 0)
   {
     removeFromJson(newExpenseType.id) //remove the old item
@@ -63,7 +63,7 @@ var updateJsonEntry = function(newExpenseType)
 
 }
 
-var getJson = function()
+function getJson()
 {
   return jsonParsed;
 }
