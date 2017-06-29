@@ -16,10 +16,7 @@ var addToJson = function(newExpenseType){
   fs.writeFileSync(filePath, arrayJSON);
 }
 
-//read in the json file
-//parse existing json to an array
-//iterate through the json and find the appropriate value and return it
-var readFromJson = function(passedID){
+var findObjectPosition = function(passedID){
   let filePath = 'json/mock_json.json';
   let jsonFile = fs.readFileSync(filePath);
   let jsonParsed = JSON.parse(jsonFile);
@@ -27,10 +24,22 @@ var readFromJson = function(passedID){
   {
     if (jsonParsed[i].id == passedID)
     {
-      return jsonParsed[i];
+      return i;
     }
   }
-  console.log("No object found");
+  console.log("No object found with matching ID");
+
+}
+
+//read in the json file
+//parse existing json to an array
+//iterate through the json and find the appropriate value and return it
+var readFromJson = function(passedID){
+  let filePath = 'json/mock_json.json';
+  let jsonFile = fs.readFileSync(filePath);
+  let jsonParsed = JSON.parse(jsonFile);
+  let position = findObjectPosition(passedID);
+  return jsonParsed[position];
 
 }
 
