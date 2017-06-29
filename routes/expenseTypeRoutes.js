@@ -12,7 +12,8 @@ router.put('/create/:id/:name/:budget/:odFlag', function(req, res) {
 //read route
 router.get('/read/:id', function(req, res) {
   console.log("get request recieved");
-  res.status(200).send('ID to find: ' + req.params.id);
+  let output = jsonModify.readFromJson(req.params.id);
+  res.status(200).send(output);
 });
 //update route
 router.put('/update/:id',function(req,res){

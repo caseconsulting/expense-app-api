@@ -30,6 +30,7 @@ var readFromJson = function(passedID){
       return jsonParsed[i];
     }
   }
+  console.log("No object found");
 
 }
 
