@@ -2,6 +2,7 @@ var fs = require('fs');
 let filePath = 'json/mock_json.json';
 let jsonFile = fs.readFileSync(filePath);
 let jsonParsed = JSON.parse(jsonFile);
+
 //read in the json file
 //parse existing json to an array
 //push new value to array
@@ -9,11 +10,17 @@ let jsonParsed = JSON.parse(jsonFile);
 //overwrite json
 //TODO -> fix naming convention
 var addToJson = function(newExpenseType){
-
   console.log(jsonParsed);
-  jsonParsed.push(newExpenseType);
-  var arrayJSON = JSON.stringify(jsonParsed, null, 2);
-  fs.writeFileSync(filePath, arrayJSON);
+  let position = findObjectPosition(newExpenseType.id);
+  if (position == -1){
+    jsonParsed.push(newExpenseType);
+    var arrayJSON = JSON.stringify(jsonParsed, null, 2);
+    fs.writeFileSync(filePath, arrayJSON);
+  }
+  else {
+    console.log("That ID exists. Use update if you would like to update "
+    + "the exisitng expense type");
+  }
 }
 
 //iterate through the array
@@ -26,7 +33,7 @@ var findObjectPosition = function(passedID){
       return i;
     }
   }
-  console.log("No object found with matching ID");
+  return -1;
 }
 
 //read in the json file
