@@ -5,8 +5,8 @@ var jsonModify = require('../js/jsonModify');
 /* create expense type listing. */
 router.post('/', function(req, res) {
   //response is passed in body
-  let input = req.body;
-  let newExpenseType = expenseTypes.addExpense(9, input.name, input.budget, input.odFlag);
+
+  let newExpenseType = expenseTypes.addExpense(req.body);
   //let newExpenseType = expenseTypes.addExpense(input.name, input.budget, input.odFlag);
   jsonModify.addToJson(newExpenseType);
   res.status(200).send(newExpenseType);
@@ -17,6 +17,13 @@ router.get('/:id', function(req, res) {
   let output = jsonModify.readFromJson(req.params.id);
   res.status(200).send(output);
 });
+
+router.get('/', function(req, res) {
+  console.log("get request recieved for everything");
+  let output = jsonModify.getJson();
+  res.status(200).send(output);
+});
+
 //update route
 router.put('/:id',function(req,res){
   let input = req.body;
@@ -25,6 +32,7 @@ router.put('/:id',function(req,res){
   jsonModify.updateJsonEntry(newExpenseType);
   res.status(200).send(newExpenseType);
 });
+
 //delete route
 router.delete('/:id',function(req,res){
 

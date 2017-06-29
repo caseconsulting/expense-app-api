@@ -62,13 +62,19 @@ var updateJsonEntry = function(newExpenseType)
 
 }
 
+var getJson = function()
+{
+  return jsonParsed;
+}
+
 
 
 jsonModify = {
   addToJson,
   readFromJson,
   removeFromJson,
-  updateJsonEntry
+  updateJsonEntry,
+  getJson
 }
 
 module.exports = jsonModify;

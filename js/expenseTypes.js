@@ -1,9 +1,9 @@
-var addExpense = function(newId, newName, newBudget, newodFlag) {
+var uuid = require('uuid/v4');
 
-  console.log('id: '+ newId + ' name: ' + newName + ' budget: ' +
-  newBudget + ' odFlag: ' + newodFlag);
-  var newExpense = { id: newId, name: newName, budget: newBudget,
-     overdraftFlag: newodFlag };
+var addExpense = function({name, budget, odFlag}) {
+
+  console.log(name, budget, odFlag);
+  var newExpense = {id: uuid(), name, budget, odFlag};
   return newExpense;
 }
 
