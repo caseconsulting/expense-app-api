@@ -3,29 +3,31 @@ var router = express.Router();
 var expenseTypes = require('../js/expenseTypes');
 var jsonModify = require('../js/jsonModify');
 /* create expense type listing. */
-router.put('/create/:id/:name/:budget/:odFlag', function(req, res) {
-  let input = req.params;
-  let newExpenseType = expenseTypes.addExpense(input.id, input.name, input.budget, input.odFlag);
+router.post('/', function(req, res) {
+  //response is passed in body
+  let input = req.body;
+  let newExpenseType = expenseTypes.addExpense(9, input.name, input.budget, input.odFlag);
+  //let newExpenseType = expenseTypes.addExpense(input.name, input.budget, input.odFlag);
   jsonModify.addToJson(newExpenseType);
-  res.status(200).send('created ID: '+input.id);
+  res.status(200).send(newExpenseType);
 });
 //read route
-router.get('/read/:id', function(req, res) {
-  let input = req.params;
+router.get('/:id', function(req, res) {
   console.log("get request recieved");
-  let output = jsonModify.readFromJson(input.id);
+  let output = jsonModify.readFromJson(req.params.id);
   res.status(200).send(output);
 });
 //update route
-router.put('/update/:id/:name/:budget/:odFlag',function(req,res){
-  let input = req.params;
-  let newExpenseType = expenseTypes.addExpense(input.id, input.name, input.budget, input.odFlag);
+router.put('/:id',function(req,res){
+  let input = req.body;
+  console.log(input);
+  let newExpenseType = expenseTypes.addExpense(req.params.id, input.name, input.budget, input.odFlag);
   jsonModify.updateJsonEntry(newExpenseType);
   res.status(200).send(newExpenseType);
 });
 //delete route
-router.delete('/delete/:id',function(req,res){
-  
+router.delete('/:id',function(req,res){
+
   let id = req.params.id;
   jsonModify.removeFromJson(id);
   res.status(200).send('ID to delete: '+id);
