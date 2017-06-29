@@ -57,8 +57,15 @@ function update(req,res){
 function onDelete(req,res){
 
   const id = req.params.id;
-  const output = jsonModify.removeFromJson(id);
-  res.status(200).send(output);
+  const output = jsonModify.removeFromJson(id , err =>{
+    if(err) {
+      res.status(404).send({error: err.message});
+    }
+    else {
+      res.status(200).send(output);
+    }
+  });
+
 }
 
 router.get('/', showList);

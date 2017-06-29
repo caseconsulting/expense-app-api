@@ -36,11 +36,17 @@ function readFromJson(passedID){
   return found;
 }
 
-function removeFromJson(passedID) {
+function removeFromJson(passedID, callback) {
   const output =  _.remove(jsonParsed, matches(passedID)); //removes type from array
-  const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
-  fs.writeFileSync(filePath, arrayJson); //writes json
-  return output[0];
+  if(output.length<1){ //if error
+    const err = {message:'Object not found'};
+    callback(err);
+  }
+  else { //no error
+    const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
+    fs.writeFile(filePath, arrayJson, err => callback(err)); //writes json
+    return output[0];
+  }
 }
 
 function updateJsonEntry(newJsonObj, callback)
