@@ -24,7 +24,7 @@ router.put('/update/:id',function(req,res){
 //delete route
 router.delete('/delete/:id',function(req,res){
   let id = req.params.id;
-  console.log(id);
+  jsonModify.removeFromJson(id);
   res.status(200).send('ID to delete: '+id);
 });
 
