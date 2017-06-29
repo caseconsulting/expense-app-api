@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
 router.put('/:id',function(req,res){
   let input = req.body;
   console.log(input);
-  let newExpenseType = expenseTypes.addExpense(req.params.id, input.name, input.budget, input.odFlag);
+  let newExpenseType = expenseTypes.updateExpense(req.params.id, req.body);
   jsonModify.updateJsonEntry(newExpenseType);
   res.status(200).send(newExpenseType);
 });

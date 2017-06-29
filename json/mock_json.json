@@ -39,8 +39,8 @@
   },
   {
     "id": "f3dea09a-0f84-4b05-863b-dffd939239ed",
-    "name": "jim",
-    "budget": "4000",
-    "odFlag": "true"
+    "name": "fred",
+    "budget": "200",
+    "odFlag": "false"
   }
 ]
