@@ -6,7 +6,7 @@ var jsonModify = require('../js/jsonModify');
 router.post('/', function(req, res) {
   //response is passed in body
 
-  let newExpenseType = expenseTypes.addExpense(req.body);
+  let newExpenseType = expenseTypes.add(req.body);
   //let newExpenseType = expenseTypes.addExpense(input.name, input.budget, input.odFlag);
   jsonModify.addToJson(newExpenseType);
   res.status(200).send(newExpenseType);
@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
 router.put('/:id',function(req,res){
   let input = req.body;
   console.log(input);
-  let newExpenseType = expenseTypes.updateExpense(req.params.id, req.body);
+  let newExpenseType = expenseTypes.update(req.params.id, req.body);
   jsonModify.updateJsonEntry(newExpenseType);
   res.status(200).send(newExpenseType);
 });

@@ -1,23 +1,19 @@
-var uuid = require('uuid/v4');
+const uuid = require('uuid/v4');
 
-var addExpense = function({name, budget, odFlag}) {
-
+function add({name, budget, odFlag}) {
   console.log(name, budget, odFlag);
-  var newExpense = {id: uuid(), name, budget, odFlag};
-  return newExpense;
+  return {id: uuid(), name, budget, odFlag};
 }
 
-var updateExpense = function(id, {name, budget, odFlag}) {
-
+function update(id, {name, budget, odFlag}) {
   console.log(name, budget, odFlag);
-  var newExpense = {id, name, budget, odFlag};
-  return newExpense;
+  return {id, name, budget, odFlag};
 }
 
 
-var expenseTypes = {
-  addExpense,
-  updateExpense
+const expenseTypes = {
+  add,
+  update
 }
 
 
