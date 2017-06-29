@@ -36,11 +36,5 @@
     "name": "jim",
     "budget": "4000",
     "overdraftFlag": "true"
-  },
-  {
-    "id": "f3dea09a-0f84-4b05-863b-dffd939239ed",
-    "name": "barney",
-    "budget": "200",
-    "odFlag": "false"
   }
 ]

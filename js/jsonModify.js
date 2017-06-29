@@ -45,10 +45,11 @@ var readFromJson = function(passedID){
 }
 
 var removeFromJson = function(passedID) {
-  let position = findObjectPosition(passedID); //for loop to find position
-  jsonParsed.splice(position,1); //removes type from array
-  var arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
+  const position = findObjectPosition(passedID); //for loop to find position
+  const output = jsonParsed.splice(position,1); //removes type from array
+  const arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
   fs.writeFileSync(filePath, arrayJSON); //writes json
+  return output;
 }
 
 var updateJsonEntry = function(newExpenseType)
