@@ -3,22 +3,29 @@ const router = express.Router();
 const jsonModify = require('../js/jsonModify');
 const uuid = require('uuid/v4');
 
-function add({name, budget, odFlag}) {
+function _add({name, budget, odFlag}) {
   console.log(name, budget, odFlag);
   return {id: uuid(), name, budget, odFlag};
 }
 
-function update(id, {name, budget, odFlag}) {
-  console.log(name, budget, odFlag);
+function _update(id, {name, budget, odFlag}) {
+  console.log(id,name, budget, odFlag);
   return {id, name, budget, odFlag};
 }
 
 
 function create(req, res) {
   //response is passed in body
-  const newExpenseType = add(req.body);
-  jsonModify.addToJson(newExpenseType);
-  res.status(200).send(newExpenseType);
+  const newExpenseType = _add(req.body);
+  jsonModify.addToJson(newExpenseType, err => {
+    if(err) {
+      res.status(409).send({error: err.message});
+    }
+    else {
+      res.status(200).send(newExpenseType);
+    }
+  });
+
 }
 
 function read(req, res) {
@@ -36,9 +43,15 @@ function showList(req, res) {
 function update(req,res){
   const input = req.body;
   console.log(input);
-  const newExpenseType = update(req.params.id, req.body);
-  jsonModify.updateJsonEntry(newExpenseType);
-  res.status(200).send(newExpenseType);
+  const newExpenseType = _update(req.params.id, req.body);
+  jsonModify.updateJsonEntry(newExpenseType, err => {
+    if(err) {
+      res.status(404).send({error: err.message});
+    }
+    else {
+      res.status(200).send(newExpenseType);
+    }
+  });
 }
 
 function onDelete(req,res){

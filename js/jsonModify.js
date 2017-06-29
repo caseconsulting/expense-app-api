@@ -15,17 +15,17 @@ function matches(id){
 //stringify the array (JSON>stringify)
 //overwrite json
 //TODO -> fix naming convention
-function addToJson(newJsonObj){
+function addToJson(newJsonObj, callback){
   console.log(jsonParsed);
   const position = _.findIndex(jsonParsed, matches(newJsonObj.id));
   if (position == -1){
     jsonParsed.push(newJsonObj);
     const arrayJson = JSON.stringify(jsonParsed, null, 2);
-    fs.writeFileSync(filePath, arrayJson);
+    fs.writeFile(filePath, arrayJson, err => callback(err));
   }
   else {
-    console.log("That ID exists. Use update if you would like to update "
-    + "the exisitng expense type");
+    const err = {message:'Object already in system'};
+    callback(err);
   }
 }
 //read in the json file
@@ -43,15 +43,18 @@ function removeFromJson(passedID) {
   return output[0];
 }
 
-function updateJsonEntry(newJsonObj)
+function updateJsonEntry(newJsonObj, callback)
 {
   const position = _.findIndex(jsonParsed, matches(newJsonObj.id));
   if (position > -1)
   {
     removeFromJson(newJsonObj.id) //remove the old item
-    addToJson(newJsonObj);
+    addToJson(newJsonObj,callback);
   }
-
+  else {
+    const err = {message:'Object not found :( '};
+    callback(err);
+  }
 }
 
 function getJson()
