@@ -9,13 +9,13 @@ const jsonParsed = JSON.parse(jsonFile);
 //stringify the array (JSON>stringify)
 //overwrite json
 //TODO -> fix naming convention
-function addToJson(newExpenseType){
+function addToJson(newJsonObj){
   console.log(jsonParsed);
-  const position = findObjectPosition(newExpenseType.id);
+  const position = findObjectPosition(newJsonObj.id);
   if (position == -1){
-    jsonParsed.push(newExpenseType);
-    const arrayJSON = JSON.stringify(jsonParsed, null, 2);
-    fs.writeFileSync(filePath, arrayJSON);
+    jsonParsed.push(newJsonObj);
+    const arrayJson = JSON.stringify(jsonParsed, null, 2);
+    fs.writeFileSync(filePath, arrayJson);
   }
   else {
     console.log("That ID exists. Use update if you would like to update "
@@ -47,18 +47,18 @@ function readFromJson(passedID){
 function removeFromJson(passedID) {
   const position = findObjectPosition(passedID); //for loop to find position
   const output = jsonParsed.splice(position,1); //removes type from array
-  const arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
-  fs.writeFileSync(filePath, arrayJSON); //writes json
+  const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
+  fs.writeFileSync(filePath, arrayJson); //writes json
   return output;
 }
 
-function updateJsonEntry(newExpenseType)
+function updateJsonEntry(newJsonObj)
 {
-  const position = findObjectPosition(newExpenseType.id);
+  const position = findObjectPosition(newJsonObj.id);
   if (position >= 0)
   {
-    removeFromJson(newExpenseType.id) //remove the old item
-    addToJson(newExpenseType);
+    removeFromJson(newJsonObj.id) //remove the old item
+    addToJson(newJsonObj);
   }
 
 }
