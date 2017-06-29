@@ -38,21 +38,11 @@ var readFromJson = function(passedID){
 }
 
 var removeFromJson = function(passedID) {
-  let filePath = 'json/mock_json.json';
-  let jsonFile = fs.readFileSync(filePath);
-  let jsonParsed = JSON.parse(jsonFile);
-  for (let i = 0; i<jsonParsed.length; i++)
-  {
-    if (jsonParsed[i].id == passedID)
-    {
-      console.log(i);
-      let removedItem = jsonParsed.splice(i,1);
-      console.log('item removed: '+removedItem.id);
-      var arrayJSON = JSON.stringify(jsonParsed, null, 2);
-      fs.writeFileSync(filePath, arrayJSON);
+      let position = findObjectPosition(passedID); //for loop to find position
+      jsonParsed.splice(position,1); //removes type from array
+      var arrayJSON = JSON.stringify(jsonParsed, null, 2); //makes json readable
+      fs.writeFileSync(filePath, arrayJSON); //writes json
     }
-  }
-}
 
 jsonModify = {
   addToJson,

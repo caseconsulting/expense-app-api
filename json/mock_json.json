@@ -17,11 +17,6 @@
   {
     "id": "2",
     "name": "name2",
-    "budget": "4000"
-  },
-  {
-    "id": "2",
-    "name": "name2",
     "budget": "4000",
     "overdraftFlag": "true"
   }
