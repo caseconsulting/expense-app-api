@@ -2,6 +2,7 @@ const fs = require('fs');
 const filePath = 'json/mock_json.json';
 const jsonFile = fs.readFileSync(filePath);
 const jsonParsed = JSON.parse(jsonFile);
+const _ = require('lodash');
 
 //read in the json file
 //parse existing json to an array
@@ -11,7 +12,7 @@ const jsonParsed = JSON.parse(jsonFile);
 //TODO -> fix naming convention
 function addToJson(newJsonObj){
   console.log(jsonParsed);
-  const position = findObjectPosition(newJsonObj.id);
+  const position = _.findIndex(jsonParsed, j => j.id===newJsonObj.id);
   if (position == -1){
     jsonParsed.push(newJsonObj);
     const arrayJson = JSON.stringify(jsonParsed, null, 2);
@@ -22,40 +23,24 @@ function addToJson(newJsonObj){
     + "the exisitng expense type");
   }
 }
-
-//iterate through the array
-//find the object with the passed in ID
-function findObjectPosition(passedID){
-  for (let i = 0; i<jsonParsed.length; i++)
-  {
-    if (jsonParsed[i].id == passedID)
-    {
-      return i;
-    }
-  }
-  return -1;
-}
-
 //read in the json file
 //parse existing json to an array
 //iterate through the json and find the appropriate value and return it
 function readFromJson(passedID){
-  const position = findObjectPosition(passedID);
-  return jsonParsed[position];
+  return _.find(jsonParsed, j => j.id===passedID);
 }
 
 function removeFromJson(passedID) {
-  const position = findObjectPosition(passedID); //for loop to find position
-  const output = jsonParsed.splice(position,1); //removes type from array
+  const output =  _.remove(jsonParsed, j => j.id===passedID); //removes type from array
   const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
   fs.writeFileSync(filePath, arrayJson); //writes json
-  return output;
+  return output[0];
 }
 
 function updateJsonEntry(newJsonObj)
 {
-  const position = findObjectPosition(newJsonObj.id);
-  if (position >= 0)
+  const position = _.findIndex(jsonParsed, j => j.id===newJsonObj.id);
+  if (position > -1)
   {
     removeFromJson(newJsonObj.id) //remove the old item
     addToJson(newJsonObj);
