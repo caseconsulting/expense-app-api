@@ -12,4 +12,4 @@ function _update(id, {name, budget, odFlag}) {
 }
 
 const crud = require('./crudRoutes')(jsonModify, _add, _update);
-module.exports = crud;
+module.exports = Object.assign({},crud,{_add, _update});
