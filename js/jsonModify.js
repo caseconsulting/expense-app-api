@@ -6,7 +6,7 @@ function setFilePath(fileName){
   const jsonFile = fs.readFileSync(filePath);
   const jsonParsed = JSON.parse(jsonFile);
 
-  function matches(id){
+  function _matches(id){
     return jsonObj => jsonObj.id===id;
   }
 
@@ -18,7 +18,7 @@ function setFilePath(fileName){
   function addToJson(newJsonObj, callback){
 
     console.log(jsonParsed);
-    const position = _.findIndex(jsonParsed, matches(newJsonObj.id));
+    const position = _.findIndex(jsonParsed, jsonModify._matches(newJsonObj.id));
     if (position == -1){
       jsonParsed.push(newJsonObj);
       const arrayJson = JSON.stringify(jsonParsed, null, 2);
@@ -33,8 +33,7 @@ function setFilePath(fileName){
   //parse existing json to an array
   //iterate through the json and find the appropriate value and return it
   function readFromJson(passedID){
-
-    const found =  _.find(jsonParsed, matches(passedID));
+    const found =  _.find(jsonParsed, jsonModify._matches(passedID));
     if(found){
       return found;
     }
@@ -45,7 +44,7 @@ function setFilePath(fileName){
 
   function removeFromJson(passedID, callback) {
 
-    const output =  _.remove(jsonParsed, matches(passedID)); //removes type from array
+    const output =  _.remove(jsonParsed, jsonModify._matches(passedID)); //removes type from array
     if(output.length<1){ //if error
       const err = {message:'REMOVE: Object not found'};
       callback(err);
@@ -72,7 +71,6 @@ function setFilePath(fileName){
 
   function getJson()
   {
-
     return jsonParsed;
   }
 
@@ -81,7 +79,8 @@ function setFilePath(fileName){
     readFromJson,
     removeFromJson,
     updateJsonEntry,
-    getJson
+    getJson,
+    _matches
   }
   return jsonModify;
 }
