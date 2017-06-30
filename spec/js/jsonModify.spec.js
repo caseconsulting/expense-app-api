@@ -10,11 +10,12 @@ describe("JsonModify", ()=> {
     jsonModify = jsonModify('test.json');
 
   });
+
   describe("getJson", ()=>{
     it("should return a json filePath", () => {
       expect(jsonModify.getJson()).toEqual([]);
     });
-  });
+  }); // getJson
 
   describe("readFromJson", ()=>{
     let passedID;
@@ -52,11 +53,6 @@ describe("JsonModify", ()=> {
           expect(jsonModify.readFromJson(passedID)).toEqual(null);
         });
       });
-    });
-  });
-
-
-  it("shan't work", () => {
-    expect(4+5).toEqual(9);
+    }); // readFromJson
   });
 });
