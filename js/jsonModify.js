@@ -1,15 +1,10 @@
 const fs = require('fs');
-
-
 const _ = require('lodash');
 
 function setFilePath(fileName){
   const filePath = 'json/'+fileName;
   const jsonFile = fs.readFileSync(filePath);
   const jsonParsed = JSON.parse(jsonFile);
-
-
-
 
   function matches(id){
     return jsonObj => jsonObj.id===id;
@@ -77,7 +72,7 @@ function setFilePath(fileName){
 
   function getJson()
   {
-    
+
     return jsonParsed;
   }
 

@@ -2,6 +2,7 @@ const jsonModify = require('../js/jsonModify')('employee.json');
 const uuid = require('uuid/v4');
 
 function _add({firstName, middleName, lastName, empId, hireDate}) {
+  
   console.log(firstName, middleName, lastName, empId, hireDate);
   return {id: uuid(), firstName, middleName, lastName , empId, hireDate};
 }
