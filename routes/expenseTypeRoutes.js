@@ -31,7 +31,13 @@ function create(req, res) {
 function read(req, res) {
   console.log("get request recieved");
   const output = jsonModify.readFromJson(req.params.id);
-  res.status(200).send(output);
+  if(output){
+    res.status(200).send(output);
+  }
+  else {
+    const err = {message:'Object not found'};
+    res.status(404).send({error: err.message});
+  }
 }
 
 function showList(req, res) {

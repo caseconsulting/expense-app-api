@@ -33,7 +33,12 @@ function addToJson(newJsonObj, callback){
 //iterate through the json and find the appropriate value and return it
 function readFromJson(passedID){
   const found =  _.find(jsonParsed, matches(passedID));
-  return found;
+  if(found){
+    return found;
+  }
+  else {
+    return null;
+  }
 }
 
 function removeFromJson(passedID, callback) {
@@ -51,14 +56,14 @@ function removeFromJson(passedID, callback) {
 
 function updateJsonEntry(newJsonObj, callback)
 {
-    removeFromJson(newJsonObj.id, err => {
-      if(err){
-        callback(err);
-      }
-      else{
-        addToJson(newJsonObj,callback);
-      }
-    });  
+  removeFromJson(newJsonObj.id, err => {
+    if(err){
+      callback(err);
+    }
+    else{
+      addToJson(newJsonObj,callback);
+    }
+  });
 }
 
 function getJson()
