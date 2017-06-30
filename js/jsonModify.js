@@ -23,7 +23,7 @@ function addToJson(newJsonObj, callback){
     fs.writeFile(filePath, arrayJson, err => callback(err));
   }
   else {
-    const err = {message:'Object already in system'};
+    const err = {message:'ADD: Object already in system'};
     callback(err);
   }
 }
@@ -43,7 +43,7 @@ function readFromJson(passedID){
 function removeFromJson(passedID, callback) {
   const output =  _.remove(jsonParsed, matches(passedID)); //removes type from array
   if(output.length<1){ //if error
-    const err = {message:'Object not found'};
+    const err = {message:'REMOVE: Object not found'};
     callback(err);
   }
   else { //no error

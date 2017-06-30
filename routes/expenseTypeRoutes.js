@@ -33,7 +33,7 @@ function read(req, res) {
     res.status(200).send(output);
   }
   else {
-    const err = {message:'Object not found'};
+    const err = {message:'READ: Object not found'};
     res.status(404).send({error: err.message});
   }
 }
