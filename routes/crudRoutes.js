@@ -1,13 +1,15 @@
 const express = require('express');
-const router = express.Router();
+
 
 // C
 function crud(jsModify, _add, _update){
-
+const router = express.Router();
 function create(req, res)
 {
   //response is passed in body
+  console.log('output ',req.body);
   const newEmployee = _add(req.body);
+  console.log('new employee ', newEmployee);
   jsonModify.addToJson(newEmployee, err => {
     if(err) {
       res.status(409).send({error: err.message});
