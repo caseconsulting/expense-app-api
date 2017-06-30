@@ -13,7 +13,6 @@ function _update(id, {name, budget, odFlag}) {
   return {id, name, budget, odFlag};
 }
 
-
 function create(req, res) {
   //response is passed in body
   const newExpenseType = _add(req.body);
@@ -25,7 +24,6 @@ function create(req, res) {
       res.status(200).send(newExpenseType);
     }
   });
-
 }
 
 function read(req, res) {

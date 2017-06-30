@@ -4,7 +4,6 @@ const jsonFile = fs.readFileSync(filePath);
 const jsonParsed = JSON.parse(jsonFile);
 const _ = require('lodash');
 
-
 function matches(id){
   return jsonObj => jsonObj.id===id;
 }
