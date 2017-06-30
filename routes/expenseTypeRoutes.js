@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+
 const jsonModify = require('../js/jsonModify')('expenseType.json');
 const uuid = require('uuid/v4');
 
