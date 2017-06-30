@@ -54,5 +54,29 @@ describe("JsonModify", ()=> {
         });
       });
     }); // readFromJson
+    describe("_matches",()=>{
+      let id,jsonObj;
+      beforeEach(()=>id = "{id}");
+      beforeEach(()=>jsonObj={});
+
+      describe("when the json id matches",()=>{
+        beforeEach(()=>jsonObj.id=id);
+
+        it("should be true",()=>{
+          const f = jsonModify._matches(id);
+          expect(f(jsonObj)).toEqual(true);
+        });
+
+      });
+      describe("when the json id matches",()=>{
+        beforeEach(()=>jsonObj.id="{NOTid}");
+
+        it("should be false",()=>{
+          const f = jsonModify._matches(id);
+          expect(f(jsonObj)).toEqual(false);
+        });
+
+      });
+    }); // _matches
   });
 });
