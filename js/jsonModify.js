@@ -1,9 +1,27 @@
 const fs = require('fs');
-const filePath = 'json/mock_json.json';
+const filePath = 'json/';
 const jsonFile = fs.readFileSync(filePath);
 const jsonParsed = JSON.parse(jsonFile);
 const _ = require('lodash');
 
+function determineFilePath(id)
+{
+  if (id.substring(0, 3) === 'ext')
+  {
+    filePath += 'expenseTypes.json';
+  }
+  else if (id.substring(0, 3) === 'eee')
+  {
+    filePath += 'employee.json';
+  }
+  else if (id.substring(0, 3) === 'exp')
+  {
+    filePath += 'expense.json';
+  }
+  else {
+    filePath += 'mock_json.json';
+  }
+}
 function matches(id){
   return jsonObj => jsonObj.id===id;
 }

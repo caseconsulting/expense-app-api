@@ -5,7 +5,7 @@ const uuid = require('uuid/v4');
 
 function _add({name, budget, odFlag}) {
   console.log(name, budget, odFlag);
-  return {id: uuid(), name, budget, odFlag};
+  return {id: 'ext-'+ uuid(), name, budget, odFlag};
 }
 
 function _update(id, {name, budget, odFlag}) {
