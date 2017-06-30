@@ -41,5 +41,26 @@
     "name": "taylor",
     "budget": "500",
     "odFlag": "true"
+  },
+  {
+    "firstName": "Fahad",
+    "middleName": "",
+    "lastName": "Ashraf",
+    "id": "30",
+    "hireDate": "05/01/207"
+  },
+  {
+    "firstName": "Jacob",
+    "middleName": "C",
+    "lastName": "Boisseau",
+    "id": "31",
+    "hireDate": "05/15/207"
+  },
+  {
+    "firstName": "Bob",
+    "middleName": "Yoda",
+    "lastName": "Kiel",
+    "id": "3",
+    "hireDate": "05/15/2005"
   }
 ]
