@@ -4,7 +4,7 @@ const _ = require('lodash');
 function setFilePath(fileName){
   const filePath = 'json/'+fileName;
   const jsonFile = fs.readFileSync(filePath);
-  const jsonParsed = JSON.parse(jsonFile);
+  let jsonParsed = JSON.parse(jsonFile);
 
   function _matches(id){
     return jsonObj => jsonObj.id===id;
@@ -20,7 +20,7 @@ function setFilePath(fileName){
     console.log(jsonParsed);
     const position = _.findIndex(jsonParsed, jsonModify._matches(newJsonObj.id));
     if (position == -1){
-      jsonParsed.push(newJsonObj);
+      jsonParsed = jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(jsonParsed, null, 2);
       fs.writeFile(filePath, arrayJson, err => callback(err));
     }
@@ -43,13 +43,15 @@ function setFilePath(fileName){
   }
 
   function removeFromJson(passedID, callback) {
-
-    const output =  _.remove(jsonParsed, jsonModify._matches(passedID)); //removes type from array
-    if(output.length<1){ //if error
+    const position =  _.findIndex(jsonParsed, jsonModify._matches(passedID)); //removes type from array
+    //const output =  _.remove(jsonParsed, jsonModify._matches(passedID)); //removes type from array
+    if(position == -1){ //if error
       const err = {message:'REMOVE: Object not found'};
       callback(err);
     }
     else { //no error
+      const output = _.find(jsonParsed, jsonModify._matches(passedID)); //used find to make testing easier
+      jsonParsed = _.reject(jsonParsed, jsonModify._matches(passedID));
       const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
       fs.writeFile(filePath, arrayJson, err => callback(err)); //writes json
       return output[0];
