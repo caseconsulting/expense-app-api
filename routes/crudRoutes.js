@@ -10,12 +10,12 @@ function create(req, res)
   console.log('output ',req.body);
   const newEmployee = _add(req.body);
   console.log('new employee ', newEmployee);
-  jsonModify.addToJson(newEmployee, err => {
+  jsonModify.addToJson(newEmployee, (err, updatedEmployee) => {
     if(err) {
       res.status(409).send({error: err.message});
     }
     else {
-      res.status(200).send(newEmployee);
+      res.status(200).send(updatedEmployee);
     }
   });
 }
@@ -48,7 +48,7 @@ function update(req,res){
 //D
 function onDelete(req,res){
   const id = req.params.id;
-  const output = jsonModify.removeFromJson(id , err =>{
+  jsonModify.removeFromJson(id , (err, output) =>{
     if(err) {
       res.status(404).send({error: err.message});
     }
