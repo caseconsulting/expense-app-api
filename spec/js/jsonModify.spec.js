@@ -13,6 +13,40 @@ describe("JsonModify", ()=> {
 
   });
 
+  describe("_matches",()=>{
+      let id,jsonObj;
+      beforeEach(()=>id = "{id}");
+      beforeEach(()=>jsonObj={});
+
+      describe("when the json id matches",()=>{
+        beforeEach(()=>jsonObj.id=id);
+
+        it("should be true",()=>{
+          const f = jsonModify._matches(id);
+          expect(f(jsonObj)).toEqual(true);
+        });
+
+      });
+      describe("when the json id matches",()=>{
+        beforeEach(()=>jsonObj.id="{NOTid}");
+
+        it("should be false",()=>{
+          const f = jsonModify._matches(id);
+          expect(f(jsonObj)).toEqual(false);
+        });
+
+      });
+    }); // _matches
+  });
+
+  describe("_writeCallback",()=>{
+
+  }); // _writeCallback
+
+  describe("_addToJson",()=>{
+
+  }); // _addToJson
+
   describe("addToJson",()=>{
     let newJsonObj, callback;
     beforeEach(()=>{
@@ -96,32 +130,6 @@ describe("JsonModify", ()=> {
       });
     }); // readFromJson
 
-    describe("_matches",()=>{
-      let id,jsonObj;
-      beforeEach(()=>id = "{id}");
-      beforeEach(()=>jsonObj={});
-
-      describe("when the json id matches",()=>{
-        beforeEach(()=>jsonObj.id=id);
-
-        it("should be true",()=>{
-          const f = jsonModify._matches(id);
-          expect(f(jsonObj)).toEqual(true);
-        });
-
-      });
-      describe("when the json id matches",()=>{
-        beforeEach(()=>jsonObj.id="{NOTid}");
-
-        it("should be false",()=>{
-          const f = jsonModify._matches(id);
-          expect(f(jsonObj)).toEqual(false);
-        });
-
-      });
-    }); // _matches
-  });
-
   describe("removeFromJson",()=>{
     let passedID, callback;
     beforeEach(()=>{
@@ -156,22 +164,49 @@ describe("JsonModify", ()=> {
             beforeEach(()=> spyOn(_,"reject").and.returnValue(['jsonParsed - removed']));
             afterEach(()=> expect(_.reject).toHaveBeenCalledWith(jsonParsed, '{matches}'));
 
-            describe("when writting to json",()=>{
-              beforeEach(()=> spyOn(fs,"writeFile"));
-              afterEach(()=> expect(fs.writeFile).toHaveBeenCalledWith('json/test.json',JSON.stringify(['jsonParsed - removed'], null, 2),jasmine.any(Function)));
+            describe("when writeCallback is called",()=>{
+              beforeEach(()=> spyOn(jsonModify,"_writeCallback").and.returnValue('callback()'));
+              afterEach(()=> expect(jsonModify._writeCallback).toHaveBeenCalledWith('output',callback));
+              describe("when writting to json",()=>{
+                beforeEach(()=> spyOn(fs,"writeFile"));
+                afterEach(()=> expect(fs.writeFile).toHaveBeenCalledWith('json/test.json',JSON.stringify(['jsonParsed - removed'], null, 2),'callback()'));
 
-              xit("should will write the file and return the removed element",()=>{
-                jsonModify.removeFromJson(passedID,callback);
-                expect(callback).toHaveBeenCalledWith(null,'output');
+                it("should will write the file and return the removed element",()=>{
+                  jsonModify.removeFromJson(passedID,callback);
+                });
               });
             });
+
           });
         });
-
-
       });
-        });
+    });
   }); // removeFromJson
+
+  describe("updateJsonEntry",()=>{
+    let newJsonObj, callback;
+    beforeEach(()=>{
+      callback = jasmine.createSpy('callback');
+    });
+    beforeEach(()=>newJsonObj = {id:'{id}'});
+
+    describe("when _addToJson is called",()=>{
+      beforeEach(()=> spyOn(jsonModify,"_addToJson").and.returnValue('addToJson()'));
+      afterEach(()=> expect(jsonModify._addToJson).toHaveBeenCalledWith(newJsonObj,callback));
+
+      describe("when removeFromJson is called",()=>{
+        beforeEach(()=> spyOn(jsonModify,"removeFromJson"));
+        afterEach(()=> expect(jsonModify.removeFromJson).toHaveBeenCalledWith(newJsonObj.id,'addToJson()'));
+
+        it("should pass along to removeFromJson",()=>{
+          jsonModify.updateJsonEntry(newJsonObj,callback);
+        });
+      });
+
+    });
+
+
+  }); // updateJsonEntry
 
   describe("getJson", ()=>{
     it("should return a json filePath", () => {
