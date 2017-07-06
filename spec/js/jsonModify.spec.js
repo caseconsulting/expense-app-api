@@ -40,7 +40,26 @@ describe("JsonModify", ()=> {
 
 
   describe("_writeCallback",()=>{
+    let newJsonObj,callback, err;
+    beforeEach(()=>object = '{object}');
+    beforeEach(()=>err = "{err}");
+    beforeEach(()=>callback = jasmine.createSpy('callback'));
 
+    describe("when there is an error",()=>{
+      it("should call the callback function",()=>{
+        const f = jsonModify._writeCallback(object, callback);
+        f(err);
+        expect(callback).toHaveBeenCalledWith(err);
+      });
+    });
+    describe("when there is no error",()=>{
+      beforeEach(()=> err = null);
+      it("should call addToJson",()=>{
+        const f = jsonModify._writeCallback(object, callback);
+        f(err);
+        expect(callback).toHaveBeenCalledWith(null, object);
+      });
+    });
   }); // _writeCallback
 
   describe("_addToJson",()=>{
