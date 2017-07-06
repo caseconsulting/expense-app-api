@@ -49,16 +49,54 @@ describe("crudRoutes", () => {
     }));
 
     describe("when create is called", () => {
-
       beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
-      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(404, res));
+      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(409, res));
       afterEach(() => expect(jsonModify.addToJson).toHaveBeenCalledWith(newEmployee, crudRoutes._handleResponse(404, res)));
       it("should call addToJson", () => {
-        jsonModify.addToJson(newEmployee, crudRoutes._handleResponse(404, res));
+        jsonModify.addToJson(newEmployee, crudRoutes._handleResponse(409, res));
       });
     });
   }); // create
 
+  describe("read", () => {
+    let res, output, err, req;
+    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
+    beforeEach(() => err = "{err}");
+    beforeEach(() => req = jasmine.createSpyObj('res', ['params']));
+    beforeEach(() => req.params.and.returnValue({
+      id: '{id}'
+    }));
+    beforeEach(() => res.status.and.returnValue(res));
+
+    describe("when output is called", () => {
+      beforeEach(() => jsonModify.readFromJson.and.returnValue('{return from readFromJson}'));
+      afterEach(() => expect(jsonModify.readFromJson).toHaveBeenCalledWith(req.params.id));
+      beforeEach(() => output = jsonModify.readFromJson(req.params.id));
+
+      describe("when there is an output", () => {
+        it("should respond with the output and a 200 code", () => {
+          crudRoutes.read(req, res);
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(output);
+        });
+      }); // when there is an output
+    });
+    describe("when output is empty", () => {
+      beforeEach(() => jsonModify.readFromJson.and.returnValue(null));
+      afterEach(() => expect(jsonModify.readFromJson).toHaveBeenCalledWith(req.params.id));
+      beforeEach(() => output = jsonModify.readFromJson(req.params.id));
+
+      describe("when there is an output", () => {
+        it("should respond with the output and a 200 code", () => {
+          crudRoutes.read(req, res);
+          expect(res.status).toHaveBeenCalledWith(404);
+          expect(res.send).toHaveBeenCalledWith({
+            error: 'READ: Object not found'
+          });
+        });
+      }); // when there is an output
+    });
+  }); // read
 
 
 }); // crudRoutes
