@@ -1,33 +1,32 @@
 const fs = require('fs');
 const _ = require('lodash');
 
-function setFilePath(fileName){
-  const filePath = 'json/'+fileName;
+function setFilePath(fileName) {
+  const filePath = 'json/' + fileName;
   const jsonFile = fs.readFileSync(filePath);
   let jsonParsed = JSON.parse(jsonFile);
 
-  function _matches(id){
-    return jsonObj => jsonObj.id===id;
+  function _matches(id) {
+    return jsonObj => jsonObj.id === id;
   }
+
   function _writeCallback(object, callback) {
     return err => {
-      if(err){
+      if (err) {
         callback(err);
-      }
-      else{
-        callback(null,object);
+      } else {
+        callback(null, object);
       }
 
     }
   }
 
-  function _addToJson(newJsonObj, callback){
+  function _addToJson(newJsonObj, callback) {
     return err => {
-      if(err){
+      if (err) {
         callback(err);
-      }
-      else{
-        jsonModify.addToJson(newJsonObj,callback);
+      } else {
+        jsonModify.addToJson(newJsonObj, callback);
       }
     };
   }
@@ -36,39 +35,40 @@ function setFilePath(fileName){
   //push new value to array
   //stringify the array (JSON>stringify)
   //overwrite json
-  function addToJson(newJsonObj, callback){
+  function addToJson(newJsonObj, callback) {
     const position = _.findIndex(jsonParsed, jsonModify._matches(newJsonObj.id));
-    if (position == -1){
+    if (position == -1) {
       jsonParsed = jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(jsonParsed, null, 2);
       fs.writeFile(filePath, arrayJson, jsonModify._writeCallback(newJsonObj, callback));
-    }
-    else {
-      const err = {message:'ADD: Object already in system'};
+    } else {
+      const err = {
+        message: 'ADD: Object already in system'
+      };
       callback(err);
     }
   }
   //read in the json file
   //parse existing json to an array
   //iterate through the json and find the appropriate value and return it
-  function readFromJson(passedID){
-    const found =  _.find(jsonParsed, jsonModify._matches(passedID));
-    if(found){
+  function readFromJson(passedID) {
+    const found = _.find(jsonParsed, jsonModify._matches(passedID));
+    if (found) {
       return found;
-    }
-    else {
+    } else {
       return null;
     }
   }
 
   function removeFromJson(passedID, callback) {
-    const position =  _.findIndex(jsonParsed, jsonModify._matches(passedID)); //removes type from array
+    const position = _.findIndex(jsonParsed, jsonModify._matches(passedID)); //removes type from array
     //const output =  _.remove(jsonParsed, jsonModify._matches(passedID)); //removes type from array
-    if(position == -1){ //if error
-      const err = {message:'REMOVE: Object not found'};
+    if (position == -1) { //if error
+      const err = {
+        message: 'REMOVE: Object not found'
+      };
       callback(err);
-    }
-    else { //no error
+    } else { //no error
       const output = _.find(jsonParsed, jsonModify._matches(passedID)); //used find to make testing easier
       jsonParsed = _.reject(jsonParsed, jsonModify._matches(passedID));
       const arrayJson = JSON.stringify(jsonParsed, null, 2); //makes json readable
@@ -76,17 +76,15 @@ function setFilePath(fileName){
     }
   }
 
-  function updateJsonEntry(newJsonObj, callback)
-  {
-    jsonModify.removeFromJson(newJsonObj.id, jsonModify._addToJson(newJsonObj,callback));
+  function updateJsonEntry(newJsonObj, callback) {
+    jsonModify.removeFromJson(newJsonObj.id, jsonModify._addToJson(newJsonObj, callback));
   }
 
-  function getJson()
-  {
+  function getJson() {
     return jsonParsed;
   }
 
-  jsonModify = {
+  const jsonModify = {
     addToJson,
     readFromJson,
     removeFromJson,
