@@ -47,7 +47,6 @@ describe("crudRoutes", () => {
     beforeEach(() => req.body.and.returnValue({
       bodyContent: '{body content}'
     }));
-
     describe("when create is called", () => {
       beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
       afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(409, res));
@@ -62,17 +61,15 @@ describe("crudRoutes", () => {
     let res, output, err, req;
     beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
     beforeEach(() => err = "{err}");
-    beforeEach(() => req = jasmine.createSpyObj('res', ['params']));
+    beforeEach(() => req = jasmine.createSpyObj('req', ['params']));
     beforeEach(() => req.params.and.returnValue({
       id: '{id}'
     }));
     beforeEach(() => res.status.and.returnValue(res));
-
     describe("when output is called", () => {
       beforeEach(() => jsonModify.readFromJson.and.returnValue('{return from readFromJson}'));
       afterEach(() => expect(jsonModify.readFromJson).toHaveBeenCalledWith(req.params.id));
       beforeEach(() => output = jsonModify.readFromJson(req.params.id));
-
       describe("when there is an output", () => {
         it("should respond with the output and a 200 code", () => {
           crudRoutes.read(req, res);
@@ -85,7 +82,6 @@ describe("crudRoutes", () => {
       beforeEach(() => jsonModify.readFromJson.and.returnValue(null));
       afterEach(() => expect(jsonModify.readFromJson).toHaveBeenCalledWith(req.params.id));
       beforeEach(() => output = jsonModify.readFromJson(req.params.id));
-
       describe("when there is an output", () => {
         it("should respond with the output and a 200 code", () => {
           crudRoutes.read(req, res);
@@ -98,5 +94,64 @@ describe("crudRoutes", () => {
     });
   }); // read
 
+  describe("update", () => {
+    let res, req, newEmployee;
+    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
+    beforeEach(() => res.status.and.returnValue(res));
+    beforeEach(() => req = jasmine.createSpyObj('req', ['params']));
+    beforeEach(() => req.params.and.returnValue({
+      id: '{id}'
+    }));
+    beforeEach(() => req = jasmine.createSpyObj('req', ['body']));
+    beforeEach(() => req.body.and.returnValue({
+      bodyContent: '{body content}'
+    }));
+    beforeEach(() => newEmployee = "{newEmployee}");
+    describe("when create is called", () => {
+      beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
+      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(404, res));
+      afterEach(() => expect(jsonModify.updateJsonEntry).toHaveBeenCalledWith(newEmployee, crudRoutes._handleResponse(404, res)));
+      it("should call addToJson", () => {
+        jsonModify.updateJsonEntry(newEmployee, crudRoutes._handleResponse(404, res));
+      });
+    });
+  }); // update
+
+  describe("onDelete", () => {
+    let req, res, id;
+    beforeEach(() => req = jasmine.createSpyObj('req', ['params']));
+    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
+    beforeEach(() => id = "{id}");
+    beforeEach(() => req.params.and.returnValue({
+      id: '{id}'
+    }));
+    describe("when create is called", () => {
+      beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
+      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(404, res));
+      afterEach(() => expect(jsonModify.removeFromJson).toHaveBeenCalledWith(id, crudRoutes._handleResponse(404, res)));
+      it("should call addToJson", () => {
+        jsonModify.removeFromJson(id, crudRoutes._handleResponse(404, res));
+      });
+    });
+  }); // onDelete
+  describe("showList", () => {
+    let output, res, req;
+
+    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
+    beforeEach(() => res.status.and.returnValue(res));
+    beforeEach(() => req = '{req}');
+    describe("when showList is called", () => {
+      beforeEach(() => jsonModify.getJson.and.returnValue('{complete json}'));
+      beforeEach(() => output = jsonModify.getJson());
+      afterEach(() => expect(jsonModify.getJson).toHaveBeenCalledWith());
+
+      it("should return the complete json file to const output and send output back with 200 code", () => {
+        crudRoutes.showList(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.send).toHaveBeenCalledWith(output);
+      });
+    });
+
+  }); // showList
 
 }); // crudRoutes

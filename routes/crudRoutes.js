@@ -65,7 +65,9 @@ function crud(jsonModify, _add, _update) {
     read,
     router,
     showList,
-    update
+    update,
+    _add,
+    _update
   };
 }
 
