@@ -36,15 +36,7 @@ function _update(id, {
   receipt,
   expenseTypeId,
   userId
-<<<<<<< HEAD
-}) {
-<<<<<<< HEAD
-  
-=======
->>>>>>> jas-adding: refactored crudroutes for all types
-=======
-}) { 
->>>>>>> jas-adding: added auto relaod to server running and server log
+}){
   return {
     id,
     expenseId,
