@@ -30,6 +30,7 @@ describe("expenseTypeRoutes", () => {
     });
     it("should take in object types", () => {
       const returnVal = svc._update(id, newExpense);
+      console.log(returnVal);
       expect(returnVal).toEqual({
         id: '{id}',
         name: '{name}',

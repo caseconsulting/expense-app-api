@@ -37,7 +37,7 @@ function _update(id, {
   expenseTypeId,
   userId
 }) {
-  console.log(id, firstName, middleName, lastName, empId, hireDate);
+  
   return {
     id,
     expenseId,
