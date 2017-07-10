@@ -37,7 +37,10 @@ function _update(id, {
   expenseTypeId,
   userId
 }) {
+<<<<<<< HEAD
   
+=======
+>>>>>>> jas-adding: refactored crudroutes for all types
   return {
     id,
     expenseId,

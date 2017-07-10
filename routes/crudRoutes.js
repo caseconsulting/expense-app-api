@@ -17,8 +17,8 @@ function crud(jsonModify, _add, _update,uuid) {
   }
 
   function create(req, res) {
-    const newEmployee = _add(uuid,req.body);
-    jsonModify.addToJson(newEmployee, _handleResponse(409, res));
+    const newObject = _add(uuid,req.body);
+    jsonModify.addToJson(newObject, _handleResponse(409, res));
   }
 
   function read(req, res) {
@@ -37,13 +37,12 @@ function crud(jsonModify, _add, _update,uuid) {
   }
 
   function update(req, res) {
-    const newEmployee = _update(req.params.id, req.body);
-    jsonModify.updateJsonEntry(newEmployee, _handleResponse(404, res));
+    const newObject = _update(req.params.id, req.body);
+    jsonModify.updateJsonEntry(newObject, _handleResponse(404, res));
   }
 
   function onDelete(req, res) {
-    const id = req.params.id;
-    jsonModify.removeFromJson(id, _handleResponse(404, res));
+    jsonModify.removeFromJson(req.params.id, _handleResponse(404, res));
   }
 
   function showList(req, res) {
