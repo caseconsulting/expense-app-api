@@ -19,7 +19,7 @@ function crud(jsonModify, _add, _update,uuid) {
   function create(req, res) {
     const newObject = _add(uuid,req.body);
     jsonModify.addToJson(newObject, _handleResponse(409, res));
-  }
+  } 
 
   function read(req, res) {
     console.log("get request recieved");
