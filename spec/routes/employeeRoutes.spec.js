@@ -1,8 +1,9 @@
 const uuid = require('uuid/v4');
 const svc = require('../../routes/employeeRoutes');
 describe("employeeRoutes", () => {
-  xdescribe("_add", () => {
+  describe("_add", () => {
     let newEmployee, uuid;
+    beforeEach(()=> uuid = 'uuid');
     beforeEach(() => newEmployee = {
       firstName: '{firstName}',
       middleName: '{middleName}',
@@ -11,14 +12,10 @@ describe("employeeRoutes", () => {
       hireDate: '{hireDate}'
     });
 
-    beforeEach(() => {
-      spyOn(uuid, 'uuid').and.returnValue('uuid()');
-    });
-    afterEach(() => expect(uuid).toHaveBeenCalledWith());
     it("should take in object types", () => {
-      const returnVal = svc._add(newEmployee);
+      const returnVal = svc._add(uuid,newEmployee);
       expect(returnVal).toEqual({
-        id: 'uuid()',
+        id: 'uuid',
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',

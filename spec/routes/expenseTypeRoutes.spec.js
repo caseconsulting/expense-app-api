@@ -1,22 +1,19 @@
 const uuid = require('uuid/v4');
 const svc = require('../../routes/expenseTypeRoutes');
 describe("expenseTypeRoutes", () => {
-  xdescribe("_add", () => {
+  describe("_add", () => {
     let newExpense, uuid;
+    beforeEach(()=> uuid = 'uuid');
     beforeEach(() => newExpense = {
       name: '{name}',
       budget: '{budget}',
       odFlag: '{odFlag}'
     });
 
-    beforeEach(() => {
-      spyOn(uuid, 'uuid').and.returnValue('uuid()');
-    });
-    afterEach(() => expect(uuid).toHaveBeenCalledWith());
     it("should take in object types", () => {
-      const returnVal = svc._add(newExpense);
+      const returnVal = svc._add(uuid,newExpense);
       expect(returnVal).toEqual({
-        id: 'uuid()',
+        id: 'uuid',
         name: '{name}',
         budget: '{budget}',
         odFlag: '{odFlag}'

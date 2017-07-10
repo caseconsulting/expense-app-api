@@ -1,7 +1,7 @@
 const jsonModify = require('../js/jsonModify')('employee.json');
 const uuid = require('uuid/v4');
 
-function _add({
+function _add(uuid,{
   firstName,
   middleName,
   lastName,
@@ -11,7 +11,7 @@ function _add({
 
   console.log(firstName, middleName, lastName, empId, hireDate);
   return {
-    id: uuid(),
+    id: uuid,
     firstName,
     middleName,
     lastName,
@@ -38,5 +38,8 @@ function _update(id, {
   };
 }
 
-const crud = require('./crudRoutes')(jsonModify, _add, _update);
-module.exports = crud;
+const crud = require('./crudRoutes')(jsonModify, _add, _update,uuid());
+module.exports = Object.assign({}, crud, {
+  _add,
+  _update
+});

@@ -1,6 +1,6 @@
 const express = require('express');
 
-function crud(jsonModify, _add, _update) {
+function crud(jsonModify, _add, _update,uuid) {
 
   const router = express.Router();
 
@@ -17,7 +17,7 @@ function crud(jsonModify, _add, _update) {
   }
 
   function create(req, res) {
-    const newEmployee = _add(req.body);
+    const newEmployee = _add(uuid,req.body);
     jsonModify.addToJson(newEmployee, _handleResponse(409, res));
   }
 
@@ -65,9 +65,7 @@ function crud(jsonModify, _add, _update) {
     read,
     router,
     showList,
-    update,
-    _add,
-    _update
+    update
   };
 }
 

@@ -1,14 +1,14 @@
 const jsonModify = require('../js/jsonModify')('expenseType.json');
 const uuid = require('uuid/v4');
 
-function _add({
+function _add(uuid,{
   name,
   budget,
   odFlag
 }) {
   console.log(name, budget, odFlag);
   return {
-    id: uuid(),
+    id: uuid,
     name,
     budget,
     odFlag
@@ -29,7 +29,7 @@ function _update(id, {
   };
 }
 
-const crud = require('./crudRoutes')(jsonModify, _add, _update);
+const crud = require('./crudRoutes')(jsonModify, _add, _update, uuid());
 module.exports = Object.assign({}, crud, {
   _add,
   _update
