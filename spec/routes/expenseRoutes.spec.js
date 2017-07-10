@@ -9,7 +9,7 @@ describe('expenseRoutes', () => {
     //set up
     beforeEach(() => {
       uuid = 'uuid'
-      });
+    });
     beforeEach(() => newExpense = {
       expenseId: '{expenseId}',
       purchaseDate: '{purchaseDate}',
@@ -21,7 +21,7 @@ describe('expenseRoutes', () => {
       expenseTypeId: '{expenseTypeId}',
       userId: '{userId}'
     });
-    it("should take in an expense type", () => {
+    it("should take in an expense", () => {
       const returnVal = svc._add(uuid, newExpense);
       expect(returnVal).toEqual(
         {
@@ -37,9 +37,40 @@ describe('expenseRoutes', () => {
           userId: '{userId}'
         }
       );
-      });
-
-
-
+    });
   }); //_add
+  describe("_update", () => {
+    let newExpense, id;
+    beforeEach(() => newExpense =
+    {
+      expenseId: '{expenseId}',
+      purchaseDate: '{purchaseDate}',
+      reimbursedDate: '{reimbursedDate}',
+      cost: '{cost}',
+      description: '{description}',
+      note: '{note}',
+      receipt: '{receipt}',
+      expenseTypeId: '{expenseTypeId}',
+      userId: '{userId}'
+    });
+    beforeEach(() => id = '{id}');
+    it("should update an expense", () => {
+      const returnVal = svc._update(id, newExpense);
+      expect(returnVal).toEqual(
+        {
+          id: '{id}',
+          expenseId: '{expenseId}',
+          purchaseDate: '{purchaseDate}',
+          reimbursedDate: '{reimbursedDate}',
+          cost: '{cost}',
+          description: '{description}',
+          note: '{note}',
+          receipt: '{receipt}',
+          expenseTypeId: '{expenseTypeId}',
+          userId: '{userId}'
+        }
+      );
+
+      });
+  }); //_update
 });
