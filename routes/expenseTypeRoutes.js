@@ -6,13 +6,21 @@ function _add(uuid,{
   budget,
   odFlag
 }) {
+
+  let found = jsonModify._specificFind("name", name);
   console.log(name, budget, odFlag);
-  return {
-    id: uuid,
-    name,
-    budget,
-    odFlag
-  };
+  if (found)
+  {
+    return null;
+  }
+  else {
+    return {
+      id: uuid,
+      name,
+      budget,
+      odFlag
+    };
+  }
 }
 
 function _update(id, {
