@@ -10,6 +10,17 @@ function setFilePath(fileName) {
     return jsonObj => jsonObj.id === id;
   }
 
+  function _specificFind(indexKey, targetValue)
+  {
+    const found = _.find(jsonParsed, [indexKey, targetValue]);
+    console.log(found);
+    if (found) {
+      return found;
+    } else {
+      return null;
+    }
+  }
+
   function _writeCallback(object, callback) {
     return err => {
       if (err) {
@@ -36,8 +47,9 @@ function setFilePath(fileName) {
   //stringify the array (JSON>stringify)
   //overwrite json
   function addToJson(newJsonObj, callback) {
-    const position = _.findIndex(jsonParsed, jsonModify._matches(newJsonObj.id));
-    if (position == -1) {
+    // const position = _.findIndex(jsonParsed, jsonModify._matches(newJsonObj.id));
+    // console.log(position);
+    if (newJsonObj) {
       jsonParsed = jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(jsonParsed, null, 2);
       fs.writeFile(filePath, arrayJson, jsonModify._writeCallback(newJsonObj, callback));
@@ -92,7 +104,8 @@ function setFilePath(fileName) {
     getJson,
     _matches,
     _writeCallback,
-    _addToJson
+    _addToJson,
+    _specificFind
   }
   return jsonModify;
 }

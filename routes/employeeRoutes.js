@@ -8,16 +8,25 @@ function _add(uuid,{
   empId,
   hireDate
 }) {
+  console.log(empId);
+  let found = jsonModify._specificFind("empId", empId);
+  console.log("This is your reuslt: " + found);
+  if(found){
+return null;
+}
 
+else {
   console.log(firstName, middleName, lastName, empId, hireDate);
-  return {
-    id: uuid,
-    firstName,
-    middleName,
-    lastName,
-    empId,
-    hireDate
-  };
+return {
+  id: uuid,
+  firstName,
+  middleName,
+  lastName,
+  empId,
+  hireDate
+};
+
+}
 }
 
 function _update(id, {
