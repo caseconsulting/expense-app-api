@@ -13,7 +13,7 @@ function setFilePath(fileName) {
   function _specificFind(indexKey, targetValue)
   {
     const found = _.find(jsonParsed, [indexKey, targetValue]);
-    console.log(found);
+    //console.log(found);
     if (found) {
       return found;
     } else {

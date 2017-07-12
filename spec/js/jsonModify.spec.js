@@ -64,10 +64,10 @@ describe("JsonModify", () => {
       beforeEach(() => {
         _.find.and.returnValue(null);
       });
-      it("should return null"), () => {
+      it("should return null", () => {
         const returnVal = jsonModify._specificFind(indexKey, targetValue);
         expect(returnVal).toEqual(null);
-      }
+      });
     }); //when found is null
   }); //_specificFind
 

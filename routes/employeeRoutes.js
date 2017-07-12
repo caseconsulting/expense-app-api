@@ -10,7 +10,7 @@ function _add(uuid,{
 }) {
 
   let found = jsonModify._specificFind("empId", empId);
-
+  console.log(" in add " + found);
   if(found){
     return null;
   }
