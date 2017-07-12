@@ -81,7 +81,8 @@ function crud(jsonModify, _add, _update,uuid) {
     read,
     router,
     showList,
-    update
+    update,
+    _inputChecker
   };
 }
 

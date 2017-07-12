@@ -38,7 +38,7 @@ describe("JsonModify", () => {
     });
   }); // _matches
 
-  fdescribe("_specificFind", () => {
+  xdescribe("_specificFind", () => {
     //
     let indexKey, targetValue;
     beforeEach(() => indexKey = "{indexKey}");

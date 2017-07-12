@@ -1,4 +1,5 @@
 const crudRoutesRequire = require('../../routes/crudRoutes');
+const _ = require('lodash');
 
 describe("crudRoutes", () => {
 
@@ -38,6 +39,28 @@ describe("crudRoutes", () => {
       });
     });
   }); // _handleResponse
+
+  xdescribe("_inputChecker",()=>{
+    let objectToCheck,res;
+    beforeEach(()=>objectToCheck = "{objectToCheck}");
+    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
+    beforeEach(() => res.status.and.returnValue(res));
+    beforeEach(()=> spyOn(_,'includes'));
+
+    describe("if an empty space is found",()=>{
+      let errorCall;
+      beforeEach(()=> _.includes.and.returnValue('true'));
+      beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
+      beforeEach(()=> errorCall = jasmine.createSpy('errorCall'));
+      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(409, res));
+      it("should call errorCall",()=>{
+      crudRoutes._inputChecker(objectToCheck,res);
+        expect(errorCall).toHaveBeenCalledWith({message: 'CREATE: All fields needed'});
+      });
+    }); // if an empty space is found
+
+
+  }); // _inputChecker
 
   describe("create", () => {
     let req, res, newEmployee;
