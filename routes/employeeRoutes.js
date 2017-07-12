@@ -14,7 +14,6 @@ function _add(uuid,{
   if(found){
     return null;
   }
-
   else {
     console.log(firstName, middleName, lastName, empId, hireDate);
     return {
@@ -28,6 +27,7 @@ function _add(uuid,{
 
   }
 }
+
 
 function _update(id, {
   firstName,

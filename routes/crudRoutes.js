@@ -1,4 +1,5 @@
 const express = require('express');
+const _ = require('lodash');
 
 function crud(jsonModify, _add, _update,uuid) {
 
@@ -16,9 +17,23 @@ function crud(jsonModify, _add, _update,uuid) {
     };
   }
 
+  function _inputChecker(objectToCheck,res){
+
+    const checkResult = _.includes(objectToCheck,"");
+    if (checkResult) {
+      const errorCall = _handleResponse(406,res);
+      errorCall({message: 'CREATE: All fields needed'});
+    }
+    else {
+      return checkResult;
+    }
+  }
+
   function create(req, res) {
     const newObject = _add(uuid,req.body);
-    jsonModify.addToJson(newObject, _handleResponse(409, res));
+    if(!_inputChecker(newObject, res)){
+      jsonModify.addToJson(newObject, _handleResponse(409, res));
+    }
   }
 
   function read(req, res) {
@@ -38,7 +53,9 @@ function crud(jsonModify, _add, _update,uuid) {
 
   function update(req, res) {
     const newObject = _update(req.params.id, req.body);
-    jsonModify.updateJsonEntry(newObject, _handleResponse(404, res));
+    if(!_inputChecker(newObject, res)){
+      jsonModify.updateJsonEntry(newObject, _handleResponse(404, res));
+    }
   }
 
   function onDelete(req, res) {
