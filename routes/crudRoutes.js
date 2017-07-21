@@ -53,8 +53,18 @@ function crud(jsonModify, _add, _update,uuid) {
 
   function update(req, res) {
     const newObject = _update(req.params.id, req.body);
-    if(!_inputChecker(newObject, res)){
-      jsonModify.updateJsonEntry(newObject, _handleResponse(404, res));
+    if (newObject)
+    {
+      if(!_inputChecker(newObject, res)){
+        jsonModify.updateJsonEntry(newObject, _handleResponse(404, res));
+      }
+    }
+    else {
+      const err = {
+        message: 'UPDATE: Object already exists'
+      }
+      const error = _handleResponse(409, res);
+      error(err);
     }
   }
 

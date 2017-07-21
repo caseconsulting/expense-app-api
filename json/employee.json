@@ -1,61 +1,5 @@
 [
   {
-    "id": "f8cac45c-081d-4174-988c-7eb90e4d15e5",
-    "firstName": "Admiral",
-    "middleName": "z",
-    "lastName": "Ackbar",
-    "empId": "29",
-    "hireDate": " 12/3/03"
-  },
-  {
-    "id": "4aa86beb-2e62-4fe9-8f7f-3400885bb229",
-    "firstName": "Mace",
-    "middleName": "g",
-    "lastName": "Windu",
-    "empId": "28",
-    "hireDate": " 1/2/99"
-  },
-  {
-    "id": "2399d77f-bd24-4e40-aa6a-ddc468814d9a",
-    "firstName": "Greedo",
-    "middleName": "Shaw",
-    "lastName": "T'first",
-    "empId": "27",
-    "hireDate": " 10/22/17"
-  },
-  {
-    "id": "8d2c0a3e-f5b3-4463-ab4a-7242caa176fe",
-    "firstName": "C",
-    "middleName": "-",
-    "lastName": "3PO",
-    "empId": "25",
-    "hireDate": " 1/13/10"
-  },
-  {
-    "id": "1bf78882-b03b-4527-9cd1-bb864c90ea54",
-    "firstName": "Qui-Gon",
-    "middleName": "wait for it",
-    "lastName": "Jin",
-    "empId": "24",
-    "hireDate": " 5/19/95"
-  },
-  {
-    "id": "1763535e-2c4d-4172-9511-0d3797425712",
-    "firstName": "Padmé",
-    "middleName": "p",
-    "lastName": "Amidala",
-    "empId": "23",
-    "hireDate": " 4/30/15"
-  },
-  {
-    "id": "51880c94-660f-45ba-b001-38c4bc3a2b49",
-    "firstName": "Scout",
-    "middleName": "tree",
-    "lastName": "Trooper",
-    "empId": "22",
-    "hireDate": " 1/30/11"
-  },
-  {
     "id": "fa4e063c-5a7e-4d98-8966-94c2ab7fb8af",
     "firstName": "Poe",
     "middleName": "fly",
@@ -168,14 +112,6 @@
     "hireDate": " 1/9/00"
   },
   {
-    "id": "9a4a1a7b-7674-43b9-8d5e-09cdd0beca82",
-    "firstName": "Luke",
-    "middleName": " ",
-    "lastName": "Skywalker",
-    "empId": "3",
-    "hireDate": " 7/9/03"
-  },
-  {
     "id": "df2f8d22-591f-455a-bfd6-35d5f40985f3",
     "firstName": "Darth",
     "middleName": "my father",
@@ -190,5 +126,13 @@
     "lastName": "Solo",
     "empId": "1",
     "hireDate": " 2/1/92"
+  },
+  {
+    "id": "5ae6978a-d808-49b5-8134-539808877bd3",
+    "firstName": "Fahad",
+    "middleName": " ",
+    "lastName": "Ashraf",
+    "empId": "300999",
+    "hireDate": "10/10/1995"
   }
 ]
