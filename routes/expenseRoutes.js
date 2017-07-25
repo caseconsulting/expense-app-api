@@ -1,4 +1,5 @@
-const jsonModify = require('../js/jsonModify')('expense.json');
+const JsonModify = require('../js/jsonModify');
+const jsonModify = new JsonModify('expense.json');
 const uuid = require('uuid/v4');
 
 function _add(uuid,{
