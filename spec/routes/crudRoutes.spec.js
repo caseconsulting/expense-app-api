@@ -1,13 +1,14 @@
-const crudRoutesRequire = require('../../routes/crudRoutes');
+const Crud = require('../../routes/crudRoutes');
 const _ = require('lodash');
 
-describe("crudRoutes", () => {
+fdescribe("crudRoutes", () => {
 
-  let crudRoutes, jsonModify, _add, _update;
+  let crudRoutes, jsonModify, _add, _update, _uuid;
   beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['addToJson', 'readFromJson', 'removeFromJson', 'updateJsonEntry', 'getJson']));
   beforeEach(() => _add = jasmine.createSpy('_add'));
   beforeEach(() => _update = jasmine.createSpy('_update'));
-  beforeEach(() => crudRoutes = crudRoutesRequire(jsonModify, _add, _update));
+  beforeEach(()=> _uuid = jasmine.createSpy('_uuid'));
+  beforeEach(() => crudRoutes = new Crud(jsonModify, _add, _update, _uuid));
 
   describe("_handleResponse", () => {
     let errorCode, res, sendBack, err;

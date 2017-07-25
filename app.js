@@ -35,7 +35,7 @@ app.use('/employees', employee.router);
 app.use('/expenseRoutes',expenseRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('!Not ROUTE Found');
+  var err = new Error(' No Route Found');
   err.status = 404;
   next(err);
 });

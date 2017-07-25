@@ -2,7 +2,7 @@ const JsonModify = require('../../js/jsonModify');
 const fs = require('fs');
 const _ = require('lodash');
 
-fdescribe("JsonModify", () => {
+describe("JsonModify", () => {
   let jsonModify, jsonParsed;
   beforeEach(() => {
 
