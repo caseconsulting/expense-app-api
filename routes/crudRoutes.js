@@ -3,18 +3,16 @@ const _ = require('lodash');
 
 class Crud {
 
-  constructor(jsonModify, _add, _update, _uuid) {
+  constructor(jsonModify, _uuid) {
     this.jsonModify = jsonModify;
-    this._add = _add;
-    this._update = _update;
     this._uuid = _uuid;
     this._router = express.Router();
 
-    this._router.get('/', this.showList);
-    this._router.post('/', this.create);
-    this._router.get('/:id', this.read);
-    this._router.put('/:id', this.update);
-    this._router.delete('/:id', this.onDelete);
+    this._router.get('/', this.showList.bind(this));
+    this._router.post('/', this.create.bind(this));
+    this._router.get('/:id', this.read.bind(this));
+    this._router.put('/:id', this.update.bind(this));
+    this._router.delete('/:id', this.onDelete.bind(this));
   }
 
   get router() {
@@ -90,6 +88,7 @@ class Crud {
   showList(req, res) {
     console.log("get request recieved for everything");
     const output = this.jsonModify.getJson();
+
     res.status(200).send(output);
   }
 

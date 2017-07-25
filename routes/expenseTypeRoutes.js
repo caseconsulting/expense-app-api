@@ -1,14 +1,19 @@
-const JsonModify = require('../js/jsonModify');
-const jsonModify = new JsonModify('expenseType.json');
-const uuid = require('uuid/v4');
+const Crud = require('./crudRoutes');
 
-function _add(uuid,{
+class ExpenseTypeRoutes extends Crud {
+  constructor(jsonModify, uuid) {
+    super(jsonModify, uuid);
+    this.jsonModify = jsonModify;
+
+  }
+
+ _add(uuid,{
   name,
   budget,
   odFlag
 }) {
 
-  let found = jsonModify._specificFind("name", name);
+  let found = this.jsonModify._specificFind("name", name);
   console.log(name, budget, odFlag);
   if (found)
   {
@@ -24,7 +29,7 @@ function _add(uuid,{
   }
 }
 
-function _update(id, {
+ _update(id, {
   name,
   budget,
   odFlag
@@ -37,9 +42,5 @@ function _update(id, {
     odFlag
   };
 }
-
-const crud = require('./crudRoutes')(jsonModify, _add, _update, uuid());
-module.exports = Object.assign({}, crud, {
-  _add,
-  _update
-});
+}
+module.exports = ExpenseTypeRoutes;
