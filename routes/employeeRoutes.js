@@ -1,7 +1,7 @@
 const jsonModify = require('../js/jsonModify')('employee.json');
 const uuid = require('uuid/v4');
 
-function _add(uuid,{
+function _add(uuid, {
   firstName,
   middleName,
   lastName,
@@ -9,14 +9,14 @@ function _add(uuid,{
   hireDate
 }) {
 
-  let found = jsonModify._specificFind("empId", empId);
-  console.log(" in add " + found);
-  if(found){
+  let objectWasFound = jsonModify._specificFind("empId", empId);
+  console.log('object was found: ', objectWasFound);
+  if (objectWasFound) {
+    console.log('** object already exists ** ', objectWasFound);
     return null;
-  }
-  else {
-    console.log(firstName, middleName, lastName, empId, hireDate);
-    return {
+  } else {
+    console.log('** object was added ** ', objectWasFound);
+    let output = {
       id: uuid,
       firstName,
       middleName,
@@ -24,10 +24,11 @@ function _add(uuid,{
       empId,
       hireDate
     };
-
+    console.log('else output ', output);
+    return output
   }
-}
 
+}
 
 function _update(id, {
   firstName,
@@ -38,10 +39,9 @@ function _update(id, {
 }) {
   let found = jsonModify._specificFind("empId", empId);
   console.log(" in add " + found);
-  if(found){
+  if (found) {
     return null;
-  }
-  else {
+  } else {
     return {
       id,
       firstName,
@@ -53,7 +53,7 @@ function _update(id, {
   }
 }
 
-const crud = require('./crudRoutes')(jsonModify, _add, _update,uuid());
+const crud = require('./crudRoutes')(jsonModify, _add, _update, uuid());
 module.exports = Object.assign({}, crud, {
   _add,
   _update
