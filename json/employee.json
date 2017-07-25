@@ -112,14 +112,6 @@
     "hireDate": " 1/9/00"
   },
   {
-    "id": "df2f8d22-591f-455a-bfd6-35d5f40985f3",
-    "firstName": "Darth",
-    "middleName": "my father",
-    "lastName": "Vader",
-    "empId": "2",
-    "hireDate": " 5/19/13"
-  },
-  {
     "id": "6c4f6123-cbd7-4567-824e-4fe1f1a113f3",
     "firstName": "Han",
     "middleName": "the man",
@@ -134,5 +126,13 @@
     "lastName": "Ashraf",
     "empId": "300999",
     "hireDate": "10/10/1995"
+  },
+  {
+    "id": "df2f8d22-591f-455a-bfd6-35d5f40985f3",
+    "firstName": "Darth",
+    "middleName": "my father",
+    "lastName": "Vader",
+    "empId": "3",
+    "hireDate": " 5/19/13"
   }
 ]

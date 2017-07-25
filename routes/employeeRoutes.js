@@ -45,7 +45,7 @@ class EmployeeRoutes extends Crud {
   }) {
     let found = this.jsonModify._specificFind("empId", empId);
     console.log(" in add " + found);
-    if (found) {
+    if (found && found.id !== id) {
       return null;
     } else {
       return {

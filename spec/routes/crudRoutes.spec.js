@@ -51,11 +51,13 @@ describe("crudRoutes", () => {
     describe("if an empty space is found",()=>{
       let errorCall;
       beforeEach(()=> _.includes.and.returnValue('true'));
-      beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
-      beforeEach(()=> errorCall = jasmine.createSpy('errorCall'));
-      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(409, res));
+      beforeEach(()=> errorCall = jasmine.createSpy('errorCall()'));
+      beforeEach(() => spyOn(crudRoutes, "_handleResponse").and.returnValue(errorCall));
+
+      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(406, res));
       it("should call errorCall",()=>{
       crudRoutes._inputChecker(objectToCheck,res);
+
         expect(errorCall).toHaveBeenCalledWith({message: 'CREATE: All fields needed'});
       });
     }); // if an empty space is found

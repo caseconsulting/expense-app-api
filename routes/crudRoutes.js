@@ -32,10 +32,10 @@ class Crud {
   }
 
   _inputChecker(objectToCheck, res) {
-
     const checkResult = _.includes(objectToCheck, "");
     if (checkResult) {
-      const errorCall = this._handleResponse(406, res);
+      let errorCall = this._handleResponse(406, res);
+      console.log('=*************',errorCall);
       errorCall({
         message: 'CREATE: All fields needed'
       });

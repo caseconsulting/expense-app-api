@@ -2,10 +2,11 @@ const uuid = require('uuid/v4');
 //const jsonModify = require('../../js/jsonModify')('employee.json');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 
-fdescribe("employeeRoutes", () => {
+describe("employeeRoutes", () => {
   let jsonModify, svc;
   beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['_specificFind']));
   beforeEach(() => svc = new EmployeeRoutes(jsonModify, uuid()));
+
   describe("_add", () => {
     let newEmployee, uuid;
     beforeEach(() => uuid = 'uuid');
@@ -16,10 +17,10 @@ fdescribe("employeeRoutes", () => {
       empId: '{empId}',
       hireDate: '{hireDate}'
     });
-    let testSpy;
+
     describe("if employee is not found", () => {
       beforeEach(() => {
-        jsonModify._specificFind.and.returnValue(true);
+        jsonModify._specificFind.and.returnValue({id: '{id}'});
         //testSpy = spyOn(jsonModify, "_specificFind").and.returnValue('******');
       });
 

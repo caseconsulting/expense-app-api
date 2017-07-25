@@ -1,5 +1,10 @@
 const uuid = require('uuid/v4');
-const svc = require('../../routes/expenseTypeRoutes');
+const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
+
+let jsonModify, svc;
+beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['_specificFind']));
+beforeEach(() => svc = new ExpenseTypeRoutes(jsonModify, uuid()));
+
 describe("expenseTypeRoutes", () => {
   describe("_add", () => {
     let newExpense, uuid;
@@ -11,7 +16,7 @@ describe("expenseTypeRoutes", () => {
     });
 
     it("should take in object types", () => {
-      const returnVal = svc._add(uuid,newExpense);
+      const returnVal = svc._add(uuid, newExpense);
       expect(returnVal).toEqual({
         id: 'uuid',
         name: '{name}',
