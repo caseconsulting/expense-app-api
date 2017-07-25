@@ -1,14 +1,14 @@
-const jsonModifyRequire = require('../../js/jsonModify');
+const JsonModify = require('../../js/jsonModify');
 const fs = require('fs');
 const _ = require('lodash');
 
-describe("JsonModify", () => {
+fdescribe("JsonModify", () => {
   let jsonModify, jsonParsed;
   beforeEach(() => {
 
     spyOn(fs, 'readFileSync').and.returnValue('jsonFile');
     spyOn(JSON, 'parse').and.returnValue([]);
-    jsonModify = jsonModifyRequire('test.json');
+    jsonModify = new JsonModify();
     jsonParsed = [];
 
   });
@@ -38,7 +38,7 @@ describe("JsonModify", () => {
     });
   }); // _matches
 
-  xdescribe("_specificFind", () => {
+  describe("_specificFind", () => {
     //
     let indexKey, targetValue;
     beforeEach(() => indexKey = "{indexKey}");
@@ -118,56 +118,28 @@ describe("JsonModify", () => {
         f(err);
       });
     });
-
   }); // _addToJson
 
-  describe("addToJson", () => {
-    let newJsonObj, callback;
-    beforeEach(() => {
-      callback = jasmine.createSpy('callback');
-    });
-    beforeEach(() => newJsonObj = {
-      id: "{id}"
-    });
+  describe("addToJson",()=>{
+    let newJsonObj,callback;
+    beforeEach(()=>newJsonObj = "{newJsonObj}");
+    beforeEach(()=>callback = "{callback}");
 
-    describe("when matches", () => {
-      beforeEach(() => {
-        spyOn(jsonModify, "_matches").and.returnValue("{matches}");
+    describe("when newJsonObj is true",()=>{
+      beforeEach(()=> newJsonObj=true);
+      beforeEach(()=> spyOn(jsonModify,'_writeCallback').and.returnValue('_writeCallback()'));
+      afterEach(()=>{
+        expect(jsonModify._writeCallback).toHaveBeenCalledWith(newJsonObj, callback);
       });
-      afterEach(() => {
-        expect(jsonModify._matches).toHaveBeenCalledWith(newJsonObj.id);
-      });
+      describe("when writting file", () => {
+        beforeEach(() => spyOn(fs, "writeFile"));
+        afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/', JSON.stringify([newJsonObj], null, 2), '_writeCallback()'));
 
-      describe("when findIndex is -1", () => {
-        beforeEach(() => {
-          spyOn(_, "findIndex").and.returnValue(-1);
-        });
-        afterEach(() => {
-          expect(_.findIndex).toHaveBeenCalledWith(jsonParsed, "{matches}");
-        });
-        describe("when writting file", () => {
-          beforeEach(() => spyOn(fs, "writeFile"));
-          afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/test.json', JSON.stringify([newJsonObj], null, 2), jasmine.any(Function)));
-
-          it("should write a new json file", () => {
-            jsonModify.addToJson(newJsonObj, callback);
-          });
-        });
-      });
-      describe("when findIndex is not -1", () => {
-        beforeEach(() => {
-          spyOn(_, "findIndex").and.returnValue(7);
-        });
-        afterEach(() => {
-          expect(_.findIndex).toHaveBeenCalledWith(jsonParsed, "{matches}");
-        });
-        it("should call the callback function with an error", () => {
+        it("should write a new json file", () => {
           jsonModify.addToJson(newJsonObj, callback);
-          expect(callback).toHaveBeenCalledWith({
-            message: 'ADD: Object already in system'
-          });
         });
       });
+
     });
   }); // addToJson
 
@@ -249,7 +221,7 @@ describe("JsonModify", () => {
                 afterEach(() => expect(jsonModify._writeCallback).toHaveBeenCalledWith('output', callback));
                 describe("when writting to json", () => {
                   beforeEach(() => spyOn(fs, "writeFile"));
-                  afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/test.json', JSON.stringify(['jsonParsed - removed'], null, 2), 'callback()'));
+                  afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/', JSON.stringify(['jsonParsed - removed'], null, 2), 'callback()'));
 
                   it("should will write the file and return the removed element", () => {
                     jsonModify.removeFromJson(passedID, callback);

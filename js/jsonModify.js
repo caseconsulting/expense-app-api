@@ -3,9 +3,11 @@ const _ = require('lodash');
 
 class JsonModify{
   constructor(fileName){
-   this.filePath = 'json/' + fileName;
-   this.jsonFile = fs.readFileSync(this.filePath);
-   this.jsonParsed = JSON.parse(this.jsonFile);
+
+   this.filePath = fileName ? `json/${fileName}` : 'json/';
+   this.jsonFile = fileName ? fs.readFileSync(this.filePath):'';
+   this.jsonParsed = fileName ? JSON.parse(this.jsonFile):[];
+
  }
    _matches(id) {
     return jsonObj => jsonObj.id === id;

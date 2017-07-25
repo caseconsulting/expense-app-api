@@ -1,5 +1,5 @@
 const uuid = require('uuid/v4');
-const jsonModify = require('../../js/jsonModify')('employee.json');
+//const jsonModify = require('../../js/jsonModify')('employee.json');
 const svc = require('../../routes/employeeRoutes');
 
 describe("employeeRoutes", () => {
@@ -35,7 +35,7 @@ describe("employeeRoutes", () => {
       });
     }); //if employee is not found
 
-    fdescribe("if employee was found", () => {
+    describe("if employee was found", () => {
       beforeEach(() => {
         createSpy(jsonModify).and.returnValue({_specificFind: 'spy'});
       });
