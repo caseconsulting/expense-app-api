@@ -4,7 +4,6 @@ class ExpenseTypeRoutes extends Crud {
   constructor(jsonModify, uuid) {
     super(jsonModify, uuid);
     this.jsonModify = jsonModify;
-
   }
 
  _add(uuid,{

@@ -11,10 +11,12 @@ var index = require('./routes/index');
 
 
 const JsonModify = require('./js/jsonModify');
-var expenseRoutes = require('./routes/expenseRoutes');
+var ExpenseRoutes = require('./routes/expenseRoutes');
+const expenseRoutes = new ExpenseRoutes(new JsonModify('expense.json'),uuid());
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
 const expenseTypeRoutes = new ExpenseTypeRoutes(new JsonModify('expenseType.json'),uuid());
-var employee = require('./routes/employeeRoutes');
+var EmployeeRoutes = require('./routes/employeeRoutes');
+const employeeRoutes = new EmployeeRoutes(new JsonModify('employee.json'),uuid()); 
 var app = express();
 
 // view engine setup
@@ -34,8 +36,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/expense-types', expenseTypeRoutes.router);
-//app.use('/employees', employee.router);
-//app.use('/expenseRoutes',expenseRoutes.router);
+app.use('/employees', employeeRoutes.router);
+app.use('/expenseRoutes',expenseRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');

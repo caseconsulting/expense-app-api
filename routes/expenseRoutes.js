@@ -1,10 +1,13 @@
-const JsonModify = require('../js/jsonModify');
-const jsonModify = new JsonModify('expense.json');
-const uuid = require('uuid/v4');
 const Crud = require('./crudRoutes');
-const crud = new Crud(jsonModify, _add, _update, uuid());
 
-function _add(uuid,{
+class ExpenseRoutes extends Crud{
+  constructor(jsonModify, uuid) {
+    super(jsonModify, uuid);
+    this.jsonModify = jsonModify;
+  }
+
+
+ _add(uuid,{
 expenseId,
 purchaseDate,
 reimbursedDate,
@@ -29,7 +32,7 @@ userId
   };
 }
 
-function _update(id, {
+ _update(id, {
   expenseId,
   purchaseDate,
   reimbursedDate,
@@ -53,8 +56,5 @@ function _update(id, {
     userId
   };
 }
-
-module.exports = Object.assign({}, crud, {
-  _add,
-  _update
-});
+}
+module.exports = ExpenseRoutes;
