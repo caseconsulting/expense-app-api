@@ -1,7 +1,7 @@
 const Crud = require('../../routes/crudRoutes');
 const _ = require('lodash');
 
-fdescribe("crudRoutes", () => {
+describe("crudRoutes", () => {
 
   let crudRoutes, jsonModify, _add, _update, _uuid;
   beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['addToJson', 'readFromJson', 'removeFromJson', 'updateJsonEntry', 'getJson']));
@@ -41,7 +41,7 @@ fdescribe("crudRoutes", () => {
     });
   }); // _handleResponse
 
-  xdescribe("_inputChecker",()=>{
+  describe("_inputChecker",()=>{
     let objectToCheck,res;
     beforeEach(()=>objectToCheck = "{objectToCheck}");
     beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
