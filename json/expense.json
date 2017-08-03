@@ -1,14 +1,65 @@
 [
-
   {
-    "id": "dbbb6bee-72f8-416b-a76e-3777351136cf",
-    "purchaseDate": "",
-    "reimbursedDate": "",
-    "cost": "",
-    "description": "",
+    "id": "43394cea-5286-4087-9bf4-4a0fd8544a1b",
+    "purchaseDate": "1/3/15",
+    "reimbursedDate": "1/1/16",
+    "cost": "500.00",
+    "description": "Phone",
+    "note": "Good phone",
+    "userId": "321"
+  },
+  {
+    "id": "f5a0e4c3-c332-4df1-877f-a345083b7890",
+    "purchaseDate": "12/16/15",
+    "reimbursedDate": "1/1/16",
+    "cost": "100.00",
+    "description": "Food",
+    "note": "Good food",
+    "userId": "111"
+  },
+  {
+    "id": "60903c24-eff7-4183-a282-9bda1c39ea64",
+    "purchaseDate": "11/18/15",
+    "reimbursedDate": "1/1/16",
+    "cost": "895.00",
+    "description": "Training",
     "note": "",
-    "reciept": "",
-    "expenseTypeId": "",
-    "userId": ""
+    "userId": "2786"
+  },
+  {
+    "id": "65dc123c-9cf7-456e-9d30-6d3a5b2781cd",
+    "purchaseDate": "11/18/15",
+    "reimbursedDate": "1/1/16",
+    "cost": "895.00",
+    "description": "Training",
+    "note": " ",
+    "userId": "2786"
+  },
+  {
+    "id": "9d3b9bf3-5e03-4564-af49-22fd8ecae6b8",
+    "purchaseDate": "10/10/15",
+    "reimbursedDate": "11/1/15",
+    "cost": "150.00",
+    "description": "Transportation",
+    "note": " ",
+    "userId": "383987"
+  },
+  {
+    "id": "053a384c-df10-4889-a5c2-61bb3658f662",
+    "purchaseDate": "8/15/15",
+    "reimbursedDate": "11/1/15",
+    "cost": "1000.00",
+    "description": "Tech",
+    "note": "Laptop",
+    "userId": "f897a89b"
+  },
+  {
+    "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
+    "purchaseDate": "8/2/17",
+    "reimbursedDate": "10/1/17",
+    "cost": "1000.00",
+    "description": "Tech",
+    "note": "Another Laptop",
+    "userId": "289f98e"
   }
 ]
