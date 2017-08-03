@@ -1,13 +1,5 @@
 [
   {
-    "id": "fa4e063c-5a7e-4d98-8966-94c2ab7fb8af",
-    "firstName": "Poe",
-    "middleName": "fly",
-    "lastName": "Dameron",
-    "empId": "21",
-    "hireDate": " 3/23/12"
-  },
-  {
     "id": "04b0e8e6-8d28-4976-84d0-3efb6e505c91",
     "firstName": "Grand",
     "middleName": "Moff",
@@ -134,5 +126,45 @@
     "lastName": "Vader",
     "empId": "3",
     "hireDate": " 5/19/13"
+  },
+  {
+    "id": "f5ed6398-20dd-43e0-a19f-1f4bad4fe6bf",
+    "firstName": "Grand",
+    "middleName": "Moff",
+    "lastName": "This works",
+    "empId": "2089387",
+    "hireDate": " 2/13/95"
+  },
+  {
+    "id": "94bb285c-7277-485f-b68f-3de4d84b41bc",
+    "firstName": "Jarvis",
+    "middleName": "AI",
+    "lastName": "All Knowing",
+    "empId": "123456",
+    "hireDate": "10/19/1202"
+  },
+  {
+    "id": "80777ea9-cc1e-426d-902d-9e64f464faac",
+    "firstName": "Jarvi",
+    "middleName": "A",
+    "lastName": "Dummy",
+    "empId": "1234",
+    "hireDate": "10/19/1202"
+  },
+  {
+    "id": "692a7e89-c0c3-4e60-b239-e990e01513ef",
+    "firstName": "Johnny",
+    "middleName": "Appleseed",
+    "lastName": "Smith",
+    "empId": 12345678,
+    "hireDate": "1995-10-10"
+  },
+  {
+    "id": "a42ec315-fdd1-4f04-a679-bbce3ff742a5",
+    "firstName": "Johnny",
+    "middleName": "Appleseed",
+    "lastName": "Smith",
+    "empId": 3748497,
+    "hireDate": "1995-10-10"
   }
 ]
