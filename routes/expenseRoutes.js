@@ -8,7 +8,6 @@ class ExpenseRoutes extends Crud{
 
 
  _add(uuid,{
-expenseId,
 purchaseDate,
 reimbursedDate,
 cost,
@@ -20,7 +19,6 @@ userId
 }) {
   return {
     id: uuid,
-    expenseId,
     purchaseDate,
     reimbursedDate,
     cost,
@@ -33,7 +31,6 @@ userId
 }
 
  _update(id, {
-  expenseId,
   purchaseDate,
   reimbursedDate,
   cost,
@@ -45,7 +42,6 @@ userId
 }){
   return {
     id,
-    expenseId,
     purchaseDate,
     reimbursedDate,
     cost,

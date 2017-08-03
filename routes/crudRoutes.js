@@ -35,7 +35,6 @@ class Crud {
     const checkResult = _.includes(objectToCheck, "");
     if (checkResult) {
       let errorCall = this._handleResponse(406, res);
-      console.log('=*************',errorCall);
       errorCall({
         message: 'CREATE: All fields needed'
       });
