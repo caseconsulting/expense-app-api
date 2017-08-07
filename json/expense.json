@@ -1,4 +1,5 @@
-[{
+[
+  {
     "id": "43394cea-5286-4087-9bf4-4a0fd8544a1b",
     "purchaseDate": "1/3/15",
     "reimbursedDate": "1/1/16",
@@ -55,8 +56,8 @@
   {
     "msg": "Cost was more than alotted budget which does not allow overdrafting"
   },
-  { <<
-    << << < HEAD "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
+  {
+    "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
     "purchaseDate": "8/2/17",
     "reimbursedDate": "10/1/17",
     "cost": "1000.00",
@@ -66,17 +67,7 @@
     "userId": "289f98e"
   },
   {
-    "id": "4b52d90b-7103-465b-aa37-043c79d036f0",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2017-01-01",
-    "cost": 5,
-    "description": "test",
-    "note": "test",
-    "receipt": "N/A",
-    "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
-    "userId": 123 ===
-      === =
-      "id": "b9c7093a-2dd6-49b1-be84-f634e793d692",
+    "id": "b9c7093a-2dd6-49b1-be84-f634e793d692",
     "purchaseDate": "2017-01-01",
     "reimbursedDate": "2017-01-01",
     "cost": 1000,
@@ -84,8 +75,17 @@
     "note": "Lenovo",
     "receipt": "N/A",
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": 11 >>>
-      >>> > testing - additions: added validation
-    for expenses
+    "userId": 11
+  },
+  {
+    "id": "040ad695-9572-4da7-a6a6-eac6897983f0",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 25,
+    "description": "Shoes",
+    "note": "Some kicks",
+    "receipt": "N/A",
+    "expenseTypeId": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
+    "userId": 11
   }
 ]
