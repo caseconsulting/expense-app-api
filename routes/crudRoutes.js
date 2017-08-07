@@ -45,8 +45,16 @@ class Crud {
 
   create(req, res) {
     const newObject = this._add(this._uuid, req.body);
-    if (!this._inputChecker(newObject, res)) {
-      this.jsonModify.addToJson(newObject, this._handleResponse(409, res));
+    if(newObject.id){
+      if (!this._inputChecker(newObject, res)) {
+        this.jsonModify.addToJson(newObject, this._handleResponse(409, res));
+      }
+    } else {
+      const err = {
+        message: newObject.msg
+      }
+      const error = this._handleResponse(406, res);
+      error(err);
     }
   }
 
