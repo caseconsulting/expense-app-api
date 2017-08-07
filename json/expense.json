@@ -1,5 +1,4 @@
-[
-  {
+[{
     "id": "43394cea-5286-4087-9bf4-4a0fd8544a1b",
     "purchaseDate": "1/3/15",
     "reimbursedDate": "1/1/16",
@@ -10,57 +9,54 @@
     "userId": "321"
   },
   {
-    "id": "f5a0e4c3-c332-4df1-877f-a345083b7890",
-    "purchaseDate": "12/16/15",
-    "reimbursedDate": "1/1/16",
-    "cost": "100.00",
-    "description": "Food",
-    "note": "Good food",
-    "expenseTypeId": "234a90f",
-    "userId": "111"
-  },
-  {
-    "id": "60903c24-eff7-4183-a282-9bda1c39ea64",
-    "purchaseDate": "11/18/15",
-    "reimbursedDate": "1/1/16",
-    "cost": "895.00",
-    "description": "Training",
-    "note": "",
-    "expenseTypeId": "308f0b",
-    "userId": "2786"
-  },
-  {
-    "id": "65dc123c-9cf7-456e-9d30-6d3a5b2781cd",
-    "purchaseDate": "11/18/15",
-    "reimbursedDate": "1/1/16",
-    "cost": "895.00",
-    "description": "Training",
-    "note": " ",
-    "expenseTypeId": "29838e",
-    "userId": "2786"
-  },
-  {
     "id": "9d3b9bf3-5e03-4564-af49-22fd8ecae6b8",
     "purchaseDate": "10/10/15",
     "reimbursedDate": "11/1/15",
     "cost": "150.00",
     "description": "Transportation",
-    "note": " ",
-    "expenseTypeId": "109289",
+    "note": " asdf",
+    "receipt": "N/A",
+    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
     "userId": "383987"
   },
   {
-    "id": "053a384c-df10-4889-a5c2-61bb3658f662",
-    "purchaseDate": "8/15/15",
-    "reimbursedDate": "11/1/15",
-    "cost": "1000.00",
-    "description": "Tech",
-    "note": "Laptop",
-    "expenseTypeId": "3093a98d",
-    "userId": "f897a89b"
+    "id": "60903c24-eff7-4183-a282-9bda1c39ea64",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 3000,
+    "description": "Training",
+    "note": "Something else",
+    "receipt": "N/A",
+    "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
+    "userId": "2786"
   },
   {
-    "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
+    "id": "e50ff346-2775-4eae-bf50-93afbbddd9f5",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 2898,
+    "description": "Parking Ticket",
+    "note": "I'm sorry...",
+    "receipt": "N/A",
+    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+    "userId": 15624
+  },
+  {
+    "id": "120ab308-2dfd-4821-976e-044ababe7b3d",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 500,
+    "description": "iPad <3",
+    "note": "the brand new one",
+    "receipt": "N/A",
+    "expenseTypeId": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
+    "userId": 11
+  },
+  {
+    "msg": "Cost was more than alotted budget which does not allow overdrafting"
+  },
+  { <<
+    << << < HEAD "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
     "purchaseDate": "8/2/17",
     "reimbursedDate": "10/1/17",
     "cost": "1000.00",
@@ -78,6 +74,18 @@
     "note": "test",
     "receipt": "N/A",
     "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
-    "userId": 123
+    "userId": 123 ===
+      === =
+      "id": "b9c7093a-2dd6-49b1-be84-f634e793d692",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 1000,
+    "description": "Laptop",
+    "note": "Lenovo",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": 11 >>>
+      >>> > testing - additions: added validation
+    for expenses
   }
 ]

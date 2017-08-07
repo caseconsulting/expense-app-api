@@ -1,13 +1,8 @@
-[{
+[
+  {
     "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
     "name": "Training",
     "budget": "1000",
-    "odFlag": "true"
-  },
-  {
-    "id": "632643c0-0794-4f46-8330-73912faeb562",
-    "name": "Technology",
-    "budget": "1800",
     "odFlag": "true"
   },
   {
@@ -23,9 +18,20 @@
     "odFlag": "false"
   },
   {
-    "id": "b8d99dd0-3082-4288-813e-f58c53820c53",
-    "name": "Other",
-    "budget": "300",
-    "odFlag": "false"
+    "id": "142659e1-2141-4e9c-b078-969b009fe861",
+    "name": "Books",
+    "budget": 2000
+  },
+  {
+    "id": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
+    "name": "Swag",
+    "budget": 100,
+    "odFlag": false
+  },
+  {
+    "id": "75704c8c-d057-4230-85f3-f55577fad536",
+    "name": "Technology",
+    "budget": 2000,
+    "odFlag": false
   }
 ]

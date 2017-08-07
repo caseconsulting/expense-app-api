@@ -1,59 +1,11 @@
 [
   {
-    "id": "04b0e8e6-8d28-4976-84d0-3efb6e505c91",
-    "firstName": "Grand",
-    "middleName": "Moff",
-    "lastName": "Tarkin",
-    "empId": "20",
-    "hireDate": " 2/13/95"
-  },
-  {
     "id": "d2ba554d-d12c-479e-a0d4-a8fde72f3f2c",
     "firstName": "Anakin",
     "middleName": "E",
     "lastName": "Skywalker",
     "empId": "19",
     "hireDate": " 4/20/00"
-  },
-  {
-    "id": "5ebdc1e5-7319-4a99-8e5c-ea43b0497fc3",
-    "firstName": "Darth",
-    "middleName": "to soon",
-    "lastName": "Maul",
-    "empId": "14",
-    "hireDate": " 8/15/96"
-  },
-  {
-    "id": "67800292-95bf-45ee-a480-e6e7fe5be1a4",
-    "firstName": "Emperor",
-    "middleName": "lighting bolt",
-    "lastName": "Palpatine",
-    "empId": "13",
-    "hireDate": " 10/15/06"
-  },
-  {
-    "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
-    "firstName": "Obi-Wan",
-    "middleName": "nothing",
-    "lastName": "Kenobi",
-    "empId": "11",
-    "hireDate": " 1/5/98"
-  },
-  {
-    "id": "bc53fded-5a9f-43e9-8849-268800c6aa05",
-    "firstName": "Kylo",
-    "middleName": "new guy",
-    "lastName": "Ren",
-    "empId": "10",
-    "hireDate": " 12/20/16"
-  },
-  {
-    "id": "bcdd335b-6df2-433c-b5c2-71b3653dd5a4",
-    "firstName": "Yoda",
-    "middleName": "all",
-    "lastName": "knowing",
-    "empId": "9",
-    "hireDate": " 2/20/06"
   },
   {
     "id": "e2890c3f-c549-4263-9c65-fb8ce0d7caf2",
@@ -64,28 +16,12 @@
     "hireDate": " 2/20/96"
   },
   {
-    "id": "1447425b-cab9-4912-a36f-e3291b15fdef",
-    "firstName": "Boba",
-    "middleName": "pew",
-    "lastName": "Fett",
-    "empId": "7",
-    "hireDate": " 10/10/11"
-  },
-  {
     "id": "a3dc2b12-a580-442e-8fe7-6c47f046e148",
     "firstName": "BB",
     "middleName": "-",
     "lastName": "8",
     "empId": "6",
     "hireDate": " 10/19/17"
-  },
-  {
-    "id": "ea591cbf-5579-4180-a0a4-b9ce421a42d2",
-    "firstName": "Princess",
-    "middleName": "hair",
-    "lastName": "Leia",
-    "empId": "4",
-    "hireDate": " 1/9/00"
   },
   {
     "id": "6c4f6123-cbd7-4567-824e-4fe1f1a113f3",
@@ -104,43 +40,11 @@
     "hireDate": " 5/19/13"
   },
   {
-    "id": "f5ed6398-20dd-43e0-a19f-1f4bad4fe6bf",
-    "firstName": "Grand",
-    "middleName": "Moff",
-    "lastName": "This works",
-    "empId": "2089387",
-    "hireDate": " 2/13/95"
-  },
-  {
-    "id": "94bb285c-7277-485f-b68f-3de4d84b41bc",
-    "firstName": "Jarvis",
-    "middleName": "AI",
-    "lastName": "All Knowing",
-    "empId": "123456",
-    "hireDate": "10/19/1202"
-  },
-  {
-    "id": "80777ea9-cc1e-426d-902d-9e64f464faac",
-    "firstName": "Jarvi",
-    "middleName": "A",
-    "lastName": "Dummy",
-    "empId": "1234",
-    "hireDate": "10/19/1202"
-  },
-  {
-    "id": "692a7e89-c0c3-4e60-b239-e990e01513ef",
-    "firstName": "Johnny",
-    "middleName": "Appleseed",
-    "lastName": "Smith",
-    "empId": 12345678,
-    "hireDate": "1995-10-10"
-  },
-  {
-    "id": "a42ec315-fdd1-4f04-a679-bbce3ff742a5",
-    "firstName": "Johnny",
-    "middleName": "Appleseed",
-    "lastName": "Smith",
-    "empId": 3748497,
-    "hireDate": "1995-10-10"
+    "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "firstName": "Obi",
+    "middleName": "Wan",
+    "lastName": "Kenobi",
+    "empId": "11",
+    "hireDate": " 1/5/98"
   }
 ]
