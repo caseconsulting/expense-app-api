@@ -59,6 +59,7 @@ class Crud {
   }
 
   read(req, res) {
+
     console.log("get request recieved");
     const output = this.jsonModify.readFromJson(req.params.id);
     if (output) {
@@ -89,6 +90,9 @@ class Crud {
   }
 
   onDelete(req, res) {
+    if (this.jsonModify.filePath === 'json/expense.json') {
+      _delete(this._uuid);
+    }
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }
 

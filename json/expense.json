@@ -1,37 +1,5 @@
 [
   {
-    "id": "43394cea-5286-4087-9bf4-4a0fd8544a1b",
-    "purchaseDate": "1/3/15",
-    "reimbursedDate": "1/1/16",
-    "cost": "500.00",
-    "description": "Phone",
-    "note": "Good phone",
-    "expenseTypeId": "3893a8f",
-    "userId": "321"
-  },
-  {
-    "id": "9d3b9bf3-5e03-4564-af49-22fd8ecae6b8",
-    "purchaseDate": "10/10/15",
-    "reimbursedDate": "11/1/15",
-    "cost": "150.00",
-    "description": "Transportation",
-    "note": " asdf",
-    "receipt": "N/A",
-    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-    "userId": "383987"
-  },
-  {
-    "id": "60903c24-eff7-4183-a282-9bda1c39ea64",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2017-01-01",
-    "cost": 3000,
-    "description": "Training",
-    "note": "Something else",
-    "receipt": "N/A",
-    "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
-    "userId": "2786"
-  },
-  {
     "id": "e50ff346-2775-4eae-bf50-93afbbddd9f5",
     "purchaseDate": "2017-01-01",
     "reimbursedDate": "2017-01-01",
@@ -41,17 +9,6 @@
     "receipt": "N/A",
     "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
     "userId": 15624
-  },
-  {
-    "id": "120ab308-2dfd-4821-976e-044ababe7b3d",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2017-01-01",
-    "cost": 500,
-    "description": "iPad <3",
-    "note": "the brand new one",
-    "receipt": "N/A",
-    "expenseTypeId": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
-    "userId": 11
   },
   {
     "msg": "Cost was more than alotted budget which does not allow overdrafting"

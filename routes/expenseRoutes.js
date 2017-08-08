@@ -68,7 +68,6 @@ class ExpenseRoutes extends Crud {
     let budgetPosition;
     let remaining;
 
-    console.log(employee, '***');
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {
         budgetPosition = i;
@@ -78,11 +77,9 @@ class ExpenseRoutes extends Crud {
         //create new balance under the employee
       }
     }
-    console.log(expenseType.budget, employeeBalance);
-    console.log(expenseType.odFlag);
     //OVERDRAFT
     if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
-      console.log('I am grooooot');
+
 
       employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
 
