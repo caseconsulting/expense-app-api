@@ -199,16 +199,6 @@
     "userId": "11"
   },
   {
-    "id": "f816c22b-4236-41e2-bb97-04def9b71205",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 300,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
     "id": "b8fa8655-fc5d-43c3-99c3-822ad7299cfc",
     "purchaseDate": "1/1/17",
     "reimbursedDate": "1/4/17",
@@ -216,16 +206,6 @@
     "description": "train",
     "note": "some",
     "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
-    "userId": "11"
-  },
-  {
-    "id": "cabf14a5-ac8e-4627-9db7-11ab0df19e9a",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 200,
-    "description": "train-set",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": "11"
   }
 ]

@@ -91,7 +91,7 @@ class Crud {
 
   onDelete(req, res) {
     if (this.jsonModify.filePath === 'json/expense.json') {
-      _delete(this._uuid);
+      this._delete(req.params.id);
     }
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }

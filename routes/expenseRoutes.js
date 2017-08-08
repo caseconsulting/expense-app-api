@@ -7,9 +7,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _delete(id){
-      const expense = new JsonModify('expense.json');
-      const fe= expense.readFromJson(id);
-      deleteCostFromBudget(fe.expenseTypeId, fe.userId, fe.cost);
+      const fe = this.jsonModify._specificFind("id", id);
+      this.deleteCostFromBudget(fe.expenseTypeId, fe.userId, fe.cost);
   }
 
   _add(uuid, {
@@ -88,9 +87,7 @@ class ExpenseRoutes extends Crud {
 
       employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
 
-      employeeJson.updateJsonEntry(employee, err => {
-        console.log('something went wrong', err);
-      });
+      employeeJson.updateJsonEntry(employee);
 
       return {
         valid: true,
@@ -103,9 +100,7 @@ class ExpenseRoutes extends Crud {
       employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
       employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
 
-      employeeJson.updateJsonEntry(employee, err => {
-        console.log('something went wrong', err);
-      });
+      employeeJson.updateJsonEntry(employee);
 
       return {
         valid: true,
@@ -116,9 +111,7 @@ class ExpenseRoutes extends Crud {
     else if (expenseType.budget - employeeBalance >= 0) {
       employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
 
-      employeeJson.updateJsonEntry(employee, err => {
-        console.log('something went wrong', err);
-      });
+      employeeJson.updateJsonEntry(employee);
 
       return {
         valid: true,
@@ -145,9 +138,7 @@ class ExpenseRoutes extends Crud {
         if (employee.expenseTypes[i].id === expenseTypeId) {
           employeeBalance = +employee.expenseTypes[i].balance - cost;
           employee.expenseTypes[i].balance = ''+employeeBalance;
-          employeeJson.updateJsonEntry(employee, err => {
-            console.log('something went wrong', err);
-          });
+          employeeJson.updateJsonEntry(employee);
         }
       }
     }
