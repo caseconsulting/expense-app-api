@@ -7,12 +7,13 @@ class EmployeeRoutes extends Crud {
   }
 
 
-   _add(uuid, {
+  _add(uuid, {
     firstName,
     middleName,
     lastName,
     empId,
-    hireDate
+    hireDate,
+    currentBalance
   }) {
 
     let objectWasFound = this.jsonModify._specificFind("empId", empId);
@@ -28,7 +29,8 @@ class EmployeeRoutes extends Crud {
         middleName,
         lastName,
         empId,
-        hireDate
+        hireDate,
+        expenseTypes
       };
       console.log('else output ', output);
       return output
@@ -36,12 +38,13 @@ class EmployeeRoutes extends Crud {
 
   }
 
-   _update(id, {
+  _update(id, {
     firstName,
     middleName,
     lastName,
     empId,
-    hireDate
+    hireDate,
+    expenseTypes
   }) {
     let found = this.jsonModify._specificFind("empId", empId);
     console.log(" in add " + found);
@@ -54,7 +57,8 @@ class EmployeeRoutes extends Crud {
         middleName,
         lastName,
         empId,
-        hireDate
+        hireDate,
+        expenseTypes
       };
     }
   }

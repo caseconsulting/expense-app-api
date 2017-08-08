@@ -1,26 +1,26 @@
-[
-  {
+[{
     "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
     "name": "Training",
-    "budget": "1000",
-    "odFlag": "true"
+    "budget": "3500",
+    "odFlag": true
   },
   {
     "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
     "name": "Parking",
     "budget": "100",
-    "odFlag": "false"
+    "odFlag": false
   },
   {
     "id": "383hd9d2-9830-2876-380s-b97d93949c92",
     "name": "Transportation",
     "budget": "150",
-    "odFlag": "false"
+    "odFlag": false
   },
   {
     "id": "142659e1-2141-4e9c-b078-969b009fe861",
     "name": "Books",
-    "budget": 2000
+    "budget": 2000,
+    "odFlag": true
   },
   {
     "id": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",

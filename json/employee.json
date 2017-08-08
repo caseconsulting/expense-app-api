@@ -5,7 +5,8 @@
     "middleName": "E",
     "lastName": "Skywalker",
     "empId": "19",
-    "hireDate": " 4/20/00"
+    "hireDate": " 4/20/00",
+    "currentBalance": {}
   },
   {
     "id": "e2890c3f-c549-4263-9c65-fb8ce0d7caf2",
@@ -13,7 +14,8 @@
     "middleName": "beep",
     "lastName": "D2",
     "empId": "8",
-    "hireDate": " 2/20/96"
+    "hireDate": " 2/20/96",
+    "currentBalance": {}
   },
   {
     "id": "a3dc2b12-a580-442e-8fe7-6c47f046e148",
@@ -21,7 +23,8 @@
     "middleName": "-",
     "lastName": "8",
     "empId": "6",
-    "hireDate": " 10/19/17"
+    "hireDate": " 10/19/17",
+    "currentBalance": {}
   },
   {
     "id": "6c4f6123-cbd7-4567-824e-4fe1f1a113f3",
@@ -29,7 +32,8 @@
     "middleName": "the man",
     "lastName": "Solo",
     "empId": "1",
-    "hireDate": " 2/1/92"
+    "hireDate": " 2/1/92",
+    "currentBalance": {}
   },
   {
     "id": "df2f8d22-591f-455a-bfd6-35d5f40985f3",
@@ -37,7 +41,24 @@
     "middleName": "my father",
     "lastName": "Vader",
     "empId": "3",
-    "hireDate": " 5/19/13"
+    "hireDate": " 5/19/13",
+    "currentBalance": {}
+  },
+  {
+    "id": "e885da41-1d57-4084-a69b-3614b0f0fa2d",
+    "firstName": "775",
+    "empId": "123",
+    "hireDate": "1/1/2016",
+    "expenseTypes": [
+      {
+        "id": "75704c8c-d057-4230-85f3-f55577fad536",
+        "balance": "1700"
+      },
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "3500"
+      }
+    ]
   },
   {
     "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
@@ -45,6 +66,18 @@
     "middleName": "Wan",
     "lastName": "Kenobi",
     "empId": "11",
-    "hireDate": " 1/5/98"
+    "hireDate": " 1/5/98",
+    "expenseTypes": [
+      {
+        "id": "75704c8c-d057-4230-85f3-f55577fad536",
+        "balance": "2000",
+        "owedAmount": "0"
+      },
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "19500",
+        "owedAmount": "0"
+      }
+    ]
   }
 ]
