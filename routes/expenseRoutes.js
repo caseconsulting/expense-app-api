@@ -6,6 +6,11 @@ class ExpenseRoutes extends Crud {
     this.jsonModify = jsonModify;
   }
 
+  _delete(id){
+      const expense = new JsonModify('expense.json');
+      const fe= expense.readFromJson(id);
+      deleteCostFromBudget(fe.expenseTypeId, fe.userId, fe.cost);
+  }
 
   _add(uuid, {
     purchaseDate,
@@ -127,5 +132,24 @@ class ExpenseRoutes extends Crud {
     }
 
   }
+
+    deleteCostFromBudget(expenseTypeId, userId, cost) {
+      //new instance
+      const expenseTypeJson = new JsonModify('expenseType.json');
+      const employeeJson = new JsonModify('employee.json');
+      const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
+      const employee = employeeJson._specificFind("empId", '' + userId);
+      let employeeBalance;
+
+      for (var i = 0; i < employee.expenseTypes.length; i++) {
+        if (employee.expenseTypes[i].id === expenseTypeId) {
+          employeeBalance = +employee.expenseTypes[i].balance - cost;
+          employee.expenseTypes[i].balance = ''+employeeBalance;
+          employeeJson.updateJsonEntry(employee, err => {
+            console.log('something went wrong', err);
+          });
+        }
+      }
+    }
 }
 module.exports = ExpenseRoutes;

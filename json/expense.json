@@ -35,17 +35,6 @@
     "userId": 11
   },
   {
-    "id": "040ad695-9572-4da7-a6a6-eac6897983f0",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2017-01-01",
-    "cost": 25,
-    "description": "Shoes",
-    "note": "Some kicks",
-    "receipt": "N/A",
-    "expenseTypeId": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
-    "userId": 11
-  },
-  {
     "id": "8359d75d-4ce8-4cd6-b063-ca5d11d61085",
     "purchaseDate": "2017-08-04",
     "reimbursedDate": "2017-09-01",
