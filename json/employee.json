@@ -1,62 +1,21 @@
 [
   {
-    "id": "d2ba554d-d12c-479e-a0d4-a8fde72f3f2c",
-    "firstName": "Anakin",
-    "middleName": "E",
-    "lastName": "Skywalker",
-    "empId": "19",
-    "hireDate": " 4/20/00",
-    "currentBalance": {}
-  },
-  {
-    "id": "e2890c3f-c549-4263-9c65-fb8ce0d7caf2",
-    "firstName": "R2",
-    "middleName": "beep",
-    "lastName": "D2",
-    "empId": "8",
-    "hireDate": " 2/20/96",
-    "currentBalance": {}
-  },
-  {
-    "id": "a3dc2b12-a580-442e-8fe7-6c47f046e148",
-    "firstName": "BB",
-    "middleName": "-",
-    "lastName": "8",
-    "empId": "6",
-    "hireDate": " 10/19/17",
-    "currentBalance": {}
-  },
-  {
-    "id": "6c4f6123-cbd7-4567-824e-4fe1f1a113f3",
-    "firstName": "Han",
-    "middleName": "the man",
-    "lastName": "Solo",
-    "empId": "1",
-    "hireDate": " 2/1/92",
-    "currentBalance": {}
-  },
-  {
-    "id": "df2f8d22-591f-455a-bfd6-35d5f40985f3",
-    "firstName": "Darth",
-    "middleName": "my father",
-    "lastName": "Vader",
-    "empId": "3",
-    "hireDate": " 5/19/13",
-    "currentBalance": {}
-  },
-  {
-    "id": "e885da41-1d57-4084-a69b-3614b0f0fa2d",
-    "firstName": "775",
-    "empId": "123",
-    "hireDate": "1/1/2016",
+    "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "firstName": "Johnny",
+    "middleName": "App",
+    "lastName": "Smith",
+    "empId": 12,
+    "hireDate": "2017-01-01",
     "expenseTypes": [
       {
         "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "1700"
+        "balance": "800",
+        "owedAmount": "0"
       },
       {
         "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
-        "balance": "3500"
+        "balance": "19500",
+        "owedAmount": "0"
       }
     ]
   },

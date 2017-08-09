@@ -45,7 +45,13 @@ class Crud {
 
   create(req, res) {
     const newObject = this._add(this._uuid, req.body);
-    if (newObject.id) {
+    if (_.isFunction(newObject)) {
+      newObject((err, value) => {
+        console.log('What...');
+        this.jsonModify.addToJson(value, this._handleResponse(409, res));
+        //TODO error checking
+      });
+    } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
         this.jsonModify.addToJson(newObject, this._handleResponse(409, res));
       }
@@ -76,7 +82,11 @@ class Crud {
 
   update(req, res) {
     const newObject = this._update(req.params.id, req.body);
-    if (newObject) {
+    if (_.isFunction(newObject)) {
+      newObject((err, value) => {
+        this.jsonModify.updateJsonEntry(value, this._handleResponse(404, res));
+      });
+    } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
         this.jsonModify.updateJsonEntry(newObject, this._handleResponse(404, res));
       }

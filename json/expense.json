@@ -11,9 +11,6 @@
     "userId": 15624
   },
   {
-    "msg": "Cost was more than alotted budget which does not allow overdrafting"
-  },
-  {
     "id": "34865756-0160-4720-a5e9-609a2a0b89ad",
     "purchaseDate": "8/2/17",
     "reimbursedDate": "10/1/17",
@@ -41,28 +38,6 @@
     "cost": 200,
     "description": "Recruiting",
     "note": "Great Hire",
-    "receipt": "N/A",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": 11
-  },
-  {
-    "id": "2624775c-a52c-4b61-8591-13fac4c7163a",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2017-02-01",
-    "cost": 500,
-    "description": "iPad",
-    "note": "some",
-    "receipt": "N/A",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": 11
-  },
-  {
-    "id": "9e337f9b-ff83-43af-bb83-b56bc4c478d2",
-    "purchaseDate": "2017-01-01",
-    "reimbursedDate": "2018-02-01",
-    "cost": 500,
-    "description": "iPad",
-    "note": "some",
     "receipt": "N/A",
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": 11
@@ -129,67 +104,7 @@
     "userId": "11"
   },
   {
-    "id": "c409cf1e-070f-46da-8b94-d0d15582283b",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 100,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
-    "id": "94907842-d6ca-458e-871b-9f7baeae18d2",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 100,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
-    "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 100,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
-    "id": "5413f7e5-8cdf-4db3-84ea-d11702d7ba07",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 200,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
-    "id": "898da563-3dfa-411c-a35c-1ffb9788639d",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 200,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
     "id": "3460037f-1fb2-4375-b5a2-1fbf069c109c",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 200,
-    "description": "iPad",
-    "note": "some",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
-  },
-  {
-    "id": "32da5366-57cc-4b3c-8033-5789887f07db",
     "purchaseDate": "1/1/17",
     "reimbursedDate": "1/4/17",
     "cost": 200,
@@ -206,6 +121,50 @@
     "description": "train",
     "note": "some",
     "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
+    "userId": "11"
+  },
+  {
+    "id": "32da5366-57cc-4b3c-8033-5789887f07db",
+    "purchaseDate": "1/1/17",
+    "reimbursedDate": "1/4/17",
+    "cost": 300,
+    "description": "iPad",
+    "note": "some",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "11"
+  },
+  {
+    "id": "898da563-3dfa-411c-a35c-1ffb9788639d",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-01-01",
+    "cost": 500,
+    "description": "iPad",
+    "note": "some",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "11"
+  },
+  {
+    "id": "cb52987e-d639-4f34-94ed-37edbb7f5ff9",
+    "purchaseDate": "2017-01-01",
+    "reimbursedDate": "2017-02-01",
+    "cost": 500,
+    "description": "15th iPad",
+    "note": "Some",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": 11
+  },
+  {
+    "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
+    "purchaseDate": "1/1/17",
+    "reimbursedDate": "1/4/17",
+    "cost": 200,
+    "description": "iPad",
+    "note": "some",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": "11"
   }
 ]

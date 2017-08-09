@@ -13,7 +13,7 @@ class EmployeeRoutes extends Crud {
     lastName,
     empId,
     hireDate,
-    currentBalance
+    expenseTypes
   }) {
 
     let objectWasFound = this.jsonModify._specificFind("empId", empId);

@@ -1,20 +1,19 @@
 const fs = require('fs');
 const _ = require('lodash');
 
-class JsonModify{
-  constructor(fileName){
+class JsonModify {
+  constructor(fileName) {
 
-   this.filePath = fileName ? `json/${fileName}` : 'json/';
-   this.jsonFile = fileName ? fs.readFileSync(this.filePath):'';
-   this.jsonParsed = fileName ? JSON.parse(this.jsonFile):[];
+    this.filePath = fileName ? `json/${fileName}` : 'json/';
+    this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
+    this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
 
- }
-   _matches(id) {
+  }
+  _matches(id) {
     return jsonObj => jsonObj.id === id;
   }
 
-   _specificFind(indexKey, targetValue)
-  {
+  _specificFind(indexKey, targetValue) {
     const found = _.find(this.jsonParsed, [indexKey, targetValue]);
     //console.log(found);
     if (found) {
@@ -24,7 +23,7 @@ class JsonModify{
     }
   }
 
-   _writeCallback(object, callback) {
+  _writeCallback(object, callback) {
     return err => {
       if (err) {
         callback(err);
@@ -35,7 +34,7 @@ class JsonModify{
     }
   }
 
-   _addToJson(newJsonObj, callback) {
+  _addToJson(newJsonObj, callback) {
     return err => {
       if (err) {
         callback(err);
@@ -49,9 +48,10 @@ class JsonModify{
   //push new value to array
   //stringify the array (JSON>stringify)
   //overwrite json
-   addToJson(newJsonObj, callback) {
+  addToJson(newJsonObj, callback) {
     // const position = _.findIndex(this.jsonParsed, this._matches(newJsonObj.id));
     // console.log(position);
+
     if (newJsonObj) {
       this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
@@ -66,7 +66,7 @@ class JsonModify{
   //read in the json file
   //parse existing json to an array
   //iterate through the json and find the appropriate value and return it
-   readFromJson(passedID) {
+  readFromJson(passedID) {
     const found = _.find(this.jsonParsed, this._matches(passedID));
     if (found) {
       return found;
@@ -75,7 +75,7 @@ class JsonModify{
     }
   }
 
-   removeFromJson(passedID, callback) {
+  removeFromJson(passedID, callback) {
     const position = _.findIndex(this.jsonParsed, this._matches(passedID)); //removes type from array
     //const output =  _.remove(this.jsonParsed, this._matches(passedID)); //removes type from array
     if (position == -1) { //if error
@@ -91,11 +91,13 @@ class JsonModify{
     }
   }
 
-   updateJsonEntry(newJsonObj, callback) {
+  updateJsonEntry(newJsonObj, callback) {
     this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
   }
 
-   getJson() {
+
+
+  getJson() {
     return this.jsonParsed;
   }
 
