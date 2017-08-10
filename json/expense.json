@@ -1,1 +1,11 @@
-[]
+[{
+  "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
+  "purchaseDate": "1/1/17",
+  "reimbursedDate": "1/4/17",
+  "cost": 200,
+  "description": "iPad",
+  "note": "some",
+  "receipt": "N/A",
+  "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+  "userId": "11"
+}]
