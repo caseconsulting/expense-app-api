@@ -29,12 +29,17 @@
     "expenseTypes": [
       {
         "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "1500",
-        "owedAmount": "0"
+        "balance": "-800",
+        "owedAmount": "800"
       },
       {
         "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
-        "balance": "19500",
+        "balance": "0",
+        "owedAmount": "0"
+      },
+      {
+        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+        "balance": "0",
         "owedAmount": "0"
       }
     ]

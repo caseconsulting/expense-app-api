@@ -15,7 +15,6 @@ class JsonModify {
 
   _specificFind(indexKey, targetValue) {
     const found = _.find(this.jsonParsed, [indexKey, targetValue]);
-    //console.log(found);
     if (found) {
       return found;
     } else {
@@ -49,9 +48,6 @@ class JsonModify {
   //stringify the array (JSON>stringify)
   //overwrite json
   addToJson(newJsonObj, callback) {
-    // const position = _.findIndex(this.jsonParsed, this._matches(newJsonObj.id));
-    // console.log(position);
-
     if (newJsonObj) {
       this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
@@ -77,7 +73,6 @@ class JsonModify {
 
   removeFromJson(passedID, callback) {
     const position = _.findIndex(this.jsonParsed, this._matches(passedID)); //removes type from array
-    //const output =  _.remove(this.jsonParsed, this._matches(passedID)); //removes type from array
     if (position == -1) { //if error
       const err = {
         message: 'REMOVE: Object not found'
@@ -90,17 +85,12 @@ class JsonModify {
       fs.writeFile(this.filePath, arrayJson, this._writeCallback(output, callback)); //writes json
     }
   }
-
   updateJsonEntry(newJsonObj, callback) {
     this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
   }
-
-
-
   getJson() {
     return this.jsonParsed;
   }
-
 }
 
 module.exports = JsonModify;

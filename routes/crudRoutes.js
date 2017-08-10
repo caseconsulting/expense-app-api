@@ -48,8 +48,17 @@ class Crud {
     if (_.isFunction(newObject)) {
       newObject((err, value) => {
         console.log('What...');
-        this.jsonModify.addToJson(value, this._handleResponse(409, res));
-        //TODO error checking
+        if (value) {
+          if (!this._inputChecker(value, res)) {
+            this.jsonModify.addToJson(value, this._handleResponse(422, res));
+          }
+        } else if (err) {
+          const errMsg = {
+            message: err.msg
+          }
+          const error = this._handleResponse(err.code, res);
+          error(errMsg);
+        }
       });
     } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
@@ -57,9 +66,11 @@ class Crud {
       }
     } else {
       const err = {
-        message: newObject.msg
+        message: `Hmm.. Strange.. The request didn't match any of our cases ):
+         Server Message: ${newObject.msg}`
       }
-      const error = this._handleResponse(422, res);
+      console.log('Recieved request');
+      const error = this._handleResponse(501, res);
       error(err);
     }
   }
@@ -84,7 +95,17 @@ class Crud {
     const newObject = this._update(req.params.id, req.body);
     if (_.isFunction(newObject)) {
       newObject((err, value) => {
-        this.jsonModify.updateJsonEntry(value, this._handleResponse(404, res));
+        if (value) {
+          if (!this._inputChecker(value, res)) {
+            this.jsonModify.updateJsonEntry(value, this._handleResponse(422, res));
+          }
+        } else if (err) {
+          const errMsg = {
+            message: err.msg
+          }
+          const error = this._handleResponse(err.code, res);
+          error(errMsg);
+        }
       });
     } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
