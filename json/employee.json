@@ -88,7 +88,7 @@
     "firstName": "This",
     "middleName": "is",
     "lastName": "aTest",
-    "empId": 38928,
+    "empId": "38928",
     "hireDate": "2017-08-10",
     "expenseTypes": []
   }
