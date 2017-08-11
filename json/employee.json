@@ -20,31 +20,6 @@
     ]
   },
   {
-    "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
-    "firstName": "Obi",
-    "middleName": "Wan",
-    "lastName": "Kenobi",
-    "empId": "11",
-    "hireDate": " 1/5/98",
-    "expenseTypes": [
-      {
-        "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "-800",
-        "owedAmount": "800"
-      },
-      {
-        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
-        "balance": "0",
-        "owedAmount": "0"
-      },
-      {
-        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-        "balance": "0",
-        "owedAmount": "0"
-      }
-    ]
-  },
-  {
     "id": "78627357-07bc-4d81-9e21-ae21c7cd066a",
     "firstName": "",
     "middleName": "",
@@ -65,15 +40,56 @@
     "firstName": "Javo",
     "middleName": "sjso",
     "lastName": "jsl",
-    "empId": 290,
+    "empId": "290",
     "hireDate": "2017-08-17"
+  },
+  {
+    "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "firstName": "Obi",
+    "middleName": "Wan",
+    "lastName": "Kenobi",
+    "empId": "11",
+    "hireDate": " 1/5/98",
+    "expenseTypes": [
+      {
+        "id": "75704c8c-d057-4230-85f3-f55577fad536",
+        "balance": "-800",
+        "owedAmount": "800"
+      },
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "0",
+        "owedAmount": "0"
+      },
+      {
+        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+        "balance": "-500",
+        "owedAmount": "200"
+      }
+    ]
   },
   {
     "id": "4c9ee8af-f459-4716-8efb-f702e321fe52",
     "firstName": "also",
     "middleName": "sls;",
     "lastName": "ins",
-    "empId": 3094849,
-    "hireDate": "2017-08-10"
+    "empId": "3094849",
+    "hireDate": "2017-08-23",
+    "expenseTypes": [
+      {
+        "id": "383hd9d2-9830-2876-380s-b97d93949c92",
+        "balance": "300",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "805ad5f3-946f-4179-85ff-7967bed072fb",
+    "firstName": "This",
+    "middleName": "is",
+    "lastName": "aTest",
+    "empId": 38928,
+    "hireDate": "2017-08-10",
+    "expenseTypes": []
   }
 ]

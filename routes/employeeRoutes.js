@@ -16,7 +16,7 @@ class EmployeeRoutes extends Crud {
     expenseTypes
   }) {
 
-    let objectWasFound = this.jsonModify._specificFind("empId", empId);
+    let objectWasFound = this.jsonModify._specificFind("id", uuid);
     console.log('object was found: ', objectWasFound);
     if (objectWasFound) {
       console.log('** object already exists ** ', objectWasFound);
@@ -46,7 +46,7 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-    let found = this.jsonModify._specificFind("empId", empId);
+    let found = this.jsonModify._specificFind("id", id);
     console.log(" in add " + found);
     if (found && found.id !== id) {
       return null;

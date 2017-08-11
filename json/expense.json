@@ -1,11 +1,24 @@
-[{
-  "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
-  "purchaseDate": "1/1/17",
-  "reimbursedDate": "1/4/17",
-  "cost": 200,
-  "description": "iPad",
-  "note": "some",
-  "receipt": "N/A",
-  "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-  "userId": "11"
-}]
+[
+  {
+    "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
+    "purchaseDate": "1/1/17",
+    "reimbursedDate": "1/4/17",
+    "cost": 200,
+    "description": "iPad",
+    "note": "some",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "11"
+  },
+  {
+    "id": "57c46df3-f075-450a-bf0b-890f924c68a3",
+    "purchaseDate": "2017-08-10",
+    "reimbursedDate": "2017-08-10",
+    "cost": 300,
+    "description": "Parking Ticket",
+    "note": "Some",
+    "receipt": "N/A",
+    "expenseTypeId": "383hd9d2-9830-2876-380s-b97d93949c92",
+    "userId": 3094849
+  }
+]

@@ -91,7 +91,8 @@ class ExpenseRoutes extends Crud {
     const expenseTypeJson = new JsonModify('expenseType.json');
     const employeeJson = new JsonModify('employee.json');
     const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
-    const employee = employeeJson._specificFind("empId", '' + userId);
+    //TODO remove empty quotes from User ID since UUID is always string
+    const employee = employeeJson._specificFind("id", '' + userId);
 
     let employeeBalance;
     let budgetPosition;
@@ -144,7 +145,8 @@ class ExpenseRoutes extends Crud {
     const expenseTypeJson = new JsonModify('expenseType.json');
     const employeeJson = new JsonModify('employee.json');
     const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
-    const employee = employeeJson._specificFind("empId", '' + userId);
+    //TODO remove empty quotes from User ID since UUID is always string
+    const employee = employeeJson._specificFind("id", '' + userId);
     let employeeBalance;
     if (!employee) {
       callback({
