@@ -1,5 +1,6 @@
 const Crud = require('./crudRoutes');
 
+
 class EmployeeRoutes extends Crud {
   constructor(jsonModify, uuid) {
     super(jsonModify, uuid);

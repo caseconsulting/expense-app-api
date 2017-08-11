@@ -1,5 +1,6 @@
 const Crud = require('./crudRoutes');
 const JsonModify = require('../js/jsonModify');
+
 class ExpenseRoutes extends Crud {
   constructor(jsonModify, uuid) {
     super(jsonModify, uuid);
@@ -171,7 +172,6 @@ console.log(employee);
     if (!employeeBalance) {
       callback({
         msg: 'Expense not found',
-        amount: Math.abs(remaining),
         code: 404
       }, null);
     }
