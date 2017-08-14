@@ -1,23 +1,46 @@
-[{
-    "id": "fe5670ad-abd8-4fd8-bba5-f6441fd2320f",
-    "purchaseDate": "1/1/17",
-    "reimbursedDate": "1/4/17",
-    "cost": 200,
+[
+  {
+    "id": "669ee830-dad4-4f94-855a-791526422911",
+    "purchaseDate": "2017-08-11",
+    "reimbursedDate": "2017-08-14T18:43:35.493Z",
+    "cost": 500,
     "description": "iPad",
+    "note": "3rd generation",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
+  },
+  {
+    "id": "d33a3d8a-bac9-48df-b8e2-769da26311b1",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "2017-08-14T18:45:32.972Z",
+    "cost": 100,
+    "description": "Parking",
+    "note": "Test",
+    "receipt": "N/A",
+    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
+  },
+  {
+    "id": "b0a7e5a9-adc9-4520-b659-9966d051ad79",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "2017-08-14T19:19:02.451Z",
+    "cost": 200,
+    "description": "Food",
     "note": "some",
     "receipt": "N/A",
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "11"
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
   },
   {
-    "id": "57c46df3-f075-450a-bf0b-890f924c68a3",
-    "purchaseDate": "2017-08-10",
-    "reimbursedDate": "2017-08-10",
+    "id": "4eb08973-e1fd-4a35-a2f8-3b4c891301ab",
+    "purchaseDate": "2017-05-14",
+    "reimbursedDate": "2017-08-14T19:19:44.496Z",
     "cost": 300,
-    "description": "Parking Ticket",
-    "note": "Some",
+    "description": "Convention ",
+    "note": "Fun time",
     "receipt": "N/A",
-    "expenseTypeId": "383hd9d2-9830-2876-380s-b97d93949c92",
-    "userId": 3094849
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
   }
 ]

@@ -61,6 +61,19 @@ class ExpenseRoutes extends Crud {
     const expense = this.jsonModify._specificFind("id", id);
 
     return function(callback) {
+      if (expense.cost === cost) {
+        return callback(null, {
+          id,
+          purchaseDate,
+          reimbursedDate,
+          cost,
+          description,
+          note,
+          receipt,
+          expenseTypeId,
+          userId
+        });
+      }
       this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost, (err, value) => {
 
         this.validateCostToBudget(expenseTypeId, userId, cost, (err, value) => {
@@ -94,7 +107,7 @@ class ExpenseRoutes extends Crud {
     const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
     //TODO remove empty quotes from User ID since UUID is always string
     const employee = employeeJson._specificFind("id", '' + userId);
-console.log(employee);
+    console.log(employee);
     if (!employee.expenseTypes) {
       //create new balance under the employee
       employee.expenseTypes = [];

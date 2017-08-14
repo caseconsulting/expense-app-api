@@ -1,11 +1,13 @@
-[{
+[
+  {
     "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
     "firstName": "Johnny",
     "middleName": "App",
     "lastName": "Smith",
     "empId": 12,
     "hireDate": "2017-01-01",
-    "expenseTypes": [{
+    "expenseTypes": [
+      {
         "id": "75704c8c-d057-4230-85f3-f55577fad536",
         "balance": "800",
         "owedAmount": "0"
@@ -24,9 +26,10 @@
     "lastName": "Kenobi",
     "empId": "11",
     "hireDate": "2017-08-22",
-    "expenseTypes": [{
+    "expenseTypes": [
+      {
         "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "0",
+        "balance": "1000",
         "owedAmount": "0"
       },
       {
@@ -36,7 +39,7 @@
       },
       {
         "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-        "balance": "0",
+        "balance": "100",
         "owedAmount": "0"
       }
     ]
