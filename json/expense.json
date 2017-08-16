@@ -42,5 +42,40 @@
     "receipt": "N/A",
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
+  },
+  {
+    "id": "9944d8b0-ba68-44e0-ae9a-f606bf8ea03f",
+    "purchaseDate": "2017-05-15",
+    "reimbursedDate": "not assigned",
+    "cost": 500,
+    "description": "Laptop",
+    "note": "Apple",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f"
+  },
+  {
+    "id": "5cd1847d-3cb0-4026-a9f5-a63119ed3ee3",
+    "purchaseDate": "2017-08-11",
+    "reimbursedDate": "2017-08-14T18:43:35.493Z",
+    "cost": 500,
+    "description": "iPad",
+    "note": "3rd generation",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "createdAt": "2017-08-14T18:43:35.493Z"
+  },
+  {
+    "id": "8a39d2a5-2d2b-428f-bbfe-a90dd11ad8ca",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "not assigned",
+    "cost": 200,
+    "description": "Ticket",
+    "note": "not me",
+    "receipt": "N/A",
+    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "createdAt": "2017-08-16"
   }
 ]

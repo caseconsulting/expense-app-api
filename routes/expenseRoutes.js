@@ -20,7 +20,8 @@ class ExpenseRoutes extends Crud {
     note,
     receipt,
     expenseTypeId,
-    userId
+    userId,
+    createdAt
   }) {
     return function(callback) {
       this.validateCostToBudget(expenseTypeId, userId, cost, (err, value) => {
@@ -38,7 +39,8 @@ class ExpenseRoutes extends Crud {
             note,
             receipt,
             expenseTypeId,
-            userId
+            userId,
+            createdAt
           });
         }
       });
@@ -54,7 +56,8 @@ class ExpenseRoutes extends Crud {
     note,
     receipt,
     expenseTypeId,
-    userId
+    userId,
+    createdAt
   }) {
 
     //removes old cost from employees budget
@@ -71,7 +74,8 @@ class ExpenseRoutes extends Crud {
           note,
           receipt,
           expenseTypeId,
-          userId
+          userId,
+          createdAt
         });
       }
       this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost, (err, value) => {
@@ -90,7 +94,8 @@ class ExpenseRoutes extends Crud {
               note,
               receipt,
               expenseTypeId,
-              userId
+              userId,
+              createdAt
             });
           }
         });

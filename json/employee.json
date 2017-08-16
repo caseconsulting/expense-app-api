@@ -1,25 +1,5 @@
 [
   {
-    "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
-    "firstName": "Johnny",
-    "middleName": "App",
-    "lastName": "Smith",
-    "empId": 12,
-    "hireDate": "2017-01-01",
-    "expenseTypes": [
-      {
-        "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "800",
-        "owedAmount": "0"
-      },
-      {
-        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
-        "balance": "19500",
-        "owedAmount": "0"
-      }
-    ]
-  },
-  {
     "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
     "firstName": "Obi",
     "middleName": "Wan",
@@ -29,7 +9,7 @@
     "expenseTypes": [
       {
         "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "1000",
+        "balance": "1500",
         "owedAmount": "0"
       },
       {
@@ -40,6 +20,31 @@
       {
         "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
         "balance": "100",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "firstName": "Johnny",
+    "middleName": "App",
+    "lastName": "Smith",
+    "empId": 12,
+    "hireDate": "2017-01-01",
+    "expenseTypes": [
+      {
+        "id": "75704c8c-d057-4230-85f3-f55577fad536",
+        "balance": "1300",
+        "owedAmount": "0"
+      },
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "19500",
+        "owedAmount": "0"
+      },
+      {
+        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+        "balance": "200",
         "owedAmount": "0"
       }
     ]
