@@ -1,5 +1,4 @@
-[
-  {
+[{
     "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
     "name": "Parking",
     "budget": "100",
@@ -34,50 +33,6 @@
     "name": "Company Recreation",
     "budget": 1500,
     "description": "Any expense that will be used for company outtings"
-  },
-  {
-    "id": "fbe7102f-1a4b-4e29-8e91-6766eff30aaa",
-    "name": "trvl",
-    "budget": 1000,
-    "odFlag": false,
-    "description": "travel"
-  },
-  {
-    "id": "24c0e38b-d2f8-49e8-917b-05366759fa2c",
-    "name": "travel",
-    "budget": 1000,
-    "description": "Traveling expenses"
-  },
-  {
-    "id": "6b45f185-ea1b-4e10-9571-4167ebf1bb33",
-    "name": "Travel again",
-    "budget": 1000,
-    "description": "more traveling"
-  },
-  {
-    "id": "ec1334fe-77f1-4a6f-9017-06c9e45622be",
-    "name": "ipad",
-    "budget": 1000,
-    "description": "since we like ipads"
-  },
-  {
-    "id": "1e1230ef-f680-4e27-b3a9-be41d1ca30bd",
-    "name": "What",
-    "budget": 1000,
-    "description": "test"
-  },
-  {
-    "id": "8ad2f129-66e0-422a-93d2-593d2741506e",
-    "name": "New",
-    "budget": 1000,
-    "description": "New"
-  },
-  {
-    "id": "503d52db-b26f-47df-8ec4-e22d4dfda7d5",
-    "name": "new start",
-    "budget": 1000,
-    "odFlag": false,
-    "description": "what"
   },
   {
     "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
