@@ -6,40 +6,42 @@ class ExpenseTypeRoutes extends Crud {
     this.jsonModify = jsonModify;
   }
 
- _add(uuid,{
-  name,
-  budget,
-  odFlag
-}) {
-
-  let found = this.jsonModify._specificFind("name", name);
-  console.log(name, budget, odFlag);
-  if (found)
-  {
-    return null;
-  }
-  else {
-    return {
-      id: uuid,
-      name,
-      budget,
-      odFlag
-    };
-  }
-}
-
- _update(id, {
-  name,
-  budget,
-  odFlag
-}) {
-  console.log(id, name, budget, odFlag);
-  return {
-    id,
+  _add(uuid, {
     name,
     budget,
-    odFlag
-  };
-}
+    odFlag,
+    description
+  }) {
+
+    let found = this.jsonModify._specificFind("name", name);
+    console.log(name, budget, odFlag, description);
+    if (found) {
+      return null;
+    } else {
+      return {
+        id: uuid,
+        name,
+        budget,
+        odFlag,
+        description
+      };
+    }
+  }
+
+  _update(id, {
+    name,
+    budget,
+    odFlag,
+    description
+  }) {
+    console.log(id, name, budget, odFlag, description);
+    return {
+      id,
+      name,
+      budget,
+      odFlag,
+      description
+    };
+  }
 }
 module.exports = ExpenseTypeRoutes;

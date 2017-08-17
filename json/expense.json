@@ -77,5 +77,29 @@
     "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
     "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
     "createdAt": "2017-08-16"
+  },
+  {
+    "id": "d85ddead-57e1-41d6-b963-5d7323ac6b33",
+    "purchaseDate": "2017-08-11",
+    "reimbursedDate": "2017-08-24",
+    "cost": 99.99,
+    "description": "Smart Toaster",
+    "note": "Good",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "createdAt": "2017-08-17"
+  },
+  {
+    "id": "2f0ea833-262e-451a-8751-2beb99acc2f4",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "not assigned",
+    "cost": 600,
+    "description": "Smart Microwave",
+    "note": "Smart",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "createdAt": "2017-08-17"
   }
 ]
