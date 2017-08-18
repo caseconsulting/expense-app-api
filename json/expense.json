@@ -11,39 +11,6 @@
     "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
   },
   {
-    "id": "d33a3d8a-bac9-48df-b8e2-769da26311b1",
-    "purchaseDate": "2017-08-01",
-    "reimbursedDate": "2017-08-14T18:45:32.972Z",
-    "cost": 100,
-    "description": "Parking",
-    "note": "Test",
-    "receipt": "N/A",
-    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
-  },
-  {
-    "id": "b0a7e5a9-adc9-4520-b659-9966d051ad79",
-    "purchaseDate": "2017-08-01",
-    "reimbursedDate": "2017-08-14T19:19:02.451Z",
-    "cost": 200,
-    "description": "Food",
-    "note": "some",
-    "receipt": "N/A",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
-  },
-  {
-    "id": "4eb08973-e1fd-4a35-a2f8-3b4c891301ab",
-    "purchaseDate": "2017-05-14",
-    "reimbursedDate": "2017-08-14T19:19:44.496Z",
-    "cost": 300,
-    "description": "Convention ",
-    "note": "Fun time",
-    "receipt": "N/A",
-    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
-    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e"
-  },
-  {
     "id": "9944d8b0-ba68-44e0-ae9a-f606bf8ea03f",
     "purchaseDate": "2017-05-15",
     "reimbursedDate": "not assigned",
@@ -65,18 +32,6 @@
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
     "createdAt": "2017-08-14T18:43:35.493Z"
-  },
-  {
-    "id": "8a39d2a5-2d2b-428f-bbfe-a90dd11ad8ca",
-    "purchaseDate": "2017-08-01",
-    "reimbursedDate": "not assigned",
-    "cost": 200,
-    "description": "Ticket",
-    "note": "not me",
-    "receipt": "N/A",
-    "expenseTypeId": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
-    "createdAt": "2017-08-16"
   },
   {
     "id": "d85ddead-57e1-41d6-b963-5d7323ac6b33",
@@ -101,5 +56,77 @@
     "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
     "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
     "createdAt": "2017-08-17"
+  },
+  {
+    "id": "71917f0e-21df-4611-9d07-c2d0ec048d21",
+    "purchaseDate": "2017-08-02",
+    "reimbursedDate": "not assigned",
+    "cost": 100,
+    "description": "Parking",
+    "note": "For the month",
+    "receipt": "N/A",
+    "expenseTypeId": "383hd9d2-9830-2876-380s-b97d93949c92",
+    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "createdAt": "2017-08-18"
+  },
+  {
+    "id": "e86d9dde-3c8b-4601-bc49-8f0e6ed53c7d",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "not assigned",
+    "cost": 1000,
+    "description": "AWS Class",
+    "note": "Thanks!",
+    "receipt": "N/A",
+    "expenseTypeId": "bf2ed219-9649-4542-bdfd-6305bc079021",
+    "userId": "0df73331-b4cd-4473-b5ba-0908346f9845",
+    "createdAt": "2017-08-18"
+  },
+  {
+    "id": "4eb08973-e1fd-4a35-a2f8-3b4c891301ab",
+    "purchaseDate": "2017-05-14",
+    "reimbursedDate": "2017-08-14",
+    "cost": 300,
+    "description": "Convention ",
+    "note": "Fun time",
+    "receipt": "N/A",
+    "expenseTypeId": "9a75eae7-fdb3-4602-9972-4bd85463f447",
+    "userId": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
+    "createdAt": "2017-08-18"
+  },
+  {
+    "id": "b0a7e5a9-adc9-4520-b659-9966d051ad79",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "2017-08-14",
+    "cost": 200,
+    "description": "Food",
+    "note": "Dinner with coworkers",
+    "receipt": "N/A",
+    "expenseTypeId": "9a75eae7-fdb3-4602-9972-4bd85463f447",
+    "userId": "c4b5d911-8a59-4d91-ad6d-4314b4c2b663",
+    "createdAt": "2017-08-18"
+  },
+  {
+    "id": "ce640812-58ba-4618-a0a8-2b9dec3794b3",
+    "purchaseDate": "2017-07-21",
+    "reimbursedDate": "not assigned",
+    "cost": 70,
+    "description": "Rental Car",
+    "note": "Uber Compact Car ",
+    "receipt": "N/A",
+    "expenseTypeId": "9a75eae7-fdb3-4602-9972-4bd85463f447",
+    "userId": "e1cfeb97-8385-497a-bbb0-f8c21af6b2f5",
+    "createdAt": "2017-08-18"
+  },
+  {
+    "id": "13c8eb6a-625e-4158-ae5a-1e37c3730205",
+    "purchaseDate": "2017-08-01",
+    "reimbursedDate": "not assigned",
+    "cost": 200,
+    "description": "Code School",
+    "note": "Learned me something",
+    "receipt": "N/A",
+    "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
+    "userId": "6a8e453d-4e94-4355-9924-169520211c79",
+    "createdAt": "2017-08-18"
   }
 ]

@@ -1,44 +1,37 @@
-[{
-    "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-    "name": "Parking",
-    "budget": "100",
-    "odFlag": false
-  },
-  {
-    "id": "383hd9d2-9830-2876-380s-b97d93949c92",
-    "name": "Transportation",
-    "budget": "150",
-    "odFlag": false
-  },
-  {
-    "id": "142659e1-2141-4e9c-b078-969b009fe861",
-    "name": "Books",
-    "budget": 2000,
-    "odFlag": true
-  },
-  {
-    "id": "edfed08e-f74a-42d8-a8b8-c6a962d2f7bd",
-    "name": "Swag",
-    "budget": 100,
-    "odFlag": false
-  },
-  {
-    "id": "75704c8c-d057-4230-85f3-f55577fad536",
-    "name": "Technology",
-    "budget": 2000,
-    "odFlag": false
-  },
-  {
-    "id": "670a4632-0706-45d8-9d21-ca56aa0e29b2",
-    "name": "Company Recreation",
-    "budget": 1500,
-    "description": "Any expense that will be used for company outtings"
-  },
+[
   {
     "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
     "name": "Training",
     "budget": "3500",
     "odFlag": true,
     "description": "All expenses that are related to employee related training\n"
+  },
+  {
+    "id": "383hd9d2-9830-2876-380s-b97d93949c92",
+    "name": "Transportation",
+    "budget": "150",
+    "odFlag": false,
+    "description": "Any expense relating to commuting to and from from. \nNOTE: Does not include transportation used during travel."
+  },
+  {
+    "id": "75704c8c-d057-4230-85f3-f55577fad536",
+    "name": "Technology",
+    "budget": 2000,
+    "odFlag": false,
+    "description": "Any technology you purchased that you wish to be counted against your technology budget"
+  },
+  {
+    "id": "bf2ed219-9649-4542-bdfd-6305bc079021",
+    "name": "Tommy's AWS Certification",
+    "budget": 1000,
+    "odFlag": true,
+    "description": "Tommy ONLY. Please add any costs related to your AWS certification. These will not be counted towards your training budget"
+  },
+  {
+    "id": "9a75eae7-fdb3-4602-9972-4bd85463f447",
+    "name": "Travel",
+    "budget": 1000,
+    "odFlag": true,
+    "description": "Travel Expenses for Expos and Conventions etc."
   }
 ]

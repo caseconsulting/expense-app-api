@@ -1,30 +1,5 @@
 [
   {
-    "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
-    "firstName": "Johnny",
-    "middleName": "App",
-    "lastName": "Smith",
-    "empId": 12,
-    "hireDate": "2017-01-01",
-    "expenseTypes": [
-      {
-        "id": "75704c8c-d057-4230-85f3-f55577fad536",
-        "balance": "1300",
-        "owedAmount": "0"
-      },
-      {
-        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
-        "balance": "19500",
-        "owedAmount": "0"
-      },
-      {
-        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
-        "balance": "200",
-        "owedAmount": "0"
-      }
-    ]
-  },
-  {
     "id": "ef73ec57-f913-40e5-b0a8-a4d90a64045e",
     "firstName": "Obi",
     "middleName": "Wan",
@@ -44,7 +19,118 @@
       },
       {
         "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+        "balance": "0",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "firstName": "Johnny",
+    "middleName": "App",
+    "lastName": "Smith",
+    "empId": 12,
+    "hireDate": "2017-01-01",
+    "expenseTypes": [
+      {
+        "id": "75704c8c-d057-4230-85f3-f55577fad536",
+        "balance": "1300",
+        "owedAmount": "0"
+      },
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "19500",
+        "owedAmount": "0"
+      },
+      {
+        "id": "866d9a64-e919-4c63-8f24-f9d1ceb09572",
+        "balance": "0",
+        "owedAmount": "0"
+      },
+      {
+        "id": "383hd9d2-9830-2876-380s-b97d93949c92",
         "balance": "100",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "6ae188cd-359a-46c3-b42f-62f769867265",
+    "firstName": "Jake",
+    "middleName": "Conway",
+    "lastName": "Long",
+    "empId": 13,
+    "hireDate": "1995-10-11",
+    "expenseTypes": []
+  },
+  {
+    "id": "c4b5d911-8a59-4d91-ad6d-4314b4c2b663",
+    "firstName": "Timothy",
+    "middleName": "C ",
+    "lastName": "Cook",
+    "empId": 14,
+    "hireDate": "1984-01-01",
+    "expenseTypes": []
+  },
+  {
+    "id": "93b031dd-997f-48b5-b175-dacfe8379ff6",
+    "firstName": "Monti",
+    "middleName": "Jasper",
+    "lastName": "Python",
+    "empId": 15,
+    "hireDate": "1974-01-30",
+    "expenseTypes": []
+  },
+  {
+    "id": "5fd35eb7-c4b3-4376-9862-dd5acdc4190c",
+    "firstName": "Larry",
+    "middleName": "Goodwin ",
+    "lastName": "Page",
+    "empId": 16,
+    "hireDate": "1992-12-04",
+    "expenseTypes": []
+  },
+  {
+    "id": "0df73331-b4cd-4473-b5ba-0908346f9845",
+    "firstName": "Tommy",
+    "middleName": "K ",
+    "lastName": "Whitman",
+    "empId": 20,
+    "hireDate": "1992-02-02",
+    "expenseTypes": [
+      {
+        "id": "bf2ed219-9649-4542-bdfd-6305bc079021",
+        "balance": "1000",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "e1cfeb97-8385-497a-bbb0-f8c21af6b2f5",
+    "firstName": "Bill",
+    "middleName": "Int",
+    "lastName": "Gates",
+    "empId": 14,
+    "hireDate": "1984-01-01",
+    "expenseTypes": [
+      {
+        "id": "9a75eae7-fdb3-4602-9972-4bd85463f447",
+        "balance": "70",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "6a8e453d-4e94-4355-9924-169520211c79",
+    "firstName": "Elon",
+    "middleName": "Edison ",
+    "lastName": "Musk",
+    "empId": 18,
+    "hireDate": "1992-12-03",
+    "expenseTypes": [
+      {
+        "id": "743c30a5-4a15-4cae-9286-bd100f59c176",
+        "balance": "200",
         "owedAmount": "0"
       }
     ]
