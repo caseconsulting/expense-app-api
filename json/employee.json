@@ -134,5 +134,41 @@
         "owedAmount": "0"
       }
     ]
+  },
+  {
+    "id": "bf6c4033-134c-48a7-8159-35cc8f3227cc",
+    "firstName": "One",
+    "middleName": "Moe",
+    "lastName": "Time",
+    "empId": 40849,
+    "hireDate": "2017-12-01",
+    "expenseTypes": []
+  },
+  {
+    "id": "c9ba4b3c-21bc-4f3d-bc26-addd1aedcb90",
+    "firstName": "One",
+    "middleName": "Moe",
+    "lastName": "Time",
+    "empId": 40849,
+    "hireDate": "2017-12-08",
+    "expenseTypes": []
+  },
+  {
+    "id": "0ccaca82-f822-4621-8b65-16620d11e326",
+    "firstName": "Come",
+    "middleName": "On ",
+    "lastName": "Please",
+    "empId": 3984,
+    "hireDate": "2017-12-01",
+    "expenseTypes": []
+  },
+  {
+    "id": "eb41c1b6-ddb7-4510-801c-ca2e3d35c4eb",
+    "firstName": "Did",
+    "middleName": "it",
+    "lastName": "Work",
+    "empId": 40538,
+    "hireDate": "2017-12-12",
+    "expenseTypes": []
   }
 ]

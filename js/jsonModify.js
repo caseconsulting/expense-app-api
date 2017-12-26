@@ -1,14 +1,28 @@
 const fs = require('fs');
 const _ = require('lodash');
+const AWS = require('aws-sdk');
 
 class JsonModify {
+
   constructor(fileName) {
 
     this.filePath = fileName ? `json/${fileName}` : 'json/';
     this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
     this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
 
+    AWS.config.apiVersions = {
+      dynamodb: '2012-08-10',
+      // other service API versions
+    };
+    AWS.config.update({
+      region: 'us-east-1'
+    });
+
+    this.dynamodb = new AWS.DynamoDB.DocumentClient();
+
+
   }
+
   _matches(id) {
     return jsonObj => jsonObj.id === id;
   }
@@ -52,6 +66,19 @@ class JsonModify {
       this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
       fs.writeFile(this.filePath, arrayJson, this._writeCallback(newJsonObj, callback));
+      let tableToWriteTo = this.filePath.substring(5, this.filePath.indexOf('.json'));
+      tableToWriteTo = tableToWriteTo.charAt(0).toUpperCase() + tableToWriteTo.slice(1);
+      console.log('***' + tableToWriteTo + '***');
+      var params = {
+        TableName: tableToWriteTo,
+        Item: newJsonObj
+      };
+      var documentClient = new AWS.DynamoDB.DocumentClient();
+
+      documentClient.put(params, function(err, data) {
+        if (err) console.warn(err);
+        else console.log(data + 'it worked');
+      });
     } else {
       const err = {
         message: 'ADD: Object already in system'
