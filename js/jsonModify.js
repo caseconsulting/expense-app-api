@@ -19,8 +19,6 @@ class JsonModify {
     });
 
     this.dynamodb = new AWS.DynamoDB.DocumentClient();
-
-
   }
 
   _matches(id) {
@@ -63,22 +61,24 @@ class JsonModify {
   //overwrite json
   addToJson(newJsonObj, callback) {
     if (newJsonObj) {
+
       this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
       const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
       fs.writeFile(this.filePath, arrayJson, this._writeCallback(newJsonObj, callback));
-      let tableToWriteTo = this.filePath.substring(5, this.filePath.indexOf('.json'));
-      tableToWriteTo = tableToWriteTo.charAt(0).toUpperCase() + tableToWriteTo.slice(1);
-      console.log('***' + tableToWriteTo + '***');
+
       var params = {
-        TableName: tableToWriteTo,
+        TableName: this.getTableName(),
         Item: newJsonObj
       };
       var documentClient = new AWS.DynamoDB.DocumentClient();
+      documentClient.put(params).promise()
+        .then(function(data) {
+          console.log(newJsonObj.id + 'it worked');
+        })
+        .catch(function(err) {
+          console.warn(err);
+        });
 
-      documentClient.put(params, function(err, data) {
-        if (err) console.warn(err);
-        else console.log(data + 'it worked');
-      });
     } else {
       const err = {
         message: 'ADD: Object already in system'
@@ -90,12 +90,35 @@ class JsonModify {
   //parse existing json to an array
   //iterate through the json and find the appropriate value and return it
   readFromJson(passedID) {
-    const found = _.find(this.jsonParsed, this._matches(passedID));
-    if (found) {
-      return found;
-    } else {
-      return null;
-    }
+
+    const tableName = this.getTableName();
+    const params = _.assign({}, {
+      TableName: tableName,
+      ExpressionAttributeValues: {
+        ':id': passedID,
+      }
+    }, this.buildParams(tableName));
+    console.log('***', JSON.stringify(params), '***');
+
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+
+    return documentClient.query(params).promise()
+      .then(function(data) {
+        console.log(passedID, 'it worked');
+        console.log(JSON.stringify(data));
+        return data.Items;
+      })
+      .catch(function(err) {
+        console.warn(err);
+      });
+
+
+    // const found = _.find(this.jsonParsed, this._matches(passedID));
+    // if (found) {
+    //   return found;
+    // } else {
+    //   return null;
+    // }
   }
 
   removeFromJson(passedID, callback) {
@@ -117,6 +140,28 @@ class JsonModify {
   }
   getJson() {
     return this.jsonParsed;
+  }
+
+  getTableName() {
+    let table = this.filePath.substring(5, this.filePath.indexOf('.json'));
+    table = table.charAt(0).toUpperCase() + table.slice(1);
+    console.log('***' + table + '***');
+    return table;
+  }
+
+  buildParams(table) {
+    switch (table) {
+      case 'Expense':
+        return {
+          IndexName: 'userId-index',
+          KeyConditionExpression: 'userId = :id',
+
+        };
+      case 'Employee':
+        return {
+          KeyConditionExpression: 'id = :id',
+        }
+    }
   }
 }
 

@@ -78,17 +78,24 @@ class Crud {
   read(req, res) {
 
     console.log("get request recieved");
-    const output = this.jsonModify.readFromJson(req.params.id);
-    if (output) {
-      res.status(200).send(output);
-    } else {
-      const err = {
-        message: 'READ: Object not found'
-      };
-      res.status(404).send({
-        error: err.message
+    return this.jsonModify.readFromJson(req.params.id)
+      .then(function(output) {
+        console.log(output);
+        if (output) {
+          res.status(200).send(output);
+        } else {
+          const err = {
+            message: 'READ: Object not found'
+          };
+        }
+      })
+      .catch(function(err) {
+        res.status(500).send({
+          error: err.message
+        });
       });
-    }
+
+
   }
 
   update(req, res) {

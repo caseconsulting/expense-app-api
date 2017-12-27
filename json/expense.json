@@ -128,5 +128,29 @@
     "expenseTypeId": "743c30a5-4a15-4cae-9286-bd100f59c176",
     "userId": "6a8e453d-4e94-4355-9924-169520211c79",
     "createdAt": "2017-08-18"
+  },
+  {
+    "id": "8211983e-0771-42c6-9926-7efff8a53778",
+    "purchaseDate": "2017-12-01",
+    "reimbursedDate": "2017-12-05",
+    "cost": 40,
+    "description": "Parking",
+    "note": "Conference",
+    "receipt": "N/A",
+    "expenseTypeId": "383hd9d2-9830-2876-380s-b97d93949c92",
+    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "createdAt": "2017-12-27"
+  },
+  {
+    "id": "dd92ee31-9f47-430b-af0e-eb4faa51a89f",
+    "purchaseDate": "2017-12-04",
+    "reimbursedDate": "2017-12-05",
+    "cost": 200,
+    "description": "ABVC",
+    "note": "ABC",
+    "receipt": "N/A",
+    "expenseTypeId": "75704c8c-d057-4230-85f3-f55577fad536",
+    "userId": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
+    "createdAt": "2017-12-27"
   }
 ]
