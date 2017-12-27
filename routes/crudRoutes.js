@@ -1,36 +1,40 @@
 const express = require('express');
 const _ = require('lodash');
-
+const AWS = require('aws-sdk');
 class Crud {
-
   constructor(jsonModify, _uuid) {
     this.jsonModify = jsonModify;
     this._uuid = _uuid;
     this._router = express.Router();
-
     this._router.get('/', this.showList.bind(this));
     this._router.post('/', this.create.bind(this));
     this._router.get('/:id', this.read.bind(this));
     this._router.put('/:id', this.update.bind(this));
     this._router.delete('/:id', this.onDelete.bind(this));
+    AWS.config.apiVersions = {
+      dynamodb: '2012-08-10',
+      // other service API versions
+    };
+    AWS.config.update({
+      region: 'us-east-1'
+    });
   }
-
   get router() {
     return this._router;
   }
-
   _handleResponse(errorCode, res) {
     return (err, sendBack) => {
       if (err) {
-        res.status(errorCode).send({
-          error: err.message
-        });
+        res.status(errorCode)
+          .send({
+            error: err.message
+          });
       } else {
-        res.status(200).send(sendBack);
+        res.status(200)
+          .send(sendBack);
       }
     };
   }
-
   _inputChecker(objectToCheck, res) {
     const checkResult = _.includes(objectToCheck, "");
     if (checkResult) {
@@ -42,7 +46,6 @@ class Crud {
       return checkResult;
     }
   }
-
   create(req, res) {
     const newObject = this._add(this._uuid, req.body);
     if (_.isFunction(newObject)) {
@@ -67,22 +70,21 @@ class Crud {
     } else {
       const err = {
         message: `Hmm.. Strange.. The request didn't match any of our cases ):
-         Server Message: ${newObject.msg}`
+        Server Message: ${newObject.msg}`
       }
       console.log('Recieved request');
       const error = this._handleResponse(501, res);
       error(err);
     }
   }
-
   read(req, res) {
-
     console.log("get request recieved");
     return this.jsonModify.readFromJson(req.params.id)
       .then(function(output) {
         console.log(output);
         if (output) {
-          res.status(200).send(output);
+          res.status(200)
+            .send(output);
         } else {
           const err = {
             message: 'READ: Object not found'
@@ -90,14 +92,12 @@ class Crud {
         }
       })
       .catch(function(err) {
-        res.status(500).send({
-          error: err.message
-        });
+        res.status(500)
+          .send({
+            error: err.message
+          });
       });
-
-
   }
-
   update(req, res) {
     const newObject = this._update(req.params.id, req.body);
     if (_.isFunction(newObject)) {
@@ -126,20 +126,29 @@ class Crud {
       error(err);
     }
   }
-
   onDelete(req, res) {
     if (this.jsonModify.filePath === 'json/expense.json') {
       this._delete(req.params.id);
     }
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }
-
   showList(req, res) {
     console.log("get request recieved for everything");
-    const output = this.jsonModify.getJson();
-
-    res.status(200).send(output);
+    const tableName = this.jsonModify.getTableName();
+    var params = {
+      TableName: tableName
+    };
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+    documentClient.scan(params)
+      .promise()
+      .then(function(data) {
+        console.log(data.Items);
+        res.status(200)
+          .send(data.Items);
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
   }
-
 }
 module.exports = Crud;
