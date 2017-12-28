@@ -1,6 +1,7 @@
 const fs = require('fs');
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+
 class JsonModify {
   constructor(fileName) {
     this.filePath = fileName ? `json/${fileName}` : 'json/';
@@ -14,17 +15,25 @@ class JsonModify {
       region: 'us-east-1'
     });
   }
+
   _matches(id) {
     return jsonObj => jsonObj.id === id;
   }
+
   _specificFind(indexKey, targetValue) {
+    console.log('********** _specificFind ************');
     const found = _.find(this.jsonParsed, [indexKey, targetValue]);
-    if (found) {
-      return found;
-    } else {
-      return null;
-    }
+    console.log(found);
+    this.readFromJson(targetValue)
+      .then(function(data) {
+        console.log(data);
+        return _.first(data);
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
   }
+
   _writeCallback(object, callback) {
     return err => {
       if (err) {
@@ -34,6 +43,7 @@ class JsonModify {
       }
     }
   }
+
   _addToJson(newJsonObj, callback) {
     return err => {
       if (err) {
@@ -43,16 +53,15 @@ class JsonModify {
       }
     };
   }
-  //read in the json file
-  //parse existing json to an array
-  //push new value to array
-  //stringify the array (JSON>stringify)
-  //overwrite json
+
+  /**
+   * Add the entry to the database
+   */
   addToJson(newJsonObj, callback) {
     if (newJsonObj) {
-      this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
-      const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
-      fs.writeFile(this.filePath, arrayJson, this._writeCallback(newJsonObj, callback));
+      // this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
+      // const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
+      // fs.writeFile(this.filePath, arrayJson, this._writeCallback(newJsonObj, callback));
       var params = {
         TableName: this.getTableName(),
         Item: newJsonObj
@@ -61,7 +70,7 @@ class JsonModify {
       documentClient.put(params)
         .promise()
         .then(function(data) {
-          console.log(newJsonObj.id + 'it worked');
+          console.log(newJsonObj.id);
         })
         .catch(function(err) {
           console.warn(err);
@@ -73,6 +82,7 @@ class JsonModify {
       callback(err);
     }
   }
+
   //read in the json file
   //parse existing json to an array
   //iterate through the json and find the appropriate value and return it
@@ -84,25 +94,17 @@ class JsonModify {
         ':id': passedID,
       }
     }, this.buildParams(tableName));
-    console.log('***', JSON.stringify(params), '***');
     var documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient.query(params)
-      .promise()
+    return documentClient.query(params).promise()
       .then(function(data) {
-        console.log(passedID, 'it worked');
-        console.log(JSON.stringify(data));
+        console.log(data.Items);
         return data.Items;
       })
       .catch(function(err) {
-        console.warn(err);
+        console.log(err);
       });
-    // const found = _.find(this.jsonParsed, this._matches(passedID));
-    // if (found) {
-    //   return found;
-    // } else {
-    //   return null;
-    // }
   }
+
   removeFromJson(passedID, callback) {
     const position = _.findIndex(this.jsonParsed, this._matches(passedID)); //removes type from array
     if (position == -1) { //if error
@@ -117,12 +119,33 @@ class JsonModify {
       fs.writeFile(this.filePath, arrayJson, this._writeCallback(output, callback)); //writes json
     }
   }
-  updateJsonEntry(newJsonObj, callback) {
-    this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
+
+  updateJsonEntry(newJsonObj) {
+    // this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
+    const tableName = this.getTableName();
+    console.log('TABLE NAME', tableName);
+    const params = this.buildUpdateParams(newJsonObj);
+    console.log(params, 'params ******************');
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient.update(params)
+      .promise()
+      .then(function(data) {
+        console.log(JSON.stringify(data));
+      })
+      .catch(function(err) {
+        console.warn(err);
+      });
   }
+
   getJson() {
-    return this.jsonParsed;
+    const tableName = this.getTableName();
+    var params = {
+      TableName: tableName
+    };
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient.scan(params).promise();
   }
+
   getTableName() {
     let table = this.filePath.substring(5, this.filePath.indexOf('.json'));
     table = table.charAt(0)
@@ -130,17 +153,80 @@ class JsonModify {
     console.log('***' + table + '***');
     return table;
   }
+
   buildParams(table) {
     switch (table) {
       case 'Expense':
         return {
-          IndexName: 'userId-index',
-          KeyConditionExpression: 'userId = :id',
+          // IndexName: 'userId-index',
+          KeyConditionExpression: 'id = :id',
         };
       case 'Employee':
         return {
           KeyConditionExpression: 'id = :id',
         }
+      case 'ExpenseType':
+        return {
+          KeyConditionExpression: 'id = :id',
+        }
+    }
+  }
+
+  buildUpdateParams(objToUpdate) {
+    const tableName = this.getTableName()
+    console.log(objToUpdate);
+    switch (tableName) {
+      case 'Expense':
+        return {
+          TableName: 'Expense',
+          Key: {
+            'id': objToUpdate.id
+          },
+          UpdateExpression: 'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
+          ExpressionAttributeValues: {
+            ':pd': objToUpdate.purchaseDate,
+            ':rd': objToUpdate.reimbursedDate,
+            ':c': objToUpdate.cost,
+            ':d': objToUpdate.description,
+            ':n': objToUpdate.note,
+            ':r': objToUpdate.receipt,
+            ':eti': objToUpdate.expenseTypeId,
+            ':ui': objToUpdate.userId
+          },
+          ReturnValues: "UPDATED_NEW"
+        };
+      case 'Employee':
+        return {
+          TableName: 'Employee',
+          Key: {
+            'id': objToUpdate.id
+          },
+          UpdateExpression: 'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
+          ExpressionAttributeValues: {
+            ':fn': objToUpdate.firstName,
+            ':mn': objToUpdate.middleName,
+            ':ln': objToUpdate.lastName,
+            ':eid': objToUpdate.empId,
+            ':hd': objToUpdate.hireDate,
+            ':et': objToUpdate.expenseTypes,
+          },
+          ReturnValues: "UPDATED_NEW"
+        };
+      case 'ExpenseType':
+        return {
+          TableName: 'ExpenseType',
+          Key: {
+            'id': objToUpdate.id
+          },
+          UpdateExpression: 'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
+          ExpressionAttributeValues: {
+            ':bn': objToUpdate.budgetName,
+            ':b': objToUpdate.budget,
+            ':odf': false,
+            ':d': objToUpdate.description,
+          },
+          ReturnValues: "UPDATED_NEW"
+        };
     }
   }
 }

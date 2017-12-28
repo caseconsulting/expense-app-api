@@ -33,5 +33,25 @@
     "budget": 1000,
     "odFlag": true,
     "description": "Travel Expenses for Expos and Conventions etc."
+  },
+  {
+    "id": "b70742c9-6f49-4773-96b9-1521cd8afc28",
+    "name": "Ambiguous",
+    "budget": 400,
+    "odFlag": true,
+    "description": "Expense type for transportation expenses"
+  },
+  {
+    "id": "f2efb7a4-b7c9-41b1-a3ef-bf780552ca20",
+    "name": "Random",
+    "budget": 2000,
+    "odFlag": true,
+    "description": "Just testing dynamo"
+  },
+  {
+    "id": "35e19af9-a3df-4e7d-89a3-33352aa15898",
+    "name": "MetroBoomin",
+    "budget": 300,
+    "description": "Does it work"
   }
 ]

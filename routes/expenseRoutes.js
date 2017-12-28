@@ -62,9 +62,8 @@ class ExpenseRoutes extends Crud {
 
     //removes old cost from employees budget
     const expense = this.jsonModify._specificFind("id", id);
-
     return function(callback) {
-      if (expense.cost === cost) {
+      if (expense.id === id) {
         return callback(null, {
           id,
           purchaseDate,
@@ -104,6 +103,7 @@ class ExpenseRoutes extends Crud {
   }
 
 
+  //TODO update this to read from dynamo
   validateCostToBudget(expenseTypeId, userId, cost, callback) {
     //new instance
 
@@ -165,6 +165,7 @@ class ExpenseRoutes extends Crud {
 
   }
 
+  //TODO update this to read from dynamo
   deleteCostFromBudget(expenseTypeId, userId, cost, callback) {
     //new instance
     const expenseTypeJson = new JsonModify('expenseType.json');

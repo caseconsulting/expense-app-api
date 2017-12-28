@@ -1,6 +1,7 @@
 const express = require('express');
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+
 class Crud {
   constructor(jsonModify, _uuid) {
     this.jsonModify = jsonModify;
@@ -19,9 +20,11 @@ class Crud {
       region: 'us-east-1'
     });
   }
+
   get router() {
     return this._router;
   }
+
   _handleResponse(errorCode, res) {
     return (err, sendBack) => {
       if (err) {
@@ -35,6 +38,7 @@ class Crud {
       }
     };
   }
+
   _inputChecker(objectToCheck, res) {
     const checkResult = _.includes(objectToCheck, "");
     if (checkResult) {
@@ -46,8 +50,10 @@ class Crud {
       return checkResult;
     }
   }
+
   create(req, res) {
     const newObject = this._add(this._uuid, req.body);
+    console.log('***', newObject, '***');
     if (_.isFunction(newObject)) {
       newObject((err, value) => {
         console.log('What...');
@@ -63,6 +69,8 @@ class Crud {
           error(errMsg);
         }
       });
+    } else if (newObject === null) {
+      console.log('I should execute');
     } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
         this.jsonModify.addToJson(newObject, this._handleResponse(409, res));
@@ -77,14 +85,14 @@ class Crud {
       error(err);
     }
   }
+
   read(req, res) {
-    console.log("get request recieved");
     return this.jsonModify.readFromJson(req.params.id)
       .then(function(output) {
-        console.log(output);
         if (output) {
+          console.log(output);
           res.status(200)
-            .send(output);
+            .send(_.first(output));
         } else {
           const err = {
             message: 'READ: Object not found'
@@ -92,19 +100,34 @@ class Crud {
         }
       })
       .catch(function(err) {
+        console.log(err);
         res.status(500)
           .send({
             error: err.message
           });
       });
   }
+
   update(req, res) {
     const newObject = this._update(req.params.id, req.body);
     if (_.isFunction(newObject)) {
       newObject((err, value) => {
         if (value) {
+          console.log('Value', value);
           if (!this._inputChecker(value, res)) {
-            this.jsonModify.updateJsonEntry(value, this._handleResponse(422, res));
+            console.log('going into updateJsonEntry', value);
+            this.jsonModify.updateJsonEntry(value)
+              .then(function(data) {
+                console.log(JSON.stringify(data));
+                res.status(200)
+                  .send(value);
+                console.log('sent value back', value);
+              })
+              .catch(function(err) {
+                console.log(err);
+                res.status(500)
+                  .send(err);
+              });
           }
         } else if (err) {
           const errMsg = {
@@ -116,7 +139,17 @@ class Crud {
       });
     } else if (newObject.id) {
       if (!this._inputChecker(newObject, res)) {
-        this.jsonModify.updateJsonEntry(newObject, this._handleResponse(404, res));
+        this.jsonModify.updateJsonEntry(newObject)
+          .then(function(data) {
+            console.log(JSON.stringify(data));
+            res.status(200)
+              .send(data);
+          })
+          .catch(function(err) {
+            console.log(err);
+            res.status(500)
+              .send(err);
+          });
       }
     } else {
       const err = {
@@ -126,21 +159,17 @@ class Crud {
       error(err);
     }
   }
+
   onDelete(req, res) {
     if (this.jsonModify.filePath === 'json/expense.json') {
       this._delete(req.params.id);
     }
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }
+  //TODO move this to jsonModify.getJson
   showList(req, res) {
     console.log("get request recieved for everything");
-    const tableName = this.jsonModify.getTableName();
-    var params = {
-      TableName: tableName
-    };
-    var documentClient = new AWS.DynamoDB.DocumentClient();
-    documentClient.scan(params)
-      .promise()
+    this.jsonModify.getJson()
       .then(function(data) {
         console.log(data.Items);
         res.status(200)

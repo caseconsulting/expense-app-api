@@ -1,43 +1,49 @@
 const Crud = require('./crudRoutes');
-
 class ExpenseTypeRoutes extends Crud {
   constructor(jsonModify, uuid) {
     super(jsonModify, uuid);
     this.jsonModify = jsonModify;
   }
-
   _add(uuid, {
-    name,
+    budgetName,
     budget,
     odFlag,
     description
   }) {
-
-    let found = this.jsonModify._specificFind("name", name);
-    console.log(name, budget, odFlag, description);
-    if (found) {
+    let objectWasFound = this.jsonModify._specificFind(uuid);
+    console.log(budgetName, budget, odFlag, description);
+    if (objectWasFound) {
+      console.log('** object already exists ** ', objectWasFound);
       return null;
     } else {
+      if (odFlag === undefined) {
+        odFlag = false;
+      }
+      console.log('Expense type being added', uuid, budgetName, budget, odFlag, description);
       return {
         id: uuid,
-        name,
+        budgetName,
         budget,
         odFlag,
         description
       };
     }
   }
-
   _update(id, {
-    name,
+    budgetName,
     budget,
     odFlag,
     description
   }) {
-    console.log(id, name, budget, odFlag, description);
+    console.log('updating...');
+    if (odFlag === undefined) {
+      odFlag = false;
+    }
+    console.log('Expense type being updated', id, budgetName, budget, odFlag, description);
+
     return {
       id,
-      name,
+      budgetName,
       budget,
       odFlag,
       description

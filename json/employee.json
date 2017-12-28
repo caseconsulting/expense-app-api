@@ -108,15 +108,6 @@
     "expenseTypes": []
   },
   {
-    "id": "eb41c1b6-ddb7-4510-801c-ca2e3d35c4eb",
-    "firstName": "Did",
-    "middleName": "it",
-    "lastName": "Work",
-    "empId": 40538,
-    "hireDate": "2017-12-12",
-    "expenseTypes": []
-  },
-  {
     "id": "48aae474-6b81-43ce-ac72-a2ed5e0f1a4f",
     "firstName": "Johnny",
     "middleName": "App",
@@ -142,6 +133,21 @@
       {
         "id": "383hd9d2-9830-2876-380s-b97d93949c92",
         "balance": "140",
+        "owedAmount": "0"
+      }
+    ]
+  },
+  {
+    "id": "eb41c1b6-ddb7-4510-801c-ca2e3d35c4eb",
+    "firstName": "Did",
+    "middleName": "it",
+    "lastName": "Work",
+    "empId": 40538,
+    "hireDate": "2017-12-12",
+    "expenseTypes": [
+      {
+        "id": "b70742c9-6f49-4773-96b9-1521cd8afc28",
+        "balance": "100",
         "owedAmount": "0"
       }
     ]
