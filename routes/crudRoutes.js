@@ -118,7 +118,7 @@ class Crud {
             console.log('going into updateJsonEntry', value);
             this.jsonModify.updateJsonEntry(value)
               .then(function(data) {
-                console.log(JSON.stringify(data));
+                console.log('Updating...', JSON.stringify(data));
                 res.status(200)
                   .send(value);
                 console.log('sent value back', value);
@@ -141,7 +141,6 @@ class Crud {
       if (!this._inputChecker(newObject, res)) {
         this.jsonModify.updateJsonEntry(newObject)
           .then(function(data) {
-            console.log(JSON.stringify(data));
             res.status(200)
               .send(data);
           })
@@ -166,17 +165,18 @@ class Crud {
     }
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }
-  //TODO move this to jsonModify.getJson
+
   showList(req, res) {
     console.log("get request recieved for everything");
     this.jsonModify.getJson()
       .then(function(data) {
-        console.log(data.Items);
         res.status(200)
           .send(data.Items);
       })
       .catch(function(err) {
         console.log(err);
+        res.status(500)
+          .send(err);
       });
   }
 }

@@ -130,7 +130,8 @@ class JsonModify {
     return documentClient.update(params)
       .promise()
       .then(function(data) {
-        console.log(JSON.stringify(data));
+        console.log('data returned from dynamo:', JSON.stringify(data));
+        return data.Attributes;
       })
       .catch(function(err) {
         console.warn(err);
@@ -193,7 +194,7 @@ class JsonModify {
             ':eti': objToUpdate.expenseTypeId,
             ':ui': objToUpdate.userId
           },
-          ReturnValues: "UPDATED_NEW"
+          ReturnValues: "ALL_NEW"
         };
       case 'Employee':
         return {
@@ -210,7 +211,7 @@ class JsonModify {
             ':hd': objToUpdate.hireDate,
             ':et': objToUpdate.expenseTypes,
           },
-          ReturnValues: "UPDATED_NEW"
+          ReturnValues: "ALL_NEW"
         };
       case 'ExpenseType':
         return {
@@ -225,7 +226,7 @@ class JsonModify {
             ':odf': false,
             ':d': objToUpdate.description,
           },
-          ReturnValues: "UPDATED_NEW"
+          ReturnValues: "ALL_NEW"
         };
     }
   }
