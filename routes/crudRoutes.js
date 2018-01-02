@@ -109,8 +109,10 @@ class Crud {
       });
   }
 
-  _updateEmployeeOrExpenseType(res, newObject) {
-    console.log('newObject in _updateEmployeeOrExpenseType', newObject);
+  /**
+   * Updates the object
+   */
+  _updateDatabase(res, newObject) {
     return this.jsonModify.updateJsonEntry(newObject)
       .then(function(data) {
         res.status(200)
@@ -123,15 +125,21 @@ class Crud {
       });
   }
 
+  /**
+   * Handles any errors in crud operations
+   */
   _handleError(err) {
     // this._handleResponse(err.code, err.message);
     console.log(err);
   }
 
+  /**
+   * Validates the inputCheker
+   * seperates cases based on newObject
+   */
   _validateInputs(res, newObject) {
-
-    console.log('Well hello there', newObject);
     if (_.isFunction(newObject)) {
+      //Curry inputCheker so that you have access inside promise
       let inputCheckerCurried = _.curry(this._inputChecker)(res);
       return newObject((err, value) =>
         new Promise(function(resolve, reject) {
@@ -142,17 +150,6 @@ class Crud {
             resolve(value);
           }
         }));
-
-      // {
-      //   if (value) {
-      //     if (this._inputChecker(value, res)) {
-      //       throw 'New Object did not pass _inputChecker';
-      //     }
-      //     console.log('I am executing', value);
-      //     return value;
-      //   }
-      // });
-
     } else if (newObject.id) {
       if (this._inputChecker(res, newObject)) {
         throw 'New Object did not pass _inputChecker';
@@ -164,82 +161,21 @@ class Crud {
     }
   }
 
+  /**
+   * update a specified entry
+   */
   update(req, res) {
     let _validateInputsCurried = _.curry(this._validateInputs)(res);
-    let _updateEmployeeOrExpenseTypeCurried = _.curry(this._updateEmployeeOrExpenseType)(res);
+    let _updateDatabaseCurried = _.curry(this._updateDatabase)(res);
     this._update(req.params.id, req.body)
       .then(_validateInputsCurried.bind(this))
-      .then(_updateEmployeeOrExpenseTypeCurried.bind(this))
+      .then(_updateDatabaseCurried.bind(this))
       .catch(this._handleError);
-
   }
 
-
-
-  // update(req, res) {
-  //   return this._update(req.params.id, req.body)
-  //     .then(function(newObject) {
-  //       console.log('I am in the then');
-  //       if (_.isFunction(newObject)) {
-  //         newObject((err, value) => {
-  //           if (value) {
-  //             console.log('Value', value);
-  //             if (!this._inputChecker(value, res)) {
-  //               console.log('going into updateJsonEntry', value);
-  //               this.jsonModify.updateJsonEntry(value)
-  //                 .then(function(data) {
-  //                   console.log('Updating...', JSON.stringify(data));
-  //                   res.status(200)
-  //                     .send(value);
-  //                   console.log('sent value back', value);
-  //                 })
-  //                 .catch(function(err) {
-  //                   console.log(err);
-  //                   res.status(500)
-  //                     .send(err);
-  //                 });
-  //             }
-  //           } else if (err) {
-  //             const errMsg = {
-  //               message: err.msg
-  //             }
-  //             const error = this._handleResponse(err.code, res);
-  //             error(errMsg);
-  //           }
-  //         });
-  //       } else if (newObject.id) {
-  //         console.log('New Object 2', newObject);
-  //         if (!this._inputChecker(newObject, res)) {
-  //         console.log('Checking input');
-  //         this.jsonModify.updateJsonEntry(newObject)
-  //           .then(function(data) {
-  //             console.log('inside then');
-  //             res.status(200)
-  //               .send(data);
-  //           })
-  //           .catch(function(err) {
-  //             console.log(err);
-  //             res.status(500)
-  //               .send(err);
-  //           });
-  //         // } else {
-  //         //   console.log('End of this case');
-  //         // }
-  //       } else {
-  //         console.log('Going to else');
-  //         const err = {
-  //           message: 'UPDATE: Object already exists'
-  //         }
-  //         const error = this._handleResponse(409, res);
-  //         error(err);
-  //       }
-  //     })
-  //     .catch(function(err) {
-  //       console.log('perfrom error handles');
-  //     });
-  //
-  // }
-
+  /**
+   * delete the specified entry
+   */
   onDelete(req, res) {
     if (this.jsonModify.filePath === 'json/expense.json') {
       this._delete(req.params.id);
@@ -247,6 +183,9 @@ class Crud {
     this.jsonModify.removeFromJson(req.params.id, this._handleResponse(404, res));
   }
 
+  /**
+   * Retrieve all items in a given list specified by request
+   */
   showList(req, res) {
     console.log("get request recieved for everything");
     this.jsonModify.getJson()
