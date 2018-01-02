@@ -21,17 +21,14 @@ class JsonModify {
   }
 
   _specificFind(indexKey, targetValue) {
-    console.log('********** _specificFind ************');
-    const found = _.find(this.jsonParsed, [indexKey, targetValue]);
-    console.log(found);
-    this.readFromJson(targetValue)
+    return this.readFromJson(targetValue)
       .then(function(data) {
-        console.log(data);
         return _.first(data);
       })
       .catch(function(err) {
         console.log(err);
       });
+
   }
 
   _writeCallback(object, callback) {
@@ -97,7 +94,6 @@ class JsonModify {
     var documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.query(params).promise()
       .then(function(data) {
-        console.log(data.Items);
         return data.Items;
       })
       .catch(function(err) {
@@ -122,10 +118,9 @@ class JsonModify {
 
   updateJsonEntry(newJsonObj) {
     // this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
+    console.log('in update json');
     const tableName = this.getTableName();
-    console.log('TABLE NAME', tableName);
     const params = this.buildUpdateParams(newJsonObj);
-    console.log(params, 'params ******************');
     var documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.update(params)
       .promise()
@@ -175,7 +170,6 @@ class JsonModify {
 
   buildUpdateParams(objToUpdate) {
     const tableName = this.getTableName()
-    console.log(objToUpdate);
     switch (tableName) {
       case 'Expense':
         return {

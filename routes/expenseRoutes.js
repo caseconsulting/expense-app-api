@@ -61,29 +61,10 @@ class ExpenseRoutes extends Crud {
   }) {
 
     //removes old cost from employees budget
-    const expense = this.jsonModify._specificFind("id", id);
-    return function(callback) {
-      if (expense.id === id) {
-        return callback(null, {
-          id,
-          purchaseDate,
-          reimbursedDate,
-          cost,
-          description,
-          note,
-          receipt,
-          expenseTypeId,
-          userId,
-          createdAt
-        });
-      }
-      this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost, (err, value) => {
-
-        this.validateCostToBudget(expenseTypeId, userId, cost, (err, value) => {
-          if (err) {
-            callback(err);
-            //TODO handle error here
-          } else {
+    return this.jsonModify._specificFind("id", id)
+      .then(function(expense) {
+        return function(callback) {
+          if (expense.id === id) {
             return callback(null, {
               id,
               purchaseDate,
@@ -97,72 +78,94 @@ class ExpenseRoutes extends Crud {
               createdAt
             });
           }
-        });
+          this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost, (err, value) => {
+
+            this.validateCostToBudget(expenseTypeId, userId, cost, (err, value) => {
+              if (err) {
+                callback(err);
+                //TODO handle error here
+              } else {
+                return callback(null, {
+                  id,
+                  purchaseDate,
+                  reimbursedDate,
+                  cost,
+                  description,
+                  note,
+                  receipt,
+                  expenseTypeId,
+                  userId,
+                  createdAt
+                });
+              }
+            });
+          });
+        }.bind(this);
       });
-    }.bind(this);
   }
 
 
   //TODO update this to read from dynamo
   validateCostToBudget(expenseTypeId, userId, cost, callback) {
-    //new instance
-
     const expenseTypeJson = new JsonModify('expenseType.json');
     const employeeJson = new JsonModify('employee.json');
-    const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
-    //TODO remove empty quotes from User ID since UUID is always string
-    const employee = employeeJson._specificFind("id", '' + userId);
-    console.log(employee);
-    if (!employee.expenseTypes) {
-      //create new balance under the employee
-      employee.expenseTypes = [];
-      console.log(employee);
-      employeeJson.updateJsonEntry(employee, callback);
-    }
-    let employeeBalance;
-    let budgetPosition;
-    let remaining;
-    for (var i = 0; i < employee.expenseTypes.length; i++) {
-      if (employee.expenseTypes[i].id === expenseTypeId) {
+    const expenseType = expenseTypeJson.readFromJson(expenseTypeId);
+    const employee = employeeJson.readFromJson(userId);
 
-        budgetPosition = i;
-        employeeBalance = +employee.expenseTypes[i].balance + cost;
-        remaining = expenseType.budget - employeeBalance;
-      }
-    }
-    if (!employeeBalance) {
-      //create new balance under the employee
-      let newExpense = {
-        id: expenseTypeId,
-        balance: '' + cost,
-        owedAmount: '0'
-      }
-      employee.expenseTypes.push(newExpense);
-      employeeJson.updateJsonEntry(employee, callback);
-    }
-    //OVERDRAFT
-    else if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
-      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+    expenseType.then(function(data) {
+      employee.then(function(data) {
+        if (!employee.expenseTypes) {
+          //create new balance under the employee
+          employee.expenseTypes = [];
+          console.log(employee);
+          employeeJson.updateJsonEntry(employee, callback);
+        }
+        let employeeBalance;
+        let budgetPosition;
+        let remaining;
+        for (var i = 0; i < employee.expenseTypes.length; i++) {
+          if (employee.expenseTypes[i].id === expenseTypeId) {
 
-      employeeJson.updateJsonEntry(employee, callback);
-    }
-    //PARTIAL COVERAGE
-    else if (expenseType.budget !== +employee.expenseTypes[budgetPosition].balance && expenseType.budget - employeeBalance < 0 && !expenseType.odFlag && remaining < 0) {
-      employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
-      employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
-      employeeJson.updateJsonEntry(employee, callback);
-    }
-    //COVERED BY BUDGET
-    else if (expenseType.budget - employeeBalance >= 0) {
-      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
-      employeeJson.updateJsonEntry(employee, callback);
-    } else {
-      callback({
-        msg: `expense over budget limit: ${Math.abs(remaining)}`,
-        code: 422
-      }, null);
-    }
+            budgetPosition = i;
+            employeeBalance = +employee.expenseTypes[i].balance + cost;
+            remaining = expenseType.budget - employeeBalance;
+          }
+        }
+        if (!employeeBalance) {
+          //create new balance under the employee
+          let newExpense = {
+            id: expenseTypeId,
+            balance: '' + cost,
+            owedAmount: '0'
+          }
+          employee.expenseTypes.push(newExpense);
+          employeeJson.updateJsonEntry(employee, callback);
+        }
+        //OVERDRAFT
+        else if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
+          employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
 
+          employeeJson.updateJsonEntry(employee, callback);
+        }
+        //PARTIAL COVERAGE
+        else if (expenseType.budget !== +employee.expenseTypes[budgetPosition].balance && expenseType.budget - employeeBalance < 0 && !expenseType.odFlag && remaining < 0) {
+          employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
+          employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
+          employeeJson.updateJsonEntry(employee, callback);
+        }
+        //COVERED BY BUDGET
+        else if (expenseType.budget - employeeBalance >= 0) {
+          employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+          console.log('Coming into here');
+          employeeJson.updateJsonEntry(employee, callback);
+        } else {
+          callback({
+            msg: `expense over budget limit: ${Math.abs(remaining)}`,
+            code: 422
+          }, null);
+        }
+      })
+    })
   }
 
   //TODO update this to read from dynamo
@@ -171,15 +174,11 @@ class ExpenseRoutes extends Crud {
     const expenseTypeJson = new JsonModify('expenseType.json');
     const employeeJson = new JsonModify('employee.json');
     const expenseType = expenseTypeJson._specificFind("id", expenseTypeId);
-    //TODO remove empty quotes from User ID since UUID is always string
-    const employee = employeeJson._specificFind("id", '' + userId);
+    const employee = employeeJson._specificFind("id", userId).then(function(data) {
+
+    });
     let employeeBalance;
-    if (!employee) {
-      callback({
-        msg: 'employee not found',
-        code: 404
-      }, null);
-    }
+
 
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {

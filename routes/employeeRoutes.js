@@ -47,20 +47,26 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-    let found = this.jsonModify._specificFind("id", id);
-    if (found && found.id !== id) {
-      return null;
-    } else {
-      return {
-        id,
-        firstName,
-        middleName,
-        lastName,
-        empId,
-        hireDate,
-        expenseTypes
-      };
-    }
+    return this.jsonModify._specificFind("id", id).then(function(data) {
+        // if (data && data.id !== id) {
+        //   return null;
+        // } else {
+        console.log(id, firstName, lastName);
+        return {
+          id,
+          firstName,
+          middleName,
+          lastName,
+          empId,
+          hireDate,
+          expenseTypes
+        };
+        // }
+      })
+      .catch(function(err) {
+        console.log('didnt work', err);
+      });
+
   }
 }
 
