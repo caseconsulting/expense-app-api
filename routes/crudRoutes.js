@@ -40,7 +40,7 @@ class Crud {
   }
 
   //TODO make sure message is correct for create and update
-  _inputChecker(objectToCheck, res) {
+  _inputChecker(res, objectToCheck) {
     const checkResult = _.includes(objectToCheck, "");
     if (checkResult) {
       let errorCall = this._handleResponse(406, res);
@@ -59,7 +59,7 @@ class Crud {
       newObject((err, value) => {
         console.log('What...');
         if (value) {
-          if (!this._inputChecker(value, res)) {
+          if (!this._inputChecker(res, value)) {
             this.jsonModify.addToJson(value, this._handleResponse(422, res));
           }
         } else if (err) {
@@ -73,7 +73,7 @@ class Crud {
     } else if (newObject === null) {
       console.log('I should execute');
     } else if (newObject.id) {
-      if (!this._inputChecker(newObject, res)) {
+      if (!this._inputChecker(res, newObject)) {
         this.jsonModify.addToJson(newObject, this._handleResponse(409, res));
       }
     } else {
@@ -129,23 +129,32 @@ class Crud {
   }
 
   _validateInputs(res, newObject) {
-    let toReturn;
+
     console.log('Well hello there', newObject);
     if (_.isFunction(newObject)) {
-      newObject((err, value) => {
-        if (value) {
-          if (this._inputChecker(value, res)) {
-            throw 'New Object did not pass _inputChecker';
+      let inputCheckerCurried = _.curry(this._inputChecker)(res);
+      return newObject((err, value) =>
+        new Promise(function(resolve, reject) {
+          if (value) {
+            if (inputCheckerCurried.bind(this)(value)) {
+              reject('New Object did not pass _inputChecker');
+            }
+            resolve(value);
           }
-          console.log('I am executing', value);
-          toReturn = value;
-        }
-      });
-      if (toReturn) {
-        return toReturn;
-      }
+        }));
+
+      // {
+      //   if (value) {
+      //     if (this._inputChecker(value, res)) {
+      //       throw 'New Object did not pass _inputChecker';
+      //     }
+      //     console.log('I am executing', value);
+      //     return value;
+      //   }
+      // });
+
     } else if (newObject.id) {
-      if (this._inputChecker(newObject, res)) {
+      if (this._inputChecker(res, newObject)) {
         throw 'New Object did not pass _inputChecker';
       }
       console.log('New object with ID\n', newObject);
