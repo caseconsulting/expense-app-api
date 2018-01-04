@@ -7,58 +7,29 @@ describe("crudRoutes", () => {
   beforeEach(() => databaseModify = jasmine.createSpyObj('databaseModify', ['addToDB', 'readFromDB', 'removeFromDB', 'updateEntryInDB', 'getAllEntriesInDB']));
   beforeEach(() => _add = jasmine.createSpy('_add'));
   beforeEach(() => _update = jasmine.createSpy('_update'));
-  beforeEach(()=> _uuid = jasmine.createSpy('_uuid'));
+  beforeEach(() => _uuid = jasmine.createSpy('_uuid'));
   beforeEach(() => crudRoutes = new Crud(databaseModify, _add, _update, _uuid));
 
-  describe("_handleResponse", () => {
-    let errorCode, res, sendBack, err;
-    beforeEach(() => errorCode = "{errorCode}");
-    beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
-    beforeEach(() => sendBack = "{sendBack}");
-    beforeEach(() => err = {
-      message: '{message}'
-    });
-    describe("when there is an error", () => {
-      beforeEach(() => res.status.and.returnValue(res));
-      it("should call respond with a given error code", () => {
-        const f = crudRoutes._handleResponse(errorCode, res);
-        f(err, sendBack);
-        expect(res.status).toHaveBeenCalledWith(errorCode);
-        expect(res.send).toHaveBeenCalledWith({
-          error: err.message
-        });
-      });
-    });
-    describe("when there is no error", () => {
-      beforeEach(() => res.status.and.returnValue(res));
-      beforeEach(() => err = null);
-      it("should call respond with a given error code", () => {
-        const f = crudRoutes._handleResponse(errorCode, res);
-        f(err, sendBack);
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.send).toHaveBeenCalledWith(sendBack);
-      });
-    });
-  }); // _handleResponse
-
-  describe("_inputChecker",()=>{
-    let objectToCheck,res;
-    beforeEach(()=>objectToCheck = "{objectToCheck}");
+  describe("_inputChecker", () => {
+    let objectToCheck, res;
+    beforeEach(() => objectToCheck = "{objectToCheck}");
     beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
     beforeEach(() => res.status.and.returnValue(res));
-    beforeEach(()=> spyOn(_,'includes'));
+    beforeEach(() => spyOn(_, 'includes'));
 
-    describe("if an empty space is found",()=>{
+    describe("if an empty space is found", () => {
       let errorCall;
-      beforeEach(()=> _.includes.and.returnValue('true'));
-      beforeEach(()=> errorCall = jasmine.createSpy('errorCall()'));
+      beforeEach(() => _.includes.and.returnValue('true'));
+      beforeEach(() => errorCall = jasmine.createSpy('errorCall()'));
       beforeEach(() => spyOn(crudRoutes, "_handleResponse").and.returnValue(errorCall));
 
       afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(406, res));
-      it("should call errorCall",()=>{
-      crudRoutes._inputChecker(objectToCheck,res);
+      it("should call errorCall", () => {
+        crudRoutes._inputChecker(objectToCheck, res);
 
-        expect(errorCall).toHaveBeenCalledWith({message: 'CREATE: All fields needed'});
+        expect(errorCall).toHaveBeenCalledWith({
+          message: 'CREATE: All fields needed'
+        });
       });
     }); // if an empty space is found
 

@@ -22,7 +22,18 @@ class databaseModify {
   findObjectInDB(primaryKey) {
     return this.readFromDB(primaryKey)
       .then(function(data) {
-        return _.first(data);
+        if (_.first(data)) {
+          return _.first(data);
+        } else {
+          let err = {
+            code: 404,
+            message: 'Entry not found in database'
+          };
+          throw err;
+        }
+      })
+      .catch(function(err) {
+        throw err //Throw error and handle properly in crudRoutes
       });
   }
 
@@ -40,9 +51,16 @@ class databaseModify {
         .promise()
         .then(function(data) {
           return newJsonObj;
+        })
+        .catch(function(err) {
+          throw err //Throw error and handle properly in crudRoutes
         });
     } else {
-      return Promise.reject('ADD: Object already in system');
+      let err = {
+        code: 406,
+        message: 'ADD: Object already in system'
+      };
+      return Promise.reject(err);
     }
   }
 
@@ -59,10 +77,18 @@ class databaseModify {
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.query(params).promise()
       .then(function(data) {
-        return data.Items;
+        if (!_.isEmpty(data.Items)) {
+          return data.Items;
+        } else {
+          let err = {
+            code: 404,
+            message: 'item not found'
+          };
+          throw err;
+        }
       })
       .catch(function(err) {
-        console.log(err);
+        throw err //Throw error and handle properly in crudRoutes
       });
   }
 
@@ -81,6 +107,9 @@ class databaseModify {
       .then(function(data) {
         console.log('deleting data', data);
         return data;
+      })
+      .catch(function(err) {
+        throw err //Throw error and handle properly in crudRoutes
       });
   }
 
@@ -94,8 +123,8 @@ class databaseModify {
         return data.Attributes;
       })
       .catch(function(err) {
-        console.warn(err);
-      });
+        throw err //Throw error and handle properly in crudRoutes
+      })
   }
 
   getAllEntriesInDB() {
@@ -104,7 +133,13 @@ class databaseModify {
       TableName: tableName
     };
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient.scan(params).promise();
+    return documentClient.scan(params).promise()
+      .then(function(data) {
+        return data.Items;
+      })
+      .catch(function(err) {
+        throw err //Throw error and handle properly in crudRoutes
+      });
   }
 
   getTableName() {
@@ -113,25 +148,10 @@ class databaseModify {
     return table;
   }
 
-  //TODO just move this where the params are being created since they're all the same
-  buildParams(table) {
-    switch (table) {
-      case 'Expense':
-        return {
-          // IndexName: 'userId-index',
-          KeyConditionExpression: 'id = :id',
-        };
-      case 'Employee':
-        return {
-          KeyConditionExpression: 'id = :id',
-        }
-      case 'ExpenseType':
-        return {
-          KeyConditionExpression: 'id = :id',
-        }
-    }
-  }
-
+  /**
+   * Builds the parameters for update depending on the tableName
+   * @return the parameters for update
+   */
   buildUpdateParams(objToUpdate) {
     const tableName = this.getTableName();
     switch (tableName) {

@@ -11,7 +11,9 @@ class ExpenseRoutes extends Crud {
   _delete(id) {
     return this.databaseModify.findObjectInDB(id)
       .then((expense) => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
-
+      .catch((err) => {
+        throw err;
+      });
   }
 
   _add(uuid, {
@@ -39,10 +41,17 @@ class ExpenseRoutes extends Crud {
           userId,
           createdAt
         };
+      })
+      .catch((err) => {
+        throw err;
       });
   }
 
-
+  /**
+   * Removes the previous information from the database, including from employee's
+   *  balance
+   * adds the new information
+   */
   _update(id, {
     purchaseDate,
     reimbursedDate,
@@ -70,6 +79,9 @@ class ExpenseRoutes extends Crud {
           userId,
           createdAt
         };
+      })
+      .catch((err) => {
+        throw err
       });
   }
 
@@ -81,6 +93,10 @@ class ExpenseRoutes extends Crud {
     }
   }
 
+  /**
+   * Finds the appropriate budget operations to perfom depending on
+   * expenseType's budget amount, employee's balance and cost of expense
+   */
   performBudgetOperation(employeeJson, employee, expenseType, cost) {
     let employeeBalance;
     let budgetPosition;
@@ -123,10 +139,15 @@ class ExpenseRoutes extends Crud {
       console.log('Covered by budget');
       return employeeJson.updateEntryInDB(employee);
     } else {
-      return Promise.reject(`expense over budget limit: ${Math.abs(remaining)}`);
+      let err = {
+        code: 406,
+        message: `expense over budget limit: ${Math.abs(remaining)}`
+      };
+      return Promise.reject(err);
     }
   }
 
+  //TODO use rocket functions to replace curried functions
   validateCostToBudget(expenseTypeId, userId, cost) {
     let expenseType;
     let employee;
@@ -147,6 +168,9 @@ class ExpenseRoutes extends Crud {
       })
       .then(function() {
         return performBudgetOperationCurried(employee, expenseType, cost);
+      })
+      .catch((err) => {
+        throw err;
       });
   }
 
@@ -163,8 +187,15 @@ class ExpenseRoutes extends Crud {
           }
         }
         if (!employeeBalance) {
-          Promise.reject('Expense not found');
+          let err = {
+            code: 404,
+            message: 'Expense not found'
+          };
+          throw err;
         }
+      })
+      .catch((err) => {
+        throw err;
       });
   }
 }

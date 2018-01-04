@@ -35,7 +35,8 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-    return this.databaseModify.findObjectInDB(id).then(function(data) {
+    return this.databaseModify.findObjectInDB(id)
+      .then(function(data) {
         return {
           id,
           firstName,
@@ -47,7 +48,8 @@ class EmployeeRoutes extends Crud {
         };
       })
       .catch(function(err) {
-        console.log('didnt work', err);
+        console.log(err);
+        throw err;
       });
 
   }

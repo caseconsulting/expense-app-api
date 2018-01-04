@@ -17,39 +17,30 @@ class Crud {
     return this._router;
   }
 
-  _handleResponse(errorCode, res) {
-    return (err, sendBack) => {
-      if (err) {
-        res.status(errorCode).send({
-          error: err.message
-        });
-      } else {
-        res.status(200)
-          .send(sendBack);
-      }
-    };
-  }
-
-  //TODO make sure message is correct for create and update
-  _inputChecker(res, objectToCheck) {
+  /**
+   * Checks to see if objectToCheck has any blank fields
+   * @param res the response to send to the client
+   * @param objectToCheck the object to validate
+   * @return true if the object contains empty strings,
+   *   false if objectToCheck was valid
+   */
+  _inputChecker(objectToCheck) {
+    //Check if there are any strings
     const checkResult = _.includes(objectToCheck, "");
-    //Check result only has something if there is an error
-    if (checkResult) {
-      let errorCall = this._handleResponse(406, res);
-      errorCall({
-        message: 'CREATE: All fields needed'
-      });
-    } else {
-      return checkResult;
-    }
+    //Check result is true only if there is an error
+    return checkResult;
   }
 
   /**
    * Handles any errors in crud operations
    */
-  _handleError(err) {
-    // this._handleResponse(err.code, err.message);
-    console.log(err);
+  _handleError(res, err) {
+    const logColor = "\x1b[31m";
+    const resetColor = "\x1b[0m";
+    console.log(logColor, 'Error Code: ' + err.code);
+    console.log(logColor, 'Error Message: ' + err.message);
+    console.log(resetColor);
+    return res.status(err.code).send(err.message);
   }
 
   /**
@@ -57,21 +48,26 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    console.log('New object inside validateinputs\n', newObject);
-    let inputCheckerCurried = _.curry(this._inputChecker)(res);
+    console.log('new Object in validate inputs', newObject);
+    let inputCheckerCurried = _.curry(this._inputChecker);
     if (newObject.id) {
       return new Promise(function(resolve, reject) {
         if (inputCheckerCurried.bind(this)(newObject)) {
-          reject('New Object did not pass _inputChecker');
+          let err = {
+            code: 406, //Not Acceptable
+            message: 'All fields are needed'
+          }
+          reject(err);
         }
-        console.log('New object with ID\n', newObject);
         resolve(newObject);
       });
     } else {
-      throw 'my error';
+      throw {
+        code: 400, //Bad Request
+        message: 'input validation error'
+      };
     }
   }
-
 
   _createInDatabase(res, newObject) {
     console.log("*** Hello Create ***");
@@ -79,10 +75,7 @@ class Crud {
       .then(function(data) {
         res.status(200).send(data);
       })
-      .catch(function(err) {
-        console.log(err);
-        res.status(500).send(err);
-      });
+      .catch((err) => this._handleError(res, err));
   }
 
   /**
@@ -92,42 +85,49 @@ class Crud {
     this._add(uuid(), req.body)
       .then((newObject) => this._validateInputs(res, newObject))
       .then((validated) => this._createInDatabase(res, validated))
-      .catch(this._handleError)
+      .catch((err) => this._handleError(res, err));
   }
 
   read(req, res) {
     return this.databaseModify.readFromDB(req.params.id)
       .then(function(output) {
-        res.status(200).send(_.first(output));
+        console.log(output);
+        if (_.first(output)) {
+          res.status(200).send(_.first(output));
+        } else {
+          let err = {
+            code: 404,
+            message: 'entry not found in database'
+          };
+          throw err
+        }
+
       })
-      .catch(function(err) {
-        console.log(err);
-        res.status(500).send(err);
-      });
+      .catch((err) => this._handleError(res, err));
   }
 
   /**
    * Updates the object
    */
   _updateDatabase(res, newObject) {
+    console.log(res);
+    console.log(newObject);
     return this.databaseModify.updateEntryInDB(newObject)
       .then(function(data) {
         res.status(200).send(data);
       })
-      .catch(function(err) {
-        console.log(err);
-        res.status(500).send(err);
-      });
+      .catch((err) => this._handleError(res, err));
   }
 
   /**
    * update a specified entry
    */
   update(req, res) {
+    console.log('in update', req.body);
     return this._update(req.params.id, req.body)
       .then((newObject) => this._validateInputs(res, newObject))
       .then((validated) => this._updateDatabase(res, validated))
-      .catch(this._handleError);
+      .catch((err) => this._handleError(res, err));
   }
 
   /**
@@ -141,10 +141,7 @@ class Crud {
       .then(function(data) {
         res.status(200).send(data);
       })
-      .catch(function(err) {
-        console.log(err);
-        res.status(500).send(err);
-      });
+      .catch((err) => this._handleError(res, err));
   }
 
   /**
@@ -153,12 +150,9 @@ class Crud {
   showList(req, res) {
     this.databaseModify.getAllEntriesInDB()
       .then(function(data) {
-        res.status(200).send(data.Items);
+        res.status(200).send(data);
       })
-      .catch(function(err) {
-        console.log(err);
-        res.status(500).send(err);
-      });
+      .catch((err) => this._handleError(res, err));
   }
 }
 

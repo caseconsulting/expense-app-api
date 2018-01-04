@@ -10,12 +10,10 @@ class ExpenseTypeRoutes extends Crud {
     odFlag,
     description
   }) {
-    console.log('Expense type being added:\n', uuid, budgetName, budget, odFlag, description);
     return new Promise(function(resolve, reject) {
       if (odFlag === undefined) {
         odFlag = false;
       }
-
       resolve({
         id: uuid,
         budgetName,
@@ -25,23 +23,26 @@ class ExpenseTypeRoutes extends Crud {
       });
     });
   }
+
   _update(id, {
     budgetName,
     budget,
     odFlag,
     description
   }) {
-    console.log('Expense type being updated:\n', id, budgetName, budget, odFlag, description);
-    return new Promise(function(resolve, reject) {
-      resolve({
-        id,
-        budgetName,
-        budget,
-        odFlag,
-        description
+    return this.databaseModify.findObjectInDB(id)
+      .then(function(data) {
+        return {
+          id,
+          budgetName,
+          budget,
+          odFlag,
+          description
+        };
+      })
+      .catch(function(err) {
+        throw err;
       });
-    });
-
   }
 }
 module.exports = ExpenseTypeRoutes;
