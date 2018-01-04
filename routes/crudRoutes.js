@@ -1,10 +1,10 @@
 const express = require('express');
 const _ = require('lodash');
+const uuid = require('uuid/v4');
 
 class Crud {
-  constructor(jsonModify, _uuid) {
+  constructor(jsonModify) {
     this.jsonModify = jsonModify;
-    this._uuid = _uuid;
     this._router = express.Router();
     this._router.get('/', this.showList.bind(this));
     this._router.post('/', this.create.bind(this));
@@ -59,18 +59,7 @@ class Crud {
   _validateInputs(res, newObject) {
     console.log('New object inside validateinputs\n', newObject);
     let inputCheckerCurried = _.curry(this._inputChecker)(res);
-    if (_.isFunction(newObject)) {
-      //Curry inputCheker so that you have access inside promise
-      return newObject((err, value) =>
-        new Promise(function(resolve, reject) {
-          if (value) {
-            if (inputCheckerCurried.bind(this)(value)) {
-              reject('New Object did not pass _inputChecker');
-            }
-            resolve(value);
-          }
-        }));
-    } else if (newObject.id) {
+    if (newObject.id) {
       return new Promise(function(resolve, reject) {
         if (inputCheckerCurried.bind(this)(newObject)) {
           reject('New Object did not pass _inputChecker');
@@ -100,7 +89,7 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    this._add(this._uuid, req.body)
+    this._add(uuid(), req.body)
       .then((newObject) => this._validateInputs(res, newObject))
       .then((validated) => this._createInDatabase(res, validated))
       .catch(this._handleError)

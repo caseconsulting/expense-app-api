@@ -5,18 +5,17 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-const uuid = require('uuid/v4');
 
 var index = require('./routes/index');
 
 
 const JsonModify = require('./js/jsonModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
-const expenseRoutes = new ExpenseRoutes(new JsonModify('expense.json'), uuid());
+const expenseRoutes = new ExpenseRoutes(new JsonModify('expense.json'));
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
-const expenseTypeRoutes = new ExpenseTypeRoutes(new JsonModify('expenseType.json'), uuid());
+const expenseTypeRoutes = new ExpenseTypeRoutes(new JsonModify('expenseType.json'));
 var EmployeeRoutes = require('./routes/employeeRoutes');
-const employeeRoutes = new EmployeeRoutes(new JsonModify('employee.json'), uuid());
+const employeeRoutes = new EmployeeRoutes(new JsonModify('employee.json'));
 var app = express();
 
 // view engine setup
