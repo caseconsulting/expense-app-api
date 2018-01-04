@@ -9,7 +9,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _delete(id) {
-    return this.jsonModify._specificFind("id", id)
+    return this.jsonModify.findObjectInDB(id)
       .then((expense) => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
 
   }
@@ -54,7 +54,7 @@ class ExpenseRoutes extends Crud {
     userId,
     createdAt
   }) {
-    return this.jsonModify._specificFind("id", id)
+    return this.jsonModify.findObjectInDB(id)
       .then((expense) => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
       .then(() => this.validateCostToBudget(expenseTypeId, userId, cost))
       .then(function(data) {
@@ -77,7 +77,7 @@ class ExpenseRoutes extends Crud {
     if (!employee.expenseTypes) {
       //create new balance under the employee
       employee.expenseTypes = [];
-      return employeeJson.updateJsonEntry(employee);
+      return employeeJson.updateEntryInDB(employee);
     }
   }
 
@@ -102,26 +102,26 @@ class ExpenseRoutes extends Crud {
       }
       employee.expenseTypes.push(newExpense);
       console.log('Created new budget under employee');
-      return employeeJson.updateJsonEntry(employee);
+      return employeeJson.updateEntryInDB(employee);
     }
     //OVERDRAFT
     else if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
       employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
       console.log('Overdraft');
-      return employeeJson.updateJsonEntry(employee);
+      return employeeJson.updateEntryInDB(employee);
     }
     //PARTIAL COVERAGE
     else if (expenseType.budget !== +employee.expenseTypes[budgetPosition].balance && expenseType.budget - employeeBalance < 0 && !expenseType.odFlag && remaining < 0) {
       employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
       employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
       console.log('Partial Coverage');
-      return employeeJson.updateJsonEntry(employee);
+      return employeeJson.updateEntryInDB(employee);
     }
     //COVERED BY BUDGET
     else if (expenseType.budget - employeeBalance >= 0) {
       employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
       console.log('Covered by budget');
-      return employeeJson.updateJsonEntry(employee);
+      return employeeJson.updateEntryInDB(employee);
     } else {
       return Promise.reject(`expense over budget limit: ${Math.abs(remaining)}`);
     }
@@ -136,10 +136,10 @@ class ExpenseRoutes extends Crud {
     let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
     let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
 
-    return expenseTypeJson._specificFind('id', expenseTypeId)
+    return expenseTypeJson.findObjectInDB(expenseTypeId)
       .then(function(data) {
         expenseType = data;
-        return employeeJson._specificFind('id', userId);
+        return employeeJson.findObjectInDB(userId);
       })
       .then(function(data) {
         employee = data;
@@ -152,14 +152,14 @@ class ExpenseRoutes extends Crud {
 
   deleteCostFromBudget(expenseTypeId, userId, cost) {
     const employeeJson = new JsonModify('employee.json');
-    return employeeJson._specificFind("id", userId)
+    return employeeJson.findObjectInDB(userId)
       .then(function(employee) {
         let employeeBalance;
         for (var i = 0; i < employee.expenseTypes.length; i++) {
           if (employee.expenseTypes[i].id === expenseTypeId) {
             employeeBalance = +employee.expenseTypes[i].balance - cost;
             employee.expenseTypes[i].balance = '' + employeeBalance;
-            return employeeJson.updateJsonEntry(employee);
+            return employeeJson.updateEntryInDB(employee);
           }
         }
         if (!employeeBalance) {

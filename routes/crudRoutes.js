@@ -75,7 +75,7 @@ class Crud {
 
   _createInDatabase(res, newObject) {
     console.log("*** Hello Create ***");
-    return this.jsonModify.addToJson(newObject)
+    return this.jsonModify.addToDB(newObject)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -96,7 +96,7 @@ class Crud {
   }
 
   read(req, res) {
-    return this.jsonModify.readFromJson(req.params.id)
+    return this.jsonModify.readFromDB(req.params.id)
       .then(function(output) {
         res.status(200).send(_.first(output));
       })
@@ -110,7 +110,7 @@ class Crud {
    * Updates the object
    */
   _updateDatabase(res, newObject) {
-    return this.jsonModify.updateJsonEntry(newObject)
+    return this.jsonModify.updateEntryInDB(newObject)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -137,7 +137,7 @@ class Crud {
     if (this.jsonModify.filePath === 'json/expense.json') {
       this._delete(req.params.id);
     }
-    return this.jsonModify.removeFromJson(req.params.id)
+    return this.jsonModify.removeFromDB(req.params.id)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -151,7 +151,7 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    this.jsonModify.getJson()
+    this.jsonModify.getAllEntriesInDB()
       .then(function(data) {
         res.status(200).send(data.Items);
       })

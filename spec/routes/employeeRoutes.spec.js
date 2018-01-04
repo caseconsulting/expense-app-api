@@ -4,7 +4,7 @@ const EmployeeRoutes = require('../../routes/employeeRoutes');
 
 describe("employeeRoutes", () => {
   let jsonModify, svc;
-  beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['_specificFind']));
+  beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['findObjectInDB']));
   beforeEach(() => svc = new EmployeeRoutes(jsonModify, uuid()));
 
   describe("_add", () => {
@@ -20,8 +20,9 @@ describe("employeeRoutes", () => {
 
     describe("if employee is not found", () => {
       beforeEach(() => {
-        jsonModify._specificFind.and.returnValue({id: '{id}'});
-        //testSpy = spyOn(jsonModify, "_specificFind").and.returnValue('******');
+        jsonModify.findObjectInDB.and.returnValue({
+          id: '{id}'
+        });
       });
 
       it("objectWasFound should be null", () => {
@@ -34,22 +35,29 @@ describe("employeeRoutes", () => {
 
     describe("if employee was found", () => {
       beforeEach(() => {
-        jsonModify._specificFind.and.returnValue(false);
+        jsonModify.findObjectInDB.and.returnValue(false);
 
       });
       afterEach(() => {
-        expect(jsonModify._specificFind).toHaveBeenCalled();
+        expect(jsonModify.findObjectInDB).toHaveBeenCalled();
       });
       it("objectWasFound should have a value", () => {
         const returnVal = svc._add(uuid, newEmployee);
-        expect(returnVal).toEqual({ id: 'uuid', firstName: '{firstName}', middleName: '{middleName}', lastName: '{lastName}', empId: '{empId}', hireDate: '{hireDate}' });
+        expect(returnVal).toEqual({
+          id: 'uuid',
+          firstName: '{firstName}',
+          middleName: '{middleName}',
+          lastName: '{lastName}',
+          empId: '{empId}',
+          hireDate: '{hireDate}'
+        });
       });
     }); // if employee was found
   }); // _add
 
   describe("update", () => {
     let jsonModify, svc;
-    beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['_specificFind']));
+    beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['findObjectInDB']));
     beforeEach(() => svc = new EmployeeRoutes(jsonModify, uuid()));
     describe("if found is not null", () => {
       let newEmployee, id;
@@ -61,7 +69,7 @@ describe("employeeRoutes", () => {
         empId: '{empId}',
         hireDate: '{hireDate}'
       });
-      beforeEach(()=> jsonModify._specificFind.and.returnValue(false));
+      beforeEach(() => jsonModify.findObjectInDB.and.returnValue(false));
       it("should take in employee objects", () => {
         const returnVal = svc._update(id, newEmployee);
         expect(returnVal).toEqual({
@@ -75,7 +83,7 @@ describe("employeeRoutes", () => {
       });
     }); // if found is not null
     describe("if found is true", () => {
-      beforeEach(()=> jsonModify._specificFind.and.returnValue(true));
+      beforeEach(() => jsonModify.findObjectInDB.and.returnValue(true));
       beforeEach(() => newEmployee = {
         firstName: '{firstName}',
         middleName: '{middleName}',

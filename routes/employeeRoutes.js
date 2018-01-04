@@ -1,12 +1,10 @@
 const Crud = require('./crudRoutes');
 
-
 class EmployeeRoutes extends Crud {
   constructor(jsonModify, uuid) {
     super(jsonModify, uuid);
     this.jsonModify = jsonModify;
   }
-
 
   _add(uuid, {
     firstName,
@@ -37,11 +35,7 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-    return this.jsonModify._specificFind("id", id).then(function(data) {
-        // if (data && data.id !== id) {
-        //   return null;
-        // } else {
-        console.log(id, firstName, lastName);
+    return this.jsonModify.findObjectInDB(id).then(function(data) {
         return {
           id,
           firstName,
@@ -51,7 +45,6 @@ class EmployeeRoutes extends Crud {
           hireDate,
           expenseTypes
         };
-        // }
       })
       .catch(function(err) {
         console.log('didnt work', err);

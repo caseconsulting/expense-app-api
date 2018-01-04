@@ -16,15 +16,11 @@ class JsonModify {
     });
   }
 
-  _matches(id) {
-    return jsonObj => jsonObj.id === id;
-  }
-
   /**
    * returns the value if it exists
    */
-  _specificFind(indexKey, targetValue) {
-    return this.readFromJson(targetValue)
+  findObjectInDB(primaryKey) {
+    return this.readFromDB(primaryKey)
       .then(function(data) {
         return _.first(data);
       });
@@ -33,7 +29,7 @@ class JsonModify {
   /**
    * Add the entry to the database
    */
-  addToJson(newJsonObj) {
+  addToDB(newJsonObj) {
     if (newJsonObj) {
       const params = {
         TableName: this.getTableName(),
@@ -50,17 +46,16 @@ class JsonModify {
     }
   }
 
-  //read in the json file
-  //parse existing json to an array
-  //iterate through the json and find the appropriate value and return it
-  readFromJson(passedID) {
+  readFromDB(passedID) {
     const tableName = this.getTableName();
-    const params = _.assign({}, {
+    const params = {
       TableName: tableName,
       ExpressionAttributeValues: {
         ':id': passedID,
-      }
-    }, this.buildParams(tableName));
+      },
+      KeyConditionExpression: 'id = :id'
+    };
+
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.query(params).promise()
       .then(function(data) {
@@ -74,7 +69,7 @@ class JsonModify {
   /**
    * Removes the object from the database according to its index key
    */
-  removeFromJson(passedID) {
+  removeFromDB(passedID) {
     const params = {
       TableName: this.getTableName(),
       Key: {
@@ -89,7 +84,7 @@ class JsonModify {
       });
   }
 
-  updateJsonEntry(newJsonObj) {
+  updateEntryInDB(newJsonObj) {
     const tableName = this.getTableName();
     const params = this.buildUpdateParams(newJsonObj);
     const documentClient = new AWS.DynamoDB.DocumentClient();
@@ -103,7 +98,7 @@ class JsonModify {
       });
   }
 
-  getJson() {
+  getAllEntriesInDB() {
     const tableName = this.getTableName();
     var params = {
       TableName: tableName

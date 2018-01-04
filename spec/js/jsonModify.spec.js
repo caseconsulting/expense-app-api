@@ -13,41 +13,17 @@ describe("JsonModify", () => {
 
   });
 
-  describe("_matches", () => {
-    let id, jsonObj;
-    beforeEach(() => id = "{id}");
-    beforeEach(() => jsonObj = {});
-
-    describe("when the json id matches", () => {
-      beforeEach(() => jsonObj.id = id);
-
-      it("should be true", () => {
-        const f = jsonModify._matches(id);
-        expect(f(jsonObj)).toEqual(true);
-      });
-
-    });
-    describe("when the json id matches", () => {
-      beforeEach(() => jsonObj.id = "{NOTid}");
-
-      it("should be false", () => {
-        const f = jsonModify._matches(id);
-        expect(f(jsonObj)).toEqual(false);
-      });
-
-    });
-  }); // _matches
-
-  describe("_specificFind", () => {
+  describe("findObjectInDB", () => {
     //
-    let indexKey, targetValue;
-    beforeEach(() => indexKey = "{indexKey}");
-    beforeEach(() => targetValue = "{targetValue}");
+    let primaryKey;
+
+    beforeEach(() => primaryKey = "{primaryKey}");
     beforeEach(() => {
-      spyOn(_, "find");
+      // spyOn(_, "find");
     });
     afterEach(() => {
-      expect(_.find).toHaveBeenCalledWith(jsonParsed, [indexKey, targetValue]);
+      //Expect something
+      // expect(_.find).toHaveBeenCalledWith(jsonParsed, [indexKey, targetValue]);
     });
 
     describe("when found is not null", () => {
@@ -55,7 +31,7 @@ describe("JsonModify", () => {
         _.find.and.returnValue("{found}");
       });
       it("should return found", () => {
-        const returnVal = jsonModify._specificFind(indexKey, targetValue);
+        const returnVal = jsonModify.findObjectInDB(targetValue);
         expect(returnVal).toEqual("{found}");
       });
     }); //when found is not null
@@ -65,34 +41,11 @@ describe("JsonModify", () => {
         _.find.and.returnValue(null);
       });
       it("should return null", () => {
-        const returnVal = jsonModify._specificFind(indexKey, targetValue);
+        const returnVal = jsonModify.findObjectInDB(targetValue);
         expect(returnVal).toEqual(null);
       });
     }); //when found is null
-  }); //_specificFind
-
-  describe("_writeCallback", () => {
-    let newJsonObj, callback, err;
-    beforeEach(() => object = '{object}');
-    beforeEach(() => err = "{err}");
-    beforeEach(() => callback = jasmine.createSpy('callback'));
-
-    describe("when there is an error", () => {
-      it("should call the callback function", () => {
-        const f = jsonModify._writeCallback(object, callback);
-        f(err);
-        expect(callback).toHaveBeenCalledWith(err);
-      });
-    });
-    describe("when there is no error", () => {
-      beforeEach(() => err = null);
-      it("should call addToJson", () => {
-        const f = jsonModify._writeCallback(object, callback);
-        f(err);
-        expect(callback).toHaveBeenCalledWith(null, object);
-      });
-    });
-  }); // _writeCallback
+  }); //findObjectInDB
 
   describe("_addToJson", () => {
     let newJsonObj, callback, err;
@@ -110,25 +63,25 @@ describe("JsonModify", () => {
       });
     });
     describe("when there is no error", () => {
-      beforeEach(() => spyOn(jsonModify, "addToJson"));
+      beforeEach(() => spyOn(jsonModify, "addToDB"));
       beforeEach(() => err = null);
-      afterEach(() => expect(jsonModify.addToJson).toHaveBeenCalledWith(newJsonObj, callback));
-      it("should call addToJson", () => {
+      afterEach(() => expect(jsonModify.addToDB).toHaveBeenCalledWith(newJsonObj, callback));
+      it("should call addToDB", () => {
         const f = jsonModify._addToJson(newJsonObj, callback);
         f(err);
       });
     });
   }); // _addToJson
 
-  describe("addToJson",()=>{
-    let newJsonObj,callback;
-    beforeEach(()=>newJsonObj = "{newJsonObj}");
-    beforeEach(()=>callback = "{callback}");
+  describe("addToDB", () => {
+    let newJsonObj, callback;
+    beforeEach(() => newJsonObj = "{newJsonObj}");
+    beforeEach(() => callback = "{callback}");
 
-    describe("when newJsonObj is true",()=>{
-      beforeEach(()=> newJsonObj=true);
-      beforeEach(()=> spyOn(jsonModify,'_writeCallback').and.returnValue('_writeCallback()'));
-      afterEach(()=>{
+    describe("when newJsonObj is true", () => {
+      beforeEach(() => newJsonObj = true);
+      beforeEach(() => spyOn(jsonModify, '_writeCallback').and.returnValue('_writeCallback()'));
+      afterEach(() => {
         expect(jsonModify._writeCallback).toHaveBeenCalledWith(newJsonObj, callback);
       });
       describe("when writting file", () => {
@@ -136,14 +89,15 @@ describe("JsonModify", () => {
         afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/', JSON.stringify([newJsonObj], null, 2), '_writeCallback()'));
 
         it("should write a new json file", () => {
-          jsonModify.addToJson(newJsonObj, callback);
+          jsonModify.addToDB(newJsonObj, callback);
         });
       });
 
     });
-  }); // addToJson
+  }); // addToDB
 
-  describe("readFromJson", () => {
+  //TODO redo this. _matches does not exist anymore
+  describe("readFromDB", () => {
     let passedID;
     beforeEach(() => passedID = "{passedID}");
 
@@ -163,7 +117,7 @@ describe("JsonModify", () => {
         });
 
         it("should return true", () => {
-          expect(jsonModify.readFromJson(passedID)).toEqual(true);
+          expect(jsonModify.readFromDB(passedID)).toEqual(true);
         });
       });
       describe("when find is false", () => {
@@ -175,12 +129,12 @@ describe("JsonModify", () => {
         });
 
         it("should return null", () => {
-          expect(jsonModify.readFromJson(passedID)).toEqual(null);
+          expect(jsonModify.readFromDB(passedID)).toEqual(null);
         });
       });
-    }); // readFromJson
+    }); // readFromDB
 
-    describe("removeFromJson", () => {
+    describe("removeFromDB", () => {
       let passedID, callback;
       beforeEach(() => {
         callback = jasmine.createSpy("callback");
@@ -199,7 +153,7 @@ describe("JsonModify", () => {
 
           it("should call the error function callback", () => {
             //callback function should be called
-            jsonModify.removeFromJson(passedID, callback);
+            jsonModify.removeFromDB(passedID, callback);
             expect(callback).toHaveBeenCalledWith({
               message: 'REMOVE: Object not found'
             });
@@ -224,7 +178,7 @@ describe("JsonModify", () => {
                   afterEach(() => expect(fs.writeFile).toHaveBeenCalledWith('json/', JSON.stringify(['jsonParsed - removed'], null, 2), 'callback()'));
 
                   it("should will write the file and return the removed element", () => {
-                    jsonModify.removeFromJson(passedID, callback);
+                    jsonModify.removeFromDB(passedID, callback);
                   });
                 });
               });
@@ -233,9 +187,9 @@ describe("JsonModify", () => {
           });
         });
       });
-    }); // removeFromJson
+    }); // removeFromDB
 
-    describe("updateJsonEntry", () => {
+    describe("updateEntryInDB", () => {
       let newJsonObj, callback;
       beforeEach(() => {
         callback = jasmine.createSpy('callback');
@@ -245,28 +199,28 @@ describe("JsonModify", () => {
       });
 
       describe("when _addToJson is called", () => {
-        beforeEach(() => spyOn(jsonModify, "_addToJson").and.returnValue('addToJson()'));
+        beforeEach(() => spyOn(jsonModify, "_addToJson").and.returnValue('addToDB()'));
         afterEach(() => expect(jsonModify._addToJson).toHaveBeenCalledWith(newJsonObj, callback));
 
-        describe("when removeFromJson is called", () => {
-          beforeEach(() => spyOn(jsonModify, "removeFromJson"));
-          afterEach(() => expect(jsonModify.removeFromJson).toHaveBeenCalledWith(newJsonObj.id, 'addToJson()'));
+        describe("when removeFromDB is called", () => {
+          beforeEach(() => spyOn(jsonModify, "removeFromDB"));
+          afterEach(() => expect(jsonModify.removeFromDB).toHaveBeenCalledWith(newJsonObj.id, 'addToDB()'));
 
-          it("should pass along to removeFromJson", () => {
-            jsonModify.updateJsonEntry(newJsonObj, callback);
+          it("should pass along to removeFromDB", () => {
+            jsonModify.updateEntryInDB(newJsonObj, callback);
           });
         });
 
       });
 
 
-    }); // updateJsonEntry
+    }); // updateEntryInDB
 
-    describe("getJson", () => {
+    describe("getAllEntriesInDB", () => {
       it("should return a json filePath", () => {
-        expect(jsonModify.getJson()).toEqual([]);
+        expect(jsonModify.getAllEntriesInDB()).toEqual([]);
       });
-    }); // getJson
+    }); // getAllEntriesInDB
 
   });
 });
