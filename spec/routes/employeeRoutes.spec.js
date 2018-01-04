@@ -1,11 +1,11 @@
 const uuid = require('uuid/v4');
-//const jsonModify = require('../../js/jsonModify')('employee.json');
+//const databaseModify = require('../../js/databaseModify')('employee.json');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 
 describe("employeeRoutes", () => {
-  let jsonModify, svc;
-  beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['findObjectInDB']));
-  beforeEach(() => svc = new EmployeeRoutes(jsonModify, uuid()));
+  let databaseModify, svc;
+  beforeEach(() => databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']));
+  beforeEach(() => svc = new EmployeeRoutes(databaseModify, uuid()));
 
   describe("_add", () => {
     let newEmployee, uuid;
@@ -20,7 +20,7 @@ describe("employeeRoutes", () => {
 
     describe("if employee is not found", () => {
       beforeEach(() => {
-        jsonModify.findObjectInDB.and.returnValue({
+        databaseModify.findObjectInDB.and.returnValue({
           id: '{id}'
         });
       });
@@ -35,11 +35,11 @@ describe("employeeRoutes", () => {
 
     describe("if employee was found", () => {
       beforeEach(() => {
-        jsonModify.findObjectInDB.and.returnValue(false);
+        databaseModify.findObjectInDB.and.returnValue(false);
 
       });
       afterEach(() => {
-        expect(jsonModify.findObjectInDB).toHaveBeenCalled();
+        expect(databaseModify.findObjectInDB).toHaveBeenCalled();
       });
       it("objectWasFound should have a value", () => {
         const returnVal = svc._add(uuid, newEmployee);
@@ -56,9 +56,9 @@ describe("employeeRoutes", () => {
   }); // _add
 
   describe("update", () => {
-    let jsonModify, svc;
-    beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['findObjectInDB']));
-    beforeEach(() => svc = new EmployeeRoutes(jsonModify, uuid()));
+    let databaseModify, svc;
+    beforeEach(() => databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']));
+    beforeEach(() => svc = new EmployeeRoutes(databaseModify, uuid()));
     describe("if found is not null", () => {
       let newEmployee, id;
       beforeEach(() => id = '{id}');
@@ -69,7 +69,7 @@ describe("employeeRoutes", () => {
         empId: '{empId}',
         hireDate: '{hireDate}'
       });
-      beforeEach(() => jsonModify.findObjectInDB.and.returnValue(false));
+      beforeEach(() => databaseModify.findObjectInDB.and.returnValue(false));
       it("should take in employee objects", () => {
         const returnVal = svc._update(id, newEmployee);
         expect(returnVal).toEqual({
@@ -83,7 +83,7 @@ describe("employeeRoutes", () => {
       });
     }); // if found is not null
     describe("if found is true", () => {
-      beforeEach(() => jsonModify.findObjectInDB.and.returnValue(true));
+      beforeEach(() => databaseModify.findObjectInDB.and.returnValue(true));
       beforeEach(() => newEmployee = {
         firstName: '{firstName}',
         middleName: '{middleName}',

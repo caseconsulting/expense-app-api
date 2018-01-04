@@ -8,13 +8,13 @@ var cors = require('cors');
 var index = require('./routes/index');
 
 
-const JsonModify = require('./js/jsonModify');
+const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
-const expenseRoutes = new ExpenseRoutes(new JsonModify('expense.json'));
+const expenseRoutes = new ExpenseRoutes(new databaseModify('expense.json'));
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
-const expenseTypeRoutes = new ExpenseTypeRoutes(new JsonModify('expenseType.json'));
+const expenseTypeRoutes = new ExpenseTypeRoutes(new databaseModify('expenseType.json'));
 var EmployeeRoutes = require('./routes/employeeRoutes');
-const employeeRoutes = new EmployeeRoutes(new JsonModify('employee.json'));
+const employeeRoutes = new EmployeeRoutes(new databaseModify('employee.json'));
 var app = express();
 
 // view engine setup

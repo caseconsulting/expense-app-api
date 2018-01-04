@@ -1,9 +1,9 @@
 const uuid = require('uuid/v4');
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
 
-let jsonModify, svc;
-beforeEach(() => jsonModify = jasmine.createSpyObj('jsonModify', ['findObjectInDB']));
-beforeEach(() => svc = new ExpenseTypeRoutes(jsonModify, uuid()));
+let databaseModify, svc;
+beforeEach(() => databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']));
+beforeEach(() => svc = new ExpenseTypeRoutes(databaseModify, uuid()));
 
 describe("expenseTypeRoutes", () => {
   describe("_add", () => {

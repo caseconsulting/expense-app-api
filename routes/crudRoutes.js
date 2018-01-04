@@ -3,8 +3,8 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 class Crud {
-  constructor(jsonModify) {
-    this.jsonModify = jsonModify;
+  constructor(databaseModify) {
+    this.databaseModify = databaseModify;
     this._router = express.Router();
     this._router.get('/', this.showList.bind(this));
     this._router.post('/', this.create.bind(this));
@@ -75,7 +75,7 @@ class Crud {
 
   _createInDatabase(res, newObject) {
     console.log("*** Hello Create ***");
-    return this.jsonModify.addToDB(newObject)
+    return this.databaseModify.addToDB(newObject)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -96,7 +96,7 @@ class Crud {
   }
 
   read(req, res) {
-    return this.jsonModify.readFromDB(req.params.id)
+    return this.databaseModify.readFromDB(req.params.id)
       .then(function(output) {
         res.status(200).send(_.first(output));
       })
@@ -110,7 +110,7 @@ class Crud {
    * Updates the object
    */
   _updateDatabase(res, newObject) {
-    return this.jsonModify.updateEntryInDB(newObject)
+    return this.databaseModify.updateEntryInDB(newObject)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -134,10 +134,10 @@ class Crud {
    * delete the specified entry
    */
   onDelete(req, res) {
-    if (this.jsonModify.filePath === 'json/expense.json') {
+    if (this.databaseModify.filePath === 'json/expense.json') {
       this._delete(req.params.id);
     }
-    return this.jsonModify.removeFromDB(req.params.id)
+    return this.databaseModify.removeFromDB(req.params.id)
       .then(function(data) {
         res.status(200).send(data);
       })
@@ -151,7 +151,7 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    this.jsonModify.getAllEntriesInDB()
+    this.databaseModify.getAllEntriesInDB()
       .then(function(data) {
         res.status(200).send(data.Items);
       })

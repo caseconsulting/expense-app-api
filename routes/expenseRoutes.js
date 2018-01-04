@@ -1,15 +1,15 @@
 const Crud = require('./crudRoutes');
-const JsonModify = require('../js/jsonModify');
+const databaseModify = require('../js/databaseModify');
 const _ = require('lodash');
 
 class ExpenseRoutes extends Crud {
-  constructor(jsonModify, uuid) {
-    super(jsonModify, uuid);
-    this.jsonModify = jsonModify;
+  constructor(databaseModify, uuid) {
+    super(databaseModify, uuid);
+    this.databaseModify = databaseModify;
   }
 
   _delete(id) {
-    return this.jsonModify.findObjectInDB(id)
+    return this.databaseModify.findObjectInDB(id)
       .then((expense) => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
 
   }
@@ -54,7 +54,7 @@ class ExpenseRoutes extends Crud {
     userId,
     createdAt
   }) {
-    return this.jsonModify.findObjectInDB(id)
+    return this.databaseModify.findObjectInDB(id)
       .then((expense) => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
       .then(() => this.validateCostToBudget(expenseTypeId, userId, cost))
       .then(function(data) {
@@ -131,8 +131,8 @@ class ExpenseRoutes extends Crud {
     let expenseType;
     let employee;
 
-    const expenseTypeJson = new JsonModify('expenseType.json');
-    const employeeJson = new JsonModify('employee.json');
+    const expenseTypeJson = new databaseModify('expenseType.json');
+    const employeeJson = new databaseModify('employee.json');
     let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
     let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
 
@@ -151,7 +151,7 @@ class ExpenseRoutes extends Crud {
   }
 
   deleteCostFromBudget(expenseTypeId, userId, cost) {
-    const employeeJson = new JsonModify('employee.json');
+    const employeeJson = new databaseModify('employee.json');
     return employeeJson.findObjectInDB(userId)
       .then(function(employee) {
         let employeeBalance;

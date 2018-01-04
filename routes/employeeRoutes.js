@@ -1,9 +1,9 @@
 const Crud = require('./crudRoutes');
 
 class EmployeeRoutes extends Crud {
-  constructor(jsonModify, uuid) {
-    super(jsonModify, uuid);
-    this.jsonModify = jsonModify;
+  constructor(databaseModify, uuid) {
+    super(databaseModify, uuid);
+    this.databaseModify = databaseModify;
   }
 
   _add(uuid, {
@@ -35,7 +35,7 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-    return this.jsonModify.findObjectInDB(id).then(function(data) {
+    return this.databaseModify.findObjectInDB(id).then(function(data) {
         return {
           id,
           firstName,

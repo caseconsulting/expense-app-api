@@ -2,7 +2,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const AWS = require('aws-sdk');
 
-class JsonModify {
+class databaseModify {
   constructor(fileName) {
     this.filePath = fileName ? `json/${fileName}` : 'json/';
     this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
@@ -189,4 +189,4 @@ class JsonModify {
     }
   }
 }
-module.exports = JsonModify;
+module.exports = databaseModify;
