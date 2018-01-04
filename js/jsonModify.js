@@ -20,63 +20,33 @@ class JsonModify {
     return jsonObj => jsonObj.id === id;
   }
 
+  /**
+   * returns the value if it exists
+   */
   _specificFind(indexKey, targetValue) {
     return this.readFromJson(targetValue)
       .then(function(data) {
         return _.first(data);
-      })
-      .catch(function(err) {
-        console.log(err);
       });
-
-  }
-
-  _writeCallback(object, callback) {
-    return err => {
-      if (err) {
-        callback(err);
-      } else {
-        callback(null, object);
-      }
-    }
-  }
-
-  _addToJson(newJsonObj, callback) {
-    return err => {
-      if (err) {
-        callback(err);
-      } else {
-        this.addToJson(newJsonObj, callback);
-      }
-    };
   }
 
   /**
    * Add the entry to the database
    */
-  addToJson(newJsonObj, callback) {
+  addToJson(newJsonObj) {
     if (newJsonObj) {
-      // this.jsonParsed = this.jsonParsed.concat([newJsonObj]);
-      // const arrayJson = JSON.stringify(this.jsonParsed, null, 2);
-      // fs.writeFile(this.filePath, arrayJson, this._writeCallback(newJsonObj, callback));
-      var params = {
+      const params = {
         TableName: this.getTableName(),
-        Item: newJsonObj
+        Item: newJsonObj,
       };
-      var documentClient = new AWS.DynamoDB.DocumentClient();
-      documentClient.put(params)
+      const documentClient = new AWS.DynamoDB.DocumentClient();
+      return documentClient.put(params)
         .promise()
         .then(function(data) {
-          console.log(newJsonObj.id);
-        })
-        .catch(function(err) {
-          console.warn(err);
+          return newJsonObj;
         });
     } else {
-      const err = {
-        message: 'ADD: Object already in system'
-      };
-      callback(err);
+      return Promise.reject('ADD: Object already in system');
     }
   }
 
@@ -91,7 +61,7 @@ class JsonModify {
         ':id': passedID,
       }
     }, this.buildParams(tableName));
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+    const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.query(params).promise()
       .then(function(data) {
         return data.Items;
@@ -101,31 +71,31 @@ class JsonModify {
       });
   }
 
-  removeFromJson(passedID, callback) {
-    const position = _.findIndex(this.jsonParsed, this._matches(passedID)); //removes type from array
-    if (position == -1) { //if error
-      const err = {
-        message: 'REMOVE: Object not found'
-      };
-      callback(err);
-    } else { //no error
-      const output = _.find(this.jsonParsed, this._matches(passedID)); //used find to make testing easier
-      this.jsonParsed = _.reject(this.jsonParsed, this._matches(passedID));
-      const arrayJson = JSON.stringify(this.jsonParsed, null, 2); //makes json readable
-      fs.writeFile(this.filePath, arrayJson, this._writeCallback(output, callback)); //writes json
-    }
+  /**
+   * Removes the object from the database according to its index key
+   */
+  removeFromJson(passedID) {
+    const params = {
+      TableName: this.getTableName(),
+      Key: {
+        'id': passedID
+      }
+    };
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient.delete(params).promise()
+      .then(function(data) {
+        console.log('deleting data', data);
+        return data;
+      });
   }
 
   updateJsonEntry(newJsonObj) {
-    // this.removeFromJson(newJsonObj.id, this._addToJson(newJsonObj, callback));
-    console.log('in update json');
     const tableName = this.getTableName();
     const params = this.buildUpdateParams(newJsonObj);
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+    const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.update(params)
       .promise()
       .then(function(data) {
-        console.log('data returned from dynamo:', JSON.stringify(data));
         return data.Attributes;
       })
       .catch(function(err) {
@@ -138,18 +108,17 @@ class JsonModify {
     var params = {
       TableName: tableName
     };
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+    const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.scan(params).promise();
   }
 
   getTableName() {
     let table = this.filePath.substring(5, this.filePath.indexOf('.json'));
-    table = table.charAt(0)
-      .toUpperCase() + table.slice(1);
-    console.log('***' + table + '***');
+    table = table.charAt(0).toUpperCase() + table.slice(1);
     return table;
   }
 
+  //TODO just move this where the params are being created since they're all the same
   buildParams(table) {
     switch (table) {
       case 'Expense':
@@ -169,7 +138,7 @@ class JsonModify {
   }
 
   buildUpdateParams(objToUpdate) {
-    const tableName = this.getTableName()
+    const tableName = this.getTableName();
     switch (tableName) {
       case 'Expense':
         return {

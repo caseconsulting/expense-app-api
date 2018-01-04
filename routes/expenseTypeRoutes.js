@@ -10,24 +10,20 @@ class ExpenseTypeRoutes extends Crud {
     odFlag,
     description
   }) {
-    let objectWasFound = this.jsonModify._specificFind(uuid);
-    console.log(budgetName, budget, odFlag, description);
-    if (objectWasFound) {
-      console.log('** object already exists ** ', objectWasFound);
-      return null;
-    } else {
+    console.log('Expense type being added:\n', uuid, budgetName, budget, odFlag, description);
+    return new Promise(function(resolve, reject) {
       if (odFlag === undefined) {
         odFlag = false;
       }
-      console.log('Expense type being added', uuid, budgetName, budget, odFlag, description);
-      return {
+
+      resolve({
         id: uuid,
         budgetName,
         budget,
         odFlag,
         description
-      };
-    }
+      });
+    });
   }
   _update(id, {
     budgetName,
@@ -35,19 +31,17 @@ class ExpenseTypeRoutes extends Crud {
     odFlag,
     description
   }) {
-    console.log('updating...');
-    if (odFlag === undefined) {
-      odFlag = false;
-    }
-    console.log('Expense type being updated', id, budgetName, budget, odFlag, description);
+    console.log('Expense type being updated:\n', id, budgetName, budget, odFlag, description);
+    return new Promise(function(resolve, reject) {
+      resolve({
+        id,
+        budgetName,
+        budget,
+        odFlag,
+        description
+      });
+    });
 
-    return {
-      id,
-      budgetName,
-      budget,
-      odFlag,
-      description
-    };
   }
 }
 module.exports = ExpenseTypeRoutes;

@@ -16,15 +16,8 @@ class EmployeeRoutes extends Crud {
     hireDate,
     expenseTypes
   }) {
-
-    let objectWasFound = this.jsonModify._specificFind("id", uuid);
-    console.log('object was found: ', objectWasFound);
-    if (objectWasFound) {
-      console.log('** object already exists ** ', objectWasFound);
-      return null;
-    } else {
-      console.log('** object was added ** ', objectWasFound);
-      let output = {
+    return new Promise(function(resolve, reject) {
+      resolve({
         id: uuid,
         firstName,
         middleName,
@@ -32,11 +25,8 @@ class EmployeeRoutes extends Crud {
         empId,
         hireDate,
         expenseTypes
-      };
-      console.log('else output ', output);
-      return output
-    }
-
+      });
+    });
   }
 
   _update(id, {
