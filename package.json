@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
-    "jas": "nodemon node_modules/jasmine/bin/jasmine.js||true"
+    "test": "nodemon node_modules/jasmine/bin/jasmine.js||true"
   },
   "dependencies": {
     "aws-sdk": "^2.175.0",
@@ -19,6 +19,7 @@
     "uuid": "^3.1.0"
   },
   "devDependencies": {
+    "aws-sdk-mock": "^1.7.0",
     "cors": "^2.8.4",
     "jasmine": "^2.6.0",
     "nodemon": "^1.11.0"

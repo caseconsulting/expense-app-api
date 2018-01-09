@@ -3,11 +3,12 @@ const _ = require('lodash');
 
 describe("crudRoutes", () => {
 
+  //Create spies for all calls to databaseModify
   let crudRoutes, databaseModify, _add, _update, _uuid;
   beforeEach(() => databaseModify = jasmine.createSpyObj('databaseModify', ['addToDB', 'readFromDB', 'removeFromDB', 'updateEntryInDB', 'getAllEntriesInDB']));
   beforeEach(() => _add = jasmine.createSpy('_add'));
   beforeEach(() => _update = jasmine.createSpy('_update'));
-  beforeEach(() => _uuid = jasmine.createSpy('_uuid'));
+  // beforeEach(() => _uuid = jasmine.createSpy('_uuid'));
   beforeEach(() => crudRoutes = new Crud(databaseModify, _add, _update, _uuid));
 
   describe("_inputChecker", () => {
@@ -37,19 +38,25 @@ describe("crudRoutes", () => {
   }); // _inputChecker
 
   describe("create", () => {
-    let req, res, newEmployee;
+    let req, res, newObject, validated, err;
     beforeEach(() => req = jasmine.createSpyObj('req', ['body']));
     beforeEach(() => res = jasmine.createSpyObj('res', ['status', 'send']));
-    beforeEach(() => newEmployee = "{newEmployee}");
+    beforeEach(() => newObject = "{newObject}");
+    beforeEach(() => validated = "{validated}");
     beforeEach(() => req.body.and.returnValue({
       bodyContent: '{body content}'
     }));
     describe("when create is called", () => {
-      beforeEach(() => spyOn(crudRoutes, "_handleResponse"));
-      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(409, res));
-      afterEach(() => expect(databaseModify.addToDB).toHaveBeenCalledWith(newEmployee, crudRoutes._handleResponse(404, res)));
+      beforeEach(() => spyOn(crudRoutes, "_validateInputs"));
+      beforeEach(() => spyOn(crudRoutes, "_createInDatabase"));
+      beforeEach(() => spyOn(crudRoutes, "_handleError"));
+      beforeEach(() => spyOn(uuid, "uuid").and.returnValue('{uuid}'));
+      afterEach(() => expect(_add).toHaveBeenCalledWith(res, newObject));
+      afterEach(() => expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, newObject));
+      afterEach(() => expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, validated));
+      afterEach(() => expect(databaseModify.addToDB).toHaveBeenCalledWith(newObject, crudRoutes._handleResponse(404, res)));
       it("should call addToDB", () => {
-        databaseModify.addToDB(newEmployee, crudRoutes._handleResponse(409, res));
+        crudRoutes.create(req, res);
       });
     });
   }); // create

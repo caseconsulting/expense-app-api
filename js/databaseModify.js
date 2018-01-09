@@ -5,8 +5,8 @@ const AWS = require('aws-sdk');
 class databaseModify {
   constructor(fileName) {
     this.filePath = fileName ? `json/${fileName}` : 'json/';
-    this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
-    this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
+    // this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
+    // this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
     AWS.config.apiVersions = {
       dynamodb: '2012-08-10',
       // other service API versions
@@ -33,7 +33,7 @@ class databaseModify {
         }
       })
       .catch(function(err) {
-        throw err //Throw error and handle properly in crudRoutes
+        throw err; //Throw error and handle properly in crudRoutes
       });
   }
 
@@ -47,13 +47,12 @@ class databaseModify {
         Item: newJsonObj,
       };
       const documentClient = new AWS.DynamoDB.DocumentClient();
-      return documentClient.put(params)
-        .promise()
+      return documentClient.put(params).promise()
         .then(function(data) {
           return newJsonObj;
         })
         .catch(function(err) {
-          throw err //Throw error and handle properly in crudRoutes
+          throw err; //Throw error and handle properly in crudRoutes
         });
     } else {
       let err = {
@@ -82,13 +81,13 @@ class databaseModify {
         } else {
           let err = {
             code: 404,
-            message: 'item not found'
+            message: 'Item not found'
           };
           throw err;
         }
       })
       .catch(function(err) {
-        throw err //Throw error and handle properly in crudRoutes
+        throw err;
       });
   }
 
@@ -105,7 +104,6 @@ class databaseModify {
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient.delete(params).promise()
       .then(function(data) {
-        console.log('deleting data', data);
         return data;
       })
       .catch(function(err) {
@@ -123,7 +121,7 @@ class databaseModify {
         return data.Attributes;
       })
       .catch(function(err) {
-        throw err //Throw error and handle properly in crudRoutes
+        throw err;
       })
   }
 
@@ -138,7 +136,7 @@ class databaseModify {
         return data.Items;
       })
       .catch(function(err) {
-        throw err //Throw error and handle properly in crudRoutes
+        throw err;
       });
   }
 
