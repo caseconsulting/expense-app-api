@@ -7,21 +7,21 @@
     "test": "nodemon node_modules/jasmine/bin/jasmine.js||true"
   },
   "dependencies": {
-    "aws-sdk": "^2.175.0",
-    "body-parser": "~1.17.1",
-    "cookie-parser": "~1.4.3",
-    "debug": "~2.6.3",
-    "express": "~4.15.2",
+    "aws-sdk": "^2.181.0",
+    "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
+    "debug": "^3.1.0",
+    "express": "^4.16.2",
     "lodash": "^4.17.4",
-    "morgan": "~1.8.1",
-    "pug": "~2.0.0-beta11",
-    "serve-favicon": "~2.4.2",
+    "morgan": "^1.9.0",
+    "pug": "^2.0.0-rc.4",
+    "serve-favicon": "^2.4.5",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0",
     "cors": "^2.8.4",
-    "jasmine": "^2.6.0",
-    "nodemon": "^1.11.0"
+    "jasmine": "^2.8.0",
+    "nodemon": "^1.14.11"
   }
 }
