@@ -19,7 +19,7 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "aws-sdk-mock": "^1.7.0",
+    "aws-sdk-mock": "^2.0.0",
     "cors": "^2.8.4",
     "jasmine": "^2.99.0",
     "nodemon": "^1.17.4"
