@@ -21,7 +21,7 @@
   "devDependencies": {
     "aws-sdk-mock": "^2.0.0",
     "cors": "^2.8.4",
-    "jasmine": "^2.99.0",
+    "jasmine": "^3.1.0",
     "nodemon": "^1.17.4"
   }
 }
