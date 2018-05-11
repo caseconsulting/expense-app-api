@@ -3,7 +3,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const AWS = require('aws-sdk-mock');
 
-fdescribe("databaseModify", () => {
+describe("databaseModify", () => {
   let databaseModify, jsonParsed;
   beforeEach(() => {
     databaseModify = new databaseModifyClass('employee.json');
