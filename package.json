@@ -6,7 +6,7 @@
         "start": "nodemon ./bin/www",
         "test": "./node_modules/.bin/jasmine || true",
         "validate": "npm ls",
-        "eslint": "eslint ./*.js ./routes/*.js ./spec/*/*.js"
+        "eslint": "eslint ./*.js ./routes/*.js ./spec/*/*.js --fix"
     },
     "dependencies": {
         "aws-sdk": "^2.238.1",
