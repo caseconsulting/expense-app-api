@@ -1,4 +1,3 @@
-const fs = require('fs');
 const _ = require('lodash');
 const AWS = require('aws-sdk');
 
@@ -8,7 +7,7 @@ class databaseModify {
         // this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
         // this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
         AWS.config.apiVersions = {
-            dynamodb: '2012-08-10',
+            dynamodb: '2012-08-10'
             // other service API versions
         };
         AWS.config.update({
@@ -17,8 +16,8 @@ class databaseModify {
     }
 
     /**
-   * returns the value if it exists
-   */
+     * returns the value if it exists
+     */
     findObjectInDB(primaryKey) {
         return this.readFromDB(primaryKey)
             .then(function(data) {
@@ -38,17 +37,19 @@ class databaseModify {
     }
 
     /**
-   * Add the entry to the database
-   */
+     * Add the entry to the database
+     */
     addToDB(newJsonObj) {
         if (newJsonObj) {
             const params = {
                 TableName: this.getTableName(),
-                Item: newJsonObj,
+                Item: newJsonObj
             };
             const documentClient = new AWS.DynamoDB.DocumentClient();
-            return documentClient.put(params).promise()
-                .then(function(data) {
+            return documentClient
+                .put(params)
+                .promise()
+                .then(function() {
                     return newJsonObj;
                 })
                 .catch(function(err) {
@@ -68,13 +69,15 @@ class databaseModify {
         const params = {
             TableName: tableName,
             ExpressionAttributeValues: {
-                ':id': passedID,
+                ':id': passedID
             },
             KeyConditionExpression: 'id = :id'
         };
 
         const documentClient = new AWS.DynamoDB.DocumentClient();
-        return documentClient.query(params).promise()
+        return documentClient
+            .query(params)
+            .promise()
             .then(function(data) {
                 if (!_.isEmpty(data.Items)) {
                     return data.Items;
@@ -92,17 +95,19 @@ class databaseModify {
     }
 
     /**
-   * Removes the object from the database according to its index key
-   */
+     * Removes the object from the database according to its index key
+     */
     removeFromDB(passedID) {
         const params = {
             TableName: this.getTableName(),
             Key: {
-                'id': passedID
+                id: passedID
             }
         };
         const documentClient = new AWS.DynamoDB.DocumentClient();
-        return documentClient.delete(params).promise()
+        return documentClient
+            .delete(params)
+            .promise()
             .then(function(data) {
                 return data;
             })
@@ -112,10 +117,10 @@ class databaseModify {
     }
 
     updateEntryInDB(newJsonObj) {
-        const tableName = this.getTableName();
         const params = this.buildUpdateParams(newJsonObj);
         const documentClient = new AWS.DynamoDB.DocumentClient();
-        return documentClient.update(params)
+        return documentClient
+            .update(params)
             .promise()
             .then(function(data) {
                 return data.Attributes;
@@ -131,7 +136,9 @@ class databaseModify {
             TableName: tableName
         };
         const documentClient = new AWS.DynamoDB.DocumentClient();
-        return documentClient.scan(params).promise()
+        return documentClient
+            .scan(params)
+            .promise()
             .then(function(data) {
                 return data.Items;
             })
@@ -147,9 +154,9 @@ class databaseModify {
     }
 
     /**
-   * Builds the parameters for update depending on the tableName
-   * @return the parameters for update
-   */
+     * Builds the parameters for update depending on the tableName
+     * @return the parameters for update
+     */
     buildUpdateParams(objToUpdate) {
         const tableName = this.getTableName();
         switch (tableName) {
@@ -157,9 +164,10 @@ class databaseModify {
             return {
                 TableName: 'Expense',
                 Key: {
-                    'id': objToUpdate.id
+                    id: objToUpdate.id
                 },
-                UpdateExpression: 'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
+                UpdateExpression:
+                        'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
                 ExpressionAttributeValues: {
                     ':pd': objToUpdate.purchaseDate,
                     ':rd': objToUpdate.reimbursedDate,
@@ -176,16 +184,17 @@ class databaseModify {
             return {
                 TableName: 'Employee',
                 Key: {
-                    'id': objToUpdate.id
+                    id: objToUpdate.id
                 },
-                UpdateExpression: 'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
+                UpdateExpression:
+                        'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
                 ExpressionAttributeValues: {
                     ':fn': objToUpdate.firstName,
                     ':mn': objToUpdate.middleName,
                     ':ln': objToUpdate.lastName,
                     ':eid': objToUpdate.empId,
                     ':hd': objToUpdate.hireDate,
-                    ':et': objToUpdate.expenseTypes,
+                    ':et': objToUpdate.expenseTypes
                 },
                 ReturnValues: 'ALL_NEW'
             };
@@ -193,14 +202,15 @@ class databaseModify {
             return {
                 TableName: 'ExpenseType',
                 Key: {
-                    'id': objToUpdate.id
+                    id: objToUpdate.id
                 },
-                UpdateExpression: 'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
+                UpdateExpression:
+                        'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
                 ExpressionAttributeValues: {
                     ':bn': objToUpdate.budgetName,
                     ':b': objToUpdate.budget,
                     ':odf': false,
-                    ':d': objToUpdate.description,
+                    ':d': objToUpdate.description
                 },
                 ReturnValues: 'ALL_NEW'
             };
