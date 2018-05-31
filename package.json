@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "nodemon ./bin/www",
-        "test": "./node_modules/.bin/jasmine || true",
+        "test": "jasmine || true",
         "validate": "npm ls",
         "eslint": "eslint . --ext .js --fix; exit 0"
     },
