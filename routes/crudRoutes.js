@@ -35,11 +35,11 @@ class Crud {
      * Handles any errors in crud operations
      */
     _handleError(res, err) {
-        // const logColor = '\x1b[31m';
-        // const resetColor = '\x1b[0m';
-        // console.error(logColor, 'Error Code: ' + err.code);
-        // console.error(logColor, 'Error Message: ' + err.message);
-        // console.error(resetColor);
+        const logColor = '\x1b[31m';
+        const resetColor = '\x1b[0m';
+        console.error(logColor, 'Error Code: ' + err.code);
+        console.error(logColor, 'Error Message: ' + err.message);
+        console.error(resetColor);
         return res.status(err.code).send(err.message);
     }
 
