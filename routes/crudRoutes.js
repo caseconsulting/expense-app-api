@@ -159,11 +159,9 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    this.databaseModify
+    return this.databaseModify
       .getAllEntriesInDB()
-      .then(function(data) {
-        res.status(200).send(data);
-      })
+      .then(data => res.status(200).send(data))
       .catch(err => this._handleError(res, err));
   }
 }

@@ -4,20 +4,17 @@ const _ = require('lodash');
 describe('crudRoutes', () => {
   //Create spies for all calls to databaseModify
   let crudRoutes, databaseModify, _add, _update, _uuid;
-  beforeEach(
-    () =>
-      (databaseModify = jasmine.createSpyObj('databaseModify', [
-        'addToDB',
-        'readFromDB',
-        'removeFromDB',
-        'updateEntryInDB',
-        'getAllEntriesInDB'
-      ]))
-  );
   beforeEach(() => {
     _add = jasmine.createSpy('_add');
     _update = jasmine.createSpy('_update');
     _uuid = jasmine.createSpy('uuid');
+    databaseModify = jasmine.createSpyObj('databaseModify', [
+      'addToDB',
+      'readFromDB',
+      'removeFromDB',
+      'updateEntryInDB',
+      'getAllEntriesInDB'
+    ]);
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
 
     spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
@@ -237,89 +234,36 @@ describe('crudRoutes', () => {
     });
   }); // onDelete
   describe('showList', () => {
-    let output, res, req;
-
-    beforeEach(() => (res = jasmine.createSpyObj('res', ['status', 'send'])));
-    beforeEach(() => res.status.and.returnValue(res));
-    beforeEach(() => (req = '{req}'));
-    describe('when showList is called', () => {
-      beforeEach(() => databaseModify.getAllEntriesInDB.and.returnValue('{complete json}'));
-      beforeEach(() => (output = databaseModify.getAllEntriesInDB()));
-      afterEach(() => expect(databaseModify.getAllEntriesInDB).toHaveBeenCalledWith());
-
-        beforeEach(
-            () => (res = jasmine.createSpyObj('res', ['status', 'send']))
-        );
-        beforeEach(() => res.status.and.returnValue(res));
-        beforeEach(() => (req = '{req}'));
-        describe('when showList is called', () => {
-            beforeEach(() =>
-                databaseModify.getAllEntriesInDB.and.returnValue(
-                    '{complete json}'
-                )
-            );
-            beforeEach(() => (output = databaseModify.getAllEntriesInDB()));
-            afterEach(() =>
-                expect(databaseModify.getAllEntriesInDB).toHaveBeenCalledWith()
-            );
-
-            it('should return the complete json file to const output and send output back with 200 code', () => {
-                crudRoutes.showList(req, res);
-                expect(res.status).toHaveBeenCalledWith(200);
-                expect(res.send).toHaveBeenCalledWith(output);
-            });
+    let output, res, req, data;
+    beforeEach(() => {
+      req = { body: 'body' };
+      err = {};
+      data = {};
+    });
+    fdescribe('when showList is called without error', () => {
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve({}));
+      });
+      it('should return the complete json file ', done => {
+        return crudRoutes.showList(req, res).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
         });
-    }); // showList
-    describe('_handleError', () => {
-        let res, err;
-        beforeEach(() => {
-            res = jasmine.createSpyObj('res', ['status', 'send']);
-            res.status.and.returnValue(res);
-            err = {
-                code: 'error code',
-                message: 'error message'
-            };
+      });
+    });
+    fdescribe('when there is an error', () => {
+      beforeEach(() => {
+        res = {};
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject({}));
+      });
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.showList(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         });
-
-        it('should send the error code and message', () => {
-            crudRoutes._handleError(res, err);
-            expect(res.status).toHaveBeenCalledWith(err.code);
-            expect(res.send).toHaveBeenCalledWith(err.message);
-        });
-    }); // _handleError
-    describe('_createInDatabase', () => {
-        let res, newObject, data, err;
-        beforeEach(() => {
-            data = {};
-            newObject = {};
-            err = {};
-        });
-        describe('when _createInDatabase is called without error', () => {
-            beforeEach(() => {
-                res = jasmine.createSpyObj('res', ['status', 'send']);
-                res.status.and.returnValue(res);
-                databaseModify.addToDB.and.returnValue(Promise.resolve({}));
-            });
-            it('should respond with a 200 and data', done => {
-                return crudRoutes._createInDatabase(res, newObject).then(() => {
-                    expect(res.status).toHaveBeenCalledWith(200);
-                    expect(res.send).toHaveBeenCalledWith(data);
-                    done();
-                });
-            });
-        });
-        fdescribe('when there is an error', () => {
-            beforeEach(() => {
-                databaseModify.addToDB.and.returnValue(Promise.reject({}));
-            });
-            it('should pass the error to _handleError ', () => {
-                return crudRoutes._createInDatabase(res, newObject).then(() => {
-                    expect(crudRoutes._handleError).toHaveBeenCalledWith(
-                        res,
-                        err
-                    );
-                });
-            });
-        });
-    }); // _createInDatabase
+      });
+    });
+  }); // showList
 }); // crudRoutes
