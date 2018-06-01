@@ -20,8 +20,9 @@ describe('crudRoutes', () => {
     _uuid = jasmine.createSpy('uuid');
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
 
-    spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
     spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+    spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+    spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
     spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
   });
 
@@ -45,48 +46,33 @@ describe('crudRoutes', () => {
       });
     }); //if there are no empty strings
   }); // _inputChecker
-<<<<<<< HEAD
-fdescribe('create', () => {
-  let req, res, err;
-  beforeEach(() => {
-    req = { body: 'body' };
-    res = 'res';
-    err = 'err';
-  });
-  describe('if everything works', () => {
-<<<<<<< HEAD
-    it('should add req.body', done => {
-      return crudRoutes.create(req, res).then(() => {
-        expect(crudRoutes._add).toHaveBeenCalledWith(
-          jasmine.anything(),
-          req.body
-        );
+
+  fdescribe('update', () => {
+    let req, res, err;
+    beforeEach(() => {
+      req = {
+        body: 'body',
+        params: {
+          id: 'id'
+        }
+      };
+      res = 'res';
+      err = 'err';
     });
     describe('if everything works', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
       });
-      it('should add req.body', done => {
-        return crudRoutes.create(req, res).then(() => {
-          expect(crudRoutes._add).toHaveBeenCalledWith(jasmine.anything(), req.body);
+      it('should update using req.body', done => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
           expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
-          expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
+          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
           done();
         });
       });
     }); //if everything works
 
-  fdescribe('create', () => {
-    let req, res, err;
-    beforeEach(() => {
-      req = {
-        body: 'body'
-      };
-      res = 'res';
-      err = 'err';
-    });
-=======
->>>>>>> 102-fix-broken-tests: installed pre commit hook
     it('should add req.body', done => {
       return crudRoutes.create(req, res).then(() => {
         expect(crudRoutes._add).toHaveBeenCalledWith(
@@ -97,14 +83,28 @@ fdescribe('create', () => {
         expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
         done();
       });
-=======
+
+
+    describe('if something goes wrong', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.reject({}));
+      });
+      it('should error out', () => {
+        return crudRoutes.update(req, res).catch(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      });
+    }); //if something goes wrong
+  }); //update
+
+
   fdescribe('create', () => {
     let req, res, err;
     beforeEach(() => {
       req = { body: 'body' };
       res = 'res';
       err = 'err';
->>>>>>> 102-fix-broken-tests: fixed crud routes add promise rejection case
+
     });
     describe('if everything works', () => {
       beforeEach(() => {
@@ -127,7 +127,6 @@ fdescribe('create', () => {
       it('should error out', () => {
         return crudRoutes.create(req, res).catch(() => {
           expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-          done();
         });
       });
     }); //if something goes wrong
