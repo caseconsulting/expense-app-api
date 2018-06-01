@@ -19,10 +19,11 @@ describe('crudRoutes', () => {
     _update = jasmine.createSpy('_update');
     _uuid = jasmine.createSpy('uuid');
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
-
+    spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
     spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-    spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
-    spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
+    spyOn(crudRoutes, '_createInDatabase').and.returnValue(
+      Promise.resolve('_createInDatabase')
+    );
   });
 
   describe('_inputChecker', () => {
@@ -74,17 +75,26 @@ fdescribe('create', () => {
       });
     }); //if everything works
 
-    describe('if something goes wrong', () => {
-      beforeEach(() => {
-        spyOn(crudRoutes, '_add').and.returnValue(Promise.reject({}));
+  fdescribe('create', () => {
+    let req, res, err;
+    beforeEach(() => {
+      req = {
+        body: 'body'
+      };
+      res = 'res';
+      err = 'err';
+    });
+    it('should add req.body', done => {
+      return crudRoutes.create(req, res).then(() => {
+        expect(crudRoutes._add).toHaveBeenCalledWith(
+          jasmine.anything(),
+          req.body
+        );
+        expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+        expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
+        done();
       });
-      it('should error out', () => {
-        return crudRoutes.create(req, res).catch(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-          done();
-        });
-      });
-    }); //if something goes wrong
+    });
   }); //create
 
   describe('read', () => {

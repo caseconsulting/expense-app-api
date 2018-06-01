@@ -3,19 +3,19 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 class Crud {
-    constructor(databaseModify) {
-        this.databaseModify = databaseModify;
-        this._router = express.Router();
-        this._router.get('/', this.showList.bind(this));
-        this._router.post('/', this.create.bind(this));
-        this._router.get('/:id', this.read.bind(this));
-        this._router.put('/:id', this.update.bind(this));
-        this._router.delete('/:id', this.onDelete.bind(this));
-    }
+  constructor(databaseModify) {
+    this.databaseModify = databaseModify;
+    this._router = express.Router();
+    this._router.get('/', this.showList.bind(this));
+    this._router.post('/', this.create.bind(this));
+    this._router.get('/:id', this.read.bind(this));
+    this._router.put('/:id', this.update.bind(this));
+    this._router.delete('/:id', this.onDelete.bind(this));
+  }
 
-    get router() {
-        return this._router;
-    }
+  get router() {
+    return this._router;
+  }
 
   /**
    * Checks to see if objectToCheck has any blank fields
@@ -36,9 +36,9 @@ class Crud {
   _handleError(res, err) {
     const logColor = '\x1b[31m';
     const resetColor = '\x1b[0m';
-    console.log(logColor, 'Error Code: ' + err.code);
-    console.log(logColor, 'Error Message: ' + err.message);
-    console.log(resetColor);
+    console.error(logColor, 'Error Code: ' + err.code);
+    console.error(logColor, 'Error Message: ' + err.message);
+    console.error(resetColor);
     return res.status(err.code).send(err.message);
   }
 
@@ -47,7 +47,6 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    console.log('new Object in validate inputs', newObject);
     let inputCheckerCurried = _.curry(this._inputChecker);
     if (newObject.id) {
       return new Promise(function(resolve, reject) {
@@ -58,11 +57,17 @@ class Crud {
           };
           reject(err);
         }
+        resolve(newObject);
+      });
+    } else {
+      throw {
+        code: 400, //Bad Request
+        message: 'input validation error'
+      };
     }
   }
 
   _createInDatabase(res, newObject) {
-    console.log('*** Hello Create ***');
     return this.databaseModify
       .addToDB(newObject)
       .then(function(data) {
@@ -75,17 +80,31 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    this._add(uuid(), req.body)
+    return this._add(uuid(), req.body)
       .then(newObject => this._validateInputs(res, newObject))
       .then(validated => this._createInDatabase(res, validated))
       .catch(err => this._handleError(res, err));
+  }
+
+  _add(uuid, body) {
+    //This function must be overwritten
+    //soley for supa secret testing purposes
+    //because inheritance is tricky to test
+    //https://gph.is/1H1lkH0
+  }
+
+  _update(uuid, body) {
+    //This function must be overwritten
+  }
+
+  _delete(uuid) {
+    //This function must be overwritten
   }
 
   read(req, res) {
     return this.databaseModify
       .readFromDB(req.params.id)
       .then(function(output) {
-        console.log(output);
         if (_.first(output)) {
           res.status(200).send(_.first(output));
         } else {
@@ -103,8 +122,6 @@ class Crud {
    * Updates the object
    */
   _updateDatabase(res, newObject) {
-    console.log(res);
-    console.log(newObject);
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(function(data) {
@@ -117,26 +134,18 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    console.log('in update', req.body);
     return this._update(req.params.id, req.body)
       .then(newObject => this._validateInputs(res, newObject))
       .then(validated => this._updateDatabase(res, validated))
       .catch(err => this._handleError(res, err));
   }
 
-    /**
-     * delete the specified entry
-     */
-    onDelete(req, res) {
-        if (this.databaseModify.filePath === 'json/expense.json') {
-            this._delete(req.params.id);
-        }
-        return this.databaseModify
-            .removeFromDB(req.params.id)
-            .then(function(data) {
-                res.status(200).send(data);
-            })
-            .catch(err => this._handleError(res, err));
+  /**
+   * delete the specified entry
+   */
+  onDelete(req, res) {
+    if (this.databaseModify.filePath === 'json/expense.json') {
+      this._delete(req.params.id);
     }
     return this.databaseModify
       .removeFromDB(req.params.id)
