@@ -54,6 +54,7 @@ fdescribe('create', () => {
     err = 'err';
   });
   describe('if everything works', () => {
+<<<<<<< HEAD
     it('should add req.body', done => {
       return crudRoutes.create(req, res).then(() => {
         expect(crudRoutes._add).toHaveBeenCalledWith(
@@ -84,6 +85,8 @@ fdescribe('create', () => {
       res = 'res';
       err = 'err';
     });
+=======
+>>>>>>> 102-fix-broken-tests: installed pre commit hook
     it('should add req.body', done => {
       return crudRoutes.create(req, res).then(() => {
         expect(crudRoutes._add).toHaveBeenCalledWith(
@@ -95,7 +98,12 @@ fdescribe('create', () => {
         done();
       });
     });
-  }); //create
+  });//if everything works
+
+  describe("if something goes wrong", () => {
+
+  }); //if something goes wrong
+)} //create
 
   describe('read', () => {
     let res, output, err, req;
