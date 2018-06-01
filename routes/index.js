@@ -3,9 +3,9 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
-    res.render('index', {
-        title: 'ExpenseAPI back-end'
-    });
+  res.render('index', {
+    title: 'ExpenseAPI back-end'
+  });
 });
 
 module.exports = router;

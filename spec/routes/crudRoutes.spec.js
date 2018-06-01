@@ -19,11 +19,10 @@ describe('crudRoutes', () => {
     _update = jasmine.createSpy('_update');
     _uuid = jasmine.createSpy('uuid');
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
-    spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+
     spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-    spyOn(crudRoutes, '_createInDatabase').and.returnValue(
-      Promise.resolve('_createInDatabase')
-    );
+    spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+    spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
   });
 
   describe('_inputChecker', () => {
@@ -46,6 +45,7 @@ describe('crudRoutes', () => {
       });
     }); //if there are no empty strings
   }); // _inputChecker
+<<<<<<< HEAD
 fdescribe('create', () => {
   let req, res, err;
   beforeEach(() => {
@@ -97,13 +97,41 @@ fdescribe('create', () => {
         expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
         done();
       });
+=======
+  fdescribe('create', () => {
+    let req, res, err;
+    beforeEach(() => {
+      req = { body: 'body' };
+      res = 'res';
+      err = 'err';
+>>>>>>> 102-fix-broken-tests: fixed crud routes add promise rejection case
     });
-  });//if everything works
+    describe('if everything works', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+      });
+      it('should add req.body', done => {
+        return crudRoutes.create(req, res).then(() => {
+          expect(crudRoutes._add).toHaveBeenCalledWith(jasmine.anything(), req.body);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+          expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
+          done();
+        });
+      });
+    }); //if everything works
 
-  describe("if something goes wrong", () => {
-
-  }); //if something goes wrong
-)} //create
+    describe('if something goes wrong', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.reject({}));
+      });
+      it('should error out', () => {
+        return crudRoutes.create(req, res).catch(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+          done();
+        });
+      });
+    }); //if something goes wrong
+  }); //create
 
   describe('read', () => {
     let res, output, err, req;

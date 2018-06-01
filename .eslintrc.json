@@ -9,11 +9,16 @@
     "sourceType": "module"
   },
   "rules": {
-    "indent": ["error", 4],
+    "max-len": ["error", {
+      "code": 120
+    }],
+    "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "no-console": ["error", {
+      "allow": ["warn", "error"]
+    }]
   },
   "globals": {
     "_": true,
