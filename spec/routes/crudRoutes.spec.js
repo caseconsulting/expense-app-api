@@ -159,14 +159,12 @@ describe('crudRoutes', () => {
           spyOn(_, 'first').and.returnValue(undefined);
         });
         it('should throw an error', done => {
-          expect(() => {
-            crudRoutes
-              .read(req, res)
-              .then()
-              .toThrow(err);
+          return crudRoutes.read(req, res).then(() => {
+            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+            done();
           });
-          done();
-          fail('Cant test error handling');
+
+          // fail('Cant test error handling');
         }); //should respond with the output and a 200 code
       }); //when readFromDB returns at least one element
     }); //When promise is resolved
