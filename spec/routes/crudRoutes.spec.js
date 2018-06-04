@@ -44,7 +44,7 @@ describe('crudRoutes', () => {
     }); //if there are no empty strings
   }); // _inputChecker
 
-  fdescribe('update', () => {
+  describe('update', () => {
     let req, res, err;
     beforeEach(() => {
       req = {
@@ -94,8 +94,7 @@ describe('crudRoutes', () => {
     }); //if something goes wrong
   }); //update
 
-
-  fdescribe('create', () => {
+  describe('create', () => {
     let req, res, err;
     beforeEach(() => {
       req = { body: 'body' };
@@ -131,57 +130,59 @@ describe('crudRoutes', () => {
 
   describe('read', () => {
     let res, output, err, req;
-    beforeEach(() => (res = jasmine.createSpyObj('res', ['status', 'send'])));
-    beforeEach(() => (err = '{err}'));
-    beforeEach(() => (req = jasmine.createSpyObj('req', ['params'])));
-    beforeEach(() =>
-      req.params.and.returnValue({
-        id: '{id}'
-      })
-    );
-    beforeEach(() => res.status.and.returnValue(res));
-    describe('when output is called', () => {
-      beforeEach(() => databaseModify.readFromDB.and.returnValue('{return from readFromDB}'));
-      afterEach(() => expect(databaseModify.readFromDB).toHaveBeenCalledWith(req.params.id));
-      beforeEach(() => (output = databaseModify.readFromDB(req.params.id)));
-      describe('when there is an output', () => {
-        it('should respond with the output and a 200 code', () => {
-          crudRoutes.read(req, res);
-          expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(output);
-        });
-      }); // when there is an output
+    beforeEach(() => {
+      req = { body: 'body', params: { id: 'id' } };
+      err = { code: 404, message: 'entry not found in database' };
+      data = {};
     });
-    describe('when output is empty', () => {
-      beforeEach(() => databaseModify.readFromDB.and.returnValue(null));
-      afterEach(() => expect(databaseModify.readFromDB).toHaveBeenCalledWith(req.params.id));
-      beforeEach(() => (output = databaseModify.readFromDB(req.params.id)));
-      describe('when there is an output', () => {
-        it('should respond with the output and a 200 code', () => {
-          crudRoutes.read(req, res);
-          expect(res.status).toHaveBeenCalledWith(404);
-          expect(res.send).toHaveBeenCalledWith({
-            error: 'READ: Object not found'
+
+    describe('When promise is resolved', () => {
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.readFromDB.and.returnValue(Promise.resolve({}));
+      });
+      fdescribe('when readFromDB returns at least one element', () => {
+        beforeEach(() => {
+          spyOn(_, 'first').and.returnValue('elementFromServer');
+        });
+        it('should respond with the output and a 200 code', done => {
+          crudRoutes.read(req, res).then(() => {
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith('elementFromServer');
+            done();
           });
+        }); //should respond with the output and a 200 code
+      }); //when readFromDB returns at least one element
+      fdescribe('when readFromDB does not return an element', () => {
+        beforeEach(() => {
+          spyOn(_, 'first').and.returnValue(undefined);
         });
-        it('should add req.body', done => {
-            return crudRoutes.create(req, res).then(() => {
-                expect(crudRoutes._add).toHaveBeenCalledWith(
-                    jasmine.anything(),
-                    req.body
-                );
-                expect(crudRoutes._validateInputs).toHaveBeenCalledWith(
-                    res,
-                    {}
-                );
-                expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(
-                    res,
-                    true
-                );
-                done();
-            });
+        it('should throw an error', done => {
+          expect(() => {
+            crudRoutes
+              .read(req, res)
+              .then()
+              .toThrow(err);
+          });
+          done();
+          fail('Cant test error handling');
+        }); //should respond with the output and a 200 code
+      }); //when readFromDB returns at least one element
+    }); //When promise is resolved
+    fdescribe('when promise does not resolve', () => {
+      beforeEach(() => {
+        res = {};
+        err = {};
+        databaseModify.readFromDB.and.returnValue(Promise.reject({}));
+      });
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.read(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         });
-    }); //create
+      });
+    }); //when promise does not resolve
+  }); // read
 
   describe('update', () => {
     let res, req, newEmployee;
@@ -213,34 +214,13 @@ describe('crudRoutes', () => {
   }); // update
 
   describe('onDelete', () => {
-    let req, res, id;
-    beforeEach(() => (req = jasmine.createSpyObj('req', ['params'])));
-    beforeEach(() => (res = jasmine.createSpyObj('res', ['status', 'send'])));
-    beforeEach(() => (id = '{id}'));
-    beforeEach(() =>
-      req.params.and.returnValue({
-        id: '{id}'
-      })
-    );
-    describe('when create is called', () => {
-      beforeEach(() => spyOn(crudRoutes, '_handleResponse'));
-      afterEach(() => expect(crudRoutes._handleResponse).toHaveBeenCalledWith(404, res));
-      afterEach(() =>
-        expect(databaseModify.removeFromDB).toHaveBeenCalledWith(id, crudRoutes._handleResponse(404, res))
-      );
-      it('should call addToDB', () => {
-        databaseModify.removeFromDB(id, crudRoutes._handleResponse(404, res));
-      });
-    });
-  }); // onDelete
-  describe('showList', () => {
-    let output, res, req, data;
+    let res, req, data;
     beforeEach(() => {
       req = { body: 'body' };
       err = {};
       data = {};
     });
-    fdescribe('when showList is called without error', () => {
+    describe('when showList is called without error', () => {
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
@@ -254,7 +234,41 @@ describe('crudRoutes', () => {
         });
       });
     });
-    fdescribe('when there is an error', () => {
+    describe('when there is an error', () => {
+      beforeEach(() => {
+        res = {};
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject({}));
+      });
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.showList(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      });
+    });
+  }); // onDelete
+
+  describe('showList', () => {
+    let res, req, data;
+    beforeEach(() => {
+      req = { body: 'body' };
+      err = {};
+      data = {};
+    });
+    describe('when showList is called without error', () => {
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve({}));
+      });
+      it('should return the complete json file ', done => {
+        return crudRoutes.showList(req, res).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
+        });
+      });
+    });
+    describe('when there is an error', () => {
       beforeEach(() => {
         res = {};
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject({}));

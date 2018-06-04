@@ -104,7 +104,7 @@ class Crud {
   read(req, res) {
     return this.databaseModify
       .readFromDB(req.params.id)
-      .then(function(output) {
+      .then(output => {
         if (_.first(output)) {
           res.status(200).send(_.first(output));
         } else {
