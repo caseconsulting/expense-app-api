@@ -1,33 +1,38 @@
 {
-    "name": "app",
-    "version": "0.0.0",
-    "private": true,
-    "scripts": {
-        "start": "nodemon ./bin/www",
-        "test": "jasmine || true",
-        "validate": "npm ls",
-        "eslint": "eslint . --ext .js --fix; exit 0"
-    },
-    "dependencies": {
-        "aws-sdk": "^2.249.1",
-        "body-parser": "^1.18.3",
-        "cookie-parser": "^1.4.3",
-        "debug": "^3.1.0",
-        "express": "^4.16.3",
-        "lodash": "^4.17.10",
-        "morgan": "^1.9.0",
-        "pug": "^2.0.3",
-        "serve-favicon": "^2.5.0",
-        "through": "^2.3.8",
-        "uuid": "^3.2.1"
-    },
-    "devDependencies": {
-        "aws-sdk-mock": "^2.0.0",
-        "cors": "^2.8.4",
-        "eslint": "^4.19.1",
-        "jasmine": "^3.1.0",
-        "nodemon": "^1.17.5",
-        "precommit-hook": "^3.0.0"
-    },
-    "pre-commit": ["validate", "eslint", "test"]
+  "name": "app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon ./bin/www",
+    "test": "jasmine || true",
+    "validate": "npm ls",
+    "eslint": "eslint . --ext .js --fix; exit 0",
+    "lint": "jshint ."
+  },
+  "dependencies": {
+    "aws-sdk": "^2.249.1",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "lodash": "^4.17.10",
+    "morgan": "^1.9.0",
+    "pug": "^2.0.3",
+    "serve-favicon": "^2.5.0",
+    "through": "^2.3.8",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^2.0.0",
+    "cors": "^2.8.4",
+    "eslint": "^4.19.1",
+    "jasmine": "^3.1.0",
+    "nodemon": "^1.17.5",
+    "precommit-hook": "^3.0.0"
+  },
+  "pre-commit": [
+    "validate",
+    "eslint",
+    "test"
+  ]
 }

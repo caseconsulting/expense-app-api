@@ -19,7 +19,10 @@ describe('crudRoutes', () => {
     // beforeEach(() => _uuid = jasmine.createSpy('_uuid'));
     beforeEach(
         () => (crudRoutes = new Crud(databaseModify, _add, _update, _uuid))
+
     );
+    beforeEach(()=>
+        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG'));
 
     describe('_inputChecker', () => {
         let objectToCheck, res;
@@ -256,4 +259,53 @@ describe('crudRoutes', () => {
             });
         });
     }); // showList
+    describe('_handleError',()=>{
+        let res, err;
+        beforeEach(()=>{
+            res = jasmine.createSpyObj('res', ['status', 'send']);
+            res.status.and.returnValue(res);
+            err={
+                code:'error code',
+                message:'error message'
+            };
+        });
+
+        it('should send the error code and message',()=>{
+            crudRoutes._handleError(res,err);
+            expect(res.status).toHaveBeenCalledWith(err.code);
+            expect(res.send).toHaveBeenCalledWith(err.message);
+        });
+    }); // _handleError
+    describe('_createInDatabase',()=>{
+        let res, newObject, data, err;
+        beforeEach(() => {
+            data = {};
+            newObject = {};
+            err = {};
+        });
+        describe('when _createInDatabase is called without error', () => {
+            beforeEach(() => {
+                res = jasmine.createSpyObj('res', ['status', 'send']);
+                res.status.and.returnValue(res);
+                databaseModify.addToDB.and.returnValue(Promise.resolve({}));
+            });
+            it('should respond with a 200 and data', done => {
+                return crudRoutes._createInDatabase(res, newObject).then(() => {
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.send).toHaveBeenCalledWith(data);
+                    done();
+                });
+            });
+        });
+        fdescribe('when there is an error', () => {
+            beforeEach(() => {
+                databaseModify.addToDB.and.returnValue(Promise.reject({}));
+            });
+            it('should pass the error to _handleError ', () => {
+                return crudRoutes._createInDatabase(res, newObject).then(() => {
+                    expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+                });
+            });
+        });
+    }); // _createInDatabase
 }); // crudRoutes

@@ -71,7 +71,7 @@ class Crud {
     _createInDatabase(res, newObject) {
         return this.databaseModify
             .addToDB(newObject)
-            .then(function(data) {
+            .then((data) => {
                 res.status(200).send(data);
             })
             .catch(err => this._handleError(res, err));
