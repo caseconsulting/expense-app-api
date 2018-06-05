@@ -5,7 +5,7 @@ class ExpenseTypeRoutes extends Crud {
     this.databaseModify = databaseModify;
   }
   _add(uuid, { budgetName, budget, odFlag, description }) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       if (odFlag === undefined) {
         odFlag = false;
       }
@@ -16,7 +16,6 @@ class ExpenseTypeRoutes extends Crud {
         odFlag,
         description
       });
-      reject('Not implemented');
     });
   }
 
