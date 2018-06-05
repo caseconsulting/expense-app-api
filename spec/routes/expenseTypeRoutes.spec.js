@@ -19,35 +19,54 @@ describe('expenseTypeRoutes', () => {
         budget: 100,
         odFlag: true
       };
-      // spyOn(expenseTypeRoutes, '_add').and.returnValue(Promise.resolve(newExpense));
     });
     it('should take in object types', done => {
       return expenseTypeRoutes._add(uuid, newExpenseType).then(expenseType => {
-        expect(expenseType).toEqual(uuid);
+        expect(expenseType).toEqual(newExpenseType);
         done();
       });
     });
   }); // _add
 
-  describe('_update', () => {
-    let newExpense, id;
-    beforeEach(() => (id = '{id}'));
-    beforeEach(
-      () =>
-        (newExpense = {
-          name: '{name}',
-          budget: '{budget}',
-          odFlag: '{odFlag}'
-        })
-    );
-    it('should take in object types', () => {
-      const returnVal = expenseTypeRoutes._update(id, newExpense);
-      expect(returnVal).toEqual({
-        id: '{id}',
-        name: '{name}',
-        budget: '{budget}',
-        odFlag: '{odFlag}'
-      });
+  fdescribe('_update', () => {
+    let expectedExpenseType, id;
+    beforeEach(() => {
+      id = 'id';
+      expectedExpenseType = {
+        budgetName: 'new name',
+        budget: 1000,
+        odFlag: false,
+        description: 'new description'
+      };
     });
+    describe('when object is found in databaseModify', () => {
+      beforeEach(() => {
+        databaseModify.findObjectInDB.and.returnValue(Promise.resolve());
+      });
+      it('should take in object types', done => {
+        return expenseTypeRoutes._update(id, expectedExpenseType).then(newExpenseType => {
+          expect(newExpenseType).toEqual({
+            id: 'id',
+            budgetName: 'new name',
+            budget: 1000,
+            odFlag: false,
+            description: 'new description'
+          });
+          done();
+        });
+      });
+    }); //when object is found in databaseModify
+    describe('when databaseModify throws an error', () => {
+      let expectedErr;
+      beforeEach(() => {
+        expectedErr = 'error in databaseModify';
+        databaseModify.findObjectInDB.and.returnValue(Promise.reject(expectedErr));
+      });
+      it('should throw the error', () => {
+        return expenseTypeRoutes._update(id, expectedExpenseType).catch(err => {
+          expect(err).toEqual(expectedErr);
+        });
+      });
+    }); //when databaseModify throws an error
   }); // _update
 }); // employeeRoutes

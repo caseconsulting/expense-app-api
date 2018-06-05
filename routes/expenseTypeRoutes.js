@@ -5,7 +5,7 @@ class ExpenseTypeRoutes extends Crud {
     this.databaseModify = databaseModify;
   }
   _add(uuid, { budgetName, budget, odFlag, description }) {
-    return new Promise(function(resolve) {
+    return new Promise(resolve => {
       if (odFlag === undefined) {
         odFlag = false;
       }
@@ -22,7 +22,7 @@ class ExpenseTypeRoutes extends Crud {
   _update(id, { budgetName, budget, odFlag, description }) {
     return this.databaseModify
       .findObjectInDB(id)
-      .then(function() {
+      .then(() => {
         return {
           id,
           budgetName,
@@ -31,7 +31,7 @@ class ExpenseTypeRoutes extends Crud {
           description
         };
       })
-      .catch(function(err) {
+      .catch(err => {
         throw err;
       });
   }
