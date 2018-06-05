@@ -11,34 +11,15 @@ class ExpenseRoutes extends Crud {
   _delete(id) {
     return this.databaseModify
       .findObjectInDB(id)
-      .then(expense =>
-        this.deleteCostFromBudget(
-          expense.expenseTypeId,
-          expense.userId,
-          expense.cost
-        )
-      )
+      .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
       .catch(err => {
         throw err;
       });
   }
 
-  _add(
-    uuid,
-    {
-      purchaseDate,
-      reimbursedDate,
-      cost,
-      description,
-      note,
-      receipt,
-      expenseTypeId,
-      userId,
-      createdAt
-    }
-  ) {
+  _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }) {
     return this.validateCostToBudget(expenseTypeId, userId, cost)
-      .then(function() {
+      .then(() => {
         return {
           id: uuid,
           purchaseDate,
@@ -58,35 +39,16 @@ class ExpenseRoutes extends Crud {
   }
 
   /**
-     * Removes the previous information from the database, including from employee's
-     *  balance
-     * adds the new information
-     */
-  _update(
-    id,
-    {
-      purchaseDate,
-      reimbursedDate,
-      cost,
-      description,
-      note,
-      receipt,
-      expenseTypeId,
-      userId,
-      createdAt
-    }
-  ) {
+   * Removes the previous information from the database, including from employee's
+   *  balance
+   * adds the new information
+   */
+  _update(id, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }) {
     return this.databaseModify
       .findObjectInDB(id)
-      .then(expense =>
-        this.deleteCostFromBudget(
-          expense.expenseTypeId,
-          expense.userId,
-          expense.cost
-        )
-      )
+      .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
       .then(() => this.validateCostToBudget(expenseTypeId, userId, cost))
-      .then(function() {
+      .then(() => {
         return {
           id,
           purchaseDate,
@@ -114,9 +76,9 @@ class ExpenseRoutes extends Crud {
   }
 
   /**
-     * Finds the appropriate budget operations to perfom depending on
-     * expenseType's budget amount, employee's balance and cost of expense
-     */
+   * Finds the appropriate budget operations to perfom depending on
+   * expenseType's budget amount, employee's balance and cost of expense
+   */
   performBudgetOperation(employeeJson, employee, expenseType, cost) {
     let employeeBalance;
     let budgetPosition;
@@ -139,33 +101,25 @@ class ExpenseRoutes extends Crud {
       employee.expenseTypes.push(newExpense);
       // Created new budget under employee
       return employeeJson.updateEntryInDB(employee);
-    } else if (
-      expenseType.budget - employeeBalance < 0 &&
-            expenseType.odFlag
-    ) {
+    } else if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
       //OVERDRAFT
-      employee.expenseTypes[budgetPosition].balance =
-                '' + employeeBalance;
+      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
       // Overdraft
       return employeeJson.updateEntryInDB(employee);
     } else if (
-      expenseType.budget !==
-                +employee.expenseTypes[budgetPosition].balance &&
-            expenseType.budget - employeeBalance < 0 &&
-            !expenseType.odFlag &&
-            remaining < 0
+      expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
+      expenseType.budget - employeeBalance < 0 &&
+      !expenseType.odFlag &&
+      remaining < 0
     ) {
       //PARTIAL COVERAGE
-      employee.expenseTypes[budgetPosition].balance =
-                '' + expenseType.budget;
-      employee.expenseTypes[budgetPosition].owedAmount =
-                '' + Math.abs(remaining);
+      employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
+      employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
       // Partial Coverage
       return employeeJson.updateEntryInDB(employee);
     } else if (expenseType.budget - employeeBalance >= 0) {
       //COVERED BY BUDGET
-      employee.expenseTypes[budgetPosition].balance =
-                '' + employeeBalance;
+      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
       // Covered by budget
       return employeeJson.updateEntryInDB(employee);
     } else {
@@ -177,36 +131,27 @@ class ExpenseRoutes extends Crud {
     }
   }
 
-  //TODO use rocket functions to replace curried functions
   validateCostToBudget(expenseTypeId, userId, cost) {
     let expenseType;
     let employee;
 
     const expenseTypeJson = new databaseModify('expenseType.json');
     const employeeJson = new databaseModify('employee.json');
-    let createNewBalanceCurried = _.curry(this.createNewBalance)(
-      employeeJson
-    );
-    let performBudgetOperationCurried = _.curry(
-      this.performBudgetOperation
-    )(employeeJson);
+    let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
+    let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
 
     return expenseTypeJson
       .findObjectInDB(expenseTypeId)
-      .then(function(data) {
+      .then(data => {
         expenseType = data;
         return employeeJson.findObjectInDB(userId);
       })
-      .then(function(data) {
+      .then(data => {
         employee = data;
         return createNewBalanceCurried(employee);
       })
-      .then(function() {
-        return performBudgetOperationCurried(
-          employee,
-          expenseType,
-          cost
-        );
+      .then(() => {
+        return performBudgetOperationCurried(employee, expenseType, cost);
       })
       .catch(err => {
         throw err;
@@ -217,12 +162,11 @@ class ExpenseRoutes extends Crud {
     const employeeJson = new databaseModify('employee.json');
     return employeeJson
       .findObjectInDB(userId)
-      .then(function(employee) {
+      .then(employee => {
         let employeeBalance;
         for (var i = 0; i < employee.expenseTypes.length; i++) {
           if (employee.expenseTypes[i].id === expenseTypeId) {
-            employeeBalance =
-                            +employee.expenseTypes[i].balance - cost;
+            employeeBalance = +employee.expenseTypes[i].balance - cost;
             employee.expenseTypes[i].balance = '' + employeeBalance;
             return employeeJson.updateEntryInDB(employee);
           }
