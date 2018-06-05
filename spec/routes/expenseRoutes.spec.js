@@ -42,7 +42,7 @@ describe('expenseRoutes', () => {
       });
     });
   }); //_add
-  fdescribe('_update', () => {
+  describe('_update', () => {
     let newExpense, id;
     beforeEach(() => {
       id = '{id}';
