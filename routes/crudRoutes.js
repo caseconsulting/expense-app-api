@@ -70,7 +70,7 @@ class Crud {
   _createInDatabase(res, newObject) {
     return this.databaseModify
       .addToDB(newObject)
-      .then(function(data) {
+      .then(data => {
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
@@ -124,7 +124,7 @@ class Crud {
   _updateDatabase(res, newObject) {
     return this.databaseModify
       .updateEntryInDB(newObject)
-      .then(function(data) {
+      .then(data => {
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
@@ -149,7 +149,7 @@ class Crud {
     }
     return this.databaseModify
       .removeFromDB(req.params.id)
-      .then(function(data) {
+      .then(data => {
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
