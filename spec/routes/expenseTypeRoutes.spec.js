@@ -8,7 +8,7 @@ describe('expenseTypeRoutes', () => {
     expenseTypeRoutes = new ExpenseTypeRoutes(databaseModify, uuid());
   });
 
-  fdescribe('_add', () => {
+  describe('_add', () => {
     let newExpense, uuid;
     beforeEach(() => {
       uuid = 'uuid';
@@ -28,7 +28,7 @@ describe('expenseTypeRoutes', () => {
     });
   }); // _add
 
-  fdescribe('_update', () => {
+  describe('_update', () => {
     let expectedExpenseType, id;
     beforeEach(() => {
       id = 'id';
