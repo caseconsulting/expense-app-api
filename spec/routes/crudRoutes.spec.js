@@ -1,7 +1,7 @@
 const Crud = require('../../routes/crudRoutes');
 const _ = require('lodash');
 
-fdescribe('crudRoutes', () => {
+describe('crudRoutes', () => {
   //Create spies for all calls to databaseModify
   let crudRoutes, databaseModify, _add, _update, _uuid;
   beforeEach(() => {
@@ -334,4 +334,97 @@ fdescribe('crudRoutes', () => {
       });
     });
   }); // _createInDatabase
+  describe('_updateDatabase', () => {
+    let res, newObject, data, err;
+    beforeEach(() => {
+      data = {};
+      newObject = {};
+      err = {};
+    });
+    describe('when _updateDatabase is called without error', () => {
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.updateEntryInDB.and.returnValue(Promise.resolve({}));
+      });
+      it('should respond with a 200 and data', done => {
+        return crudRoutes._updateDatabase(res, newObject).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
+        });
+      });
+    });
+    describe('when there is an error', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
+        databaseModify.updateEntryInDB.and.returnValue(Promise.reject({}));
+      });
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes._updateDatabase(res, newObject).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      });
+    });
+  }); // _updateDatabase
+
+  describe('_validateInputs', () => {
+    let res, newObject, expectedErr;
+    beforeEach(() => {
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+    });
+    describe('if newObject has an id', () => {
+      fdescribe('if inputChecker returns true', () => {
+        beforeEach(() => {
+          expectedErr = {
+            code: 406, //Not Acceptable
+            message: 'All fields are needed'
+          };
+          spyOn(crudRoutes, '_inputChecker').and.returnValue(true);
+          newObject = {
+            id: 'id',
+            name: '' //empty string causes inputchecker to return true
+          };
+        });
+        it('should reject passing along err', done => {
+          crudRoutes._validateInputs(res, newObject).catch(err => {
+            expect(err).toEqual(expectedErr);
+            done();
+          });
+        });
+      }); //if inputChecker returns true
+      fdescribe('if inputChecker returns false', () => {
+        beforeEach(() => {
+          spyOn(crudRoutes, '_inputChecker').and.returnValue(false);
+          newObject = {
+            id: 'id',
+            name: '' //empty string causes inputchecker to return true
+          };
+        });
+        it('should reject passing along err', done => {
+          crudRoutes._validateInputs(res, newObject).then(data => {
+            expect(data).toEqual(newObject);
+            done();
+          });
+        });
+      }); //if inputChecker returns false
+    }); //if newObject has an id
+    fdescribe('if newObject does not have an id', () => {
+      beforeEach(() => {
+        expectedErr = {
+          code: 400, //Not Acceptable
+          message: 'input validation error'
+        };
+        newObject = {
+          name: '' //empty string causes inputchecker to return true
+        };
+      });
+      it('should reject passing along err', () => {
+        expect(() => {
+          crudRoutes._validateInputs(res, newObject);
+        }).toThrow(expectedErr);
+      });
+    }); //if newObject does not have an id
+  }); //_validateInputs
 }); // crudRoutes

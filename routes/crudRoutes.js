@@ -47,8 +47,8 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    let inputCheckerCurried = _.curry(this._inputChecker);
     if (newObject.id) {
+      let inputCheckerCurried = _.curry(this._inputChecker);
       return new Promise(function(resolve, reject) {
         if (inputCheckerCurried.bind(this)(newObject)) {
           let err = {
