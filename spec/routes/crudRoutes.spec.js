@@ -375,7 +375,7 @@ describe('crudRoutes', () => {
       res.status.and.returnValue(res);
     });
     describe('if newObject has an id', () => {
-      fdescribe('if inputChecker returns true', () => {
+      describe('if inputChecker returns true', () => {
         beforeEach(() => {
           expectedErr = {
             code: 406, //Not Acceptable
@@ -394,7 +394,7 @@ describe('crudRoutes', () => {
           });
         });
       }); //if inputChecker returns true
-      fdescribe('if inputChecker returns false', () => {
+      describe('if inputChecker returns false', () => {
         beforeEach(() => {
           spyOn(crudRoutes, '_inputChecker').and.returnValue(false);
           newObject = {
@@ -410,7 +410,7 @@ describe('crudRoutes', () => {
         });
       }); //if inputChecker returns false
     }); //if newObject has an id
-    fdescribe('if newObject does not have an id', () => {
+    describe('if newObject does not have an id', () => {
       beforeEach(() => {
         expectedErr = {
           code: 400, //Not Acceptable

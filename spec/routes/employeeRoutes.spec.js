@@ -1,121 +1,100 @@
 const uuid = require('uuid/v4');
-//const databaseModify = require('../../js/databaseModify')('employee.json');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 
-describe('employeeRoutes', () => {
-  let databaseModify, svc;
-  beforeEach(
-    () =>
-      (databaseModify = jasmine.createSpyObj('databaseModify', [
-        'findObjectInDB'
-      ]))
-  );
-  beforeEach(() => (svc = new EmployeeRoutes(databaseModify, uuid())));
+fdescribe('employeeRoutes', () => {
+  let databaseModify, employeeRoutes;
+  beforeEach(()=>{
+    databaseModify = jasmine.createSpyObj('databaseModify', [
+      'findObjectInDB'
+    ]);
+    employeeRoutes = new EmployeeRoutes(databaseModify, uuid());
+  });
 
   describe('_add', () => {
-    let newEmployee, uuid;
-    beforeEach(() => (uuid = 'uuid'));
+    let newEmployee, uuid, expectedObj;
     beforeEach(
-      () =>
-        (newEmployee = {
+      () =>{
+        newEmployee = {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
           empId: '{empId}',
-          hireDate: '{hireDate}'
-        })
+          hireDate: '{hireDate}',
+          expenseTypes:'[expenseTypes]'
+        };
+        uuid='uuid';
+      }
     );
-
-    describe('if employee is not found', () => {
-      beforeEach(() => {
-        databaseModify.findObjectInDB.and.returnValue({
-          id: '{id}'
-        });
-      });
-
-      it('objectWasFound should be null', () => {
-        const returnVal = svc._add(uuid, newEmployee);
-        expect(returnVal).toEqual(null);
-      });
-    }); //if employee is not found
-
-    describe('if employee was found', () => {
-      beforeEach(() => {
-        databaseModify.findObjectInDB.and.returnValue(false);
-      });
-      afterEach(() => {
-        expect(databaseModify.findObjectInDB).toHaveBeenCalled();
-      });
-      it('objectWasFound should have a value', () => {
-        const returnVal = svc._add(uuid, newEmployee);
-        expect(returnVal).toEqual({
+    describe('if the promise resolves',()=>{
+      beforeEach(()=> {
+        expectedObj = {
           id: 'uuid',
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
           empId: '{empId}',
-          hireDate: '{hireDate}'
+          hireDate: '{hireDate}',
+          expenseTypes:'[expenseTypes]'
+        };
+      });
+      it('should return a new employee object',(done)=>{
+        employeeRoutes._add(uuid,newEmployee).then( (data) =>{
+          expect(data).toEqual(expectedObj);
+          done();
         });
       });
-    }); // if employee was found
+    }); // if the promise resolves
   }); // _add
 
   describe('update', () => {
-    let databaseModify, svc;
+    let employeeObj, id, expectedObj;
     beforeEach(
-      () =>
-        (databaseModify = jasmine.createSpyObj('databaseModify', [
-          'findObjectInDB'
-        ]))
-    );
-    beforeEach(() => (svc = new EmployeeRoutes(databaseModify, uuid())));
-    describe('if found is not null', () => {
-      let newEmployee, id;
-      beforeEach(() => (id = '{id}'));
-      beforeEach(
-        () =>
-          (newEmployee = {
-            firstName: '{firstName}',
-            middleName: '{middleName}',
-            lastName: '{lastName}',
-            empId: '{empId}',
-            hireDate: '{hireDate}'
-          })
-      );
-      beforeEach(() =>
-        databaseModify.findObjectInDB.and.returnValue(false)
-      );
-      it('should take in employee objects', () => {
-        const returnVal = svc._update(id, newEmployee);
-        expect(returnVal).toEqual({
-          id: '{id}',
+      () =>{
+        employeeObj = {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
           empId: '{empId}',
-          hireDate: '{hireDate}'
+          hireDate: '{hireDate}',
+          expenseTypes:'[expenseTypes]'
+        };
+        id='id';
+      });
+    describe('if promise resolves',()=>{
+      beforeEach(()=> {
+        databaseModify.findObjectInDB.and.returnValue(Promise.resolve({}));
+        expectedObj = {
+          id: 'id',
+          firstName: '{firstName}',
+          middleName: '{middleName}',
+          lastName: '{lastName}',
+          empId: '{empId}',
+          hireDate: '{hireDate}',
+          expenseTypes:'[expenseTypes]'
+        };
+      });
+
+      it('should return updated employee object',(done)=>{
+        employeeRoutes._update(id,employeeObj).then( (data) =>{
+          expect(databaseModify.findObjectInDB).toHaveBeenCalledWith(id);
+          expect(data).toEqual(expectedObj);
+          done();
+        });
+
+      });
+    }); // if promise resolves
+    describe('if the promise is rejected',()=>{
+      let expectedErr;
+      beforeEach(()=> {
+        databaseModify.findObjectInDB.and.returnValue(Promise.reject('server error'));
+        expectedErr = 'server error';
+      });
+
+      it('should return error from server',()=>{
+        employeeRoutes._update(id,employeeObj).catch( (err) =>{
+          expect(err).toEqual(expectedErr);
         });
       });
-    }); // if found is not null
-    describe('if found is true', () => {
-      let newEmployee;
-      beforeEach(() =>
-        databaseModify.findObjectInDB.and.returnValue(true)
-      );
-      beforeEach(
-        () =>
-          (newEmployee = {
-            firstName: '{firstName}',
-            middleName: '{middleName}',
-            lastName: '{lastName}',
-            empId: '{empId}',
-            hireDate: '{hireDate}'
-          })
-      );
-      it('should return object being updated if employee ID is not found', () => {
-        const returnVal = svc._add(uuid, newEmployee);
-        expect(returnVal).toEqual(null);
-      });
-    }); //if found is null
-  });
+    });
+  }); // if the promise is rejected
 }); // employeeRoutes
