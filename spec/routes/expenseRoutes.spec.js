@@ -3,7 +3,7 @@ const ExpenseRoutes = require('../../routes/expenseRoutes');
 
 describe('expenseRoutes', () => {
   let databaseModify, expenseRoutes;
-  beforeEach(() => (databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB'])));
+  beforeEach(() => (databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB','updateEntryInDB'])));
   beforeEach(() => (expenseRoutes = new ExpenseRoutes(databaseModify, uuid())));
 
   describe('_add', () => {
@@ -89,4 +89,32 @@ describe('expenseRoutes', () => {
       });
     });
   }); //_update
+  describe('createNewBalance',()=>{
+    let employee;
+    beforeEach(()=>{
+      employee ={
+        firstName: '{firstName}',
+        middleName: '{middleName}',
+        lastName: '{lastName}',
+        empId: '{empId}',
+        hireDate: '{hireDate}'
+      };
+      databaseModify.updateEntryInDB.and.returnValue(
+        {
+          firstName: '{firstName}',
+          middleName: '{middleName}',
+          lastName: '{lastName}',
+          empId: '{empId}',
+          hireDate: '{hireDate}',
+          expenseTypes: []
+        }
+      );
+    });
+    it('should add expense to employee if they dont have it already',()=>{
+      let returnVal = expenseRoutes.createNewBalance(databaseModify, employee);
+      expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(employee);
+      expect(returnVal).toEqual(Object.defineProperty(employee, 'expenseTypes',{ value:[], writable:false }));
+    });
+  }); // createNewBalance
+  
 });
