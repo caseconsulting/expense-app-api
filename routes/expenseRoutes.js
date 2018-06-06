@@ -143,10 +143,14 @@ class ExpenseRoutes extends Crud {
     let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
     return expenseTypeJson
       .findObjectInDB(expenseTypeId)
-      .then(() => {
+      .then(data => {
+        expenseType = data;
         return employeeJson.findObjectInDB(userId);
       })
-      .then(createNewBalanceCurried)
+      .then(data => {
+        employee = data;
+        return createNewBalanceCurried(employee);
+      })
       .then(() => {
         return performBudgetOperationCurried(employee, expenseType, cost);
       })

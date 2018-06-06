@@ -141,16 +141,15 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
-        spyOn(expenseRoutes,'createNewBalance');
-        spyOn(expenseRoutes,'performBudgetOperation');
+        spyOn(expenseRoutes,'createNewBalance').and.returnValue(Promise.resolve());
+        spyOn(expenseRoutes,'performBudgetOperation').and.returnValue(Promise.resolve());
       });
-      it('should return employee from DB',(done)=>{
-        expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(()=>{
-
-          expect(employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
-          // expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employeeJson, employee);
-          // expect(expenseRoutes.performBudgetOperation)
-          //   .toHaveBeenCalledWith(employeeJson, employee, expenseType, cost);
+      fit('should return employee from DB',(done)=>{
+        expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(() => {
+          expect(expenseRoutes.employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
+          expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(expenseRoutes.employeeJson, employee);
+          expect(expenseRoutes.performBudgetOperation)
+            .toHaveBeenCalledWith(expenseRoutes.employeeJson, employee, expenseType, cost);
           done();
         });
       });
@@ -168,10 +167,9 @@ describe('expenseRoutes', () => {
   }); // validateCostToBudget
 
   describe('deleteCostFromBudget', () => {
-    let employeeBalance, employee, userId, err,expenseTypeId,cost;
+    let employee, userId,expenseTypeId,cost;
     describe('promise resolves', () => {
       beforeEach(() => {
-        let employeeJson = expenseRoutes.employeeJson;
         userId = 'userId';
         cost = 'cost';
         expenseTypeId = 'expenseTypeId';
