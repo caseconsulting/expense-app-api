@@ -132,32 +132,36 @@ class ExpenseRoutes extends Crud {
   }
 
   validateCostToBudget(expenseTypeId, userId, cost) {
-    let expenseType;
-    let employee;
+    let expenseType, employee;
 
     const expenseTypeJson = new databaseModify('expenseType.json');
     const employeeJson = new databaseModify('employee.json');
     let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
     let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
-
+    console.log('hello');
     return expenseTypeJson
       .findObjectInDB(expenseTypeId)
       .then(data => {
         expenseType = data;
+        console.log('this');
         return employeeJson.findObjectInDB(userId);
       })
       .then(data => {
+        console.log('is');
         employee = data;
         return createNewBalanceCurried(employee);
       })
       .then(() => {
+        console.log('weird');
         return performBudgetOperationCurried(employee, expenseType, cost);
       })
       .catch(err => {
+        console.log('ERROR');
         throw err;
       });
   }
 
+  // TODO: fix issue with employeeBalance
   deleteCostFromBudget(expenseTypeId, userId, cost) {
     const employeeJson = new databaseModify('employee.json');
     return employeeJson

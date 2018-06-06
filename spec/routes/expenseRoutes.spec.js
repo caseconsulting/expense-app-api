@@ -2,10 +2,13 @@ const uuid = require('uuid/v4');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 
 describe('expenseRoutes', () => {
-  let databaseModify, expenseRoutes;
-  beforeEach(() => (databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB','updateEntryInDB'])));
-  beforeEach(() => (expenseRoutes = new ExpenseRoutes(databaseModify, uuid())));
-
+  let databaseModify, expenseRoutes, employeeJson, expenseTypeJson;
+  beforeEach(()=>{
+    databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB','updateEntryInDB']);
+    expenseRoutes = new ExpenseRoutes(databaseModify, uuid());
+    // employeeJson = jasmine.createSpyObj('expenseRoutes.', ['findObjectInDB','updateEntryInDB']);
+    // expenseTypeJson = jasmine.createSpyObj('expenseTypeJson', ['findObjectInDB']);
+  });
   describe('_add', () => {
     let newExpense, uuid;
     beforeEach(() => {
@@ -116,5 +119,88 @@ describe('expenseRoutes', () => {
       expect(returnVal).toEqual(Object.defineProperty(employee, 'expenseTypes',{ value:[], writable:false }));
     });
   }); // createNewBalance
-  
+  xdescribe('validateCostToBudget',()=>{
+    let expenseType, employee, expenseTypeId, cost, userId;
+
+    beforeEach(()=>{
+      userId = 'userId';
+      cost = 'cost';
+      expenseTypeId = 'expenseTypeId';
+      employee = {
+        firstName: '{firstName}',
+        middleName: '{middleName}',
+        lastName: '{lastName}',
+        empId: '{empId}',
+        hireDate: '{hireDate}',
+        expenseTypes: []
+      };
+      expenseType = 'expenseType';
+
+    });
+    describe('promise resolves',() => {
+      beforeEach(() => {
+        employeeJson.findObjectInDB.and.returnValue(Promise.resolve(employee));
+        expenseTypeJson.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
+        spyOn(expenseRoutes,'createNewBalance');
+        spyOn(expenseRoutes,'performBudgetOperation');
+      });
+      it('should return employee from DB',(done)=>{
+        expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(()=>{
+          expect(expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
+          expect(employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
+          expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employeeJson, employee);
+          expect(expenseRoutes.performBudgetOperation)
+            .toHaveBeenCalledWith(employeeJson, employee, expenseType, cost);
+          done();
+        });
+
+      });
+    }); // promise resolves
+    describe('promise rejects',()=>{
+      beforeEach(()=>{
+
+      });
+    }); // promise rejects
+
+  }); // validateCostToBudget
+
+  xdescribe('deleteCostFromBudget', () => {
+    let employeeBalance, employee, userId, err;
+    describe('promise resolves', () => {
+      beforeEach(() => {
+        employeeJson.findObjectInDB.and.returnValue(employee);
+        employeeJson.updateEntryInDB.and.returnValue(employee);
+        userId = 'userId';
+        cost = 100;
+        expenseTypeId = 'expenseTypeId';
+        employee = {
+          firstName: '{firstName}',
+          middleName: '{middleName}',
+          lastName: '{lastName}',
+          empId: '{empId}',
+          hireDate: '{hireDate}',
+          expenseTypes: [{
+            id:'expenseTypeId',
+            balance:'1000'
+          }]
+        };
+      });
+      describe('if employee expense id is found', () => {
+        it('should return the updated entry from the DB', done => {
+          expenseRoutes.deleteCostFromBudget(expenseTypeId, userId, cost).then(() => {
+            expect(expenseRoutes.employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
+            done();
+          });
+        });
+
+
+      }); //if employee expense id is found
+      describe('if there is no employee balance', () => {
+
+      }); //if there is employee balance
+    }); //promise resolves
+    describe('promise rejects', () => {
+
+    }); //promise rejects
+  }); //deleteCostFromBudget
 });
