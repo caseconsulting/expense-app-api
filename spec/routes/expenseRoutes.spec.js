@@ -119,7 +119,7 @@ describe('expenseRoutes', () => {
       expect(returnVal).toEqual(Object.defineProperty(employee, 'expenseTypes',{ value:[], writable:false }));
     });
   }); // createNewBalance
-  xdescribe('validateCostToBudget',()=>{
+  describe('validateCostToBudget',() => {
     let expenseType, employee, expenseTypeId, cost, userId;
 
     beforeEach(()=>{
@@ -139,21 +139,24 @@ describe('expenseRoutes', () => {
     });
     describe('promise resolves',() => {
       beforeEach(() => {
-        employeeJson.findObjectInDB.and.returnValue(Promise.resolve(employee));
-        expenseTypeJson.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
+        spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.resolve(employee));
+        spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
         spyOn(expenseRoutes,'createNewBalance');
         spyOn(expenseRoutes,'performBudgetOperation');
       });
       it('should return employee from DB',(done)=>{
         expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(()=>{
-          expect(expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
+
           expect(employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
-          expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employeeJson, employee);
-          expect(expenseRoutes.performBudgetOperation)
-            .toHaveBeenCalledWith(employeeJson, employee, expenseType, cost);
+          // expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employeeJson, employee);
+          // expect(expenseRoutes.performBudgetOperation)
+          //   .toHaveBeenCalledWith(employeeJson, employee, expenseType, cost);
           done();
         });
-
+      });
+      it('should call expenseTypeJson findObjectInDB',()=>{
+        expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost);
+        expect(expenseRoutes.expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
       });
     }); // promise resolves
     describe('promise rejects',()=>{
@@ -164,14 +167,13 @@ describe('expenseRoutes', () => {
 
   }); // validateCostToBudget
 
-  xdescribe('deleteCostFromBudget', () => {
-    let employeeBalance, employee, userId, err;
+  describe('deleteCostFromBudget', () => {
+    let employeeBalance, employee, userId, err,expenseTypeId,cost;
     describe('promise resolves', () => {
       beforeEach(() => {
-        employeeJson.findObjectInDB.and.returnValue(employee);
-        employeeJson.updateEntryInDB.and.returnValue(employee);
+        let employeeJson = expenseRoutes.employeeJson;
         userId = 'userId';
-        cost = 100;
+        cost = 'cost';
         expenseTypeId = 'expenseTypeId';
         employee = {
           firstName: '{firstName}',
@@ -184,23 +186,28 @@ describe('expenseRoutes', () => {
             balance:'1000'
           }]
         };
+        spyOn(expenseRoutes.employeeJson, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
+        spyOn(expenseRoutes, '_findExpense');
+
       });
-      describe('if employee expense id is found', () => {
-        it('should return the updated entry from the DB', done => {
-          expenseRoutes.deleteCostFromBudget(expenseTypeId, userId, cost).then(() => {
-            expect(expenseRoutes.employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
-            done();
-          });
+      it('should call _findExpense',done=>{
+        expenseRoutes.deleteCostFromBudget(expenseTypeId,userId,cost).then(()=>{
+          expect(expenseRoutes._findExpense).toHaveBeenCalledWith(expenseTypeId,cost,employee);
+          done();
         });
-
-
-      }); //if employee expense id is found
-      describe('if there is no employee balance', () => {
-
       }); //if there is employee balance
     }); //promise resolves
     describe('promise rejects', () => {
-
+      let err;
+      beforeEach(()=>{
+        err = 'err';
+        spyOn(expenseRoutes.employeeJson, 'findObjectInDB').and.returnValue(Promise.reject('err'));
+      });
+      it('should throw an error', () => {
+        expenseRoutes.deleteCostFromBudget(expenseTypeId,userId,cost).catch((caughtErr)=>{
+          expect(caughtErr).toEqual(err);
+        });
+      });
     }); //promise rejects
   }); //deleteCostFromBudget
 });

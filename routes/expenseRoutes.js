@@ -1,11 +1,15 @@
 const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
+const employeeJson = new databaseModify('employee.json');
+const expenseTypeJson = new databaseModify('expenseType.json');
 const _ = require('lodash');
 // TODO: change employeeJson to Dynamo table since it is not a json file
 class ExpenseRoutes extends Crud {
   constructor(databaseModify, uuid) {
     super(databaseModify, uuid);
     this.databaseModify = databaseModify;
+    this.employeeJson = employeeJson;
+    this.expenseTypeJson = expenseTypeJson;
   }
 
   _delete(id) {
@@ -134,58 +138,50 @@ class ExpenseRoutes extends Crud {
   validateCostToBudget(expenseTypeId, userId, cost) {
     let expenseType, employee;
 
-    const expenseTypeJson = new databaseModify('expenseType.json');
-    const employeeJson = new databaseModify('employee.json');
+
     let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
     let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
-    console.log('hello');
     return expenseTypeJson
       .findObjectInDB(expenseTypeId)
-      .then(data => {
-        expenseType = data;
-        console.log('this');
+      .then(() => {
         return employeeJson.findObjectInDB(userId);
       })
-      .then(data => {
-        console.log('is');
-        employee = data;
-        return createNewBalanceCurried(employee);
-      })
+      .then(createNewBalanceCurried)
       .then(() => {
-        console.log('weird');
         return performBudgetOperationCurried(employee, expenseType, cost);
       })
       .catch(err => {
-        console.log('ERROR');
         throw err;
       });
   }
 
   // TODO: fix issue with employeeBalance
   deleteCostFromBudget(expenseTypeId, userId, cost) {
-    const employeeJson = new databaseModify('employee.json');
+    let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId,cost);
     return employeeJson
       .findObjectInDB(userId)
-      .then(employee => {
-        let employeeBalance;
-        for (var i = 0; i < employee.expenseTypes.length; i++) {
-          if (employee.expenseTypes[i].id === expenseTypeId) {
-            employeeBalance = +employee.expenseTypes[i].balance - cost;
-            employee.expenseTypes[i].balance = '' + employeeBalance;
-            return employeeJson.updateEntryInDB(employee);
-          }
-        }
-        if (!employeeBalance) {
-          let err = {
-            code: 404,
-            message: 'Expense not found'
-          };
-          throw err;
-        }
-      })
+      .then(_findExpenseCurried)
       .catch(err => {
         throw err;
       });
+  }
+  _findExpense(expenseTypeId, cost, employee){
+    let employeeBalance;
+    // TODO: convert to lodash
+    for (var i = 0; i < employee.expenseTypes.length; i++) {
+      if (employee.expenseTypes[i].id === expenseTypeId) {
+        employeeBalance = +employee.expenseTypes[i].balance - cost;
+        employee.expenseTypes[i].balance = '' + employeeBalance;
+        return employeeJson.updateEntryInDB(employee);
+      }
+    }
+    if (!employeeBalance) {
+      let err = {
+        code: 404,
+        message: 'Expense not found'
+      };
+      throw err;
+    }
   }
 }
 module.exports = ExpenseRoutes;
