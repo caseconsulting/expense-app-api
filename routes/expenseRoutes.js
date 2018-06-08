@@ -177,7 +177,6 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  // TODO: fix issue with employeeBalance
   deleteCostFromBudget(expenseTypeId, userId, cost) {
     let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId,cost);
     return employeeJson

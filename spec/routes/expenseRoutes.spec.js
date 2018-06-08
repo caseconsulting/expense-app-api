@@ -159,7 +159,7 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes.expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
       });
     }); // promise resolves
-    fdescribe('promise rejects',() => {
+    describe('promise rejects',() => {
       beforeEach(() => {
         spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.reject('error'));
       });
@@ -217,4 +217,34 @@ describe('expenseRoutes', () => {
       });
     }); //promise rejects
   }); //deleteCostFromBudget
+
+  fdescribe('_isCoveredByOverdraft', () => {
+    let expenseType, employeeBalance;
+
+    describe('if covered by covered by overdraft', () => {
+      beforeEach(() => {
+        employeeBalance= 1500;
+        expenseType = {
+          budget:1000,
+          odFlag:true
+        };
+      });
+      it('should return true',()=>{
+        expect(expenseRoutes._isCoveredByOverdraft(expenseType,employeeBalance)).toEqual(true);
+      });
+    }); //if covered by covered by overdraft
+    describe('if not covered by overdraft', () => {
+      beforeEach(() => {
+        employeeBalance= 1500;
+        expenseType = {
+          budget:1000,
+          odFlag:false
+        };
+      });
+      it('should return false ', () => {
+        expect(expenseRoutes._isCoveredByOverdraft(expenseType, employeeBalance)).toEqual(false);
+      });
+    }); //if not covered by overdraft
+  }); //_isCoveredByOverdraft
+
 });
