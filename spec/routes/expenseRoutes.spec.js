@@ -9,6 +9,7 @@ describe('expenseRoutes', () => {
     // employeeJson = jasmine.createSpyObj('expenseRoutes.', ['findObjectInDB','updateEntryInDB']);
     // expenseTypeJson = jasmine.createSpyObj('expenseTypeJson', ['findObjectInDB']);
   });
+
   describe('_add', () => {
     let newExpense, uuid;
     beforeEach(() => {
@@ -139,8 +140,8 @@ describe('expenseRoutes', () => {
     });
     describe('promise resolves',() => {
       beforeEach(() => {
-        spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
+        spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes,'createNewBalance').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes,'performBudgetOperation').and.returnValue(Promise.resolve());
       });
@@ -158,56 +159,18 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes.expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
       });
     }); // promise resolves
-    xdescribe('promise rejects',() => {
+    fdescribe('promise rejects',() => {
       beforeEach(() => {
-        // spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.resolve(employee));
-        // spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
-        // spyOn(expenseRoutes,'createNewBalance').and.returnValue(Promise.resolve());
-        // spyOn(expenseRoutes,'performBudgetOperation').and.returnValue(Promise.resolve());
+        spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.reject('error'));
       });
-      describe('if the first promise fails',()=>{
-        beforeEach(() => {
-          spyOn(expenseRoutes.expenseTypeJson,'findObjectInDB').and.returnValue(Promise.reject(err));
-          spyOn(expenseRoutes.employeeJson,'findObjectInDB');
-          spyOn(expenseRoutes,'createNewBalance');
-          spyOn(expenseRoutes,'performBudgetOperation');
-        });
-        fit('should throw an error', () => {
-          expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).catch(() => {
-            expect(expenseRoutes.employeeJson.findObjectInDB).not.toHaveBeenCalled();
-            expect(expenseRoutes.employeeJson.findObjectInDB.calls.count()).toEqual(0);
-            expect(expenseRoutes.createNewBalance).not.toHaveBeenCalled();
-            expect(expenseRoutes.performBudgetOperation)
-              .not.toHaveBeenCalled();
-          });
-        });
-      }); // if the first promise fails
-      describe('if the second promise fails',()=>{
-        beforeEach(() => {
-          spyOn(expenseRoutes.employeeJson,'findObjectInDB').and.returnValue(Promise.reject(err));
-          spyOn(expenseRoutes,'createNewBalance');
-          spyOn(expenseRoutes,'performBudgetOperation');
-        });
-        it('should throw an error', () => {
 
+      it('should return the error from Promise',(done)=>{
+        expenseRoutes.validateCostToBudget(expenseTypeId,userId,cost).catch((err)=>{
+          expect(err).toEqual('error');
+          done();
         });
-      }); // if the first promise fails
-      describe('if the third promise fails',()=>{
-        beforeEach(() => {
-          spyOn(expenseRoutes.createNewBalance,'findObjectInDB').and.returnValue(Promise.reject(err));
-        });
-        it('should throw an error', () => {
+      });
 
-        });
-      }); // if the first promise fails
-      describe('if the fourth promise fails',()=>{
-        beforeEach(() => {
-          spyOn(expenseRoutes.performBudgetOperation,'findObjectInDB').and.returnValue(Promise.reject(err));
-        });
-        it('should throw an error', () => {
-
-        });
-      }); // if the first promise fails
     }); // promise rejects
 
   }); // validateCostToBudget

@@ -71,76 +71,94 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  createNewBalance(employeeJson, employee) {
+  createNewBalance(employee) {
     if (!employee.expenseTypes) {
       //create new balance under the employee
       employee.expenseTypes = [];
-      return employeeJson.updateEntryInDB(employee);
+      return this.employeeJson.updateEntryInDB(employee);
     }
   }
+
+  _isCoveredByOverdraft(expenseType, employeeBalance) {
+    return expenseType.budget - employeeBalance < 0 && expenseType.odFlag;
+  }
+
+  _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
+    return expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
+  expenseType.budget - employeeBalance < 0 &&
+  !expenseType.odFlag &&
+  remaining < 0;
+  }
+
+  _isCovered(expenseType, employeeBalance) {
+    return expenseType.budget - employeeBalance >= 0;
+  }
+
+  _initializeNewBudget(expenseType, employee, cost) {
+    let newExpense = {
+      id: expenseType.id,
+      balance: '' + cost,
+      owedAmount: '0'
+    };
+    employee.expenseTypes.push(newExpense);
+    // Created new budget under employee
+    return this.employeeJson.updateEntryInDB(employee);
+  }
+
+  _addToOverdraftCoverage(employee, budgetPosition, employeeBalance) {
+    employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+    return this.employeeJson.updateEntryInDB(employee);
+  }
+
+  _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
+    employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
+    employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
+    return this.employeeJson.updateEntryInDB(employee);
+  }
+
+  _addToBudget(employee, budgetPosition, employeeBalance) {
+    employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+    return this.employeeJson.updateEntryInDB(employee);
+  }
+
 
   /**
    * Finds the appropriate budget operations to perfom depending on
    * expenseType's budget amount, employee's balance and cost of expense
    */
-  performBudgetOperation(employeeJson, employee, expenseType, cost) {
+  performBudgetOperation(employee, expenseType, cost) {
     let employeeBalance;
-    let budgetPosition;
-    let remaining;
-    for (var i = 0; i < employee.expenseTypes.length; i++) {
-      if (employee.expenseTypes[i].id === expenseType.id) {
-        budgetPosition = i;
-        employeeBalance = +employee.expenseTypes[i].balance + cost;
-        remaining = expenseType.budget - employeeBalance;
-      }
+    let budgetPosition = _.findIndex(employee.expenseTypes, (element) => {
+
+      return element.id === expenseType.id;
+    });
+    if(budgetPosition === -1){
+      employeeBalance = 0;
+    }
+    else{
+      employeeBalance = +employee.expenseTypes[budgetPosition].balance + cost;
     }
 
+    let remaining = expenseType.budget - employeeBalance;
+    let err = {
+      code: 406,
+      message: `expense over budget limit: ${Math.abs(remaining)}`
+    };
     if (!employeeBalance) {
-      //create new balance under the employee
-      let newExpense = {
-        id: expenseType.id,
-        balance: '' + cost,
-        owedAmount: '0'
-      };
-      employee.expenseTypes.push(newExpense);
-      // Created new budget under employee
-      return employeeJson.updateEntryInDB(employee);
-    } else if (expenseType.budget - employeeBalance < 0 && expenseType.odFlag) {
-      //OVERDRAFT
-      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
-      // Overdraft
-      return employeeJson.updateEntryInDB(employee);
-    } else if (
-      expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
-      expenseType.budget - employeeBalance < 0 &&
-      !expenseType.odFlag &&
-      remaining < 0
-    ) {
-      //PARTIAL COVERAGE
-      employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
-      employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
-      // Partial Coverage
-      return employeeJson.updateEntryInDB(employee);
-    } else if (expenseType.budget - employeeBalance >= 0) {
-      //COVERED BY BUDGET
-      employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
-      // Covered by budget
-      return employeeJson.updateEntryInDB(employee);
-    } else {
-      let err = {
-        code: 406,
-        message: `expense over budget limit: ${Math.abs(remaining)}`
-      };
+      return this._initializeNewBudget(expenseType, employee, cost);
+    } else if (this._isCoveredByOverdraft(expenseType, employeeBalance)) {
+      return this._addToOverdraftCoverage(employee, budgetPosition, employeeBalance);
+    } else if (this._isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance)) {
+      return this._addPartialCoverage(employee, expenseType, budgetPosition, remaining);
+    } else if (this._isCovered(expenseType, employeeBalance)) {
+      return this._addToBudget(employee, budgetPosition, employeeBalance);
+    } else{
       return Promise.reject(err);
     }
   }
 
   validateCostToBudget(expenseTypeId, userId, cost) {
     let expenseType, employee;
-
-
-    let createNewBalanceCurried = _.curry(this.createNewBalance)(employeeJson);
-    let performBudgetOperationCurried = _.curry(this.performBudgetOperation)(employeeJson);
     return expenseTypeJson
       .findObjectInDB(expenseTypeId)
       .then(data => {
@@ -149,10 +167,10 @@ class ExpenseRoutes extends Crud {
       })
       .then(data => {
         employee = data;
-        return createNewBalanceCurried(employee);
+        return this.createNewBalance(employee);
       })
       .then(() => {
-        return performBudgetOperationCurried(employee, expenseType, cost);
+        return this.performBudgetOperation(employee, expenseType, cost);
       })
       .catch(err => {
         throw err;
