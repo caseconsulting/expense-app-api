@@ -6,7 +6,7 @@
     "eslint": "eslint . --ext .js --fix; exit 0",
     "lint": "eslint .",
     "start": "nodemon ./bin/www",
-    "test": "jasmine || true",
+    "test": "jasmine",
     "validate": "npm ls"
   },
   "dependencies": {
