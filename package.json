@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "eslint": "eslint . --ext .js --fix; exit 0",
-    "lint": "eslint . --ext .js --fix; exit 0",
+    "lint": "eslint .",
     "start": "nodemon ./bin/www",
     "test": "jasmine || true",
     "validate": "npm ls"
