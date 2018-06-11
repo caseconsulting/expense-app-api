@@ -1,8 +1,8 @@
 const uuid = require('uuid/v4');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
-
+const _ = require('lodash');
 describe('expenseRoutes', () => {
-  let databaseModify, expenseRoutes, employeeJson, expenseTypeJson;
+  let databaseModify, expenseRoutes;
   beforeEach(()=>{
     databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB','updateEntryInDB']);
     expenseRoutes = new ExpenseRoutes(databaseModify, uuid());
@@ -396,4 +396,121 @@ describe('expenseRoutes', () => {
     }); //it should return a promise
   }); //_addToBudget
 
+
+
+  describe('performBudgetOperation',()=>{
+    let employee, expenseType, cost, budgetPosition, employeeBalance, remaining, expectedErr;
+    beforeEach(()=>{
+      employeeBalance = 0;
+      employee = {
+        expenseTypes: [{
+          id:'id',
+          balance: 0
+        }],
+        owedAmount: 0
+      };
+      expenseType = {
+        id: 'id',
+        budget: 1
+      };
+      cost = 1;
+      budgetPosition = 0;
+      remaining = 0;
+      expectedErr = {
+        code: 406,
+        message: `expense over budget limit: ${Math.abs(remaining)}`
+      };
+    });
+    describe('findIndex is called',()=>{
+      beforeEach(()=> spyOn(_,'findIndex').and.returnValue(0));
+      it('should return an id',()=>{
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost);
+        expect(_.findIndex).toHaveBeenCalledWith(employee.expenseTypes, jasmine.any(Function));
+      });
+    }); // findIndex is called
+    describe('no employee balance', () => {
+      beforeEach(()=> {
+        spyOn(_,'findIndex').and.returnValue(-1);
+        spyOn(expenseRoutes,'_initializeNewBudget').and.returnValue(Promise.resolve());
+      });
+
+      it('should call _initializeNewBudget', (done) => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).then(() => {
+          expect(expenseRoutes._initializeNewBudget).toHaveBeenCalledWith(expenseType, employee, cost);
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+    describe('_isCoveredByOverdraft returns true', () => {
+      beforeEach(()=> {
+        spyOn(_,'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes,'_isCoveredByOverdraft').and.returnValue(true);
+        spyOn(expenseRoutes,'_addToOverdraftCoverage').and.returnValue(Promise.resolve());
+      });
+
+      it('should call _addToOverdraftCoverage', (done) => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).then(() => {
+          expect(expenseRoutes._isCoveredByOverdraft).toHaveBeenCalledWith(expenseType, employeeBalance + cost);
+          expect(expenseRoutes._addToOverdraftCoverage)
+            .toHaveBeenCalledWith(employee, budgetPosition, employeeBalance + cost);
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+
+    describe('_isPartiallyCovered returns true', () => {
+      beforeEach(()=> {
+        spyOn(_,'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes,'_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes,'_isPartiallyCovered').and.returnValue(true);
+        spyOn(expenseRoutes,'_addPartialCoverage').and.returnValue(Promise.resolve());
+      });
+
+      it('should call _isPartiallyCovered', (done) => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).then(() => {
+          expect(expenseRoutes._isPartiallyCovered)
+            .toHaveBeenCalledWith(expenseType, employee, budgetPosition, remaining, employeeBalance + cost);
+          expect(expenseRoutes._addPartialCoverage)
+            .toHaveBeenCalledWith(employee, expenseType, budgetPosition, remaining);
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+
+    describe('_isCovered returns true', () => {
+      beforeEach(()=> {
+        spyOn(_,'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes,'_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes,'_isPartiallyCovered').and.returnValue(false);
+        spyOn(expenseRoutes,'_isCovered').and.returnValue(true);
+        spyOn(expenseRoutes,'_addToBudget').and.returnValue(Promise.resolve());
+      });
+
+      it('should call _addToBudget', (done) => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).then(() => {
+          expect(expenseRoutes._isCovered)
+            .toHaveBeenCalledWith(expenseType, employeeBalance + cost);
+          expect(expenseRoutes._addToBudget)
+            .toHaveBeenCalledWith(employee, budgetPosition, employeeBalance + cost);
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+
+    describe('else', () => {
+      beforeEach(()=> {
+        spyOn(_,'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes,'_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes,'_isPartiallyCovered').and.returnValue(false);
+        spyOn(expenseRoutes,'_isCovered').and.returnValue(false);
+      });
+
+      it('should call throw a rejected promise', (done) => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).catch((err) => {
+          expect(err).toEqual(expectedErr);
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+  }); // performBudgetOperation
 });

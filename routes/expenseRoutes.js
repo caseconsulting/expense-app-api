@@ -138,7 +138,6 @@ class ExpenseRoutes extends Crud {
     else{
       employeeBalance = +employee.expenseTypes[budgetPosition].balance + cost;
     }
-
     let remaining = expenseType.budget - employeeBalance;
     let err = {
       code: 406,
