@@ -10,7 +10,7 @@
     "validate": "npm ls"
   },
   "dependencies": {
-    "aws-sdk": "^2.249.1",
+    "aws-sdk": "^2.254.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "debug": "^3.1.0",
