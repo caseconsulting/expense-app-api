@@ -94,7 +94,7 @@ describe('expenseRoutes', () => {
     });
   }); //_update
 
-  xdescribe('createNewBalance',()=>{
+  describe('createNewBalance',()=>{
     let employee;
     beforeEach(()=>{
       employee ={
@@ -102,27 +102,20 @@ describe('expenseRoutes', () => {
         middleName: '{middleName}',
         lastName: '{lastName}',
         empId: '{empId}',
-        hireDate: '{hireDate}'
+        hireDate: '{hireDate}',
+        expenseTypes:undefined
       };
-      databaseModify.updateEntryInDB.and.returnValue(
-        {
-          firstName: '{firstName}',
-          middleName: '{middleName}',
-          lastName: '{lastName}',
-          empId: '{empId}',
-          hireDate: '{hireDate}',
-          expenseTypes: []
-        }
-      );
+      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
-    it('should add expense to employee if they dont have it already',()=>{
-      let returnVal = expenseRoutes.createNewBalance(employee);
-      expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(employee);
-      expect(returnVal).toEqual(Object.defineProperty(employee, 'expenseTypes',{ value:[], writable:false }));
+    it('should add expense to employee if they dont have it already',(done)=>{
+      expenseRoutes.createNewBalance(employee).then(() => {
+        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        done();
+      });
     });
   }); // createNewBalance
 
-  xdescribe('validateCostToBudget',() => {
+  describe('validateCostToBudget',() => {
     let expenseType, employee, expenseTypeId, cost, userId;
 
     beforeEach(()=>{
@@ -150,9 +143,9 @@ describe('expenseRoutes', () => {
       it('should return employee from DB',(done) => {
         expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(() => {
           expect(expenseRoutes.employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
-          expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(expenseRoutes.employeeJson, employee);
+          expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employee);
           expect(expenseRoutes.performBudgetOperation)
-            .toHaveBeenCalledWith(expenseRoutes.employeeJson, employee, expenseType, cost);
+            .toHaveBeenCalledWith(employee, expenseType, cost);
           done();
         });
       });
@@ -342,7 +335,7 @@ describe('expenseRoutes', () => {
       employee = {
         expenseTypes: [{
           balance: 'balance'
-        },  {balance : 'balance'}]
+        }]
       };
       employeeBalance = 200;
       budgetPosition = 0;
@@ -356,9 +349,51 @@ describe('expenseRoutes', () => {
 
     });
   }); //_addToOverdraftCoverage
+  describe('_appPartialCoverage',()=>{
+    let employee, budgetPosition, expenseType, remaining;
+    beforeEach(()=>{
+      employee = {
+        expenseTypes: [
+          {
+            balance:'balance',
+            owedAmount:'owedAmount'
+          }
+        ]};
+      budgetPosition = 0;
+      expenseType = {
+        budget:'budget'
+      };
+      remaining = 200;
+      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+    });
+    it('should return a promise',(done)=>{
+      expenseRoutes._addPartialCoverage(employee, expenseType, budgetPosition, remaining).then(() => {
+        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        done();
+      });
+    });//should return a promise
+  }); // _appPartialCoverage
 
 
-
-
+  describe('_addToBudget', () => {
+    let employee, budgetPosition, employeeBalance;
+    beforeEach(() => {
+      employeeBalance = 0;
+      employee = {
+        expenseTypes: [{
+          balance: 'balance'
+        }],
+        owedAmount: 0
+      };
+      budgetPosition = 0;
+      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+    });
+    it('it should return a promise', done => {
+      expenseRoutes._addToBudget(employee, budgetPosition, employeeBalance).then(() => {
+        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        done();
+      });
+    }); //it should return a promise
+  }); //_addToBudget
 
 });
