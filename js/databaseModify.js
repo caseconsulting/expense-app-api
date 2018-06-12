@@ -16,8 +16,8 @@ class databaseModify {
   }
 
   /**
-     * returns the value if it exists
-     */
+   * returns the value if it exists
+   */
   findObjectInDB(primaryKey) {
     return this.readFromDB(primaryKey)
       .then(function(data) {
@@ -37,8 +37,8 @@ class databaseModify {
   }
 
   /**
-     * Add the entry to the database
-     */
+   * Add the entry to the database
+   */
   addToDB(newJsonObj) {
     if (newJsonObj) {
       const params = {
@@ -95,8 +95,8 @@ class databaseModify {
   }
 
   /**
-     * Removes the object from the database according to its index key
-     */
+   * Removes the object from the database according to its index key
+   */
   removeFromDB(passedID) {
     const params = {
       TableName: this.getTableName(),
@@ -154,9 +154,9 @@ class databaseModify {
   }
 
   /**
-     * Builds the parameters for update depending on the tableName
-     * @return the parameters for update
-     */
+   * Builds the parameters for update depending on the tableName
+   * @return the parameters for update
+   */
   buildUpdateParams(objToUpdate) {
     const tableName = this.getTableName();
     switch (tableName) {
@@ -167,7 +167,7 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression:
-                        'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
+            'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
         ExpressionAttributeValues: {
           ':pd': objToUpdate.purchaseDate,
           ':rd': objToUpdate.reimbursedDate,
@@ -187,7 +187,7 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression:
-                        'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
+            'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,
@@ -204,12 +204,11 @@ class databaseModify {
         Key: {
           id: objToUpdate.id
         },
-        UpdateExpression:
-                        'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
+        UpdateExpression: 'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
         ExpressionAttributeValues: {
           ':bn': objToUpdate.budgetName,
           ':b': objToUpdate.budget,
-          ':odf': false,
+          ':odf': objToUpdate.odFlag,
           ':d': objToUpdate.description
         },
         ReturnValues: 'ALL_NEW'
