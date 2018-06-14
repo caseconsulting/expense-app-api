@@ -6,8 +6,11 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = databaseModify;
   }
 
-  _add(uuid,{ firstName, middleName, lastName, empId, hireDate, expenseTypes }) {
-    return new Promise((resolve) => {
+  _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes }) {
+    if (!middleName) {
+      middleName = 'N/A';
+    }
+    return new Promise(resolve => {
       resolve({
         id: uuid,
         firstName,
@@ -20,7 +23,13 @@ class EmployeeRoutes extends Crud {
     });
   }
 
-  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes } ){
+  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes }) {
+    if (!middleName) {
+      middleName = 'N/A';
+    }
+    if (!expenseTypes) {
+      expenseTypes = [];
+    }
     return this.databaseModify
       .findObjectInDB(id)
       .then(() => {
@@ -34,7 +43,9 @@ class EmployeeRoutes extends Crud {
           expenseTypes
         };
       })
-      .catch((err) => { throw err; });
+      .catch(err => {
+        throw err;
+      });
   }
 }
 
