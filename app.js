@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var index = require('./routes/index');
+require('dotenv').config({ silent: true });
 
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');

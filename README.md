@@ -9,6 +9,10 @@ The **Expense App API** is written in **Node.js** v8.x+.
 npm install
 ```
 
+```
+make local .env file from .env_local
+```
+
 ## Application tasks
 
 To run locally (on default port of 3000):
