@@ -1,7 +1,7 @@
 const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
-const employeeJson = new databaseModify('employee.json');
-const expenseTypeJson = new databaseModify('expenseType.json');
+const employeeJson = new databaseModify('Employee');
+const expenseTypeJson = new databaseModify('ExpenseType');
 const _ = require('lodash');
 // TODO: change employeeJson to Dynamo table since it is not a json file
 class ExpenseRoutes extends Crud {

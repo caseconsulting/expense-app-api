@@ -2,10 +2,8 @@ const _ = require('lodash');
 const AWS = require('aws-sdk');
 
 class databaseModify {
-  constructor(fileName) {
-    this.filePath = fileName ? `json/${fileName}` : 'json/';
-    // this.jsonFile = fileName ? fs.readFileSync(this.filePath) : '';
-    // this.jsonParsed = fileName ? JSON.parse(this.jsonFile) : [];
+  constructor(name) {
+    this.tableName = name;
     AWS.config.apiVersions = {
       dynamodb: '2012-08-10'
       // other service API versions
@@ -42,7 +40,7 @@ class databaseModify {
   addToDB(newJsonObj) {
     if (newJsonObj) {
       const params = {
-        TableName: this.getTableName(),
+        TableName: this.tableName,
         Item: newJsonObj
       };
       const documentClient = new AWS.DynamoDB.DocumentClient();
@@ -65,9 +63,9 @@ class databaseModify {
   }
 
   readFromDB(passedID) {
-    const tableName = this.getTableName();
+
     const params = {
-      TableName: tableName,
+      TableName: this.tableName,
       ExpressionAttributeValues: {
         ':id': passedID
       },
@@ -99,7 +97,7 @@ class databaseModify {
    */
   removeFromDB(passedID) {
     const params = {
-      TableName: this.getTableName(),
+      TableName: this.tableName,
       Key: {
         id: passedID
       }
@@ -131,9 +129,9 @@ class databaseModify {
   }
 
   getAllEntriesInDB() {
-    const tableName = this.getTableName();
+
     var params = {
-      TableName: tableName
+      TableName: this.tableName
     };
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
@@ -147,19 +145,13 @@ class databaseModify {
       });
   }
 
-  getTableName() {
-    let table = this.filePath.substring(5, this.filePath.indexOf('.json'));
-    table = table.charAt(0).toUpperCase() + table.slice(1);
-    return table;
-  }
-
   /**
-   * Builds the parameters for update depending on the tableName
+   * Builds the parameters for update depending on the this.tablePath
    * @return the parameters for update
    */
   buildUpdateParams(objToUpdate) {
-    const tableName = this.getTableName();
-    switch (tableName) {
+
+    switch (this.tableName) {
     case 'Expense':
       return {
         TableName: 'Expense',

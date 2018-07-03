@@ -9,13 +9,13 @@ require('dotenv').config({ silent: true });
 
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
-const expenseRoutes = new ExpenseRoutes(new databaseModify('expense.json'));
+const expenseRoutes = new ExpenseRoutes(new databaseModify('Expense'));
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
 const expenseTypeRoutes = new ExpenseTypeRoutes(
-  new databaseModify('expenseType.json')
+  new databaseModify('ExpenseType')
 );
 var EmployeeRoutes = require('./routes/employeeRoutes');
-const employeeRoutes = new EmployeeRoutes(new databaseModify('employee.json'));
+const employeeRoutes = new EmployeeRoutes(new databaseModify('Employee'));
 var app = express();
 
 // view engine setup
