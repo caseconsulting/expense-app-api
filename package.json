@@ -5,7 +5,13 @@
   "scripts": {
     "eslint": "eslint . --ext .js --fix; exit 0",
     "lint": "eslint .",
-    "start": "nodemon ./bin/www",
+    "pm2": "pm2",
+    "pm2:kill": "pm2 kill",
+    "pm2:list": "pm2 list",
+    "pm2:monit": "pm2 monit",
+    "restart": "pm2 restart services.yml",
+    "start": "pm2 start services.yml",
+    "stop": "pm2 stop services.yml",
     "test": "jasmine",
     "validate": "npm ls"
   },
@@ -18,7 +24,7 @@
     "express": "^4.16.3",
     "lodash": "^4.17.10",
     "morgan": "^1.9.0",
-    "nodemon": "^1.17.5",
+    "pm2": "^3.0.0",
     "pug": "^2.0.3",
     "serve-favicon": "^2.5.0",
     "through": "^2.3.8",
