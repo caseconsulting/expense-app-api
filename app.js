@@ -5,7 +5,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var index = require('./routes/index');
-require('dotenv').config({ silent: true });
+require('dotenv').config({
+  silent: true
+});
 
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
@@ -16,6 +18,10 @@ const expenseTypeRoutes = new ExpenseTypeRoutes(
 );
 var EmployeeRoutes = require('./routes/employeeRoutes');
 const employeeRoutes = new EmployeeRoutes(new databaseModify('Employee'));
+
+var SpecialRoutes = require('./routes/specialRoutes');
+const specialRoutes = new SpecialRoutes(new databaseModify('Expense'),
+  new databaseModify('Employee'), new databaseModify('ExpenseType'));
 var app = express();
 
 // view engine setup
@@ -39,6 +45,7 @@ app.use('/', index);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
+app.use('/special', specialRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');
