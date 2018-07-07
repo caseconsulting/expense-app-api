@@ -84,10 +84,12 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
-    return expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
-  expenseType.budget - employeeBalance < 0 &&
-  !expenseType.odFlag &&
-  remaining < 0;
+    return (
+      expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
+      expenseType.budget - employeeBalance < 0 &&
+      !expenseType.odFlag &&
+      remaining < 0
+    );
   }
 
   _isCovered(expenseType, employeeBalance) {
@@ -121,21 +123,18 @@ class ExpenseRoutes extends Crud {
     return this.employeeJson.updateEntryInDB(employee);
   }
 
-
   /**
    * Finds the appropriate budget operations to perfom depending on
    * expenseType's budget amount, employee's balance and cost of expense
    */
   performBudgetOperation(employee, expenseType, cost) {
     let employeeBalance;
-    let budgetPosition = _.findIndex(employee.expenseTypes, (element) => {
-
+    let budgetPosition = _.findIndex(employee.expenseTypes, element => {
       return element.id === expenseType.id;
     });
-    if(budgetPosition === -1){
+    if (budgetPosition === -1) {
       employeeBalance = 0;
-    }
-    else{
+    } else {
       employeeBalance = +employee.expenseTypes[budgetPosition].balance + cost;
     }
     let remaining = expenseType.budget - employeeBalance;
@@ -151,7 +150,7 @@ class ExpenseRoutes extends Crud {
       return this._addPartialCoverage(employee, expenseType, budgetPosition, remaining);
     } else if (this._isCovered(expenseType, employeeBalance)) {
       return this._addToBudget(employee, budgetPosition, employeeBalance);
-    } else{
+    } else {
       return Promise.reject(err);
     }
   }
@@ -177,7 +176,7 @@ class ExpenseRoutes extends Crud {
   }
 
   deleteCostFromBudget(expenseTypeId, userId, cost) {
-    let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId,cost);
+    let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId, cost);
     return employeeJson
       .findObjectInDB(userId)
       .then(_findExpenseCurried)
@@ -185,7 +184,7 @@ class ExpenseRoutes extends Crud {
         throw err;
       });
   }
-  _findExpense(expenseTypeId, cost, employee){
+  _findExpense(expenseTypeId, cost, employee) {
     let employeeBalance;
     // TODO: convert to lodash
     for (var i = 0; i < employee.expenseTypes.length; i++) {

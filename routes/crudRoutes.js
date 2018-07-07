@@ -86,6 +86,7 @@ class Crud {
       .catch(err => this._handleError(res, err));
   }
 
+  /* eslint-disable no-unused-vars */
   _add(uuid, body) {
     //This function must be overwritten
     //soley for supa secret testing purposes
@@ -100,6 +101,7 @@ class Crud {
   _delete(uuid) {
     //This function must be overwritten
   }
+  /* eslint-enable no-unused-vars */
 
   read(req, res) {
     return this.databaseModify

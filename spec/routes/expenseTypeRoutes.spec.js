@@ -9,7 +9,7 @@ describe('expenseTypeRoutes', () => {
   });
 
   describe('_add', () => {
-    let newExpense, uuid;
+    let newExpenseType, uuid;
     beforeEach(() => {
       uuid = 'uuid';
       newExpenseType = {

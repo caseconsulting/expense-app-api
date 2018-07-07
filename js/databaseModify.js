@@ -63,7 +63,6 @@ class databaseModify {
   }
 
   readFromDB(passedID) {
-
     const params = {
       TableName: this.tableName,
       ExpressionAttributeValues: {
@@ -129,7 +128,6 @@ class databaseModify {
   }
 
   getAllEntriesInDB() {
-
     var params = {
       TableName: this.tableName
     };
@@ -150,7 +148,6 @@ class databaseModify {
    * @return the parameters for update
    */
   buildUpdateParams(objToUpdate) {
-
     switch (this.tableName) {
     case 'Expense':
       return {
@@ -159,7 +156,8 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression:
-            'set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui',
+          `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r,
+           expenseTypeId = :eti, userId = :ui`,
         ExpressionAttributeValues: {
           ':pd': objToUpdate.purchaseDate,
           ':rd': objToUpdate.reimbursedDate,
@@ -179,7 +177,7 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression:
-            'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
+          'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,

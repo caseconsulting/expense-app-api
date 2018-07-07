@@ -117,11 +117,10 @@ describe('crudRoutes', () => {
   }); //create
 
   describe('read', () => {
-    let res, output, err, req;
+    let res, req, err;
     beforeEach(() => {
       req = { body: 'body', params: { id: 'id' } };
       err = { code: 404, message: 'entry not found in database' };
-      data = {};
     });
 
     describe('When promise is resolved', () => {
@@ -214,7 +213,7 @@ describe('crudRoutes', () => {
   }); //update
 
   describe('onDelete', () => {
-    let res, req, data;
+    let res, req, err, data;
     beforeEach(() => {
       req = { body: 'body' };
       err = {};
@@ -249,7 +248,7 @@ describe('crudRoutes', () => {
   }); // onDelete
 
   describe('showList', () => {
-    let res, req, data;
+    let res, req, err, data;
     beforeEach(() => {
       req = { body: 'body' };
       err = {};

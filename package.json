@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "eslint": "eslint . --ext .js --fix; exit 0",
+    "eslint": "eslint . --ext .js --fix",
     "lint": "eslint .",
     "pm2": "pm2",
     "pm2:kill": "pm2 kill",
@@ -16,7 +16,7 @@
     "validate": "npm ls"
   },
   "dependencies": {
-    "aws-sdk": "^2.254.1",
+    "aws-sdk": "^2.270.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "debug": "^3.1.0",
@@ -28,18 +28,14 @@
     "pug": "^2.0.3",
     "serve-favicon": "^2.5.0",
     "through": "^2.3.8",
-    "uuid": "^3.2.1"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "aws-sdk-mock": "^2.0.0",
+    "aws-sdk-mock": "^4.0.0",
     "cors": "^2.8.4",
-    "eslint": "^4.19.1",
+    "eslint": "^5.0.1",
     "jasmine": "^3.1.0",
     "precommit-hook": "^3.0.0"
   },
-  "pre-commit": [
-    "validate",
-    "eslint",
-    "test"
-  ]
+  "pre-commit": ["validate", "eslint", "test"]
 }

@@ -16,33 +16,27 @@ describe('databaseModify', () => {
     describe('when entry is found in the database', () => {
       //Create a spy that returns
       beforeEach(() => {
-        jasmine
-          .createSpy(databaseModify, 'readFromDB')
-          .and.returnValue(function() {
-            // return new Promise(function(resolve, reject) { need to test the reject
-            return new Promise(function(resolve) {
-              resolve('Successfully found object in database');
-            });
+        jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
+          // return new Promise(function(resolve, reject) { need to test the reject
+          return new Promise(function(resolve) {
+            resolve('Successfully found object in database');
           });
+        });
       });
       it('should return a resolved promise and the found object', () => {
         databaseModify.findObjectInDB(primaryKey).then(function(data) {
-          expect(data).toEqual(
-            'Successfully found object in database'
-          );
+          expect(data).toEqual('Successfully found object in database');
         });
       });
     }); //when entry is found in the database
 
     describe('when entry is not in the database', () => {
       beforeEach(() => {
-        jasmine
-          .createSpy(databaseModify, 'readFromDB')
-          .and.returnValue(function() {
-            return new Promise(function(resolve, reject) {
-              reject('object not found in database');
-            });
+        jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
+          return new Promise(function(resolve, reject) {
+            reject('object not found in database');
           });
+        });
       });
       it('should return a rejected promise with a reason', () => {
         databaseModify.findObjectInDB(primaryKey).then(function(err) {
@@ -54,18 +48,13 @@ describe('databaseModify', () => {
 
   describe('addToDB', () => {
     let newJsonObj;
-    beforeEach(
-      () =>
-        (newJsonObj = {
-          id: '{id}'
-        })
-    );
+    beforeEach(() =>
+      (newJsonObj = {
+        id: '{id}'
+      }));
     describe('when there is an error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'put', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
           callback({
             message: 'error'
           });
@@ -82,10 +71,7 @@ describe('databaseModify', () => {
     }); //when there is an error
     describe('when there is no error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'put', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
           callback(null, {
             Data: 'data'
           });
@@ -119,10 +105,7 @@ describe('databaseModify', () => {
 
     describe('When AWS returns at least one item', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'query', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
           callback(null, {
             Items: ['data0, data1, data2']
           });
@@ -138,10 +121,7 @@ describe('databaseModify', () => {
 
     describe('When AWS returns an empty collection', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'query', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
           callback(null, {
             Items: []
           });
@@ -160,10 +140,7 @@ describe('databaseModify', () => {
 
     describe('When AWS returns an error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'query', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
           callback({
             message: 'AWS error'
           });
@@ -190,10 +167,7 @@ describe('databaseModify', () => {
 
     describe('when an item is successfully removed', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'delete', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'delete', function(params, callback) {
           callback(null, {
             Data: 'data'
           });
@@ -211,10 +185,7 @@ describe('databaseModify', () => {
 
     describe('when an error is returned from Dynamo', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'delete', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'delete', function(params, callback) {
           callback({
             message: 'error from AWS'
           });
@@ -237,42 +208,32 @@ describe('databaseModify', () => {
 
   describe('updateEntryInDB', () => {
     let newJsonObj;
-    beforeEach(
-      () =>
-        (newJsonObj = {
-          id: '{id}'
-        })
-    );
+    beforeEach(() =>
+      (newJsonObj = {
+        id: '{id}'
+      }));
 
     describe('when there is an error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'update', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'update', function(params, callback) {
           callback({
             message: 'error'
           });
         });
       });
       it('should return a failed promise', done => {
-        return databaseModify
-          .updateEntryInDB(newJsonObj)
-          .catch(function(err) {
-            expect(err).toEqual({
-              message: 'error'
-            });
-            done();
+        return databaseModify.updateEntryInDB(newJsonObj).catch(function(err) {
+          expect(err).toEqual({
+            message: 'error'
           });
+          done();
+        });
       });
     }); //when there is an error
 
     describe('when there is no error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'update', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'update', function(params, callback) {
           callback(null, {
             Attributes: {
               id: '{id}'
@@ -281,12 +242,10 @@ describe('databaseModify', () => {
         });
       });
       it('should return a successful promise with the object that was inserted', done => {
-        return databaseModify
-          .updateEntryInDB(newJsonObj)
-          .then(function(data) {
-            expect(data).toEqual(newJsonObj);
-            done();
-          });
+        return databaseModify.updateEntryInDB(newJsonObj).then(function(data) {
+          expect(data).toEqual(newJsonObj);
+          done();
+        });
       });
     }); //when there is no error
 
@@ -306,10 +265,7 @@ describe('databaseModify', () => {
 
     describe('when there is an error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'scan', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'scan', function(params, callback) {
           callback({
             message: 'error'
           });
@@ -327,10 +283,7 @@ describe('databaseModify', () => {
 
     describe('when there is no error', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'scan', function(
-          params,
-          callback
-        ) {
+        AWS.mock('DynamoDB.DocumentClient', 'scan', function(params, callback) {
           callback(null, {
             Items: ['a', 'b', 'c']
           });
