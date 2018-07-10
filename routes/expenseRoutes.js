@@ -85,7 +85,7 @@ class ExpenseRoutes extends Crud {
 
   _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
     return (
-      expenseType.budget !== +employee.expenseTypes[budgetPosition].balance &&
+      expenseType.budget !== employee.expenseTypes[budgetPosition].balance &&
       expenseType.budget - employeeBalance < 0 &&
       !expenseType.odFlag &&
       remaining < 0
@@ -99,8 +99,8 @@ class ExpenseRoutes extends Crud {
   _initializeNewBudget(expenseType, employee, cost) {
     let newExpense = {
       id: expenseType.id,
-      balance: '' + cost,
-      owedAmount: '0'
+      balance: cost,
+      owedAmount: 0
     };
     employee.expenseTypes.push(newExpense);
     // Created new budget under employee
@@ -108,18 +108,18 @@ class ExpenseRoutes extends Crud {
   }
 
   _addToOverdraftCoverage(employee, budgetPosition, employeeBalance) {
-    employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+    employee.expenseTypes[budgetPosition].balance = employeeBalance;
     return this.employeeJson.updateEntryInDB(employee);
   }
 
   _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
-    employee.expenseTypes[budgetPosition].balance = '' + expenseType.budget;
-    employee.expenseTypes[budgetPosition].owedAmount = '' + Math.abs(remaining);
+    employee.expenseTypes[budgetPosition].balance = expenseType.budget;
+    employee.expenseTypes[budgetPosition].owedAmount = Math.abs(remaining);
     return this.employeeJson.updateEntryInDB(employee);
   }
 
   _addToBudget(employee, budgetPosition, employeeBalance) {
-    employee.expenseTypes[budgetPosition].balance = '' + employeeBalance;
+    employee.expenseTypes[budgetPosition].balance = employeeBalance;
     return this.employeeJson.updateEntryInDB(employee);
   }
 
@@ -135,7 +135,7 @@ class ExpenseRoutes extends Crud {
     if (budgetPosition === -1) {
       employeeBalance = 0;
     } else {
-      employeeBalance = +employee.expenseTypes[budgetPosition].balance + cost;
+      employeeBalance = employee.expenseTypes[budgetPosition].balance + cost;
     }
     let remaining = expenseType.budget - employeeBalance;
     let err = {
@@ -186,11 +186,10 @@ class ExpenseRoutes extends Crud {
   }
   _findExpense(expenseTypeId, cost, employee) {
     let employeeBalance;
-    // TODO: convert to lodash
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {
-        employeeBalance = +employee.expenseTypes[i].balance - cost;
-        employee.expenseTypes[i].balance = '' + employeeBalance;
+
+        employee.expenseTypes[i].balance = employee.expenseTypes[i].balance - cost;
         return employeeJson.updateEntryInDB(employee);
       }
     }
