@@ -114,7 +114,7 @@ class ExpenseRoutes extends Crud {
 
   _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
     employee.expenseTypes[budgetPosition].balance = expenseType.budget;
-    employee.expenseTypes[budgetPosition].owedAmount = Math.abs(remaining);
+    employee.expenseTypes[budgetPosition].owedAmount = remaining;
     return this.employeeJson.updateEntryInDB(employee);
   }
 
