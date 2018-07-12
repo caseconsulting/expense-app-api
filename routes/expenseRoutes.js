@@ -97,11 +97,38 @@ class ExpenseRoutes extends Crud {
   }
 
   _initializeNewBudget(expenseType, employee, cost) {
-    let newExpense = {
-      id: expenseType.id,
-      balance: cost,
-      owedAmount: 0
-    };
+    let newExpense;
+    if (cost <= expenseType.budget) {
+      //The cost of the expense is enough to be covered by the budget
+      newExpense = {
+        id: expenseType.id,
+        balance: cost,
+        owedAmount: 0
+      };
+    } else if (cost > expenseType.budget && !expenseType.odFlag) {
+      //The cost is greater than the budget, therefore
+      // it is only partially covered and the remaining amount
+      //  that is NOT reimbursed under this expense type is set to owedAmount
+      newExpense = {
+        id: expenseType.id,
+        balance: expenseType.budget,
+        owedAmount: cost - expenseType.budget
+      };
+    } else if (cost <= 2 * expenseType.budget && expenseType.odFlag) {
+      //The cost of the expense is enough to be covered by the budget
+      //Since the overdraft flag is true
+      newExpense = {
+        id: expenseType.id,
+        balance: cost,
+        owedAmount: 0
+      };
+    } else if (cost > 2 * expenseType.budget && !expenseType.odFlag) {
+      newExpense = {
+        id: expenseType.id,
+        balance: 2 * expenseType.budget,
+        owedAmount: cost - 2 * expenseType.budget
+      };
+    }
     employee.expenseTypes.push(newExpense);
     // Created new budget under employee
     return this.employeeJson.updateEntryInDB(employee);
@@ -114,7 +141,7 @@ class ExpenseRoutes extends Crud {
 
   _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
     employee.expenseTypes[budgetPosition].balance = expenseType.budget;
-    employee.expenseTypes[budgetPosition].owedAmount = remaining;
+    employee.expenseTypes[budgetPosition].owedAmount = Math.abs(remaining);
     return this.employeeJson.updateEntryInDB(employee);
   }
 
@@ -133,6 +160,7 @@ class ExpenseRoutes extends Crud {
       return element.id === expenseType.id;
     });
     if (budgetPosition === -1) {
+      //employee does not yet have an expense for this expense type
       employeeBalance = 0;
     } else {
       employeeBalance = employee.expenseTypes[budgetPosition].balance + cost;
@@ -188,7 +216,6 @@ class ExpenseRoutes extends Crud {
     let employeeBalance;
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {
-
         employee.expenseTypes[i].balance = employee.expenseTypes[i].balance - cost;
         return employeeJson.updateEntryInDB(employee);
       }
