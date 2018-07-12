@@ -524,10 +524,36 @@ describe('expenseRoutes', () => {
       });
     }); //no employee employeeBalance
 
+    describe('_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry returns true', () => {
+      beforeEach(() => {
+        spyOn(_, 'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes, '_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes, '_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry').and.returnValue(true);
+        spyOn(expenseRoutes, '_addPartialCoverageByOverdraftBlessYourSoulChild').and.returnValue(Promise.resolve());
+      });
+
+      it('should call _isPartiallyCovered', done => {
+        expenseRoutes.performBudgetOperation(employee, expenseType, cost).then(() => {
+          expect(expenseRoutes._isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry).toHaveBeenCalledWith(
+            expenseType,
+            employeeBalance + cost
+          );
+          expect(expenseRoutes._addPartialCoverageByOverdraftBlessYourSoulChild).toHaveBeenCalledWith(
+            employee,
+            expenseType,
+            budgetPosition,
+            cost
+          );
+          done();
+        });
+      });
+    }); //no employee employeeBalance
+
     describe('_isPartiallyCovered returns true', () => {
       beforeEach(() => {
         spyOn(_, 'findIndex').and.returnValue(0);
         spyOn(expenseRoutes, '_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes, '_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry').and.returnValue(false);
         spyOn(expenseRoutes, '_isPartiallyCovered').and.returnValue(true);
         spyOn(expenseRoutes, '_addPartialCoverage').and.returnValue(Promise.resolve());
       });
@@ -556,6 +582,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         spyOn(_, 'findIndex').and.returnValue(0);
         spyOn(expenseRoutes, '_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes, '_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry').and.returnValue(false);
         spyOn(expenseRoutes, '_isPartiallyCovered').and.returnValue(false);
         spyOn(expenseRoutes, '_isCovered').and.returnValue(true);
         spyOn(expenseRoutes, '_addToBudget').and.returnValue(Promise.resolve());
@@ -574,6 +601,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         spyOn(_, 'findIndex').and.returnValue(0);
         spyOn(expenseRoutes, '_isCoveredByOverdraft').and.returnValue(false);
+        spyOn(expenseRoutes, '_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry').and.returnValue(false);
         spyOn(expenseRoutes, '_isPartiallyCovered').and.returnValue(false);
         spyOn(expenseRoutes, '_isCovered').and.returnValue(false);
       });
