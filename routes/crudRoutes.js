@@ -39,7 +39,7 @@ class Crud {
     console.error(logColor, 'Error Code: ' + err.code);
     console.error(logColor, 'Error Message: ' + err.message);
     console.error(resetColor);
-    return res.status(err.code).send(err.message);
+    return res.status(err.code).send(err);
   }
 
   /**

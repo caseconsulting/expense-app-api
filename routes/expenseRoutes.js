@@ -80,7 +80,17 @@ class ExpenseRoutes extends Crud {
   }
 
   _isCoveredByOverdraft(expenseType, employeeBalance) {
-    return expenseType.budget - employeeBalance < 0 && expenseType.odFlag;
+    return 2 * expenseType.budget - employeeBalance > 0 && expenseType.odFlag;
+  }
+  _isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance) {
+    return 2 * expenseType.budget - employeeBalance < 0 && expenseType.odFlag;
+  }
+
+  _addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost) {
+    let remaining = cost + employee.expenseTypes[budgetPosition].balance - 2 * expenseType.budget;
+    employee.expenseTypes[budgetPosition].balance = 2 * expenseType.budget;
+    employee.expenseTypes[budgetPosition].owedAmount = remaining;
+    return this.employeeJson.updateEntryInDB(employee);
   }
 
   _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
@@ -174,6 +184,8 @@ class ExpenseRoutes extends Crud {
       return this._initializeNewBudget(expenseType, employee, cost);
     } else if (this._isCoveredByOverdraft(expenseType, employeeBalance)) {
       return this._addToOverdraftCoverage(employee, budgetPosition, employeeBalance);
+    } else if (this._isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance)) {
+      return this._addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost);
     } else if (this._isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance)) {
       return this._addPartialCoverage(employee, expenseType, budgetPosition, remaining);
     } else if (this._isCovered(expenseType, employeeBalance)) {

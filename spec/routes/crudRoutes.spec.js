@@ -296,7 +296,7 @@ describe('crudRoutes', () => {
     it('should send the error code and message', () => {
       crudRoutes._handleError(res, err);
       expect(res.status).toHaveBeenCalledWith(err.code);
-      expect(res.send).toHaveBeenCalledWith(err.message);
+      expect(res.send).toHaveBeenCalledWith(err);
     });
   }); // _handleError
 

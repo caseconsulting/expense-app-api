@@ -239,6 +239,67 @@ describe('expenseRoutes', () => {
     }); //if not covered by overdraft
   }); //_isCoveredByOverdraft
 
+  describe('_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry', () => {
+    let expenseType, employeeBalance;
+
+    describe('if partially covered by overdraft', () => {
+      beforeEach(() => {
+        employeeBalance = 5500;
+        expenseType = {
+          budget: 2000,
+          odFlag: true
+        };
+      });
+      it('should return true', () => {
+        expect(
+          expenseRoutes._isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance)
+        ).toEqual(true);
+      });
+    }); //if covered by covered by overdraft
+    describe('if not covered by overdraft', () => {
+      beforeEach(() => {
+        employeeBalance = 5500;
+        expenseType = {
+          budget: 2000,
+          odFlag: false
+        };
+      });
+      it('should return false ', () => {
+        expect(
+          expenseRoutes._isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance)
+        ).toEqual(false);
+      });
+    }); //if not covered by overdraft
+  }); //_isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry
+
+  describe('_addPartialCoverageByOverdraftBlessYourSoulChild', () => {
+    let employee, budgetPosition, expenseType, cost;
+    beforeEach(() => {
+      employee = {
+        expenseTypes: [
+          {
+            balance: 'balance',
+            owedAmount: 'owedAmount'
+          }
+        ]
+      };
+      budgetPosition = 0;
+      expenseType = {
+        budget: 'budget'
+      };
+      cost = 2500;
+      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+    });
+    it('should return a promise', done => {
+      expenseRoutes
+        ._addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost)
+        .then(() => {
+          expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+          done();
+        });
+    }); //should return a promise
+  }); // _addPartialCoverageByOverdraftBlessYourSoulChild
+
   describe('_isPartiallyCovered', () => {
     let expenseType, employee, budgetPosition, remaining, employeeBalance;
     describe('if the expense is paritally covered', () => {
