@@ -33,8 +33,8 @@ class Special {
     let processedExpenses = [];
 
     Promise.all([this.employeeData.getAllEntriesInDB(),
-        this.expenseTypeData.getAllEntriesInDB(), this.expenseData.getAllEntriesInDB()
-      ])
+      this.expenseTypeData.getAllEntriesInDB(), this.expenseData.getAllEntriesInDB()
+    ])
       .then(values => {
         let employees = values[0];
         let expenseTypes = values[1];
@@ -76,7 +76,7 @@ class Special {
         Promise.all([processedExpenses])
           .then(data => res.status(200).send(employees))
           .catch(err => this._handleError(res, err));
-      })
+      });
   }
 }
 
