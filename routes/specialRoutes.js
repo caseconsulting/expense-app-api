@@ -1,6 +1,7 @@
+/*jshint esversion: 6 */
+
 const express = require('express');
 const _ = require('lodash');
-const uuid = require('uuid/v4');
 
 class Special {
   constructor(expenseData, employeeData, expenseTypeData) {
@@ -28,34 +29,56 @@ class Special {
   }
 
 
-  // showList(req, res) {
-  //   Promise.all(this.expenseData.getAllEntriesInDB())
-  //     .then(([expense]) => {
-  //
-  //       let processedExpenses = _.map(expense, expense => {
-  //         this.expenseTypeData.findObjectInDB(expense.userId)
-  //           .then(data => {
-  //             expense.employeeName = `${data.firstName} ${data.middleName} ${data.lastName}`;
-  //             expense.selected = false;
-  //           });
-  //       });
-  //
-  //       processedExpenses = _.map(expense, expense => {
-  //         this.expenseTypeData.findObjectInDB(expense.expenseTypeId)
-  //           .then(data => expense.budgetName = data.budgetName);
-  //       });
-  //
-  //       res.status(200).send(processedExpenses);
-  //     });
-  // });
+  showList(req, res) {
+    let processedExpenses = [];
 
+    Promise.all([this.employeeData.getAllEntriesInDB(),
+        this.expenseTypeData.getAllEntriesInDB(), this.expenseData.getAllEntriesInDB()
+      ])
+      .then(values => {
+        let employees = values[0];
+        let expenseTypes = values[1];
+        let expenseData = values[2];
 
+        // employees = employees.map(employee => {
+        //   return {
+        //     text: `${employee.firstName} ${employee.middleName} ${
+        //       employee.lastName
+        //     }`,
+        //     value: employee.id
+        //   };
+        // });
+        //
+        // expenseTypes = expenseTypes.map(expenseType => {
+        //   return {
+        //     text: expenseType.budgetName,
+        //     value: expenseType.id
+        //   };
+        // });
+        //
+        // processedExpenses = _.map(expenseData, expense => {
+        //   return this.employeeData.readFromDB(expense.userId)
+        //     .then(employee => {
+        //       expense.employeeName = `${employee.firstName} ${employee.middleName} ${
+        //         employee.lastName
+        //       }`;
+        //     })
+        // });
 
-
-  //res.status(200).send(this.empBudgets);
-  // .getAllEntriesInDB()
-  // .then(data => res.status(200).send(data))
-  // .catch(err => this._handleError(res, err));
+        // processedExpenses = _.map(expenseData, expense => {
+        //   return this.expenseTypeData.readFromDB(expense.userId)
+        //     .then(expenseType => {
+        //       api.EXPENSE_TYPES,
+        //         expense.expenseTypeId
+        //       expense.budgetName = expenseType.budgetName;
+        //     })
+        // });
+        Promise.all([processedExpenses])
+          .then(data => res.status(200).send(employees))
+          .catch(err => this._handleError(res, err));
+      })
+  }
 }
+
 
 module.exports = Special;
