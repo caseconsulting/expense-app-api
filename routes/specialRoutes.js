@@ -28,55 +28,51 @@ class Special {
     return res.status(err.code).send(err.message);
   }
 
+  getEmployeeName(expense) {
+    //console.log(expense.userId);
+    return this.employeeData.readFromDB(expense.userId)
+      .then(employee => {
+        let emp = employee[0];
+        expense.employeeName = `${emp.firstName} ${emp.middleName} ${
+          emp.lastName}`;
+        return expense;
+      });
+  }
+
+
+  getExpenseTypeName(expense) {
+    return this.expenseTypeData.readFromDB(expense.expenseTypeId)
+      .then(expenseType => {
+        let type = expenseType[0];
+        expense.budgetName = type.budgetName;
+        return expense;
+      });
+  }
 
   showList(req, res) {
-    let processedExpenses = [];
-
-    Promise.all([this.employeeData.getAllEntriesInDB(),
-      this.expenseTypeData.getAllEntriesInDB(), this.expenseData.getAllEntriesInDB()
-    ])
-      .then(values => {
-        let employees = values[0];
-        let expenseTypes = values[1];
-        let expenseData = values[2];
-
-        // employees = employees.map(employee => {
-        //   return {
-        //     text: `${employee.firstName} ${employee.middleName} ${
-        //       employee.lastName
-        //     }`,
-        //     value: employee.id
-        //   };
-        // });
-        //
-        // expenseTypes = expenseTypes.map(expenseType => {
-        //   return {
-        //     text: expenseType.budgetName,
-        //     value: expenseType.id
-        //   };
-        // });
-        //
-        // processedExpenses = _.map(expenseData, expense => {
-        //   return this.employeeData.readFromDB(expense.userId)
-        //     .then(employee => {
-        //       expense.employeeName = `${employee.firstName} ${employee.middleName} ${
-        //         employee.lastName
-        //       }`;
-        //     })
-        // });
-
-        // processedExpenses = _.map(expenseData, expense => {
-        //   return this.expenseTypeData.readFromDB(expense.userId)
-        //     .then(expenseType => {
-        //       api.EXPENSE_TYPES,
-        //         expense.expenseTypeId
-        //       expense.budgetName = expenseType.budgetName;
-        //     })
-        // });
-        Promise.all([processedExpenses])
-          .then(data => res.status(200).send(employees))
-          .catch(err => this._handleError(res, err));
+    return this.expenseData.getAllEntriesInDB()
+      .then(values => this._processExpenses(values))
+      .then(returnValue => {
+        res.status(200).send(returnValue);
       });
+  }
+
+  _processExpenses(expenseData) {
+    let processedExpenses = [];
+    return new Promise((resolve) => {
+      processedExpenses = _.map(expenseData, expense => {
+        return this.getEmployeeName(expense);
+      });
+      //console.log(typeof processedExpenses);
+      processedExpenses = _.map(expenseData, expense => {
+        return this.getExpenseTypeName(expense);
+      });
+      resolve(
+        Promise.all(processedExpenses).then((values) => {
+          return values;
+        })
+      );
+    });
   }
 }
 
