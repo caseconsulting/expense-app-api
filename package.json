@@ -12,7 +12,7 @@
     "restart": "pm2 restart services.yml",
     "start": "pm2 start services.yml",
     "stop": "pm2 stop services.yml",
-    "test": "jasmine || true",
+    "test": "jasmine",
     "validate": "npm ls"
   },
   "dependencies": {
