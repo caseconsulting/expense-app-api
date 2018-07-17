@@ -1,15 +1,15 @@
 const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
-const employeeJson = new databaseModify('Employee');
-const expenseTypeJson = new databaseModify('ExpenseType');
+const employeeDynamo = new databaseModify('Employee');
+const expenseTypeDynamo = new databaseModify('ExpenseType');
 const _ = require('lodash');
-// TODO: change employeeJson to Dynamo table since it is not a json file
+
 class ExpenseRoutes extends Crud {
   constructor(databaseModify, uuid) {
     super(databaseModify, uuid);
     this.databaseModify = databaseModify;
-    this.employeeJson = employeeJson;
-    this.expenseTypeJson = expenseTypeJson;
+    this.employeeDynamo = employeeDynamo;
+    this.expenseTypeDynamo = expenseTypeDynamo;
   }
 
   _delete(id) {
@@ -95,7 +95,7 @@ class ExpenseRoutes extends Crud {
     if (!employee.expenseTypes) {
       //create new balance under the employee
       employee.expenseTypes = [];
-      return this.employeeJson.updateEntryInDB(employee);
+      return this.employeeDynamo.updateEntryInDB(employee);
     }
   }
 
@@ -110,7 +110,7 @@ class ExpenseRoutes extends Crud {
     let remaining = cost + employee.expenseTypes[budgetPosition].balance - 2 * expenseType.budget;
     employee.expenseTypes[budgetPosition].balance = 2 * expenseType.budget;
     employee.expenseTypes[budgetPosition].owedAmount = remaining;
-    return this.employeeJson.updateEntryInDB(employee);
+    return this.employeeDynamo.updateEntryInDB(employee);
   }
 
   _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
@@ -161,23 +161,23 @@ class ExpenseRoutes extends Crud {
     }
     employee.expenseTypes.push(newExpense);
     // Created new budget under employee
-    return this.employeeJson.updateEntryInDB(employee);
+    return this.employeeDynamo.updateEntryInDB(employee);
   }
 
   _addToOverdraftCoverage(employee, budgetPosition, employeeBalance) {
     employee.expenseTypes[budgetPosition].balance = employeeBalance;
-    return this.employeeJson.updateEntryInDB(employee);
+    return this.employeeDynamo.updateEntryInDB(employee);
   }
 
   _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
     employee.expenseTypes[budgetPosition].balance = expenseType.budget;
     employee.expenseTypes[budgetPosition].owedAmount = Math.abs(remaining);
-    return this.employeeJson.updateEntryInDB(employee);
+    return this.employeeDynamo.updateEntryInDB(employee);
   }
 
   _addToBudget(employee, budgetPosition, employeeBalance) {
     employee.expenseTypes[budgetPosition].balance = employeeBalance;
-    return this.employeeJson.updateEntryInDB(employee);
+    return this.employeeDynamo.updateEntryInDB(employee);
   }
 
   /**
@@ -217,11 +217,11 @@ class ExpenseRoutes extends Crud {
 
   validateCostToBudget(expenseTypeId, userId, cost) {
     let expenseType, employee;
-    return expenseTypeJson
+    return expenseTypeDynamo
       .findObjectInDB(expenseTypeId)
       .then(data => {
         expenseType = data;
-        return employeeJson.findObjectInDB(userId);
+        return employeeDynamo.findObjectInDB(userId);
       })
       .then(data => {
         employee = data;
@@ -237,7 +237,7 @@ class ExpenseRoutes extends Crud {
 
   deleteCostFromBudget(expenseTypeId, userId, cost) {
     let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId, cost);
-    return employeeJson
+    return employeeDynamo
       .findObjectInDB(userId)
       .then(_findExpenseCurried)
       .catch(err => {
@@ -249,7 +249,7 @@ class ExpenseRoutes extends Crud {
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {
         employee.expenseTypes[i].balance = employee.expenseTypes[i].balance - cost;
-        return employeeJson.updateEntryInDB(employee);
+        return employeeDynamo.updateEntryInDB(employee);
       }
     }
     if (!employeeBalance) {

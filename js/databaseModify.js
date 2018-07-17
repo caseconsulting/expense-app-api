@@ -107,7 +107,9 @@ class databaseModify {
       .delete(params)
       .promise()
       .then(data => data.Attributes)
-      .catch(err => err); //Throw error and handle properly in crudRoutes
+      .catch(function(err) {
+        throw err;
+      }); //Throw error and handle properly in crudRoutes
   }
 
   updateEntryInDB(newDyanmoObj) {

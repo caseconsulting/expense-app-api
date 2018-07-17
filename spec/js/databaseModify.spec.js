@@ -167,17 +167,15 @@ describe('databaseModify', () => {
 
     describe('when an item is successfully removed', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'delete', function(params, callback) {
-          callback(null, {
-            Data: 'data.Attributes'
-          });
-        });
+        AWS.mock('DynamoDB.DocumentClient', 'delete',
+          Promise.resolve({
+            Attributes: 'Hello'
+          })
+        );
       });
       it('should return data returned from AWS', done => {
         databaseModify.removeFromDB(passedID).then(function(data) {
-          expect(data).toEqual({
-            Data: 'data.Attributes'
-          });
+          expect(data).toEqual('Hello');
           done();
         });
       }); //should return data returned from AWS
@@ -185,17 +183,11 @@ describe('databaseModify', () => {
 
     describe('when an error is returned from Dynamo', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'delete', function(params, callback) {
-          callback({
-            message: 'error from AWS'
-          });
-        });
+        AWS.mock('DynamoDB.DocumentClient', 'delete', Promise.reject('error'));
       });
       it('should throw the error returned from AWS', done => {
         databaseModify.removeFromDB(passedID).catch(function(err) {
-          expect(err).toEqual({
-            message: 'error from AWS'
-          });
+          expect(err).toEqual('error');
           done();
         });
       }); //should throw the error returned from AWS

@@ -6,8 +6,8 @@ describe('expenseRoutes', () => {
   beforeEach(() => {
     databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB', 'updateEntryInDB']);
     expenseRoutes = new ExpenseRoutes(databaseModify, uuid());
-    // employeeJson = jasmine.createSpyObj('expenseRoutes.', ['findObjectInDB','updateEntryInDB']);
-    // expenseTypeJson = jasmine.createSpyObj('expenseTypeJson', ['findObjectInDB']);
+    // employeeDynamo = jasmine.createSpyObj('expenseRoutes.', ['findObjectInDB','updateEntryInDB']);
+    // expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['findObjectInDB']);
   });
 
   describe('_add', () => {
@@ -105,11 +105,11 @@ describe('expenseRoutes', () => {
         hireDate: '{hireDate}',
         expenseTypes: undefined
       };
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('should add expense to employee if they dont have it already', done => {
       expenseRoutes.createNewBalance(employee).then(() => {
-        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
         done();
       });
     });
@@ -134,27 +134,27 @@ describe('expenseRoutes', () => {
     });
     describe('promise resolves', () => {
       beforeEach(() => {
-        spyOn(expenseRoutes.expenseTypeJson, 'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
-        spyOn(expenseRoutes.employeeJson, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
+        spyOn(expenseRoutes.expenseTypeDynamo, 'findObjectInDB').and.returnValue(Promise.resolve(expenseType));
+        spyOn(expenseRoutes.employeeDynamo, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes, 'createNewBalance').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes, 'performBudgetOperation').and.returnValue(Promise.resolve());
       });
       it('should return employee from DB', done => {
         expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost).then(() => {
-          expect(expenseRoutes.employeeJson.findObjectInDB).toHaveBeenCalledWith(userId);
+          expect(expenseRoutes.employeeDynamo.findObjectInDB).toHaveBeenCalledWith(userId);
           expect(expenseRoutes.createNewBalance).toHaveBeenCalledWith(employee);
           expect(expenseRoutes.performBudgetOperation).toHaveBeenCalledWith(employee, expenseType, cost);
           done();
         });
       });
-      it('should call expenseTypeJson findObjectInDB', () => {
+      it('should call expenseTypeDynamo findObjectInDB', () => {
         expenseRoutes.validateCostToBudget(expenseTypeId, userId, cost);
-        expect(expenseRoutes.expenseTypeJson.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
+        expect(expenseRoutes.expenseTypeDynamo.findObjectInDB).toHaveBeenCalledWith(expenseTypeId);
       });
     }); // promise resolves
     describe('promise rejects', () => {
       beforeEach(() => {
-        spyOn(expenseRoutes.expenseTypeJson, 'findObjectInDB').and.returnValue(Promise.reject('error'));
+        spyOn(expenseRoutes.expenseTypeDynamo, 'findObjectInDB').and.returnValue(Promise.reject('error'));
       });
 
       it('should return the error from Promise', done => {
@@ -186,7 +186,7 @@ describe('expenseRoutes', () => {
             }
           ]
         };
-        spyOn(expenseRoutes.employeeJson, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
+        spyOn(expenseRoutes.employeeDynamo, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes, '_findExpense');
       });
       it('should call _findExpense', done => {
@@ -200,7 +200,7 @@ describe('expenseRoutes', () => {
       let err;
       beforeEach(() => {
         err = 'err';
-        spyOn(expenseRoutes.employeeJson, 'findObjectInDB').and.returnValue(Promise.reject('err'));
+        spyOn(expenseRoutes.employeeDynamo, 'findObjectInDB').and.returnValue(Promise.reject('err'));
       });
       it('should throw an error', () => {
         expenseRoutes.deleteCostFromBudget(expenseTypeId, userId, cost).catch(caughtErr => {
@@ -288,13 +288,13 @@ describe('expenseRoutes', () => {
         budget: 'budget'
       };
       cost = 2500;
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('should return a promise', done => {
       expenseRoutes
         ._addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost)
         .then(() => {
-          expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+          expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
           done();
         });
     }); //should return a promise
@@ -379,11 +379,11 @@ describe('expenseRoutes', () => {
       expenseType = 'expenseType';
       employee = { expenseTypes: [] };
       cost = 'cost';
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('should return a promise', done => {
       expenseRoutes._initializeNewBudget(expenseType, employee, cost).then(() => {
-        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
         done();
       });
     });
@@ -401,11 +401,11 @@ describe('expenseRoutes', () => {
       };
       employeeBalance = 200;
       budgetPosition = 0;
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('should return promise', done => {
       expenseRoutes._addToOverdraftCoverage(employee, budgetPosition, employeeBalance).then(() => {
-        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
         done();
       });
     });
@@ -426,11 +426,11 @@ describe('expenseRoutes', () => {
         budget: 'budget'
       };
       remaining = 200;
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('should return a promise', done => {
       expenseRoutes._addPartialCoverage(employee, expenseType, budgetPosition, remaining).then(() => {
-        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
         done();
       });
     }); //should return a promise
@@ -449,11 +449,11 @@ describe('expenseRoutes', () => {
         owedAmount: 0
       };
       budgetPosition = 0;
-      spyOn(expenseRoutes.employeeJson, 'updateEntryInDB').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
     });
     it('it should return a promise', done => {
       expenseRoutes._addToBudget(employee, budgetPosition, employeeBalance).then(() => {
-        expect(expenseRoutes.employeeJson.updateEntryInDB).toHaveBeenCalledWith(employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
         done();
       });
     }); //it should return a promise
