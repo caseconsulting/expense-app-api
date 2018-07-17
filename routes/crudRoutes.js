@@ -146,8 +146,9 @@ class Crud {
    * delete the specified entry
    */
   onDelete(req, res) {
-    if (this.databaseModify.filePath === 'json/expense.json') {
-      this._delete(req.params.id);
+    if (this.databaseModify.tableName === 'Expense') {
+      this._delete(req.params.id).then(value => value)
+        .catch(error => error);
     }
     return this.databaseModify
       .removeFromDB(req.params.id)

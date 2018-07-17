@@ -37,18 +37,18 @@ class databaseModify {
   /**
    * Add the entry to the database
    */
-  addToDB(newJsonObj) {
-    if (newJsonObj) {
+  addToDB(newDyanmoObj) {
+    if (newDyanmoObj) {
       const params = {
         TableName: this.tableName,
-        Item: newJsonObj
+        Item: newDyanmoObj
       };
       const documentClient = new AWS.DynamoDB.DocumentClient();
       return documentClient
         .put(params)
         .promise()
         .then(function() {
-          return newJsonObj;
+          return newDyanmoObj;
         })
         .catch(function(err) {
           throw err; //Throw error and handle properly in crudRoutes
@@ -99,22 +99,19 @@ class databaseModify {
       TableName: this.tableName,
       Key: {
         id: passedID
-      }
+      },
+      ReturnValues: 'ALL_OLD'
     };
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .delete(params)
       .promise()
-      .then(function(data) {
-        return data;
-      })
-      .catch(function(err) {
-        throw err; //Throw error and handle properly in crudRoutes
-      });
+      .then(data => data.Attributes)
+      .catch(err => err); //Throw error and handle properly in crudRoutes
   }
 
-  updateEntryInDB(newJsonObj) {
-    const params = this.buildUpdateParams(newJsonObj);
+  updateEntryInDB(newDyanmoObj) {
+    const params = this.buildUpdateParams(newDyanmoObj);
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .update(params)
@@ -155,9 +152,8 @@ class databaseModify {
         Key: {
           id: objToUpdate.id
         },
-        UpdateExpression:
-          `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c, description = :d, note = :n, receipt = :r,
-           expenseTypeId = :eti, userId = :ui`,
+        UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
+         description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui`,
         ExpressionAttributeValues: {
           ':pd': objToUpdate.purchaseDate,
           ':rd': objToUpdate.reimbursedDate,
@@ -176,8 +172,8 @@ class databaseModify {
         Key: {
           id: objToUpdate.id
         },
-        UpdateExpression:
-          'set firstName = :fn, middleName = :mn, lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et',
+        UpdateExpression: `set firstName = :fn, middleName = :mn,
+        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et`,
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,

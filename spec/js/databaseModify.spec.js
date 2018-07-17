@@ -169,14 +169,14 @@ describe('databaseModify', () => {
       beforeEach(() => {
         AWS.mock('DynamoDB.DocumentClient', 'delete', function(params, callback) {
           callback(null, {
-            Data: 'data'
+            Data: 'data.Attributes'
           });
         });
       });
       it('should return data returned from AWS', done => {
         databaseModify.removeFromDB(passedID).then(function(data) {
           expect(data).toEqual({
-            Data: 'data'
+            Data: 'data.Attributes'
           });
           done();
         });

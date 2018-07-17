@@ -21,7 +21,17 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }) {
+  _add(uuid, {
+    purchaseDate,
+    reimbursedDate,
+    cost,
+    description,
+    note,
+    receipt,
+    expenseTypeId,
+    userId,
+    createdAt
+  }) {
     return this.validateCostToBudget(expenseTypeId, userId, cost)
       .then(() => {
         return {
@@ -47,7 +57,17 @@ class ExpenseRoutes extends Crud {
    *  balance
    * adds the new information
    */
-  _update(id, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }) {
+  _update(id, {
+    purchaseDate,
+    reimbursedDate,
+    cost,
+    description,
+    note,
+    receipt,
+    expenseTypeId,
+    userId,
+    createdAt
+  }) {
     return this.databaseModify
       .findObjectInDB(id)
       .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
