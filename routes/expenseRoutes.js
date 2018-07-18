@@ -248,7 +248,20 @@ class ExpenseRoutes extends Crud {
     let employeeBalance;
     for (var i = 0; i < employee.expenseTypes.length; i++) {
       if (employee.expenseTypes[i].id === expenseTypeId) {
+        let budget = employee.expenseTypes[i].balance;
         employee.expenseTypes[i].balance = employee.expenseTypes[i].balance - cost;
+
+        if(employee.expenseTypes[i].owedAmount>0){
+          employee.expenseTypes[i].balance = employee.expenseTypes[i].balance + employee.expenseTypes[i].owedAmount;
+          if(employee.expenseTypes[i].balance>budget){
+            let diff = employee.expenseTypes[i].balance - budget;
+            employee.expenseTypes[i].owedAmount = diff;
+          }
+          else{
+            employee.expenseTypes[i].owedAmount = 0;
+          }
+        }
+
         return employeeDynamo.updateEntryInDB(employee);
       }
     }
