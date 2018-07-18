@@ -245,27 +245,26 @@ class ExpenseRoutes extends Crud {
       });
   }
   _findExpense(expenseTypeId, cost, employee) {
-    let employeeBalance;
-    for (var i = 0; i < employee.expenseTypes.length; i++) {
-      if (employee.expenseTypes[i].id === expenseTypeId) {
-        let budget = employee.expenseTypes[i].balance;
-        employee.expenseTypes[i].balance = employee.expenseTypes[i].balance - cost;
+    let expenseTypeLocation = _.findIndex(employee.expenseTypes, exp => exp.id === expenseTypeId);
+    if (expenseTypeLocation>-1) {
+      let budget = employee.expenseTypes[expenseTypeLocation].balance;
+      employee.expenseTypes[expenseTypeLocation].balance = employee.expenseTypes[expenseTypeLocation].balance - cost;
 
-        if(employee.expenseTypes[i].owedAmount>0){
-          employee.expenseTypes[i].balance = employee.expenseTypes[i].balance + employee.expenseTypes[i].owedAmount;
-          if(employee.expenseTypes[i].balance>budget){
-            let diff = employee.expenseTypes[i].balance - budget;
-            employee.expenseTypes[i].owedAmount = diff;
-          }
-          else{
-            employee.expenseTypes[i].owedAmount = 0;
-          }
+      if(employee.expenseTypes[expenseTypeLocation].owedAmount>0){
+        employee.expenseTypes[expenseTypeLocation].balance =
+        employee.expenseTypes[expenseTypeLocation].balance + employee.expenseTypes[expenseTypeLocation].owedAmount;
+
+        if(employee.expenseTypes[expenseTypeLocation].balance>budget){
+          let diff = employee.expenseTypes[expenseTypeLocation].balance - budget;
+          employee.expenseTypes[expenseTypeLocation].owedAmount = diff;
         }
-
-        return employeeDynamo.updateEntryInDB(employee);
+        else{
+          employee.expenseTypes[expenseTypeLocation].owedAmount = 0;
+        }
       }
+      return employeeDynamo.updateEntryInDB(employee);
     }
-    if (!employeeBalance) {
+    else{
       let err = {
         code: 404,
         message: 'Expense not found'
