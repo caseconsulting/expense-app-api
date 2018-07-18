@@ -189,10 +189,10 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes.employeeDynamo, 'findObjectInDB').and.returnValue(Promise.resolve(employee));
         spyOn(expenseRoutes, '_findExpense');
       });
-      it('should call _findExpense', done => {
+      it('should call _findExpense', () => {
         expenseRoutes.deleteCostFromBudget(expenseTypeId, userId, cost).then(() => {
           expect(expenseRoutes._findExpense).toHaveBeenCalledWith(expenseTypeId, cost, employee);
-          done();
+
         });
       }); //if there is employee balance
     }); //promise resolves
@@ -209,6 +209,65 @@ describe('expenseRoutes', () => {
       });
     }); //promise rejects
   }); //deleteCostFromBudget
+
+  describe('_findExpense', () => {
+    let employee, expenseTypeId, cost;
+    describe('promise resolves', () => {
+      beforeEach(() => {
+        cost = 200;
+        expenseTypeId = 'expenseTypeId';
+        employee = {
+          firstName: '{firstName}',
+          middleName: '{middleName}',
+          lastName: '{lastName}',
+          empId: '{empId}',
+          hireDate: '{hireDate}',
+          expenseTypes: [
+            {
+              id: 'expenseTypeId',
+              balance: 1000,
+              owedAmount: 500
+            }
+          ]
+        };
+        spyOn(_, 'findIndex').and.returnValue(0);
+        spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve(employee));
+      });
+
+      it('should return the location of the expense type', () => {
+        expenseRoutes._findExpense(expenseTypeId, cost, employee);
+        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(
+          {
+            firstName: '{firstName}',
+            middleName: '{middleName}',
+            lastName: '{lastName}',
+            empId: '{empId}',
+            hireDate: '{hireDate}',
+            expenseTypes: [
+              {
+                id: 'expenseTypeId',
+                balance: 1000,
+                owedAmount: 300
+              }
+            ]
+          });
+      }); //should return the location of the expense type
+    }); //promise resolves
+    describe('when expenseType not found', () => {
+      beforeEach(() => {
+        spyOn(_, 'findIndex').and.returnValue(-1);
+      });
+      it('should throw an error', () => {
+        expect(()=>{
+          expenseRoutes._findExpense(expenseTypeId, cost, employee);
+        }).toThrow({
+          code: 404,
+          message: 'Expense not found'
+        });
+      }); //should throw an error
+    }); //when expenseType not found
+  }); //_findExpense,
+
 
   describe('_isCoveredByOverdraft', () => {
     let expenseType, employeeBalance;

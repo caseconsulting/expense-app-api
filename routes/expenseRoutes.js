@@ -257,6 +257,7 @@ class ExpenseRoutes extends Crud {
         if(employee.expenseTypes[expenseTypeLocation].balance>budget){
           let diff = employee.expenseTypes[expenseTypeLocation].balance - budget;
           employee.expenseTypes[expenseTypeLocation].owedAmount = diff;
+          employee.expenseTypes[expenseTypeLocation].balance = budget;
         }
         else{
           employee.expenseTypes[expenseTypeLocation].owedAmount = 0;
