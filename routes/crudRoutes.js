@@ -1,12 +1,34 @@
 const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
+const jwt = require('express-jwt');
+const jwtAuthz = require('express-jwt-authz');
+const jwksRsa = require('jwks-rsa');
+// Authentication middleware. When used, the
+// Access Token must exist and be verified against
+// the Auth0 JSON Web Key Set
+const checkJwt = jwt({
+  // Dynamically provide a signing key
+  // based on the kid in the header and
+  // the signing keys provided by the JWKS endpoint.
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
+  }),
+
+  // Validate the audience and the issuer.
+  audience: process.env.AUTH0_AUDIENCE,
+  issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+  algorithms: ['RS256']
+});
 
 class Crud {
   constructor(databaseModify) {
     this.databaseModify = databaseModify;
     this._router = express.Router();
-    this._router.get('/', this.showList.bind(this));
+    this._router.get('/', checkJwt, this.showList.bind(this));
     this._router.post('/', this.create.bind(this));
     this._router.get('/:id', this.read.bind(this));
     this._router.put('/:id', this.update.bind(this));
@@ -147,7 +169,8 @@ class Crud {
    */
   onDelete(req, res) {
     if (this.databaseModify.tableName === 'Expense') {
-      this._delete(req.params.id).then(value => value)
+      this._delete(req.params.id)
+        .then(value => value)
         .catch(error => error);
     }
     return this.databaseModify

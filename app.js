@@ -13,15 +13,16 @@ const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
 const expenseRoutes = new ExpenseRoutes(new databaseModify('Expense'));
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
-const expenseTypeRoutes = new ExpenseTypeRoutes(
-  new databaseModify('ExpenseType')
-);
+const expenseTypeRoutes = new ExpenseTypeRoutes(new databaseModify('ExpenseType'));
 var EmployeeRoutes = require('./routes/employeeRoutes');
 const employeeRoutes = new EmployeeRoutes(new databaseModify('Employee'));
 
 var SpecialRoutes = require('./routes/specialRoutes');
-const specialRoutes = new SpecialRoutes(new databaseModify('Expense'),
-  new databaseModify('Employee'), new databaseModify('ExpenseType'));
+const specialRoutes = new SpecialRoutes(
+  new databaseModify('Expense'),
+  new databaseModify('Employee'),
+  new databaseModify('ExpenseType')
+);
 var app = express();
 
 // view engine setup
@@ -30,7 +31,11 @@ app.set('view engine', 'pug');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(cors());
+
+let corsConfig = {
+  allowedHeaders: ['Authorization', 'Content-Type']
+};
+app.use(cors(corsConfig));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(
