@@ -2,7 +2,7 @@ const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 const jwt = require('express-jwt');
-const jwtAuthz = require('express-jwt-authz');
+// const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
