@@ -10,6 +10,7 @@ class Special {
     this.expenseTypeData = expenseTypeData;
     this._router = express.Router();
     this._router.get('/', this.showList.bind(this));
+    this._router.get('/:id', this.empExpenses.bind(this));
   }
 
   get router() {
@@ -55,6 +56,46 @@ class Special {
       .then(returnValue => {
         res.status(200).send(returnValue);
       });
+  }
+
+  async empExpenses(req, res) {
+    try
+    {
+      let userID = req.params.id
+      let expenses = await this.expenseData.getAllEntriesInDB();
+      let user = await this.employeeData.readFromDB(userID);
+      let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+      let returnObject = this._findEmployee(expenses, user[0], expensesTypes);
+      //console.log('\n', expenses,'\n');
+      res.status(200).send(returnObject);
+    }
+    catch(error)
+    {
+      this._handleError(res, error);
+    }
+  }
+
+  _findEmployee(expenses, user, expensesTypes)
+  {
+    let filteredExpenses = _.filter(expenses, (expense) => expense.userId === user.id);
+    expensesTypes.expenses = [];
+    let temp = _.forEach(expensesTypes, (type) => {
+      type.expenses = [];
+      _.forEach(filteredExpenses, expense => {
+        if (type.id === expense.expenseTypeId)
+        {
+          type.expenses.push(expense);
+        }
+      })
+      return type
+    })
+    //console.log(filteredExpenses);
+    return {
+      firstName: user.firstName,
+      middleName: user.middleName,
+      lastName: user.lastName,
+      expenses: temp
+    }
   }
 
   _processExpenses(expenseData) {
