@@ -1,168 +1,267 @@
 {
-	"AWSTemplateFormatVersion": "2010-09-09",
+  "AWSTemplateFormatVersion": "2010-09-09",
 
-	"Description":
-		"AWS CloudFormation Sample Template AutoScalingMultiAZWithNotifications: Create a multi-az, load balanced and Auto Scaled sample web site running on an Apache Web Serever. The application is configured to span all Availability Zones in the region and is Auto-Scaled based on the CPU utilization of the web servers. Notifications will be sent to the operator email address on scaling events. The instances are load balanced with a simple health check against the default web page. **WARNING** This template creates one or more Amazon EC2 instances and an Application Load Balancer. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Description": "AWS CloudFormation Sample Template AutoScalingMultiAZWithNotifications: Create a multi-az, load balanced and Auto Scaled sample web site running on an Apache Web Serever. The application is configured to span all Availability Zones in the region and is Auto-Scaled based on the CPU utilization of the web servers. Notifications will be sent to the operator email address on scaling events. The instances are load balanced with a simple health check against the default web page. **WARNING** This template creates one or more Amazon EC2 instances and an Application Load Balancer. You will be billed for the AWS resources used if you create a stack from this template.",
 
-	"Parameters": {
-		"VpcId": {
-			"Type": "AWS::EC2::VPC::Id",
-			"Description": "VpcId of your existing Virtual Private Cloud (VPC)",
-			"ConstraintDescription": "must be the VPC Id of an existing Virtual Private Cloud."
-		},
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "VpcId of your existing Virtual Private Cloud (VPC)",
+      "ConstraintDescription": "must be the VPC Id of an existing Virtual Private Cloud."
+    },
 
-		"Subnets": {
-			"Type": "List<AWS::EC2::Subnet::Id>",
-			"Description": "The list of SubnetIds in your Virtual Private Cloud (VPC)",
-			"ConstraintDescription":
-				"must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
-		},
+    "Subnets": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "The list of SubnetIds in your Virtual Private Cloud (VPC)",
+      "ConstraintDescription": "must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
+    },
 
-		"InstanceType": {
-			"Description": "WebServer EC2 instance type",
-			"Type": "String",
-			"Default": "t2.small",
-			"AllowedValues": [
-				"t1.micro",
-				"t2.nano",
-				"t2.micro",
-				"t2.small",
-				"t2.medium",
-				"t2.large",
-				"m3.medium",
-				"m3.large",
-				"m3.xlarge",
-				"m3.2xlarge",
-				"m4.large"
-			],
-			"ConstraintDescription": "must be a valid EC2 instance type."
-		},
+    "InstanceType": {
+      "Description": "WebServer EC2 instance type",
+      "Type": "String",
+      "Default": "t2.small",
+      "AllowedValues": [
+        "t1.micro",
+        "t2.nano",
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "t2.large",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "m4.large"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
 
-		"AMIId": {
-			"Description": "WebServer AMI",
-			"Type": "String",
-			"ConstraintDescription": "must be a valid AMI ID for your region."
-		},
+    "AMIId": {
+      "Description": "WebServer AMI",
+      "Type": "String",
+      "ConstraintDescription": "must be a valid AMI ID for your region."
+    },
 
-		"KeyName": {
-			"Description": "The EC2 Key Pair to allow SSH access to the instances",
-			"Type": "AWS::EC2::KeyPair::KeyName",
-			"ConstraintDescription": "must be the name of an existing EC2 KeyPair."
-		},
+    "KeyName": {
+      "Description": "The EC2 Key Pair to allow SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+    },
 
-		"SSHLocation": {
-			"Description": "The IP address range that can be used to SSH to the EC2 instances",
-			"Type": "String",
-			"MinLength": "9",
-			"MaxLength": "18",
-			"Default": "0.0.0.0/0",
-			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
-			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
-		}
-	},
+    "SSHLocation": {
+      "Description": "The IP address range that can be used to SSH to the EC2 instances",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    }
+  },
 
-	"Resources": {
-		"WebServerGroup": {
-			"Type": "AWS::AutoScaling::AutoScalingGroup",
-			"Properties": {
-				"VPCZoneIdentifier": { "Ref": "Subnets" },
-				"LaunchConfigurationName": { "Ref": "LaunchConfig" },
-				"MinSize": "1",
-				"MaxSize": "1"
-			}
-		},
+  "Resources": {
+    "expenseTypeTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "AttributeDefinitions": [{
+          "AttributeName": "id",
+          "AttributeType": "S"
+        }],
+        "KeySchema": [{
+          "AttributeName": "id",
+          "KeyType": "HASH"
+        }],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "1"
+        },
+        "TableName": "ExpenseTypes"
+      }
+    },
+    "expenseTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "AttributeDefinitions": [{
+          "AttributeName": "id",
+          "AttributeType": "S"
+        }, {
+          "AttributeName": "expenseTypeId",
+          "AttributeType": "S"
+        }, {
+          "AttributeName": "userId",
+          "AttributeType": "S"
+        }, {
+          "AttributeName": "purchaseDate",
+          "AttributeType": "S"
+        }],
+        "KeySchema": [{
+          "AttributeName": "id",
+          "KeyType": "HASH"
+        }],
+        "GlobalSecondaryIndexes": [{
+            "IndexName": "userIdIndex",
+            "KeySchema": [{
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "purchaseDate",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          },
+          {
+            "IndexName": "expenseTypeIdIndex",
+            "KeySchema": [{
+                "AttributeName": "expenseTypeId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "purchaseDate",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "1"
+        },
+      }
+    },
 
-		"LaunchConfig": {
-			"Type": "AWS::AutoScaling::LaunchConfiguration",
-			"Properties": {
-				"KeyName": { "Ref": "KeyName" },
-				"ImageId": { "Ref": "AMIId" },
-				"SecurityGroups": [{ "Ref": "InstanceSecurityGroup" }],
-				"InstanceType": { "Ref": "InstanceType" },
-				"IamInstanceProfile": "arn:aws:iam::453274522834:role/ExpenseAppAPI",
-				"UserData": {
-					"Fn::Base64": {
-						"Fn::Join": [
-							"",
-							[
-								"#cloud-config\n",
-								"output : { all : '| tee -a /var/log/cloud-init-output.log' }\n",
+    "WebServerGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "VPCZoneIdentifier": {
+          "Ref": "Subnets"
+        },
+        "LaunchConfigurationName": {
+          "Ref": "LaunchConfig"
+        },
+        "MinSize": "1",
+        "MaxSize": "1"
+      }
+    },
 
-								"# Update all packages on first boot\n",
-								"package_update: true\n",
-								"package_upgrade: true\n",
-								"package_reboot_if_required: true\n",
+    "LaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "ImageId": {
+          "Ref": "AMIId"
+        },
+        "SecurityGroups": [{
+          "Ref": "InstanceSecurityGroup"
+        }],
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": "ExpenseAppAPI",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "", [
+                "#cloud-config\n",
+                "output : { all : '| tee -a /var/log/cloud-init-output.log' }\n",
 
-								"# Install additional packages on first boot\n",
-								"packages:\n",
-								"- epel-release\n",
-								"- git\n",
-								"- wget\n",
+                "# Update all packages on first boot\n",
+                "package_update: true\n",
+                "package_upgrade: true\n",
+                "package_reboot_if_required: true\n",
 
-								"# Run commands\n",
-								"runcmd:\n",
-								"- [ sh, -c, echo \"== Install EPEL packages\" ]\n",
-								"- yum install -y python34 python34-pip\n",
-								"- python3 --version\n",
-								"- pip3 --version\n",
-								"- [ sh, -c, echo \"== Install AWS CLI\" ]\n",
-								"- pip3 install --upgrade pip\n",
-								"- pip3 install awscli\n",
-								"- aws --version\n",
-								"- [ sh, -c, echo \"== Configure AWS CLI\" ]\n",
-								"- runuser -l centos -c 'aws configure set output json'\n",
-								"- runuser -l centos -c 'aws configure set region us-east-1'\n",
-								"- runuser -l centos -c 'aws configure list'\n",
-								"- [ sh, -c, echo \"== Configure default environment\" ]\n",
-								"- echo \"\" >> /etc/bashrc\n",
-								"- echo \"# Set default user mask\" >> /etc/bashrc\n",
-								"- echo \"umask 027\" >> /etc/bashrc\n",
-								"- echo \"\" >> /etc/profile\n",
-								"- echo \"# Set default user mask\" >> /etc/profile\n",
-								"- echo \"umask 027\" >> /etc/profile\n",
-								"- [ sh, -c, echo \"== Install Node\" ]\n",
-								"- mkdir /usr/local/src/tarballs\n",
-								"- chmod 775 /usr/local/src/tarballs\n",
-								"- cd /usr/local/src/tarballs\n",
-								"- wget https://nodejs.org/download/release/latest-v8.x/node-v8.11.3-linux-x64.tar.gz\n",
-								"- tar --strip-components 1 -xzvf node-v* -C /usr/local\n",
-								"- [ sh, -c, echo \"== Clone repository\" ]\n",
-								"- runuser -l centos -c 'git clone https://github.com/caseconsulting/expense-app-api.git ~/app'\n",
-								"- [ sh, -c, echo \"== Download env file from S3 bucket\" ]\n",
-								"- [ sh, -c, echo \"== Configure logs\" ]\n",
-								"- runuser -l centos -c 'mkdir -p /home/centos/app/logs'\n",
-								"- [ sh, -c, echo \"== Install node modules\" ]\n",
-								"- runuser -l centos -c 'cd ~/app && npm install'\n",
-								"- [ sh, -c, echo \"== Start application\" ]\n",
-								"- runuser -l centos -c 'cd ~/app && npm run start'\n",
-								"final_message: \"The system is finally up, after $UPTIME seconds\"\n"
-							]
-						]
-					}
-				}
-			}
-		},
+                "# Install additional packages on first boot\n",
+                "packages:\n",
+                "- epel-release\n",
+                "- git\n",
+                "- wget\n",
 
-		"InstanceSecurityGroup": {
-			"Type": "AWS::EC2::SecurityGroup",
-			"Properties": {
-				"GroupDescription": "Enable SSH access and HTTP from the load balancer only",
-				"SecurityGroupIngress": [
-					{
-						"IpProtocol": "tcp",
-						"FromPort": "22",
-						"ToPort": "22",
-						"CidrIp": { "Ref": "SSHLocation" }
-					},
-					{
-						"IpProtocol": "tcp",
-						"FromPort": "3000",
-						"ToPort": "3000",
-						"CidrIp": { "Ref": "SSHLocation" }
-					}
-				],
-				"VpcId": { "Ref": "VpcId" }
-			}
-		}
-	}
+                "# Run commands\n",
+                "runcmd:\n",
+                "- [ sh, -c, echo \"== Install EPEL packages\" ]\n",
+                "- yum install -y python34 python34-pip\n",
+                "- python3 --version\n",
+                "- pip3 --version\n",
+                "- [ sh, -c, echo \"== Install AWS CLI\" ]\n",
+                "- pip3 install --upgrade pip\n",
+                "- pip3 install awscli\n",
+                "- aws --version\n",
+                "- [ sh, -c, echo \"== Configure AWS CLI\" ]\n",
+                "- runuser -l centos -c 'aws configure set output json'\n",
+                "- runuser -l centos -c 'aws configure set region us-east-1'\n",
+                "- runuser -l centos -c 'aws configure list'\n",
+                "- [ sh, -c, echo \"== Configure default environment\" ]\n",
+                "- echo \"\" >> /etc/bashrc\n",
+                "- echo \"# Set default user mask\" >> /etc/bashrc\n",
+                "- echo \"umask 027\" >> /etc/bashrc\n",
+                "- echo \"\" >> /etc/profile\n",
+                "- echo \"# Set default user mask\" >> /etc/profile\n",
+                "- echo \"umask 027\" >> /etc/profile\n",
+                "- [ sh, -c, echo \"== Install Node\" ]\n",
+                "- mkdir /usr/local/src/tarballs\n",
+                "- chmod 775 /usr/local/src/tarballs\n",
+                "- cd /usr/local/src/tarballs\n",
+                "- wget https://nodejs.org/download/release/latest-v8.x/node-v8.11.3-linux-x64.tar.gz\n",
+                "- tar --strip-components 1 -xzvf node-v* -C /usr/local\n",
+                "- [ sh, -c, echo \"== Clone repository\" ]\n",
+                "- runuser -l centos -c 'git clone https://github.com/caseconsulting/expense-app-api.git ~/app'\n",
+                "- [ sh, -c, echo \"== Download env file from S3 bucket\" ]\n",
+                "- runuser -l centos -c 'aws s3 cp s3://mybucket/test.txt test2.txt'\n",
+                "- [ sh, -c, echo \"== Configure logs\" ]\n",
+                "- runuser -l centos -c 'mkdir -p /home/centos/app/logs'\n",
+                "- [ sh, -c, echo \"== Install node modules\" ]\n",
+                "- runuser -l centos -c 'cd ~/app && npm install'\n",
+                "- [ sh, -c, echo \"== Start application\" ]\n",
+                "- runuser -l centos -c 'cd ~/app && npm run start'\n",
+                "final_message: \"The system is finally up, after $UPTIME seconds\"\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable SSH access and HTTP from the load balancer only",
+        "SecurityGroupIngress": [{
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Ref": "SSHLocation"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3000",
+            "ToPort": "3000",
+            "CidrIp": {
+              "Ref": "SSHLocation"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VpcId"
+        }
+      }
+    }
+  }
 }
