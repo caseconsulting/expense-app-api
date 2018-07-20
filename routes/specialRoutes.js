@@ -61,7 +61,7 @@ class Special {
   async empExpenses(req, res) {
     try
     {
-      let userID = req.params.id
+      let userID = req.params.id;
       let expenses = await this.expenseData.getAllEntriesInDB();
       let user = await this.employeeData.readFromDB(userID);
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
@@ -86,16 +86,16 @@ class Special {
         {
           type.expenses.push(expense);
         }
-      })
-      return type
-    })
+      });
+      return type;
+    });
     //console.log(filteredExpenses);
     return {
       firstName: user.firstName,
       middleName: user.middleName,
       lastName: user.lastName,
       expenses: temp
-    }
+    };
   }
 
   _processExpenses(expenseData) {
