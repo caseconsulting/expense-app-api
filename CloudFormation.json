@@ -222,7 +222,7 @@
                 "- [ sh, -c, echo \"== Clone repository\" ]\n",
                 "- runuser -l centos -c 'git clone https://github.com/caseconsulting/expense-app-api.git ~/app'\n",
                 "- [ sh, -c, echo \"== Download env file from S3 bucket\" ]\n",
-                "- runuser -l centos -c 'aws s3 cp s3://mybucket/test.txt test2.txt'\n",
+                "- runuser -l centos -c 'aws s3 cp s3://case-expense-app/.env ~/app'\n",
                 "- [ sh, -c, echo \"== Configure logs\" ]\n",
                 "- runuser -l centos -c 'mkdir -p /home/centos/app/logs'\n",
                 "- [ sh, -c, echo \"== Install node modules\" ]\n",

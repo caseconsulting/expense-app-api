@@ -24,11 +24,33 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
+const request = require('request');
+const getUserInfo = (req, res, next) => {
+  let options = {
+    method: 'GET',
+    url: 'https://consultwithcase.auth0.com/userInfo',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+      Authorization: req.headers.authorization
+    }
+  };
+
+  request(options, (error, response, body) => {
+    if (error) {
+      throw new Error(error);
+    }
+    console.log(body); //Have email... use it!
+  });
+
+  next(); //$$$ PROFIT $$$💰
+};
+
 class Crud {
   constructor(databaseModify) {
     this.databaseModify = databaseModify;
     this._router = express.Router();
-    this._router.get('/', checkJwt, this.showList.bind(this));
+    this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
     this._router.post('/', this.create.bind(this));
     this._router.get('/:id', this.read.bind(this));
     this._router.put('/:id', this.update.bind(this));
