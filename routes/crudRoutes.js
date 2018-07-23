@@ -36,11 +36,10 @@ const getUserInfo = (req, res, next) => {
     }
   };
 
-  request(options, (error, response, body) => {
+  request(options, error => {
     if (error) {
       throw new Error(error);
     }
-    console.log(body); //Have email... use it!
   });
 
   next(); //$$$ PROFIT $$$💰
