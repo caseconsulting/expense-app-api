@@ -105,10 +105,26 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    return this._add(uuid(), req.body)
-      .then(newObject => this._validateInputs(res, newObject))
-      .then(validated => this._createInDatabase(res, validated))
-      .catch(err => this._handleError(res, err));
+    if (req.employee.role === 'admin' || req.employee.role === 'super-admin') {
+      return this._add(uuid(), req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._createInDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }
+    else if (req.employee.role === 'user' && this.database.tableName === 'Expense') {
+      return this._add(uuid(), req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._createInDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }
+    else {
+      let err = {
+        code: 403,
+        message: 'Unable to create object in database due to insuffieicient user permissions'
+      };
+      this._handleError(res, err);
+    }
+
   }
 
   /* eslint-disable no-unused-vars */

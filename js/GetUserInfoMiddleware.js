@@ -20,10 +20,12 @@ const getUserInfo = (req, res, next) => {
 
     db.querySecondaryIndexInDB('email-index','email',obj.email).then(data => {
       req.employee = data;
+      next();
     }).catch( err => { throw err; });
 
   });
-  next(); //$$$ PROFIT $$$💰
+
+  //$$$ PROFIT $$$💰
 };
 
 
