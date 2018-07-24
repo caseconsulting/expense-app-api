@@ -34,6 +34,7 @@ class databaseModify {
       });
   }
 
+
   /**
    * Add the entry to the database
    */
@@ -89,6 +90,34 @@ class databaseModify {
       .catch(function(err) {
         throw err;
       });
+  }
+
+  querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
+    const params = {
+      TableName: this.tableName,
+      IndexName:secondaryIndex,
+      ExpressionAttributeValues: {
+        ':queryKey': queryParam
+      },
+      KeyConditionExpression: `${queryKey} = :queryKey`
+    };
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient
+      .query(params)
+      .promise()
+      .then((data) => {
+        if (!_.isEmpty(data.Items)) {
+          return data.Items;
+        } else {
+          let err = {
+            code: 404,
+            message: 'Item not found'
+          };
+          throw err;
+        }
+      })
+      .catch(err => { throw err; });
   }
 
   /**
