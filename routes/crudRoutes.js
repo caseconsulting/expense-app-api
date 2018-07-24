@@ -111,7 +111,7 @@ class Crud {
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
     }
-    else if (req.employee.role === 'user' && this.database.tableName === 'Expense') {
+    else if (req.employee.role === 'user' && this._getTableName() === 'Expense') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -208,6 +208,9 @@ class Crud {
       .getAllEntriesInDB()
       .then(data => res.status(200).send(data))
       .catch(err => this._handleError(res, err));
+  }
+  _getTableName(){
+    return this.databaseModify.tableName;
   }
 }
 

@@ -13,9 +13,11 @@ describe('crudRoutes', () => {
       'readFromDB',
       'removeFromDB',
       'updateEntryInDB',
-      'getAllEntriesInDB'
+      'getAllEntriesInDB',
+      'tableName'
     ]);
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
+
   });
 
   describe('_inputChecker', () => {
@@ -83,15 +85,21 @@ describe('crudRoutes', () => {
   describe('create', () => {
     let req, res, err;
     beforeEach(() => {
-      req = { body: 'body' };
       res = 'res';
-      err = 'err';
+      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+      spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+      spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+      spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
+
     });
-    describe('if everything works', () => {
+    describe('if the user role is admin or super-admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-        spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
-        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+        req = {
+          body: 'body',
+          employee:{
+            role: 'super-admin'
+          }
+        };
       });
       it('should add req.body', done => {
         return crudRoutes.create(req, res).then(() => {
@@ -101,19 +109,50 @@ describe('crudRoutes', () => {
           done();
         });
       });
-    }); //if everything works
+    }); //if the user role is admin or super-admin
 
-    describe('if something goes wrong', () => {
+    describe('if a user role is user and submitting an expense', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        spyOn(crudRoutes, '_add').and.returnValue(Promise.reject({}));
+        req = {
+          body: 'body',
+          employee:{
+            role: 'user'
+          }
+        };
+
       });
-      it('should error out', () => {
-        return crudRoutes.create(req, res).catch(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      it('should add req.body', done => {
+        return crudRoutes.create(req, res).then(() => {
+          expect(crudRoutes._add).toHaveBeenCalledWith(jasmine.anything(), req.body);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+          expect(crudRoutes._createInDatabase).toHaveBeenCalledWith(res, true);
+          done();
         });
       });
-    }); //if something goes wrong
+    }); //if a user role is user and submitting an expense
+
+    describe('if user doesnt have permissions', () => {
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unable to create object in database due to insuffieicient user permissions'
+        };
+        req = {
+          body: 'body',
+          employee:{
+            role: 'NO_PERMISSION'
+          }
+        };
+        spyOn(crudRoutes, '_handleError').and.returnValue({
+          code: 403,
+          message: 'Unable to create object in database due to insuffieicient user permissions'
+        });
+      });
+      it('should error out', () => {
+        crudRoutes.create(req, res);
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      });
+    }); //if user doesnt have permissions
   }); //create
 
   describe('read', () => {
