@@ -10,6 +10,7 @@ class Special {
     this.expenseTypeData = expenseTypeData;
     this._router = express.Router();
     this._router.get('/', this.showList.bind(this));
+    this._router.get('/getAll', this.showAll.bind(this));
     this._router.get('/:id', this.empExpenses.bind(this));
   }
 
@@ -75,11 +76,33 @@ class Special {
     }
   }
 
+  async showAll(req, res){
+    try {
+      let expenses = await this.expenseData.getAllEntriesInDB();
+      let users = await this.employeeData.getAllEntriesInDB();
+      let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+      let temp = [];
+      for (var x = 0; x < users.length; x++)
+      {
+        temp.push(this._findEmployee(expenses, users[x], expensesTypes));
+      }
+      res.status(200).send(temp);
+    }
+    catch(error){
+      this._handelError(res, error);
+    }
+  }
+
   _findEmployee(expenses, user, expensesTypes)
   {
     let filteredExpenses = _.filter(expenses, (expense) => expense.userId === user.id);
-    expensesTypes.expenses = [];
-    let temp = _.forEach(expensesTypes, (type) => {
+    let temp = null;
+    let returnObject = {
+      firstName: user.firstName,
+      middleName: user.middleName,
+      lastName: user.lastName
+    };
+    temp = _.forEach(expensesTypes, (type) => {
       type.expenses = [];
       _.forEach(filteredExpenses, expense => {
         if (type.id === expense.expenseTypeId)
@@ -89,13 +112,9 @@ class Special {
       });
       return type;
     });
-    //console.log(filteredExpenses);
-    return {
-      firstName: user.firstName,
-      middleName: user.middleName,
-      lastName: user.lastName,
-      expenses: temp
-    };
+
+    returnObject.expenseTypeData = temp;
+    return returnObject;
   }
 
   _processExpenses(expenseData) {
