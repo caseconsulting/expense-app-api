@@ -81,15 +81,10 @@ class Special {
       let expenses = await this.expenseData.getAllEntriesInDB();
       let users = await this.employeeData.getAllEntriesInDB();
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-      let temp = [];
-      for (var x = 0; x < users.length; x++)
-      {
-        temp.push(this._findEmployee(expenses, users[x], expensesTypes));
-      }
-      res.status(200).send(temp);
+      res.status(200).send((this._findExpenseTypes(expenses,users, expensesTypes)));
     }
     catch(error){
-      this._handelError(res, error);
+      this._handleError(res, error);
     }
   }
 
@@ -103,6 +98,7 @@ class Special {
       lastName: user.lastName
     };
     temp = _.forEach(expensesTypes, (type) => {
+
       type.expenses = [];
       _.forEach(filteredExpenses, expense => {
         if (type.id === expense.expenseTypeId)
@@ -112,9 +108,27 @@ class Special {
       });
       return type;
     });
-
     returnObject.expenseTypeData = temp;
     return returnObject;
+  }
+
+  _findExpenseTypes(expenses, employees, expenseTypes) {
+    return _.forEach(employees, employee => this._expenseTypeMapping(expenses, employee, expenseTypes));
+  }
+  _expenseTypeMapping(expenses, employee, expenseTypes) {
+    return _.map(employee.expenseTypes, employeeExpenseType => {
+      let returnedExpenseType = _.find(expenseTypes, et => et.id === employeeExpenseType.id);
+      let toBeMerged = this._expenseMapping(expenses, employee, employeeExpenseType);
+      let expensesToMerge = {
+        expenses: toBeMerged
+      };
+      return _.merge(employeeExpenseType, returnedExpenseType, expensesToMerge);
+    });
+  }
+
+  _expenseMapping(expenses, employee, expenseType) {
+    return _.filter(expenses, expense => expense.userId === employee.id
+      && expense.expenseTypeId === expenseType.id);
   }
 
   _processExpenses(expenseData) {
