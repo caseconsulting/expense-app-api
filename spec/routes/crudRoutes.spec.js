@@ -41,47 +41,6 @@ describe('crudRoutes', () => {
     }); //if there are no empty strings
   }); // _inputChecker
 
-  describe('update', () => {
-    let req, res, err;
-    beforeEach(() => {
-      req = {
-        body: 'body',
-        params: {
-          id: 'id'
-        }
-      };
-      res = 'res';
-      err = 'err';
-    });
-    describe('if everything works', () => {
-      beforeEach(() => {
-        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
-        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
-      });
-      it('should update using req.body', done => {
-        return crudRoutes.update(req, res).then(() => {
-          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
-          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
-          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
-          done();
-        });
-      });
-    }); //if everything works
-
-    describe('if something goes wrong', () => {
-      beforeEach(() => {
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        spyOn(crudRoutes, '_update').and.returnValue(Promise.reject({}));
-      });
-      it('should error out', () => {
-        return crudRoutes.update(req, res).catch(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-        });
-      });
-    }); //if something goes wrong
-  }); //update
-
   describe('create', () => {
     let req, res, err;
     beforeEach(() => {
@@ -213,22 +172,23 @@ describe('crudRoutes', () => {
   describe('update', () => {
     let req, res, err;
     beforeEach(() => {
-      req = {
-        body: 'body',
-        params: {
-          id: 'id'
-        }
-      };
       res = 'res';
-      err = 'err';
+      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+      spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+      spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+      spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
     });
-    describe('if everything works', () => {
+    describe('if the user role is admin or super-admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
-        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+        req = {
+          body: 'body',
+          params: { id: 'id' },
+          employee:{
+            role: 'super-admin'
+          }
+        };
       });
-      it('should update using req.body', done => {
+      it('should add req.body', done => {
         return crudRoutes.update(req, res).then(() => {
           expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
           expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
@@ -236,19 +196,48 @@ describe('crudRoutes', () => {
           done();
         });
       });
-    }); //if everything works
+    }); //if the user role is admin or super-admin
 
-    describe('if something goes wrong', () => {
+    describe('if a user role is user and submitting an expense', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        spyOn(crudRoutes, '_update').and.returnValue(Promise.reject({}));
+        req = {
+          body: 'body',
+          params: { id: 'id' },
+          employee:{
+            role: 'user'
+          }
+        };
+
       });
-      it('should error out', () => {
-        return crudRoutes.update(req, res).catch(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      it('should add req.body', done => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
+          done();
         });
       });
-    }); //if something goes wrong
+    }); //if a user role is user and submitting an expense
+
+    describe('if user doesnt have permissions', () => {
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unable to update object in database due to insuffieicient user permissions'
+        };
+        req = {
+          body: 'body',
+          employee:{
+            role: 'NO_PERMISSION'
+          }
+        };
+        spyOn(crudRoutes, '_handleError').and.returnValue(err);
+      });
+      it('should error out', () => {
+        crudRoutes.update(req, res);
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      });
+    }); //if user doesnt have permissions
   }); //update
 
   describe('onDelete', () => {

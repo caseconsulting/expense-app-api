@@ -177,10 +177,24 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    return this._update(req.params.id, req.body)
-      .then(newObject => this._validateInputs(res, newObject))
-      .then(validated => this._updateDatabase(res, validated))
-      .catch(err => this._handleError(res, err));
+    if (req.employee.role === 'admin' || req.employee.role === 'super-admin') {
+      return this._update(req.params.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._updateDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }else if (req.employee.role === 'user' && this._getTableName() === 'Expense') {
+      return this._update(req.params.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._updateDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }
+    else {
+      let err = {
+        code: 403,
+        message: 'Unable to update object in database due to insuffieicient user permissions'
+      };
+      this._handleError(res, err);
+    }
   }
 
   /**
