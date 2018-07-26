@@ -36,6 +36,7 @@ class Crud {
     this._router.get('/:id',checkJwt, getUserInfo, this.read.bind(this));
     this._router.put('/:id', checkJwt, getUserInfo,this.update.bind(this));
     this._router.delete('/:id', checkJwt, getUserInfo,this.onDelete.bind(this));
+    this._router.get('/role',checkJwt, getUserInfo,this.getUserRole.bind(this));
   }
 
   get router() {
@@ -270,6 +271,19 @@ class Crud {
   }
   _isAdmin(req){
     return (req.employee.role === 'admin' || req.employee.role === 'super-admin');
+  }
+  getUserRole(req,res){
+    if(req.employee.role){
+      res.status(200).send(req.employee.role);
+    }
+    else{
+      let err = {
+        code: 404,
+        message: 'entry not found in database'
+      };
+      
+      this._handleError(res, err);
+    }
   }
 }
 
