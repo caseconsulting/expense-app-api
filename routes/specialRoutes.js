@@ -11,6 +11,7 @@ class Special {
     this._router = express.Router();
     this._router.get('/', this.showList.bind(this));
     this._router.get('/getAll', this.showAll.bind(this));
+    this._router.get('/getAllExpenses', this.getAllExpenses.bind(this));
     this._router.get('/:id', this.empExpenses.bind(this));
   }
 
@@ -124,6 +125,31 @@ class Special {
       };
       return _.merge(employeeExpenseType, returnedExpenseType, expensesToMerge);
     });
+  }
+
+  async getAllExpenses(req, res) {
+    try {
+      let expenses = await this.expenseData.getAllEntriesInDB();
+      let users = await this.employeeData.getAllEntriesInDB();
+      let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+      res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
+    }
+    catch(error){
+      this._handleError(res, error);
+    }
+  }
+
+  _getEmployeeName(expenses, users, expenseTypes) {
+    _.forEach(expenses, expense => {
+      let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
+      let employee = _.find(users, emp => emp.id === expense.userId);
+      if (expenseType !== undefined && employee !== undefined){
+        expense.budgetName = expenseType.budgetName;
+        expense.employeeName = `${employee.firstName} ${employee.middleName} ${
+          employee.lastName}`;
+      }
+    });
+    return expenses;
   }
 
   _expenseMapping(expenses, employee, expenseType) {
