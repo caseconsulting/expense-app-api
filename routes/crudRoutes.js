@@ -105,13 +105,13 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    if (req.employee.role === 'admin' || req.employee.role === 'super-admin') {
+    if (this._isAdmin(req)) {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
     }
-    else if (req.employee.role === 'user' && this._getTableName() === 'Expense') {
+    else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -124,7 +124,6 @@ class Crud {
       };
       this._handleError(res, err);
     }
-
   }
 
   /* eslint-disable no-unused-vars */
@@ -145,21 +144,46 @@ class Crud {
   /* eslint-enable no-unused-vars */
 
   read(req, res) {
-    return this.databaseModify
-      .readFromDB(req.params.id)
-      .then(output => {
-        if (_.first(output)) {
-          res.status(200).send(_.first(output));
-        } else {
-          let err = {
-            code: 404,
-            message: 'entry not found in database'
-          };
-          throw err;
-        }
-      })
-      .catch(err => this._handleError(res, err));
+    const FORBIDDEN = {
+      code: 403,
+      message: 'Unable to get objects from database due to insuffieicient user permissions'
+    };
+    const NOT_FOUND = {
+      code: 404,
+      message: 'entry not found in database'
+    };
+    if(this._isAdmin(req)){
+      return this.databaseModify
+        .readFromDB(req.params.id)
+        .then(output => {
+          if (_.first(output)) {
+            res.status(200).send(_.first(output));
+          } else {
+            let err = NOT_FOUND;
+            throw err;
+          }
+        })
+        .catch(err => this._handleError(res, err));
+    }
+    else if(this._getTableName() === 'Expense'&& !this._isAdmin(req)){
+      this.databaseModify
+        .readFromDB(req.params.id)
+        .then((expense) => {
+          if(_.first(expense).userId === req.employee.id){
+            res.status(200).send(_.first(expense));
+          }
+          else{
+            let err = FORBIDDEN;
+            this._handleError(res, err);
+          }
+        });
+    }
+    else{
+      let err = FORBIDDEN;
+      this._handleError(res, err);
+    }
   }
+
 
   /**
    * Updates the object
@@ -201,30 +225,51 @@ class Crud {
    * delete the specified entry
    */
   onDelete(req, res) {
-    if (this.databaseModify.tableName === 'Expense') {
-      this._delete(req.params.id)
-        .then(value => value)
-        .catch(error => error);
+    if (this._isAdmin(req)) {
+      if (this.databaseModify.tableName === 'Expense') {
+        this._delete(req.params.id)
+          .then(value => value)
+          .catch(error => error);
+      }
+      return this.databaseModify
+        .removeFromDB(req.params.id)
+        .then(data => {
+          res.status(200).send(data);
+        })
+        .catch(err => this._handleError(res, err));
     }
-    return this.databaseModify
-      .removeFromDB(req.params.id)
-      .then(data => {
-        res.status(200).send(data);
-      })
-      .catch(err => this._handleError(res, err));
+    else {
+      let err = {
+        code: 403,
+        message: 'Unable to delete object in database due to insuffieicient user permissions'
+      };
+      this._handleError(res, err);
+    }
   }
 
   /**
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    return this.databaseModify
-      .getAllEntriesInDB()
-      .then(data => res.status(200).send(data))
-      .catch(err => this._handleError(res, err));
+    if(this._isAdmin(req)){
+      return this.databaseModify
+        .getAllEntriesInDB()
+        .then(data => res.status(200).send(data))
+        .catch(err => this._handleError(res, err));
+    }
+    else {
+      let err = {
+        code: 403,
+        message: 'Unable to get objects from database due to insuffieicient user permissions'
+      };
+      this._handleError(res, err);
+    }
   }
   _getTableName(){
     return this.databaseModify.tableName;
+  }
+  _isAdmin(req){
+    return (req.employee.role === 'admin' || req.employee.role === 'super-admin');
   }
 }
 
