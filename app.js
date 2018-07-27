@@ -4,7 +4,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-var index = require('./routes/index');
+var roles = require('./routes/roles');
 require('dotenv').config({
   silent: true
 });
@@ -46,7 +46,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.use('/role', roles);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
