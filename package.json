@@ -14,7 +14,7 @@
     "stop": "pm2 stop services.yml",
     "test": "jasmine || true",
     "validate": "npm ls",
-    "debug": "nodemon node --inspect ./bin/www"
+    "debug": "nodemon --inspect bin/www"
   },
   "dependencies": {
     "aws-sdk": "^2.270.1",
