@@ -36,7 +36,6 @@ class Crud {
     this._router.get('/:id',checkJwt, getUserInfo, this.read.bind(this));
     this._router.put('/:id', checkJwt, getUserInfo,this.update.bind(this));
     this._router.delete('/:id', checkJwt, getUserInfo,this.onDelete.bind(this));
-
   }
 
   get router() {
