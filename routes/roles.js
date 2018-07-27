@@ -27,7 +27,8 @@ const checkJwt = jwt({
 class Roles{
   constructor(){
     this._router = express.Router();
-    this._router.get('/',checkJwt, getUserInfo, this.getUserRole.bind(this));
+    this._router.get('/role',checkJwt, getUserInfo, this.getUserRole.bind(this));
+    this._router.get('/me',checkJwt, getUserInfo, this.getUser.bind(this));
   }
 
   get router() {
@@ -36,6 +37,14 @@ class Roles{
   getUserRole(req,res){
     if(req.employee.role){
       res.status(200).send(req.employee.role);
+    }
+    else{
+      res.status(404).send('entry not found in database');
+    }
+  }
+  getUser(req,res){
+    if(req.employee.role){
+      res.status(200).send(req.employee);
     }
     else{
       res.status(404).send('entry not found in database');

@@ -47,7 +47,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/role', roles.router);
+app.use('/info', roles.router);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
