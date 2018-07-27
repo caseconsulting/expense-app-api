@@ -32,6 +32,7 @@ class EmployeeRoutes extends Crud {
     if (!expenseTypes) {
       expenseTypes = [];
     }
+    let isActive = true;
     return this.databaseModify
       .findObjectInDB(id)
       .then(() => {
@@ -42,7 +43,8 @@ class EmployeeRoutes extends Crud {
           lastName,
           empId,
           hireDate,
-          expenseTypes
+          expenseTypes,
+          isActive
         };
       })
       .catch(err => {

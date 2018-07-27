@@ -204,7 +204,7 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression: `set firstName = :fn, middleName = :mn,
-        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et`,
+        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive =:ia`,
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,
