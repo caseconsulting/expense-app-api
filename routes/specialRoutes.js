@@ -180,6 +180,9 @@ class Special {
         expense.budgetName = expenseType.budgetName;
         expense.employeeName = `${employee.firstName} ${employee.middleName} ${
           employee.lastName}`;
+        expense.firstName = employee.firstName;
+        expense.middleName = employee.middleName;
+        expense.lastName = employee.lastName;
       }
     });
     return expenses;
