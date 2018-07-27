@@ -211,7 +211,8 @@ class databaseModify {
           ':ln': objToUpdate.lastName,
           ':eid': objToUpdate.empId,
           ':hd': objToUpdate.hireDate,
-          ':et': objToUpdate.expenseTypes
+          ':et': objToUpdate.expenseTypes,
+          ':ia': objToUpdate.isActive
         },
         ReturnValues: 'ALL_NEW'
       };

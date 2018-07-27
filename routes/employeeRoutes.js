@@ -10,6 +10,7 @@ class EmployeeRoutes extends Crud {
     if (!middleName) {
       middleName = 'N/A';
     }
+    let isActive = true;
     return new Promise(resolve => {
       resolve({
         id: uuid,
@@ -18,7 +19,8 @@ class EmployeeRoutes extends Crud {
         lastName,
         empId,
         hireDate,
-        expenseTypes
+        expenseTypes,
+        isActive
       });
     });
   }
