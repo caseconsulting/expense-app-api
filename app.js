@@ -4,11 +4,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-var roles = require('./routes/roles');
 require('dotenv').config({
   silent: true
 });
 
+const Roles = require('./routes/roles');
+const roles = new Roles();
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
 const expenseRoutes = new ExpenseRoutes(new databaseModify('Expense'));
@@ -46,7 +47,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/role', roles);
+app.use('/role', roles.router);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);

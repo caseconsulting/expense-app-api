@@ -1,5 +1,4 @@
 var express = require('express');
-var router = express.Router();
 
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
@@ -25,20 +24,22 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
-router.get('/',checkJwt, getUserInfo, getUserRole.bind(this));
-
-function getUserRole(req,res){
-  if(req.employee.role){
-    res.status(200).send(req.employee.role);
+class Roles{
+  constructor(){
+    this._router = express.Router();
+    this._router.get('/',checkJwt, getUserInfo, this.getUserRole.bind(this));
   }
-  else{
-    let err = {
-      code: 404,
-      message: 'entry not found in database'
-    };
 
-    this._handleError(res, err);
+  get router() {
+    return this._router;
+  }
+  getUserRole(req,res){
+    if(req.employee.role){
+      res.status(200).send(req.employee.role);
+    }
+    else{
+      res.status(404).send('entry not found in database');
+    }
   }
 }
-
-module.exports = router;
+module.exports = Roles;
