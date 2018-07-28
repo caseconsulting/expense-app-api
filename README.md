@@ -7,7 +7,7 @@ Download and install Node.js from: https://nodejs.org/.
 Install required Node.js modules:
 
 ```
-npm install
+npm install --no-optional
 npm dedupe
 ```
 
