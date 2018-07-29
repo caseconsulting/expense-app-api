@@ -1,6 +1,8 @@
 node_modules
+coverage
 .DS_Store
-*.log
 .env
+*.log
 /logs
+.nyc_output
 *.pid
