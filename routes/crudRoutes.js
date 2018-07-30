@@ -251,7 +251,7 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    if(this._isAdmin(req)){
+    if(this._isAdmin(req) || this.databaseModify.tableName === 'ExpenseType'){
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
