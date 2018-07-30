@@ -1,32 +1,24 @@
-const request = require('request');
 const DB = require('./databaseModify');
 const db = new DB('Employee');
+const _ = require('lodash');
 const getUserInfo = (req, res, next) => {
-  let options = {
-    method: 'GET',
-    url: 'https://consultwithcase.auth0.com/userInfo',
-    headers: {
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/json',
-      Authorization: req.headers.authorization
-    }
-  };
-
-  request(options, (error, response, body) => {
-    if (error) {
-      throw new Error(error);
-    }
-    let obj = JSON.parse(body);
-
-    db.querySecondaryIndexInDB('email-index','email',obj.email).then(data => {
+  // JWT tokens created by auth0 have to conform to OIDC specification.
+  // As a result of this, all custom namespaces have to begin with http or https.
+  // see here for more detailed discussion: https://auth0.com/docs/api-auth/tutorials/adoption/scope-custom-claims
+  const emailDomain = '@consultwithcase.com';
+  let userEmail = _.find(req.user, field => {
+    return _.endsWith(field, emailDomain);
+  });
+  db.querySecondaryIndexInDB('email-index', 'email', userEmail)
+    .then(data => {
       req.employee = data;
       next();
-    }).catch( err => { throw err; });
-
-  });
+    })
+    .catch(err => {
+      throw err;
+    });
 
   //$$$ PROFIT $$$💰
 };
-
 
 module.exports = { getUserInfo };
