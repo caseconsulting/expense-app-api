@@ -105,7 +105,13 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    if (this._isAdmin(req)) {
+    if (req.employee.role === 'super-admin' && this._getTableName() === 'Employee') {
+      return this._add(uuid(), req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._createInDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }
+    else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -201,12 +207,18 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    if (req.employee.role === 'admin' || req.employee.role === 'super-admin') {
+    if (req.employee.role === 'super-admin' && this._getTableName() === 'Employee') {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }else if (req.employee.role === 'user' && this._getTableName() === 'Expense') {
+    }
+    else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
+      return this._update(req.params.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._updateDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    }else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
