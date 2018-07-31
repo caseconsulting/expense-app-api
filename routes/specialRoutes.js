@@ -211,7 +211,7 @@ class Special {
     });
   }
   _isAdmin(req){
-    return (req.employee.role === 'admin' || req.employee.role === 'super-admin');
+    return (req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin');
   }
 }
 

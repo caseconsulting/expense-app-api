@@ -206,7 +206,7 @@ class databaseModify {
         },
         UpdateExpression: `set firstName = :fn, middleName = :mn,
         lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
-        employeeRole = :r, email = :eml`,
+        employeeRole = :er, email = :eml`,
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,
@@ -215,7 +215,7 @@ class databaseModify {
           ':hd': objToUpdate.hireDate,
           ':et': objToUpdate.expenseTypes,
           ':ia': objToUpdate.isActive,
-          ':r': objToUpdate.employeeRole,
+          ':er': objToUpdate.employeeRole,
           ':eml': objToUpdate.email
         },
         ReturnValues: 'ALL_NEW'

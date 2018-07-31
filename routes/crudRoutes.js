@@ -25,17 +25,15 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
-
-
 class Crud {
   constructor(databaseModify) {
     this.databaseModify = databaseModify;
     this._router = express.Router();
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
-    this._router.post('/', checkJwt, getUserInfo,this.create.bind(this));
-    this._router.get('/:id',checkJwt, getUserInfo, this.read.bind(this));
-    this._router.put('/:id', checkJwt, getUserInfo,this.update.bind(this));
-    this._router.delete('/:id', checkJwt, getUserInfo,this.onDelete.bind(this));
+    this._router.post('/', checkJwt, getUserInfo, this.create.bind(this));
+    this._router.get('/:id', checkJwt, getUserInfo, this.read.bind(this));
+    this._router.put('/:id', checkJwt, getUserInfo, this.update.bind(this));
+    this._router.delete('/:id', checkJwt, getUserInfo, this.onDelete.bind(this));
   }
 
   get router() {
@@ -105,25 +103,22 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    if (req.employee.role === 'super-admin' && this._getTableName() === 'Employee') {
+    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === 'Employee') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }
-    else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
+    } else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }
-    else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
+    } else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }
-    else {
+    } else {
       let err = {
         code: 403,
         message: 'Unable to create object in database due to insuffieicient user permissions'
@@ -158,7 +153,7 @@ class Crud {
       code: 404,
       message: 'entry not found in database'
     };
-    if(this._isAdmin(req)){
+    if (this._isAdmin(req)) {
       return this.databaseModify
         .readFromDB(req.params.id)
         .then(output => {
@@ -170,26 +165,20 @@ class Crud {
           }
         })
         .catch(err => this._handleError(res, err));
-    }
-    else if(this._getTableName() === 'Expense'&& !this._isAdmin(req)){
-      this.databaseModify
-        .readFromDB(req.params.id)
-        .then((expense) => {
-          if(_.first(expense).userId === req.employee.id){
-            res.status(200).send(_.first(expense));
-          }
-          else{
-            let err = FORBIDDEN;
-            this._handleError(res, err);
-          }
-        });
-    }
-    else{
+    } else if (this._getTableName() === 'Expense' && !this._isAdmin(req)) {
+      this.databaseModify.readFromDB(req.params.id).then(expense => {
+        if (_.first(expense).userId === req.employee.id) {
+          res.status(200).send(_.first(expense));
+        } else {
+          let err = FORBIDDEN;
+          this._handleError(res, err);
+        }
+      });
+    } else {
       let err = FORBIDDEN;
       this._handleError(res, err);
     }
   }
-
 
   /**
    * Updates the object
@@ -207,24 +196,22 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    if (req.employee.role === 'super-admin' && this._getTableName() === 'Employee') {
+    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === 'Employee') {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }
-    else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
+    } else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
+    } else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    }
-    else {
+    } else {
       let err = {
         code: 403,
         message: 'Unable to update object in database due to insuffieicient user permissions'
@@ -249,8 +236,7 @@ class Crud {
           res.status(200).send(data);
         })
         .catch(err => this._handleError(res, err));
-    }
-    else {
+    } else {
       let err = {
         code: 403,
         message: 'Unable to delete object in database due to insuffieicient user permissions'
@@ -263,13 +249,12 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    if(this._isAdmin(req) || this.databaseModify.tableName === 'ExpenseType'){
+    if (this._isAdmin(req) || this.databaseModify.tableName === 'ExpenseType') {
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
         .catch(err => this._handleError(res, err));
-    }
-    else {
+    } else {
       let err = {
         code: 403,
         message: 'Unable to get objects from database due to insuffieicient user permissions'
@@ -277,11 +262,11 @@ class Crud {
       this._handleError(res, err);
     }
   }
-  _getTableName(){
+  _getTableName() {
     return this.databaseModify.tableName;
   }
-  _isAdmin(req){
-    return (req.employee.role === 'admin' || req.employee.role === 'super-admin');
+  _isAdmin(req) {
+    return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
   }
 }
 

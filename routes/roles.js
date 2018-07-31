@@ -24,29 +24,27 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
-class Roles{
-  constructor(){
+class Roles {
+  constructor() {
     this._router = express.Router();
-    this._router.get('/role',checkJwt, getUserInfo, this.getUserRole.bind(this));
-    this._router.get('/me',checkJwt, getUserInfo, this.getUser.bind(this));
+    this._router.get('/role', checkJwt, getUserInfo, this.getUserRole.bind(this));
+    this._router.get('/me', checkJwt, getUserInfo, this.getUser.bind(this));
   }
 
   get router() {
     return this._router;
   }
-  getUserRole(req,res){
-    if(req.employee.role){
-      res.status(200).send(req.employee.role);
-    }
-    else{
+  getUserRole(req, res) {
+    if (req.employee.employeeRole) {
+      res.status(200).send(req.employee.employeeRole);
+    } else {
       res.status(404).send('entry not found in database');
     }
   }
-  getUser(req,res){
-    if(req.employee.role){
+  getUser(req, res) {
+    if (req.employee.employeeRole) {
       res.status(200).send(req.employee);
-    }
-    else{
+    } else {
       res.status(404).send('entry not found in database');
     }
   }
