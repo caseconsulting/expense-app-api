@@ -34,7 +34,6 @@ class databaseModify {
       });
   }
 
-
   /**
    * Add the entry to the database
    */
@@ -95,7 +94,7 @@ class databaseModify {
   querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
     const params = {
       TableName: this.tableName,
-      IndexName:secondaryIndex,
+      IndexName: secondaryIndex,
       ExpressionAttributeValues: {
         ':queryKey': queryParam
       },
@@ -106,7 +105,7 @@ class databaseModify {
     return documentClient
       .query(params)
       .promise()
-      .then((data) => {
+      .then(data => {
         if (!_.isEmpty(data.Items)) {
           return data.Items[0];
         } else {
@@ -117,7 +116,9 @@ class databaseModify {
           throw err;
         }
       })
-      .catch(err => { throw err; });
+      .catch(err => {
+        throw err;
+      });
   }
 
   /**
@@ -204,7 +205,8 @@ class databaseModify {
           id: objToUpdate.id
         },
         UpdateExpression: `set firstName = :fn, middleName = :mn,
-        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive =:ia`,
+        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
+        role = :r, email = :eml`,
         ExpressionAttributeValues: {
           ':fn': objToUpdate.firstName,
           ':mn': objToUpdate.middleName,
@@ -212,7 +214,9 @@ class databaseModify {
           ':eid': objToUpdate.empId,
           ':hd': objToUpdate.hireDate,
           ':et': objToUpdate.expenseTypes,
-          ':ia': objToUpdate.isActive
+          ':ia': objToUpdate.isActive,
+          ':r': objToUpdate.role,
+          ':eml': objToUpdate.email
         },
         ReturnValues: 'ALL_NEW'
       };
