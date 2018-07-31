@@ -60,6 +60,20 @@
   },
 
   "Resources": {
+    "s3FrontEnd": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "Private",
+        "BucketName": "case-consulting-vue-expense-app",
+        "CorsConfiguration": {
+          "CorsRules": [{
+            "AllowedOrigins": ["*"],
+            "AllowedMethods": ["GET", "POST", "PUT", "DELETE"],
+            "AllowedHeaders": ["*"]
+          }],
+        }
+      }
+    },
     "expenseTypeTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {

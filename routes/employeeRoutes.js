@@ -6,7 +6,7 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = databaseModify;
   }
 
-  _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, role }) {
+  _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {
     if (!middleName) {
       middleName = 'N/A';
     }
@@ -21,13 +21,13 @@ class EmployeeRoutes extends Crud {
         hireDate,
         expenseTypes,
         email,
-        role,
+        employeeRole,
         isActive
       });
     });
   }
 
-  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, role }) {
+  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {
     if (!middleName) {
       middleName = 'N/A';
     }
@@ -47,7 +47,7 @@ class EmployeeRoutes extends Crud {
           hireDate,
           expenseTypes,
           email,
-          role,
+          employeeRole,
           isActive
         };
       })
