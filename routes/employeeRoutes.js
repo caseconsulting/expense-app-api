@@ -8,7 +8,7 @@ class EmployeeRoutes extends Crud {
 
   _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {
     if (!middleName) {
-      middleName = 'N/A';
+      middleName = ' ';
     }
     let isActive = true;
     return new Promise(resolve => {
