@@ -187,7 +187,6 @@
           "ReadCapacityUnits": "5",
           "WriteCapacityUnits": "1"
         },
-
       }
     },
     "expenseTable": {
@@ -319,6 +318,64 @@
         }
       }
     },
+    "ExpenseAppApiRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": ["", ["expense-api-", {
+            "Ref": "Stage"
+          }]]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": ["ec2.amazonaws.com"]
+            },
+            "Action": ["sts:AssumeRole"]
+          }]
+        },
+        "Path": "/",
+        "Policies": [{
+            "PolicyName": "DynamoDB",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [{
+                "Effect": "Allow",
+                "Action": "dynamodb:*",
+                "Resource": "*"
+              }]
+            }
+          },
+          {
+            "PolicyName": "S3",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [{
+                "Effect": "Allow",
+                "Action": "s3:*",
+                "Resource": "*"
+              }]
+            }
+          }
+        ]
+      }
+    },
+    "ExpenseAppApiInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "InstanceProfileName": {
+          "Fn::Join": ["", ["expense-api-instance-profile-", {
+            "Ref": "Stage"
+          }]]
+        },
+        "Path": "/",
+        "Roles": [{
+          "Ref": "ExpenseAppApiRole"
+        }]
+      }
+    },
     "WebServerGroup": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
@@ -327,6 +384,8 @@
             "Ref": "Stage"
           }]]
         },
+        "HealthCheckType": "ELB",
+        "HealthCheckGracePeriod": 600,
         "VPCZoneIdentifier": {
           "Ref": "Subnets"
         },
@@ -338,7 +397,15 @@
         "TargetGroupARNs": [{
           "Ref": "ALBTargetGroup"
         }],
-
+        "Tags": [{
+          "Key": "Name",
+          "Value": {
+            "Fn::Join": ["", ["expense-app-api-", {
+              "Ref": "Stage"
+            }]]
+          },
+          "PropagateAtLaunch": true
+        }]
       }
     },
     "LaunchConfig": {
@@ -361,7 +428,9 @@
         "InstanceType": {
           "Ref": "InstanceType"
         },
-        "IamInstanceProfile": "ExpenseAppAPI",
+        "IamInstanceProfile": {
+          "Ref": "ExpenseAppApiInstanceProfile"
+        },
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [
@@ -379,7 +448,6 @@
                 "- epel-release\n",
                 "- git\n",
                 "- wget\n",
-
                 "# Run commands\n",
                 "runcmd:\n",
                 "- [ sh, -c, echo \"== Install EPEL packages\" ]\n",
@@ -428,7 +496,6 @@
         }
       }
     },
-
     "InstanceSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "DependsOn": "ALBSecurityGroup",
@@ -460,7 +527,15 @@
         ],
         "VpcId": {
           "Ref": "VpcId"
-        }
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": {
+            "Fn::Join": ["", ["expense-app-api-", {
+              "Ref": "Stage"
+            }]]
+          },
+        }]
       }
     },
     "ALBSecurityGroup": {
@@ -474,15 +549,23 @@
         "GroupDescription": "Enable HTTP for the load balancer",
         "SecurityGroupIngress": [{
           "IpProtocol": "tcp",
-          "FromPort": "3005",
-          "ToPort": "3005",
+          "FromPort": "80",
+          "ToPort": "80",
           "CidrIp": {
             "Ref": "SSHLocation"
           }
         }],
         "VpcId": {
           "Ref": "VpcId"
-        }
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": {
+            "Fn::Join": ["", ["expense-app-api-lb-", {
+              "Ref": "Stage"
+            }]]
+          },
+        }]
       }
     }
   }
