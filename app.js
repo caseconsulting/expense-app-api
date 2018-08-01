@@ -10,6 +10,8 @@ require('dotenv').config({
 
 const Roles = require('./routes/roles');
 const roles = new Roles();
+const Ping = require('./routes/ping');
+const ping = new Ping();
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
 const expenseRoutes = new ExpenseRoutes(new databaseModify('Expense'));
@@ -30,9 +32,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
 let corsConfig = {
   allowedHeaders: ['Authorization', 'Content-Type']
 };
@@ -46,7 +45,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/ping', ping.router);
 app.use('/info', roles.router);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
