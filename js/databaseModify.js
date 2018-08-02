@@ -91,6 +91,35 @@ class databaseModify {
       });
   }
 
+  queryWithTwoIndexesInDB(userId, expenseTypeId) {
+    const params = {
+      TableName: this.tableName,
+      IndexName: 'userId-expenseTypeId-index',
+      ExpressionAttributeValues:{
+        ':expenseTypeId': expenseTypeId,
+        ':userId': userId
+      },
+      KeyConditionExpression: 'expenseTypeId = :expenseTypeId and userId = :userId',
+
+    };
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient
+      .query(params)
+      .promise()
+      .then((data) => {
+        if (!_.isEmpty(data.Items)) {
+          return data.Items[0];
+        } else {
+          return null;
+        }
+      })
+      .catch((err) => {
+        throw err;
+      });
+  }
+
+
   querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
     const params = {
       TableName: this.tableName,
@@ -238,6 +267,24 @@ class databaseModify {
           ':rf':objToUpdate.recurringFlag
         },
         ReturnValues: 'ALL_NEW'
+      };
+    case 'Budgets':
+      return {
+        TableName: 'Budgets',
+        Key:{
+          id:objToUpdate.id
+        },
+        UpdateExpression:`set expenseTypeId = :eti, userId = :ui,
+          reimbursedAmount = :ra, fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
+        ExpressionAttributeValues: {
+          ':eti':objToUpdate.expenseTypeId,
+          ':ui':objToUpdate.userId,
+          ':ra':objToUpdate.reimbursedAmount,
+          ':pa':objToUpdate.pendingAmount,
+          ':fsd':objToUpdate.fiscalStartDate,
+          ':fed':objToUpdate.fiscalEndDate
+        },
+        ReturnValues:'ALL_NEW'
       };
     }
   }
