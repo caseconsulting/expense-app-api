@@ -4,7 +4,7 @@ class ExpenseTypeRoutes extends Crud {
     super(databaseModify, uuid);
     this.databaseModify = databaseModify;
   }
-  _add(uuid, { budgetName, budget, odFlag, description }) {
+  _add(uuid, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
     return new Promise(resolve => {
       if (odFlag === undefined) {
         odFlag = false;
@@ -14,12 +14,15 @@ class ExpenseTypeRoutes extends Crud {
         budgetName,
         budget,
         odFlag,
-        description
+        description,
+        startDate,
+        endDate,
+        recurringFlag
       });
     });
   }
 
-  _update(id, { budgetName, budget, odFlag, description }) {
+  _update(id, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
     return this.databaseModify
       .findObjectInDB(id)
       .then(() => {
@@ -28,7 +31,10 @@ class ExpenseTypeRoutes extends Crud {
           budgetName,
           budget,
           odFlag,
-          description
+          description,
+          startDate,
+          endDate,
+          recurringFlag
         };
       })
       .catch(err => {

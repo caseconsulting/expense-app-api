@@ -226,12 +226,16 @@ class databaseModify {
         Key: {
           id: objToUpdate.id
         },
-        UpdateExpression: 'set budgetName = :bn, budget = :b, odFlag = :odf, description = :d',
+        UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
+          startDate = :sd, endDate= :ed,recurringFlag = :rf`,
         ExpressionAttributeValues: {
           ':bn': objToUpdate.budgetName,
           ':b': objToUpdate.budget,
           ':odf': objToUpdate.odFlag,
-          ':d': objToUpdate.description
+          ':d': objToUpdate.description,
+          ':sd':objToUpdate.startDate,
+          ':ed':objToUpdate.endDate,
+          ':rf':objToUpdate.recurringFlag
         },
         ReturnValues: 'ALL_NEW'
       };
