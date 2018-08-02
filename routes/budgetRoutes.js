@@ -1,5 +1,5 @@
 const express = require('express');
-const _ = require('lodash');
+// const _ = require('lodash');
 const databaseModify = require('../js/databaseModify');
 const budgetDynamo = databaseModify('Budgets');
 class Budgets {

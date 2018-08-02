@@ -4,7 +4,7 @@ const budgetDynamo = new databaseModify('Budgets');
 const expenseTypeDynamo = new databaseModify('ExpenseType');
 const employeeDynamo = new databaseModify('Employee');
 const expenseDynamo = new databaseModify('Expense');
-const _ = require('lodash');
+// const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Moment = require('moment');
@@ -157,7 +157,7 @@ class ExpenseRoutes extends Crud {
    *  balance
    * adds the new information
    */
-  _update(id, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {}
+  // _update(id, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {}
 
 
 }
