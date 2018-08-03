@@ -1,277 +1,250 @@
-// const Crud = require('./crudRoutes');
-// const databaseModify = require('../js/databaseModify');
-// const budgetDynamo = new databaseModify('Budgets');
-// const expenseTypeDynamo = new databaseModify('ExpenseType');
+const Crud = require('./crudRoutes');
+const databaseModify = require('../js/databaseModify');
+const budgetDynamo = new databaseModify('Budgets');
+const expenseTypeDynamo = new databaseModify('ExpenseType');
+const employeeDynamo = new databaseModify('Employee');
+const expenseDynamo = new databaseModify('Expense');
 // const _ = require('lodash');
-//
-// class ExpenseRoutes extends Crud {
-//   constructor(databaseModify, uuid) {
-//     super(databaseModify, uuid);
-//     this.databaseModify = databaseModify;
-//     this.budgetDynamo = budgetDynamo;
-//     this.expenseTypeDynamo = expenseTypeDynamo;
-//   }
-//
-//   _delete(id) {
-//     return this.databaseModify
-//       .findObjectInDB(id)
-//       .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
-//       .catch(err => {
-//         throw err;
-//       });
-//   }
-//
-//   _add(uuid, {
-//     purchaseDate,
-//     reimbursedDate,
-//     cost,
-//     description,
-//     note,
-//     receipt,
-//     expenseTypeId,
-//     userId,
-//     createdAt
-//   }) {
-//     return this.validateCostToBudget(expenseTypeId, userId, cost)
-//       .then(() => {
-//         return {
-//           id: uuid,
-//           purchaseDate,
-//           reimbursedDate,
-//           cost,
-//           description,
-//           note,
-//           receipt,
-//           expenseTypeId,
-//           userId,
-//           createdAt
-//         };
-//       })
-//       .catch(err => {
-//         throw err;
-//       });
-//   }
-//
-//   /**
-//    * Removes the previous information from the database, including from employee's
-//    *  balance
-//    * adds the new information
-//    */
-//   _update(id, {
-//     purchaseDate,
-//     reimbursedDate,
-//     cost,
-//     description,
-//     note,
-//     receipt,
-//     expenseTypeId,
-//     userId,
-//     createdAt
-//   }) {
-//     return this.databaseModify
-//       .findObjectInDB(id)
-//       .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
-//       .then(() => this.validateCostToBudget(expenseTypeId, userId, cost))
-//       .then(() => {
-//         return {
-//           id,
-//           purchaseDate,
-//           reimbursedDate,
-//           cost,
-//           description,
-//           note,
-//           receipt,
-//           expenseTypeId,
-//           userId,
-//           createdAt
-//         };
-//       })
-//       .catch(err => {
-//         throw err;
-//       });
-//   }
-//
-//   createNewBalance(employee) {
-//     if (!employee.expenseTypes) {
-//       //create new balance under the employee
-//       employee.expenseTypes = [];
-//       return this.employeeDynamo.updateEntryInDB(employee);
-//     }
-//   }
-//
-//   _isCoveredByOverdraft(expenseType, employeeBalance) {
-//     return 2 * expenseType.budget - employeeBalance > 0 && expenseType.odFlag;
-//   }
-//   _isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance) {
-//     return 2 * expenseType.budget - employeeBalance < 0 && expenseType.odFlag;
-//   }
-//
-//   _addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost) {
-//     let remaining = cost + employee.expenseTypes[budgetPosition].balance - 2 * expenseType.budget;
-//     employee.expenseTypes[budgetPosition].balance = 2 * expenseType.budget;
-//     employee.expenseTypes[budgetPosition].owedAmount = remaining;
-//     return this.employeeDynamo.updateEntryInDB(employee);
-//   }
-//
-//   _isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance) {
-//     return (
-//       expenseType.budget !== employee.expenseTypes[budgetPosition].balance &&
-//       expenseType.budget - employeeBalance < 0 &&
-//       !expenseType.odFlag &&
-//       remaining < 0
-//     );
-//   }
-//
-//   _isCovered(expenseType, employeeBalance) {
-//     return expenseType.budget - employeeBalance >= 0;
-//   }
-//
-//   _initializeNewBudget(expenseType, employee, cost) {
-//     let newExpense;
-//     if (cost <= expenseType.budget) {
-//       //The cost of the expense is enough to be covered by the budget
-//       newExpense = {
-//         id: expenseType.id,
-//         balance: cost,
-//         owedAmount: 0
-//       };
-//     } else if (cost > expenseType.budget && !expenseType.odFlag) {
-//       //The cost is greater than the budget, therefore
-//       // it is only partially covered and the remaining amount
-//       //  that is NOT reimbursed under this expense type is set to owedAmount
-//       newExpense = {
-//         id: expenseType.id,
-//         balance: expenseType.budget,
-//         owedAmount: cost - expenseType.budget
-//       };
-//     } else if (cost <= 2 * expenseType.budget && expenseType.odFlag) {
-//       //The cost of the expense is enough to be covered by the budget
-//       //Since the overdraft flag is true
-//       newExpense = {
-//         id: expenseType.id,
-//         balance: cost,
-//         owedAmount: 0
-//       };
-//     } else if (cost > 2 * expenseType.budget && !expenseType.odFlag) {
-//       newExpense = {
-//         id: expenseType.id,
-//         balance: 2 * expenseType.budget,
-//         owedAmount: cost - 2 * expenseType.budget
-//       };
-//     }
-//     employee.expenseTypes.push(newExpense);
-//     // Created new budget under employee
-//     return this.employeeDynamo.updateEntryInDB(employee);
-//   }
-//
-//   _addToOverdraftCoverage(employee, budgetPosition, employeeBalance) {
-//     employee.expenseTypes[budgetPosition].balance = employeeBalance;
-//     return this.employeeDynamo.updateEntryInDB(employee);
-//   }
-//
-//   _addPartialCoverage(employee, expenseType, budgetPosition, remaining) {
-//     employee.expenseTypes[budgetPosition].balance = expenseType.budget;
-//     employee.expenseTypes[budgetPosition].owedAmount = Math.abs(remaining);
-//     return this.employeeDynamo.updateEntryInDB(employee);
-//   }
-//
-//   _addToBudget(employee, budgetPosition, employeeBalance) {
-//     employee.expenseTypes[budgetPosition].balance = employeeBalance;
-//     return this.employeeDynamo.updateEntryInDB(employee);
-//   }
-//
-//   /**
-//    * Finds the appropriate budget operations to perfom depending on
-//    * expenseType's budget amount, employee's balance and cost of expense
-//    */
-//   performBudgetOperation(employee, expenseType, cost) {
-//     let employeeBalance;
-//     let budgetPosition = _.findIndex(employee.expenseTypes, element => {
-//       return element.id === expenseType.id;
-//     });
-//     if (budgetPosition === -1) {
-//       //employee does not yet have an expense for this expense type
-//       employeeBalance = 0;
-//     } else {
-//       employeeBalance = employee.expenseTypes[budgetPosition].balance + cost;
-//     }
-//     let remaining = expenseType.budget - employeeBalance;
-//     let err = {
-//       code: 406,
-//       message: `expense over budget limit: ${Math.abs(remaining)}`
-//     };
-//     if (!employeeBalance) {
-//       return this._initializeNewBudget(expenseType, employee, cost);
-//     } else if (this._isCoveredByOverdraft(expenseType, employeeBalance)) {
-//       return this._addToOverdraftCoverage(employee, budgetPosition, employeeBalance);
-//     } else if (this._isPartiallyCoveredByOverdraftIfYoureReadingThisThenIAmVerySorry(expenseType, employeeBalance)) {
-//       return this._addPartialCoverageByOverdraftBlessYourSoulChild(employee, expenseType, budgetPosition, cost);
-//     } else if (this._isPartiallyCovered(expenseType, employee, budgetPosition, remaining, employeeBalance)) {
-//       return this._addPartialCoverage(employee, expenseType, budgetPosition, remaining);
-//     } else if (this._isCovered(expenseType, employeeBalance)) {
-//       return this._addToBudget(employee, budgetPosition, employeeBalance);
-//     } else {
-//       return Promise.reject(err);
-//     }
-//   }
-//
-//   validateCostToBudget(expenseTypeId, userId, cost) {
-//     let expenseType, employee;
-//     return expenseTypeDynamo
-//       .findObjectInDB(expenseTypeId)
-//       .then(data => {
-//         expenseType = data;
-//         return employeeDynamo.findObjectInDB(userId);
-//       })
-//       .then(data => {
-//         employee = data;
-//         return this.createNewBalance(employee);
-//       })
-//       .then(() => {
-//         return this.performBudgetOperation(employee, expenseType, cost);
-//       })
-//       .catch(err => {
-//         throw err;
-//       });
-//   }
-//
-//   deleteCostFromBudget(expenseTypeId, userId, cost) {
-//     let _findExpenseCurried = _.curry(this._findExpense)(expenseTypeId, cost);
-//     return employeeDynamo
-//       .findObjectInDB(userId)
-//       .then(_findExpenseCurried)
-//       .catch(err => {
-//         throw err;
-//       });
-//   }
-//   _findExpense(expenseTypeId, cost, employee) {
-//     let expenseTypeLocation = _.findIndex(employee.expenseTypes, exp => exp.id === expenseTypeId);
-//     if (expenseTypeLocation>-1) {
-//       let budget = employee.expenseTypes[expenseTypeLocation].balance;
-//       employee.expenseTypes[expenseTypeLocation].balance = employee.expenseTypes[expenseTypeLocation].balance - cost;
-//
-//       if(employee.expenseTypes[expenseTypeLocation].owedAmount>0){
-//         employee.expenseTypes[expenseTypeLocation].balance =
-//         employee.expenseTypes[expenseTypeLocation].balance + employee.expenseTypes[expenseTypeLocation].owedAmount;
-//
-//         if(employee.expenseTypes[expenseTypeLocation].balance>budget){
-//           let diff = employee.expenseTypes[expenseTypeLocation].balance - budget;
-//           employee.expenseTypes[expenseTypeLocation].owedAmount = diff;
-//           employee.expenseTypes[expenseTypeLocation].balance = budget;
-//         }
-//         else{
-//           employee.expenseTypes[expenseTypeLocation].owedAmount = 0;
-//         }
-//       }
-//       return employeeDynamo.updateEntryInDB(employee);
-//     }
-//     else{
-//       let err = {
-//         code: 404,
-//         message: 'Expense not found'
-//       };
-//       throw err;
-//     }
-//   }
-// }
-// module.exports = ExpenseRoutes;
+const uuid = require('uuid/v4');
+
+const Moment = require('moment');
+const MomentRange = require('moment-range');
+
+const moment = MomentRange.extendMoment(Moment);
+class ExpenseRoutes extends Crud {
+  constructor(databaseModify, uuid) {
+    super(databaseModify, uuid);
+    this.databaseModify = databaseModify;
+    this.budgetDynamo = budgetDynamo;
+    this.expenseTypeDynamo = expenseTypeDynamo;
+    this.employeeDynamo = employeeDynamo;
+    this.expenseDynamo = expenseDynamo;
+    this.moment = moment;
+  }
+
+  async _delete(id) {
+    let expense, budget,expenseType;
+
+    expense = await this.expenseDynamo.findObjectInDB(id);
+    budget = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+    expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
+
+    return this._isReimbursed(expense)
+      .then(() => this._removeFromBudget(budget, expense, expenseType))
+      .then(() => this.expenseDynamo.removeFromDB(id))
+      .catch((err) => { throw err; });
+
+  }
+
+  async _add(uuid, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId}) {
+    //query DB to see if Budget exists
+    let expenseType, budget, expense, employee;
+    expense = {
+      id: uuid,
+      purchaseDate: purchaseDate,
+      reimbursedDate: reimbursedDate,
+      cost: cost,
+      description: description,
+      note: note,
+      receipt: receipt,
+      expenseTypeId: expenseTypeId,
+      userId: userId,
+      createdAt: moment().format('YYYY-MM-DD')
+    };
+    try{
+      employee = await this.employeeDynamo.findObjectInDB(expense.userId);
+      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+
+    }
+    catch(err){
+      throw err;
+    }
+
+    return this.checkValidity(expense, expenseType, budget, employee)
+      .then(() => this._decideIfBudgetExists(budget, expense , expenseType))
+      .then(() => this.expenseDynamo.addToDB(expense))
+      .catch(err => { throw err; });
+  }
+
+  async _update(id, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {
+    let expenseType, budget, newExpense, employee, oldExpense;
+    newExpense = {
+      id: id,
+      purchaseDate: purchaseDate,
+      reimbursedDate: reimbursedDate,
+      cost: cost,
+      description: description,
+      note: note,
+      receipt: receipt,
+      expenseTypeId: expenseTypeId,
+      userId: userId,
+      createdAt: createdAt
+    };
+    try {
+      oldExpense = await this.expenseDynamo.findObjectInDB(id);
+      employee = await this.employeeDynamo.findObjectInDB(userId);
+      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+    }
+    catch (err) {
+      throw err;
+    }
+
+    return this.checkValidity(newExpense, expenseType, budget, employee)
+      .then(()=> this._isReimbursed(oldExpense))
+      .then(()=> this._performBudgetUpdate(oldExpense, newExpense, budget))
+      .then(()=> this.expenseDynamo.updateEntryInDB(newExpense))
+      .catch(err => { throw err; });
+  }
+
+
+
+  checkValidity(expense, expenseType, budget, employee) {
+    let valid = this._checkExpenseDate(expense, expenseType)
+        && this._checkBalance(expense, expenseType, budget)
+        && employee.isActive;
+    let err = {
+      code: 403,
+      message: `expense is not valid because either
+        1.) the employee is not active.
+        2.) because the expense is over the budget limit.
+        3.) expense is outside of the expenseType window.`
+    };
+    return valid ? Promise.resolve() : Promise.reject(err);
+  }
+
+  _checkBalance(expense, expenseType, budget){
+    if(budget === null && expense.cost <= expenseType.budget){
+      return true;
+    }
+
+    let sum = budget.pendingAmount + budget.reimbursedAmount + expense.cost;
+    if (sum <= expenseType.budget) {
+      return true;
+    }
+    else if (expenseType.odFlag && sum <= (2 * expenseType.budget)) {//enough OD balance
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  _checkExpenseDate(expense, expenseType) {
+    let startDate = moment(expenseType.startDate, 'MM-DD-YYYY');
+    let endDate   = moment(expenseType.endDate, 'MM-DD-YYYY');
+    let date  = moment(expense.purchaseDate);
+    let range = moment().range(startDate, endDate);
+    let dateValid = range.contains(date); //true or false
+
+    return dateValid;
+  }
+
+  _decideIfBudgetExists(budget, expense, expenseType) {
+    //if the budget does exist, add the cost of this expense to the pending balance of that budget
+    if (budget) {
+      budget = this._addExpenseToBudget(expense, budget);
+      return this.budgetDynamo.updateEntryInDB(budget);
+    }
+    else {
+      let newBudget = {
+        id: uuid(),
+        expenseTypeId: expense.expenseTypeId,
+        userId: expense.userId,
+        reimbursedAmount: 0,
+        pendingAmount: 0,
+        fiscalStartDate: expenseType.startDate,
+        fiscalEndDate: expenseType.endDate
+      };
+      newBudget = this._addExpenseToBudget(expense, newBudget);
+      return this.budgetDynamo.addToDB(newBudget);
+    }
+  }
+
+  _addExpenseToBudget(expense, budget) {
+    if (!expense.reimbursedDate) {
+      budget.pendingAmount += expense.cost;
+    } else {
+      budget.reimbursedAmount += expense.cost;
+    }
+    return budget;
+  }
+
+  _isReimbursed(expense){
+    let err = {
+      code: 403,
+      message: 'expense cannot perform action because it has already been reimbursed'
+    };
+    return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
+  }
+
+  _performBudgetUpdate(oldExpense, newExpense, budget){
+    //Just reimbursing the cost
+    //if the old is unreimbursed and the new is reimbursed but the cost is the same
+    if (!oldExpense.reimbursedDate && newExpense.reimbursedDate &&
+        oldExpense.cost === newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+    }
+    //if the old is unreimbursed and the new is unreimbursed but the cost is different
+    else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate &&
+        oldExpense.cost !== newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
+      budget.reimbursedAmount += newExpense.cost; //add new cost to reimbursedAmount
+    }
+    //If an employee wants to edit before reimbursement
+    //if the old is unreimbursed and the new is unreimbursed but the cost is different
+    else if (!oldExpense.reimbursedDate && !newExpense.reimbursedDate &&
+        oldExpense.cost !== newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
+      budget.pendingAmount += newExpense.cost; //add new cost to pendingAmount
+    }
+    //update
+    return this.budgetDynamo.updateEntryInDB(budget);
+  }
+
+  _removeFromBudget(budget, expense, expenseType){
+    budget.pendingAmount -= expense.cost;
+    if(!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag){
+      return this.budgetDynamo.removeFromDB(budget.id);
+    } else {
+      return this.budgetDynamo.updateEntryInDB(budget);
+    }
+  }
+  // _createFiscalYear(employee, expenseType) {
+  //   let start, end;
+  //   if (expenseType.recurringFlag) {
+  //     //For the script?
+  //     // let hireDate = moment(employee.hireDate);
+  //     // let hireYear = hireDate.year();
+  //     // let currentYear = moment().year();
+  //     // let yearDiff = currentYear - hireYear;
+  //     // let fiscalStartDate = hireDate.add(yearDiff, 'years');
+  //     // let fiscalEndDate = fiscalStartDate.add(1, 'years');
+  //     //
+  //     // fiscalEndDate = fiscalEndDate.subtract(1, 'days');
+  //     // start = moment(fiscalStartDate).format('MM-DD-YYYY');
+  //     // end = moment(fiscalEndDate).format('MM-DD-YYYY');
+  //   }
+  //   else {
+  //     start = expenseType.fiscalStartDate;
+  //     end = expenseType.fiscalEndDate;
+  //   }
+  //   return {
+  //     startDate: start,
+  //     endDate: end
+  //   };
+  // }
+
+
+  /**
+   * Removes the previous information from the database, including from employee's
+   *  balance
+   * adds the new information
+   */
+
+
+
+}
+module.exports = ExpenseRoutes;
