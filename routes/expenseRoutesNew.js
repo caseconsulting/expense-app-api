@@ -22,13 +22,18 @@ class ExpenseRoutes extends Crud {
     this.moment = moment;
   }
 
-  _delete(id) {
-    return this.databaseModify
-      .findObjectInDB(id)
-      .then(expense => this.deleteCostFromBudget(expense.expenseTypeId, expense.userId, expense.cost))
-      .catch(err => {
-        throw err;
-      });
+  async _delete(id) {
+    let expense, budget,expenseType;
+
+    expense = await this.expenseDynamo.findObjectInDB(id);
+    budget = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+    expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
+
+    return this._isReimbursed(expense)
+      .then(() => this._removeFromBudget(budget, expense, expenseType))
+      .then(() => this.expenseDynamo.removeFromDB(id))
+      .catch((err) => { throw err; });
+
   }
 
   async _add(uuid, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {
@@ -61,10 +66,11 @@ class ExpenseRoutes extends Crud {
         && this._checkBalance(expense, expenseType, budget)
         && employee.isActive;
     let err = {
-      status: 403,
+      code: 403,
       message: `expense is not valid because either
-        1.) the employee is not active or
-        2.) because the expense is over the budget limit.`
+        1.) the employee is not active.
+        2.) because the expense is over the budget limit.
+        3.) expense is outside of the expenseType window.`
     };
     return valid ? Promise.resolve() : Promise.reject(err);
   }
@@ -126,6 +132,21 @@ class ExpenseRoutes extends Crud {
     return budget;
   }
 
+  _isReimbursed(expense){
+    let err = {
+      code: 403,
+      message: 'expense cannot be deleted because it has already been reimbursed'
+    };
+    return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
+  }
+  _removeFromBudget(budget, expense, expenseType){
+    budget.pendingAmount -= expense.cost;
+    if(!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag){
+      return this.budgetDynamo.removeFromDB(budget.id);
+    } else {
+      return this.budgetDynamo.updateEntryInDB(budget);
+    }
+  }
   // _createFiscalYear(employee, expenseType) {
   //   let start, end;
   //   if (expenseType.recurringFlag) {
