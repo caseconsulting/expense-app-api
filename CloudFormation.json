@@ -6,6 +6,7 @@
     "Stage": {
       "Type": "String",
       "Description": "Stage example for dev, test prod",
+      "AllowedValues": ["dev", "test", "prod"]
     },
     "VpcId": {
       "Type": "AWS::EC2::VPC::Id",
@@ -16,7 +17,8 @@
     "Subnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
       "Description": "The list of SubnetIds in your Virtual Private Cloud (VPC)",
-      "ConstraintDescription": "must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
+      "ConstraintDescription":
+        "must be a list of at least two existing subnets associated with at least two different availability zones. They should be residing in the selected Virtual Private Cloud."
     },
 
     "InstanceType": {
@@ -69,9 +71,15 @@
       "Properties": {
         "AccessControl": "Private",
         "BucketName": {
-          "Fn::Join": ["", ["case-consulting-expense-app-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "case-consulting-expense-app-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "LoggingConfiguration": {
           "DestinationBucketName": {
@@ -87,9 +95,15 @@
       "Properties": {
         "AccessControl": "Private",
         "BucketName": {
-          "Fn::Join": ["", ["case-consulting-expense-app-resources-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "case-consulting-expense-app-resources-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "VersioningConfiguration": {
           "Status": "Enabled"
@@ -107,16 +121,24 @@
       "Properties": {
         "AccessControl": "LogDeliveryWrite",
         "BucketName": {
-          "Fn::Join": ["", ["case-consulting-expense-app-logs-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "case-consulting-expense-app-logs-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "LifecycleConfiguration": {
-          "Rules": [{
-            "Id": "Purge old log files",
-            "ExpirationInDays": 30,
-            "Status": "Enabled"
-          }]
+          "Rules": [
+            {
+              "Id": "Purge old log files",
+              "ExpirationInDays": 30,
+              "Status": "Enabled"
+            }
+          ]
         }
       }
     },
@@ -125,38 +147,53 @@
       "DeletionPolicy": "Retain",
       "Properties": {
         "TableName": {
-          "Fn::Join": ["", ["employees-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "employees-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "PointInTimeRecoverySpecification": {
           "PointInTimeRecoveryEnabled": true
         },
-        "AttributeDefinitions": [{
-          "AttributeName": "id",
-          "AttributeType": "S"
-        }, {
-          "AttributeName": "email",
-          "AttributeType": "S"
-        }],
-        "KeySchema": [{
-          "AttributeName": "id",
-          "KeyType": "HASH"
-        }],
-        "GlobalSecondaryIndexes": [{
-          "IndexName": "email-index",
-          "KeySchema": [{
-            "AttributeName": "email",
-            "KeyType": "HASH"
-          }],
-          "Projection": {
-            "ProjectionType": "ALL"
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
           },
-          "ProvisionedThroughput": {
-            "ReadCapacityUnits": "5",
-            "WriteCapacityUnits": "1"
+          {
+            "AttributeName": "email",
+            "AttributeType": "S"
           }
-        }],
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "email-index",
+            "KeySchema": [
+              {
+                "AttributeName": "email",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          }
+        ],
         "ProvisionedThroughput": {
           "ReadCapacityUnits": "5",
           "WriteCapacityUnits": "1"
@@ -168,25 +205,35 @@
       "DeletionPolicy": "Retain",
       "Properties": {
         "TableName": {
-          "Fn::Join": ["", ["expense-types-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-types-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "PointInTimeRecoverySpecification": {
           "PointInTimeRecoveryEnabled": true
         },
-        "AttributeDefinitions": [{
-          "AttributeName": "id",
-          "AttributeType": "S"
-        }],
-        "KeySchema": [{
-          "AttributeName": "id",
-          "KeyType": "HASH"
-        }],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
         "ProvisionedThroughput": {
           "ReadCapacityUnits": "5",
           "WriteCapacityUnits": "1"
-        },
+        }
       }
     },
     "expenseTable": {
@@ -194,33 +241,48 @@
       "DeletionPolicy": "Retain",
       "Properties": {
         "TableName": {
-          "Fn::Join": ["", ["expenses-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expenses-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "PointInTimeRecoverySpecification": {
           "PointInTimeRecoveryEnabled": true
         },
-        "AttributeDefinitions": [{
-          "AttributeName": "id",
-          "AttributeType": "S"
-        }, {
-          "AttributeName": "expenseTypeId",
-          "AttributeType": "S"
-        }, {
-          "AttributeName": "userId",
-          "AttributeType": "S"
-        }, {
-          "AttributeName": "purchaseDate",
-          "AttributeType": "S"
-        }],
-        "KeySchema": [{
-          "AttributeName": "id",
-          "KeyType": "HASH"
-        }],
-        "GlobalSecondaryIndexes": [{
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "expenseTypeId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "purchaseDate",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
             "IndexName": "userId-index",
-            "KeySchema": [{
+            "KeySchema": [
+              {
                 "AttributeName": "userId",
                 "KeyType": "HASH"
               },
@@ -239,7 +301,8 @@
           },
           {
             "IndexName": "expenseTypeId-index",
-            "KeySchema": [{
+            "KeySchema": [
+              {
                 "AttributeName": "expenseTypeId",
                 "KeyType": "HASH"
               },
@@ -260,20 +323,28 @@
         "ProvisionedThroughput": {
           "ReadCapacityUnits": "5",
           "WriteCapacityUnits": "1"
-        },
+        }
       }
     },
     "ApplicationLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
       "Properties": {
         "Name": {
-          "Fn::Join": ["", ["expense-api-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-api-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
-        "SecurityGroups": [{
-          "Ref": "ALBSecurityGroup"
-        }],
+        "SecurityGroups": [
+          {
+            "Ref": "ALBSecurityGroup"
+          }
+        ],
 
         "Subnets": {
           "Ref": "Subnets"
@@ -284,13 +355,14 @@
     "ALBListener": {
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
       "Properties": {
-
-        "DefaultActions": [{
-          "Type": "forward",
-          "TargetGroupArn": {
-            "Ref": "ALBTargetGroup"
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "ALBTargetGroup"
+            }
           }
-        }],
+        ],
         "LoadBalancerArn": {
           "Ref": "ApplicationLoadBalancer"
         },
@@ -302,9 +374,15 @@
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
       "Properties": {
         "Name": {
-          "Fn::Join": ["", ["expense-api-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-api-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "HealthCheckIntervalSeconds": 30,
         "HealthCheckTimeoutSeconds": 5,
@@ -322,41 +400,54 @@
       "Type": "AWS::IAM::Role",
       "Properties": {
         "RoleName": {
-          "Fn::Join": ["", ["expense-api-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-api-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": {
-              "Service": ["ec2.amazonaws.com"]
-            },
-            "Action": ["sts:AssumeRole"]
-          }]
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["ec2.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
         },
         "Path": "/",
-        "Policies": [{
+        "Policies": [
+          {
             "PolicyName": "DynamoDB",
             "PolicyDocument": {
               "Version": "2012-10-17",
-              "Statement": [{
-                "Effect": "Allow",
-                "Action": "dynamodb:*",
-                "Resource": "*"
-              }]
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:*",
+                  "Resource": "*"
+                }
+              ]
             }
           },
           {
             "PolicyName": "S3",
             "PolicyDocument": {
               "Version": "2012-10-17",
-              "Statement": [{
-                "Effect": "Allow",
-                "Action": "s3:*",
-                "Resource": "*"
-              }]
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:*",
+                  "Resource": "*"
+                }
+              ]
             }
           }
         ]
@@ -366,23 +457,37 @@
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "InstanceProfileName": {
-          "Fn::Join": ["", ["expense-api-instance-profile-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-api-instance-profile-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "Path": "/",
-        "Roles": [{
-          "Ref": "ExpenseAppApiRole"
-        }]
+        "Roles": [
+          {
+            "Ref": "ExpenseAppApiRole"
+          }
+        ]
       }
     },
     "WebServerGroup": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
         "AutoScalingGroupName": {
-          "Fn::Join": ["", ["expense-app-api-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-app-api-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "HealthCheckType": "ELB",
         "HealthCheckGracePeriod": 600,
@@ -394,37 +499,44 @@
         },
         "MinSize": "1",
         "MaxSize": "1",
-        "TargetGroupARNs": [{
-          "Ref": "ALBTargetGroup"
-        }],
-        "Tags": [{
-          "Key": "Name",
-          "Value": {
-            "Fn::Join": ["", ["expense-app-api-", {
-              "Ref": "Stage"
-            }]]
-          },
-          "PropagateAtLaunch": true
-        }]
+        "TargetGroupARNs": [
+          {
+            "Ref": "ALBTargetGroup"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "expense-app-api-",
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "PropagateAtLaunch": true
+          }
+        ]
       }
     },
     "LaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "LaunchConfigurationName": {
-          "Fn::Join": ["", ["expense-app-api-", {
-            "Ref": "Stage"
-          }]]
-        },
         "KeyName": {
           "Ref": "KeyName"
         },
         "ImageId": {
           "Ref": "AMIId"
         },
-        "SecurityGroups": [{
-          "Ref": "InstanceSecurityGroup"
-        }],
+        "SecurityGroups": [
+          {
+            "Ref": "InstanceSecurityGroup"
+          }
+        ],
         "InstanceType": {
           "Ref": "InstanceType"
         },
@@ -434,7 +546,8 @@
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [
-              "", [
+              "",
+              [
                 "#cloud-config\n",
                 "output : { all : '| tee -a /var/log/cloud-init-output.log' }\n",
 
@@ -501,12 +614,19 @@
       "DependsOn": "ALBSecurityGroup",
       "Properties": {
         "GroupName": {
-          "Fn::Join": ["", ["expense-app-api-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-app-api-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "GroupDescription": "Enable SSH access and HTTP from the load balancer only",
-        "SecurityGroupIngress": [{
+        "SecurityGroupIngress": [
+          {
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
@@ -519,53 +639,80 @@
             "FromPort": "3005",
             "ToPort": "3005",
             "SourceSecurityGroupId": {
-              "Fn::Select": [0, {
-                "Fn::GetAtt": ["ApplicationLoadBalancer", "SecurityGroups"]
-              }]
+              "Fn::Select": [
+                0,
+                {
+                  "Fn::GetAtt": ["ApplicationLoadBalancer", "SecurityGroups"]
+                }
+              ]
             }
           }
         ],
         "VpcId": {
           "Ref": "VpcId"
         },
-        "Tags": [{
-          "Key": "Name",
-          "Value": {
-            "Fn::Join": ["", ["expense-app-api-", {
-              "Ref": "Stage"
-            }]]
-          },
-        }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "expense-app-api-",
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            }
+          }
+        ]
       }
     },
     "ALBSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupName": {
-          "Fn::Join": ["", ["expense-app-api-lb-", {
-            "Ref": "Stage"
-          }]]
+          "Fn::Join": [
+            "",
+            [
+              "expense-app-api-lb-",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
         },
         "GroupDescription": "Enable HTTP for the load balancer",
-        "SecurityGroupIngress": [{
-          "IpProtocol": "tcp",
-          "FromPort": "80",
-          "ToPort": "80",
-          "CidrIp": {
-            "Ref": "SSHLocation"
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": {
+              "Ref": "SSHLocation"
+            }
           }
-        }],
+        ],
         "VpcId": {
           "Ref": "VpcId"
         },
-        "Tags": [{
-          "Key": "Name",
-          "Value": {
-            "Fn::Join": ["", ["expense-app-api-lb-", {
-              "Ref": "Stage"
-            }]]
-          },
-        }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "expense-app-api-lb-",
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            }
+          }
+        ]
       }
     }
   }
