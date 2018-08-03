@@ -10,6 +10,10 @@ require('dotenv').config({
 
 const Roles = require('./routes/roles');
 const roles = new Roles();
+
+const Budget = require('./routes/budgetRoutes');
+const budget = new Budget();
+
 const Ping = require('./routes/ping');
 const ping = new Ping();
 const databaseModify = require('./js/databaseModify');
@@ -51,6 +55,7 @@ app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
 app.use('/special', specialRoutes.router);
+app.use('/budgets', budget.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');

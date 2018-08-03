@@ -136,7 +136,7 @@ class databaseModify {
       .promise()
       .then(data => {
         if (!_.isEmpty(data.Items)) {
-          return data.Items[0];
+          return data.Items;
         } else {
           let err = {
             code: 404,
