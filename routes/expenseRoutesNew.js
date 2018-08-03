@@ -36,7 +36,7 @@ class ExpenseRoutes extends Crud {
 
   }
 
-  async _add(uuid, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {
+  async _add(uuid, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId}) {
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee;
     expense = {
@@ -49,17 +49,56 @@ class ExpenseRoutes extends Crud {
       receipt: receipt,
       expenseTypeId: expenseTypeId,
       userId: userId,
-      createdAt: createdAt};
+      createdAt: moment().format('YYYY-MM-DD')
+    };
+    try{
+      employee = await this.employeeDynamo.findObjectInDB(expense.userId);
+      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
 
-    employee = await this.employeeDynamo.findObjectInDB(expense.userId);
-    expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
-    budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+    }
+    catch(err){
+      throw err;
+    }
 
     return this.checkValidity(expense, expenseType, budget, employee)
       .then(() => this._decideIfBudgetExists(budget, expense , expenseType))
       .then(() => this.expenseDynamo.addToDB(expense))
       .catch(err => { throw err; });
   }
+
+  async _update(id, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {
+    let expenseType, budget, newExpense, employee, oldExpense;
+    newExpense = {
+      id: id,
+      purchaseDate: purchaseDate,
+      reimbursedDate: reimbursedDate,
+      cost: cost,
+      description: description,
+      note: note,
+      receipt: receipt,
+      expenseTypeId: expenseTypeId,
+      userId: userId,
+      createdAt: createdAt
+    };
+    try {
+      oldExpense = await this.expenseDynamo.findObjectInDB(id);
+      employee = await this.employeeDynamo.findObjectInDB(userId);
+      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+    }
+    catch (err) {
+      throw err;
+    }
+
+    return this.checkValidity(newExpense, expenseType, budget, employee)
+      .then(()=> this._isReimbursed(oldExpense))
+      .then(()=> this._performBudgetUpdate(oldExpense, newExpense, budget))
+      .then(()=> this.expenseDynamo.updateEntryInDB(newExpense))
+      .catch(err => { throw err; });
+  }
+
+
 
   checkValidity(expense, expenseType, budget, employee) {
     let valid = this._checkExpenseDate(expense, expenseType)
@@ -135,10 +174,36 @@ class ExpenseRoutes extends Crud {
   _isReimbursed(expense){
     let err = {
       code: 403,
-      message: 'expense cannot be deleted because it has already been reimbursed'
+      message: 'expense cannot perform action because it has already been reimbursed'
     };
     return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
   }
+
+  _performBudgetUpdate(oldExpense, newExpense, budget){
+    //Just reimbursing the cost
+    //if the old is unreimbursed and the new is reimbursed but the cost is the same
+    if (!oldExpense.reimbursedDate && newExpense.reimbursedDate &&
+        oldExpense.cost === newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+    }
+    //if the old is unreimbursed and the new is unreimbursed but the cost is different
+    else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate &&
+        oldExpense.cost !== newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
+      budget.reimbursedAmount += newExpense.cost; //add new cost to reimbursedAmount
+    }
+    //If an employee wants to edit before reimbursement
+    //if the old is unreimbursed and the new is unreimbursed but the cost is different
+    else if (!oldExpense.reimbursedDate && !newExpense.reimbursedDate &&
+        oldExpense.cost !== newExpense.cost) {
+      budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
+      budget.pendingAmount += newExpense.cost; //add new cost to pendingAmount
+    }
+    //update
+    return this.budgetDynamo.updateEntryInDB(budget);
+  }
+
   _removeFromBudget(budget, expense, expenseType){
     budget.pendingAmount -= expense.cost;
     if(!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag){
@@ -178,7 +243,7 @@ class ExpenseRoutes extends Crud {
    *  balance
    * adds the new information
    */
-  // _update(id, {purchaseDate,reimbursedDate,cost,description,note,receipt,expenseTypeId,userId,createdAt}) {}
+
 
 
 }
