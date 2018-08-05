@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "debug": "nodemon --inspect bin/www",
-    "eslint": "eslint . --ext .js --fix",
+    "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
     "lint": "eslint .",
     "pm2": "pm2",
     "pm2:kill": "pm2 kill",
@@ -18,7 +18,7 @@
     "validate": "npm ls"
   },
   "dependencies": {
-    "aws-sdk": "^2.282.1",
+    "aws-sdk": "^2.286.2",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "debug": "^3.1.0",
@@ -40,14 +40,10 @@
   "devDependencies": {
     "aws-sdk-mock": "^4.0.0",
     "cors": "^2.8.4",
-    "eslint": "^5.2.0",
+    "eslint": "^5.3.0",
     "jasmine": "^3.1.0",
     "nodemon": "^1.18.3",
     "precommit-hook": "^3.0.0"
   },
-  "pre-commit": [
-    "validate",
-    "eslint",
-    "test"
-  ]
+  "pre-commit": ["validate", "eslint", "test"]
 }
