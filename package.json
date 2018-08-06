@@ -45,5 +45,9 @@
     "nodemon": "^1.18.3",
     "precommit-hook": "^3.0.0"
   },
-  "pre-commit": ["validate", "eslint", "test"]
+  "pre-commit": [
+    "validate",
+    "eslint",
+    "test"
+  ]
 }

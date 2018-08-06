@@ -132,8 +132,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(expense, expenseType) {
-    let startDate = moment(expenseType.startDate, 'MM-DD-YYYY');
-    let endDate   = moment(expenseType.endDate, 'MM-DD-YYYY');
+    let startDate = moment(expenseType.startDate, 'YYYY-MM-DD');
+    let endDate   = moment(expenseType.endDate, 'YYYY-MM-DD');
     let date  = moment(expense.purchaseDate);
     let range = moment().range(startDate, endDate);
     let dateValid = range.contains(date); //true or false
