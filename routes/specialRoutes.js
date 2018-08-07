@@ -173,8 +173,10 @@ class Special {
       } else if (this._isUser(req)) {
         let expenses = await this.expenseData.getAllEntriesInDB();
         let userID = req.params.id;
-        let user = _.first(await this.employeeData.readFromDB(userID));
-        let users = [user];
+        let userArray = await this.employeeData.getAllEntriesInDB();
+        let users = _.filter(userArray, employee => {
+          return employee.id === userID;
+        });
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else {
