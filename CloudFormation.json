@@ -65,6 +65,24 @@
   },
 
   "Resources": {
+    "cloudFrontOriginAccessIdentity": {
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+      "Properties": {
+        "CloudFrontOriginAccessIdentityConfig": {
+          "Comment": {
+            "Fn::Join": [
+              "",
+              [
+                "expense-app-oai-",
+                {
+                  "Ref": "Stage"
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
     "s3FrontEnd": {
       "DependsOn": "s3Logs",
       "Type": "AWS::S3::Bucket",
