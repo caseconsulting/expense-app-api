@@ -1,9 +1,9 @@
 /*jshint esversion: 6 */
 const databaseModify = require('../js/databaseModify');
 //const budgetDynamo = new databaseModify('Budgets');
-const employeeDynamo = new databaseModify('Employee');
-const expenseDynamo = new databaseModify('Expense');
-const expenseTypeDynamo = new databaseModify('ExpenseType');
+const employeeDynamo = new databaseModify('employees');
+const expenseDynamo = new databaseModify('expenses');
+const expenseTypeDynamo = new databaseModify('expense-types');
 
 
 const express = require('express');
