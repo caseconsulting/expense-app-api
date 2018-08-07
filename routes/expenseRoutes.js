@@ -12,9 +12,9 @@ const MomentRange = require('moment-range');
 
 const moment = MomentRange.extendMoment(Moment);
 class ExpenseRoutes extends Crud {
-  constructor(databaseModify, uuid) {
-    super(databaseModify, uuid);
-    this.databaseModify = databaseModify;
+  constructor() {
+    super();
+    this.databaseModify = expenseDynamo;
     this.budgetDynamo = budgetDynamo;
     this.expenseTypeDynamo = expenseTypeDynamo;
     this.employeeDynamo = employeeDynamo;

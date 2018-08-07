@@ -27,8 +27,7 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 class Budgets {
-  constructor(databaseModify) {
-    this.databaseModify = databaseModify;
+  constructor(){
     this.budgetDynamo = budgetDynamo;
     this._router = express.Router();
     this._router.get('/user/:id', checkJwt, getUserInfo, this.getBudgetByUser.bind(this));

@@ -1,4 +1,10 @@
 /*jshint esversion: 6 */
+const databaseModify = require('../js/databaseModify');
+//const budgetDynamo = new databaseModify('Budgets');
+const employeeDynamo = new databaseModify('Employee');
+const expenseDynamo = new databaseModify('Expense');
+const expenseTypeDynamo = new databaseModify('ExpenseType');
+
 
 const express = require('express');
 const _ = require('lodash');
@@ -28,10 +34,10 @@ const checkJwt = jwt({
 });
 
 class Special {
-  constructor(expenseData, employeeData, expenseTypeData) {
-    this.expenseData = expenseData;
-    this.employeeData = employeeData;
-    this.expenseTypeData = expenseTypeData;
+  constructor() {
+    this.expenseData = expenseDynamo;
+    this.employeeData = employeeDynamo;
+    this.expenseTypeData = expenseTypeDynamo;
     this._router = express.Router();
     //Garbage
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));

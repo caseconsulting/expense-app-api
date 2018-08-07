@@ -26,8 +26,7 @@ const checkJwt = jwt({
 });
 
 class Crud {
-  constructor(databaseModify) {
-    this.databaseModify = databaseModify;
+  constructor() {
     this._router = express.Router();
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
     this._router.post('/', checkJwt, getUserInfo, this.create.bind(this));

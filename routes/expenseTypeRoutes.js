@@ -1,8 +1,11 @@
 const Crud = require('./crudRoutes');
+const databaseModify = require('../js/databaseModify');
+const budgetDynamo = new databaseModify('ExpenseType');
+
 class ExpenseTypeRoutes extends Crud {
-  constructor(databaseModify, uuid) {
-    super(databaseModify, uuid);
-    this.databaseModify = databaseModify;
+  constructor() {
+    super();
+    this.databaseModify = budgetDynamo;
   }
   _add(uuid, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
     return new Promise(resolve => {

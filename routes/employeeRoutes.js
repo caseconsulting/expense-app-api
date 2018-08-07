@@ -1,9 +1,11 @@
 const Crud = require('./crudRoutes');
+const databaseModify = require('../js/databaseModify');
+const budgetDynamo = new databaseModify('Employee');
 
 class EmployeeRoutes extends Crud {
-  constructor(databaseModify, uuid) {
-    super(databaseModify, uuid);
-    this.databaseModify = databaseModify;
+  constructor() {
+    super();
+    this.databaseModify = budgetDynamo;
   }
 
   _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {

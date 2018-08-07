@@ -16,20 +16,18 @@ const budget = new Budget();
 
 const Ping = require('./routes/ping');
 const ping = new Ping();
-const databaseModify = require('./js/databaseModify');
-var ExpenseRoutes = require('./routes/expenseRoutes');
-const expenseRoutes = new ExpenseRoutes(new databaseModify('expenses'));
+
+const ExpenseRoutes = require('./routes/expenseRoutes');
+const expenseRoutes = new ExpenseRoutes();
+
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
-const expenseTypeRoutes = new ExpenseTypeRoutes(new databaseModify('expense-types'));
+const expenseTypeRoutes = new ExpenseTypeRoutes();
+
 var EmployeeRoutes = require('./routes/employeeRoutes');
-const employeeRoutes = new EmployeeRoutes(new databaseModify('employees'));
+const employeeRoutes = new EmployeeRoutes();
 
 var SpecialRoutes = require('./routes/specialRoutes');
-const specialRoutes = new SpecialRoutes(
-  new databaseModify('expenses'),
-  new databaseModify('employees'),
-  new databaseModify('expense-types')
-);
+const specialRoutes = new SpecialRoutes();
 var app = express();
 
 // view engine setup
