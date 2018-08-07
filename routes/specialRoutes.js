@@ -45,6 +45,7 @@ class Special {
     //Not Garbage
     this._router.get('/getAllExpenses', checkJwt, getUserInfo,this.getAllExpenses.bind(this));//Admin
 
+    this._router.get('/getAllExpenses/:id', checkJwt, getUserInfo,this.getAllExpenses.bind(this));//Admin
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this));//User
   }
 
@@ -169,6 +170,13 @@ class Special {
         let users = await this.employeeData.getAllEntriesInDB();
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
+      } else if (this._isUser(req)) {
+        let expenses = await this.expenseData.getAllEntriesInDB();
+        let userID = req.params.id;
+        let user = _.first(await this.employeeData.readFromDB(userID));
+        let users = [user];
+        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+        res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else {
         res.status(403).send('Permission denied. Insuffient user permissions');
       }
@@ -218,6 +226,9 @@ class Special {
   }
   _isAdmin(req){
     return (req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin');
+  }
+  _isUser(req) {
+    return req.employee.employeeRole === 'user';
   }
 }
 
