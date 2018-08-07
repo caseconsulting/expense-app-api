@@ -18,17 +18,17 @@ const Ping = require('./routes/ping');
 const ping = new Ping();
 const databaseModify = require('./js/databaseModify');
 var ExpenseRoutes = require('./routes/expenseRoutes');
-const expenseRoutes = new ExpenseRoutes(new databaseModify('Expense'));
+const expenseRoutes = new ExpenseRoutes(new databaseModify('expenses'));
 var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
-const expenseTypeRoutes = new ExpenseTypeRoutes(new databaseModify('ExpenseType'));
+const expenseTypeRoutes = new ExpenseTypeRoutes(new databaseModify('expense-types'));
 var EmployeeRoutes = require('./routes/employeeRoutes');
-const employeeRoutes = new EmployeeRoutes(new databaseModify('Employee'));
+const employeeRoutes = new EmployeeRoutes(new databaseModify('employees'));
 
 var SpecialRoutes = require('./routes/specialRoutes');
 const specialRoutes = new SpecialRoutes(
-  new databaseModify('Expense'),
-  new databaseModify('Employee'),
-  new databaseModify('ExpenseType')
+  new databaseModify('expenses'),
+  new databaseModify('employees'),
+  new databaseModify('expense-types')
 );
 var app = express();
 
@@ -39,6 +39,7 @@ app.set('view engine', 'pug');
 let corsConfig = {
   allowedHeaders: ['Authorization', 'Content-Type']
 };
+
 app.use(cors(corsConfig));
 app.use(logger('dev'));
 app.use(bodyParser.json());

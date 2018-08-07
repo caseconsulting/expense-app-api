@@ -10,7 +10,7 @@ class EmployeeRoutes extends Crud {
     if (!middleName) {
       middleName = ' ';
     }
-    let isActive = true;
+
     return new Promise(resolve => {
       resolve({
         id: uuid,
@@ -22,19 +22,18 @@ class EmployeeRoutes extends Crud {
         expenseTypes,
         email,
         employeeRole,
-        isActive
+        isActive: true
       });
     });
   }
 
-  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {
+  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole, isActive }) {
     if (!middleName) {
       middleName = 'N/A';
     }
     if (!expenseTypes) {
       expenseTypes = [];
     }
-    let isActive = true;
     return this.databaseModify
       .findObjectInDB(id)
       .then(() => {

@@ -1,7 +1,7 @@
 const express = require('express');
 // const _ = require('lodash');
 const databaseModify = require('../js/databaseModify');
-const budgetDynamo = new databaseModify('Budgets');
+const budgetDynamo = new databaseModify('budgets');
 
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
@@ -27,42 +27,44 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 class Budgets {
-  constructor(databaseModify){
+  constructor(databaseModify) {
     this.databaseModify = databaseModify;
     this.budgetDynamo = budgetDynamo;
     this._router = express.Router();
     this._router.get('/user/:id', checkJwt, getUserInfo, this.getBudgetByUser.bind(this));
     this._router.get('/', checkJwt, getUserInfo, this.getCaller.bind(this));
-
   }
   get router() {
     return this._router;
   }
 
   getBudgetByUser(req, res) {
-    if(this._isAdmin(req)){
-      return this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.params.id)
-        .then((data) => {
+    if (this._isAdmin(req)) {
+      return this.budgetDynamo
+        .querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.params.id)
+        .then(data => {
           return res.status(200).send(data);
         })
-        .catch((err)=>{throw err;});
+        .catch(err => {
+          throw err;
+        });
     }
   }
 
-  getCaller(req, res){
-    return this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.employee.id)
-      .then((data) => {
-
+  getCaller(req, res) {
+    return this.budgetDynamo
+      .querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.employee.id)
+      .then(data => {
         return data ? res.status(200).send(data) : res.status(200).send([]);
       })
-      .catch((err)=>{throw err;});
+      .catch(err => {
+        throw err;
+      });
   }
 
   _isAdmin(req) {
     return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
   }
-
-
 }
 
 module.exports = Budgets;

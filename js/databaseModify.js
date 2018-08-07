@@ -1,9 +1,10 @@
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+const STAGE = process.env.STAGE;
 
 class databaseModify {
   constructor(name) {
-    this.tableName = name;
+    this.tableName = `${STAGE}-${name}`;
     AWS.config.apiVersions = {
       dynamodb: '2012-08-10'
       // other service API versions
@@ -95,30 +96,28 @@ class databaseModify {
     const params = {
       TableName: this.tableName,
       IndexName: 'userId-expenseTypeId-index',
-      ExpressionAttributeValues:{
+      ExpressionAttributeValues: {
         ':expenseTypeId': expenseTypeId,
         ':userId': userId
       },
-      KeyConditionExpression: 'expenseTypeId = :expenseTypeId and userId = :userId',
-
+      KeyConditionExpression: 'expenseTypeId = :expenseTypeId and userId = :userId'
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .query(params)
       .promise()
-      .then((data) => {
+      .then(data => {
         if (!_.isEmpty(data.Items)) {
           return data.Items[0];
         } else {
           return null;
         }
       })
-      .catch((err) => {
+      .catch(err => {
         throw err;
       });
   }
-
 
   querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
     const params = {
@@ -263,29 +262,29 @@ class databaseModify {
           ':b': objToUpdate.budget,
           ':odf': objToUpdate.odFlag,
           ':d': objToUpdate.description,
-          ':sd':objToUpdate.startDate,
-          ':ed':objToUpdate.endDate,
-          ':rf':objToUpdate.recurringFlag
+          ':sd': objToUpdate.startDate,
+          ':ed': objToUpdate.endDate,
+          ':rf': objToUpdate.recurringFlag
         },
         ReturnValues: 'ALL_NEW'
       };
     case 'Budgets':
       return {
         TableName: 'Budgets',
-        Key:{
-          id:objToUpdate.id
+        Key: {
+          id: objToUpdate.id
         },
-        UpdateExpression:`set expenseTypeId = :eti, userId = :ui,
+        UpdateExpression: `set expenseTypeId = :eti, userId = :ui,
           reimbursedAmount = :ra, fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
         ExpressionAttributeValues: {
-          ':eti':objToUpdate.expenseTypeId,
-          ':ui':objToUpdate.userId,
-          ':ra':objToUpdate.reimbursedAmount,
-          ':pa':objToUpdate.pendingAmount,
-          ':fsd':objToUpdate.fiscalStartDate,
-          ':fed':objToUpdate.fiscalEndDate
+          ':eti': objToUpdate.expenseTypeId,
+          ':ui': objToUpdate.userId,
+          ':ra': objToUpdate.reimbursedAmount,
+          ':pa': objToUpdate.pendingAmount,
+          ':fsd': objToUpdate.fiscalStartDate,
+          ':fed': objToUpdate.fiscalEndDate
         },
-        ReturnValues:'ALL_NEW'
+        ReturnValues: 'ALL_NEW'
       };
     }
   }

@@ -1,5 +1,5 @@
 const DB = require('./databaseModify');
-const db = new DB('Employee');
+const db = new DB('employees');
 const _ = require('lodash');
 const getUserInfo = (req, res, next) => {
   // JWT tokens created by auth0 have to conform to OIDC specification.
