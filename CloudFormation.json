@@ -148,12 +148,12 @@
       "Properties": {
         "TableName": {
           "Fn::Join": [
-            "",
+            "-",
             [
-              "employees-",
               {
                 "Ref": "Stage"
-              }
+              },
+              "employees"
             ]
           ]
         },
@@ -206,12 +206,12 @@
       "Properties": {
         "TableName": {
           "Fn::Join": [
-            "",
+            "-",
             [
-              "expense-types-",
               {
                 "Ref": "Stage"
-              }
+              },
+              "expense-types"
             ]
           ]
         },
@@ -242,12 +242,12 @@
       "Properties": {
         "TableName": {
           "Fn::Join": [
-            "",
+            "-",
             [
-              "expenses-",
               {
                 "Ref": "Stage"
-              }
+              },
+              "expenses"
             ]
           ]
         },
@@ -308,6 +308,116 @@
               },
               {
                 "AttributeName": "purchaseDate",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "1"
+        }
+      }
+    },
+    "budgetsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "TableName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Stage"
+              },
+              "budgets"
+            ]
+          ]
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "expenseTypeId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "startDate",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "endDate",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "expenseTypeId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "expenseTypeId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          },
+          {
+            "IndexName": "userId-expenseTypeId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "expenseTypeId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "1"
+            }
+          },
+          {
+            "IndexName": "startDate-endDate-index",
+            "KeySchema": [
+              {
+                "AttributeName": "startDate",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "endDate",
                 "KeyType": "RANGE"
               }
             ],
