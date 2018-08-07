@@ -18,6 +18,7 @@
     "validate": "npm ls"
   },
   "dependencies": {
+    "ajv": "^6.5.2",
     "aws-sdk": "^2.286.2",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
