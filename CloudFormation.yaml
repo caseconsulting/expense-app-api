@@ -1,0 +1,592 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation for expense app
+Parameters:
+  Stage:
+    Type: String
+    Description: 'Stage example for dev, test prod'
+    AllowedValues:
+      - dev
+      - test
+      - prod
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: VpcId of your existing Virtual Private Cloud (VPC)
+    ConstraintDescription: must be the VPC Id of an existing Virtual Private Cloud.
+  Subnets:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: The list of SubnetIds in your Virtual Private Cloud (VPC)
+    ConstraintDescription: >-
+      must be a list of at least two existing subnets associated with at least
+      two different availability zones. They should be residing in the selected
+      Virtual Private Cloud.
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.small
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+    ConstraintDescription: must be a valid EC2 instance type.
+  AMIId:
+    Description: WebServer AMI
+    Type: String
+    ConstraintDescription: must be a valid AMI ID for your region.
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+Resources:
+  cloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Join
+          - ''
+          - - expense-app-oai-
+            - !Ref Stage
+  cloudFrontDistribution:
+    DependsOn:
+      - s3FrontEndBucketPolicy
+      - s3Logs
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt
+              - s3FrontEnd
+              - DomainName
+            Id: !Join
+              - ''
+              - - S3-case-consulting-expense-app-
+                - !Ref Stage
+            S3OriginConfig:
+              OriginAccessIdentity: !Join
+                - ''
+                - - origin-access-identity/cloudfront/
+                  - !Ref cloudFrontOriginAccessIdentity
+        Enabled: 'true'
+        Comment: Expense App
+        DefaultRootObject: index.html
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: !GetAtt
+            - s3Logs
+            - DomainName
+          Prefix: cf-logs/
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: !Join
+            - ''
+            - - S3-case-consulting-expense-app-
+              - !Ref Stage
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+  s3FrontEnd:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-
+          - !Ref Stage
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/app/
+  s3FrontEndBucketPolicy:
+    DependsOn:
+      - s3FrontEnd
+      - cloudFrontOriginAccessIdentity
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref s3FrontEnd
+      PolicyDocument:
+        Statement:
+          - Sid: >-
+              Grant a CloudFront Origin Identity access to support private
+              content
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref s3FrontEnd
+                - /*
+            Principal:
+              CanonicalUser: !GetAtt
+                - cloudFrontOriginAccessIdentity
+                - S3CanonicalUserId
+  s3Resources:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-resources-
+          - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/resources/
+  s3Logs:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-logs-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Purge old log files
+            ExpirationInDays: 30
+            Status: Enabled
+  employeeTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - employees
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
+  expenseTypeTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - expense-types
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
+  expenseTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - expenses
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: expenseTypeId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: purchaseDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: userId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: purchaseDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+        - IndexName: expenseTypeId-index
+          KeySchema:
+            - AttributeName: expenseTypeId
+              KeyType: HASH
+            - AttributeName: purchaseDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
+  budgetsTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - budgets
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: expenseTypeId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: startDate
+          AttributeType: S
+        - AttributeName: endDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: expenseTypeId-index
+          KeySchema:
+            - AttributeName: expenseTypeId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+        - IndexName: userId-expenseTypeId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: expenseTypeId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+        - IndexName: startDate-endDate-index
+          KeySchema:
+            - AttributeName: startDate
+              KeyType: HASH
+            - AttributeName: endDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
+  ApplicationLoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: !Join
+        - ''
+        - - expense-api-
+          - !Ref Stage
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !Ref Subnets
+  ALBListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: '80'
+      Protocol: HTTP
+  ALBTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: !Join
+        - ''
+        - - expense-api-
+          - !Ref Stage
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      Port: 3005
+      Protocol: HTTP
+      HealthCheckPath: /ping
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref VpcId
+  ExpenseAppApiRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: S3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+  ExpenseAppApiInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Join
+        - ''
+        - - expense-api-instance-profile-
+          - !Ref Stage
+      Path: /
+      Roles:
+        - !Ref ExpenseAppApiRole
+  WebServerGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      AutoScalingGroupName: !Join
+        - ''
+        - - expense-app-api-
+          - !Ref Stage
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 600
+      VPCZoneIdentifier: !Ref Subnets
+      LaunchConfigurationName: !Ref LaunchConfig
+      MinSize: '1'
+      MaxSize: '1'
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - expense-app-api-
+              - !Ref Stage
+          PropagateAtLaunch: true
+  LaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      KeyName: !Ref KeyName
+      ImageId: !Ref AMIId
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref ExpenseAppApiInstanceProfile
+      UserData: !Base64
+        'Fn::Join':
+          - ''
+          - - |
+              #cloud-config
+            - |
+              output : { all : '| tee -a /var/log/cloud-init-output.log' }
+            - |
+              # Update all packages on first boot
+            - |
+              package_update: true
+            - |
+              package_upgrade: true
+            - |
+              package_reboot_if_required: true
+            - |
+              # Install additional packages on first boot
+            - |
+              packages:
+            - |
+              - epel-release
+            - |
+              - git
+            - |
+              - wget
+            - |
+              # Run commands
+            - |
+              runcmd:
+            - |
+              - [ sh, -c, echo "== Install EPEL packages" ]
+            - |
+              - yum install -y python34 python34-pip
+            - |
+              - python3 --version
+            - |
+              - pip3 --version
+            - |
+              - [ sh, -c, echo "== Install AWS CLI" ]
+            - |
+              - pip3 install --upgrade pip
+            - |
+              - pip3 install awscli
+            - |
+              - aws --version
+            - |
+              - [ sh, -c, echo "== Configure AWS CLI" ]
+            - |
+              - runuser -l centos -c 'aws configure set output json'
+            - |
+              - runuser -l centos -c 'aws configure set region us-east-1'
+            - |
+              - runuser -l centos -c 'aws configure list'
+            - |
+              - [ sh, -c, echo "== Configure default environment" ]
+            - |
+              - echo "" >> /etc/bashrc
+            - |
+              - echo "# Set default user mask" >> /etc/bashrc
+            - |
+              - echo "umask 027" >> /etc/bashrc
+            - |
+              - echo "" >> /etc/profile
+            - |
+              - echo "# Set default user mask" >> /etc/profile
+            - |
+              - echo "umask 027" >> /etc/profile
+            - |
+              - [ sh, -c, echo "== Install Node" ]
+            - |
+              - mkdir /usr/local/src/tarballs
+            - |
+              - chmod 775 /usr/local/src/tarballs
+            - |
+              - cd /usr/local/src/tarballs
+            - >
+              - wget
+              https://nodejs.org/download/release/latest-v8.x/node-v8.11.3-linux-x64.tar.gz
+            - |
+              - tar --strip-components 1 -xzvf node-v* -C /usr/local
+            - |
+              - [ sh, -c, echo "== Clone repository" ]
+            - >
+              - runuser -l centos -c 'git clone
+              https://github.com/caseconsulting/expense-app-api.git ~/app'
+            - |
+              - [ sh, -c, echo "== Download env file from S3 bucket" ]
+            - >-
+              - runuser -l centos -c 'aws s3 cp
+              s3://case-consulting-expense-app-resources-
+            - !Ref Stage
+            - |
+              /.env ~/app'
+            - |
+              - [ sh, -c, echo "== Configure logs" ]
+            - |
+              - runuser -l centos -c 'mkdir -p /home/centos/app/logs'
+            - |
+              - [ sh, -c, echo "== Install node modules" ]
+            - |
+              - runuser -l centos -c 'cd ~/app && npm install'
+            - |
+              - [ sh, -c, echo "== Start application" ]
+            - |
+              - runuser -l centos -c 'cd ~/app && npm run start'
+            - |
+              final_message: "The system is finally up, after $UPTIME seconds"
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: ALBSecurityGroup
+    Properties:
+      GroupName: !Join
+        - ''
+        - - expense-app-api-
+          - !Ref Stage
+      GroupDescription: Enable SSH access and HTTP from the load balancer only
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref SSHLocation
+        - IpProtocol: tcp
+          FromPort: '3005'
+          ToPort: '3005'
+          SourceSecurityGroupId: !Select
+            - 0
+            - !GetAtt
+              - ApplicationLoadBalancer
+              - SecurityGroups
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - expense-app-api-
+              - !Ref Stage
+  ALBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Join
+        - ''
+        - - expense-app-api-lb-
+          - !Ref Stage
+      GroupDescription: Enable HTTP for the load balancer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: !Ref SSHLocation
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - expense-app-api-lb-
+              - !Ref Stage
