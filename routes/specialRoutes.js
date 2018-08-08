@@ -105,9 +105,10 @@ class Special {
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
       let returnObject = _.map(expensesTypes, expenseType => {
         return {
-          pendingAmount : expenseType.budget,
-          reimbursedAmount: expenseType.budgetName,
+          budget : expenseType.budget,
+          expenseTypeName: expenseType.budgetName,
           description: expenseType.description,
+          odFlag: expenseType.odFlag,
           budgetObject : _.find(filteredBugets, filter => expenseType.id === filter.expenseTypeId)
         };
       });
