@@ -4,11 +4,11 @@ const databaseModify = require('../js/databaseModify');
 const employeeDynamo = new databaseModify('employees');
 const expenseDynamo = new databaseModify('expenses');
 const expenseTypeDynamo = new databaseModify('expense-types');
-
+const budgetDynamo = new databaseModify('budgets');
 
 const express = require('express');
 const _ = require('lodash');
-
+const Moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 // const jwtAuthz = require('express-jwt-authz');
@@ -38,6 +38,7 @@ class Special {
     this.expenseData = expenseDynamo;
     this.employeeData = employeeDynamo;
     this.expenseTypeData = expenseTypeDynamo;
+    this.budgetData = budgetDynamo;
     this._router = express.Router();
     //Garbage
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
@@ -97,16 +98,25 @@ class Special {
     try
     {
       let userID = req.params.id;
-      let expenses = await this.expenseData.getAllEntriesInDB();
-      let user = _.first(await this.employeeData.readFromDB(userID));
+      let budgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
+      //let expenses = await this.expenseData.getAllEntriesInDB();
+      //let user = _.first(await this.employeeData.readFromDB(userID));
+      let filteredBugets = _.filter(budgets, budget => {
+        Moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate);
+      });
+
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-      let returnObject = this._findEmployee(expenses, user, expensesTypes);
-      if (user.id === userID) {
-        res.status(200).send(returnObject);
-      }
-      else {
-        res.status(403).send('Permission denied. Insuffient user permissions');
-      }
+
+      let returnObject = _.map(expensesTypes, expenseType => {
+        return {
+          pendingAmount : expenseType.budget,
+          reimbursedAmount: expenseType.budgetName,
+          description: expenseType.description,
+          budgetObject : _.find(filteredBugets, expenseType.id === filteredBugets.expenseTypeId)
+        };
+      });
+      res.status(200).send(returnObject);
+
     }
     catch(error)
     {
