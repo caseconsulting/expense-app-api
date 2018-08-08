@@ -172,12 +172,15 @@ class Special {
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else if (this._isUser(req)) {
         let expenses = await this.expenseData.getAllEntriesInDB();
+        let users = await this.employeeData.getAllEntriesInDB();
+        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         let userID = req.params.id;
-        let userArray = await this.employeeData.getAllEntriesInDB();
-        let users = _.filter(userArray, employee => {
+        users = _.filter(users, employee => {
           return employee.id === userID;
         });
-        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+        expenses = _.filter(expenses, expense => {
+          return expense.userId === userID;
+        });
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else {
         res.status(403).send('Permission denied. Insuffient user permissions');
