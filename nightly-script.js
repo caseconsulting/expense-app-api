@@ -14,3 +14,7 @@
 //   start = expenseType.fiscalStartDate;
 //   end = expenseType.fiscalEndDate;
 // }
+// return {
+//   startDate: start,
+//   endDate: end
+// };

@@ -206,9 +206,9 @@ class databaseModify {
    */
   buildUpdateParams(objToUpdate) {
     switch (this.tableName) {
-    case 'Expense':
+    case `${STAGE}-expenses`:
       return {
-        TableName: 'Expense',
+        TableName: `${STAGE}-expenses`,
         Key: {
           id: objToUpdate.id
         },
@@ -227,9 +227,9 @@ class databaseModify {
         },
         ReturnValues: 'ALL_NEW'
       };
-    case 'Employee':
+    case `${STAGE}-employees`:
       return {
-        TableName: 'Employee',
+        TableName: `${STAGE}-employees`,
         Key: {
           id: objToUpdate.id
         },
@@ -249,9 +249,9 @@ class databaseModify {
         },
         ReturnValues: 'ALL_NEW'
       };
-    case 'ExpenseType':
+    case `${STAGE}-expense-types`:
       return {
-        TableName: 'ExpenseType',
+        TableName: `${STAGE}-expense-types`,
         Key: {
           id: objToUpdate.id
         },
@@ -268,9 +268,9 @@ class databaseModify {
         },
         ReturnValues: 'ALL_NEW'
       };
-    case 'Budgets':
+    case `${STAGE}-budgets`:
       return {
-        TableName: 'Budgets',
+        TableName: `${STAGE}-budgets`,
         Key: {
           id: objToUpdate.id
         },
