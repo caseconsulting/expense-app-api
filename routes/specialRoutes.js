@@ -45,7 +45,6 @@ class Special {
     //Not Garbage
     this._router.get('/getAllExpenses', checkJwt, getUserInfo,this.getAllExpenses.bind(this));//Admin
 
-    this._router.get('/getAllExpenses/:id', checkJwt, getUserInfo,this.getAllExpenses.bind(this));//Admin
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this));//User
   }
 
