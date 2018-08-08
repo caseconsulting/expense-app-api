@@ -65,6 +65,7 @@ class Special {
     return res.status(err.code).send(err.message);
   }
 
+
   getEmployeeName(expense) {
     return this.employeeData.readFromDB(expense.userId)
       .then(employee => {
@@ -162,7 +163,7 @@ class Special {
       return _.merge(employeeExpenseType, returnedExpenseType, expensesToMerge);
     });
   }
-
+  
   async getAllExpenses(req, res) {
     try {
       if (this._isAdmin(req)) {
@@ -171,16 +172,9 @@ class Special {
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else if (this._isUser(req)) {
-        let expenses = await this.expenseData.getAllEntriesInDB();
-        let users = await this.employeeData.getAllEntriesInDB();
+        let users = [req.employee];
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-        let userID = req.params.id;
-        users = _.filter(users, employee => {
-          return employee.id === userID;
-        });
-        expenses = _.filter(expenses, expense => {
-          return expense.userId === userID;
-        });
+        let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else {
         res.status(403).send('Permission denied. Insuffient user permissions');
