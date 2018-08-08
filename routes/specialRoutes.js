@@ -99,24 +99,19 @@ class Special {
     {
       let userID = req.params.id;
       let budgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
-      //let expenses = await this.expenseData.getAllEntriesInDB();
-      //let user = _.first(await this.employeeData.readFromDB(userID));
       let filteredBugets = _.filter(budgets, budget => {
-        Moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate);
+        return Moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
       });
-
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-
       let returnObject = _.map(expensesTypes, expenseType => {
         return {
           pendingAmount : expenseType.budget,
           reimbursedAmount: expenseType.budgetName,
           description: expenseType.description,
-          budgetObject : _.find(filteredBugets, expenseType.id === filteredBugets.expenseTypeId)
+          budgetObject : _.find(filteredBugets, filter => expenseType.id === filter.expenseTypeId)
         };
       });
       res.status(200).send(returnObject);
-
     }
     catch(error)
     {
