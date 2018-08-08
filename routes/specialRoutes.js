@@ -172,12 +172,12 @@ class Special {
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else if (this._isUser(req)) {
-          let userID = req.employee.id;
-          let user = _.first(await this.employeeData.readFromDB(userID));
-          let users = [user];
-          let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-          let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
-          res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
+        let userID = req.employee.id;
+        let user = _.first(await this.employeeData.readFromDB(userID));
+        let users = [user];
+        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+        let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
+        res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
       } else {
         res.status(403).send('Permission denied. Insuffient user permissions');
       }
