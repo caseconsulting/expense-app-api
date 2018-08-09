@@ -124,6 +124,14 @@ class ExpenseRoutes extends Crud {
     if (budget === null && expense.cost <= expenseType.budget) {
       return true;
     }
+    else if (budget === null && expense.cost <= expenseType.budget * 2 && expenseType.odFlag)
+    {
+      return true;
+    }
+    else if (budget === null) {
+      return false;
+    }
+
 
     let sum = budget.pendingAmount + budget.reimbursedAmount + expense.cost;
     if (sum <= expenseType.budget) {
