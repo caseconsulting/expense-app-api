@@ -52,6 +52,14 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  AppCertificate:
+    Description: The ARN for the app certificate saved in ACM
+    Type: 'String'
+    ConstraintDescription: must be the name of an existing certificate.
+  ApiCertificate:
+    Description: The ARN for the api certificate saved in ACM
+    Type: 'String'
+    ConstraintDescription: must be the name of an existing certificate.
 Resources:
   cloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -115,7 +123,9 @@ Resources:
             ResponseCode: '200'
             ErrorCachingMinTTL: '300'
         ViewerCertificate:
-          CloudFrontDefaultCertificate: 'true'
+          AcmCertificateArn: !Ref AppCertificate
+          MinimumProtocolVersion: TLSv1.1_2016
+          SSLSupportMethod: sni-only
   s3FrontEnd:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'
@@ -353,8 +363,11 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
       LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: '80'
-      Protocol: HTTP
+      Port: '443'
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS-1-1-2017-01
+      Certificates:
+        - CertificateArn: !Ref ApiCertificate
   ALBTargetGroup:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
     Properties:
@@ -473,6 +486,10 @@ Resources:
             - |
               runcmd:
             - |
+              - [ sh, -c, echo "== Set Timezone" ]
+            - |
+              - timedatectl set-timezone America/New_York
+            - |
               - [ sh, -c, echo "== Install EPEL packages" ]
             - |
               - yum install -y python34 python34-pip bzip2
@@ -590,11 +607,11 @@ Resources:
         - ''
         - - expense-app-api-lb-
           - !Ref Stage
-      GroupDescription: Enable HTTP for the load balancer
+      GroupDescription: Enable HTTPS for the load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
+          FromPort: '443'
+          ToPort: '443'
           CidrIp: !Ref SSHLocation
       VpcId: !Ref VpcId
       Tags:
