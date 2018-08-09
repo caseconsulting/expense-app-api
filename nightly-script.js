@@ -6,6 +6,7 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 
 export async function something() {
+  let budgets, expenseTypes;
   try {
     budgets = await budgetDynamo.getAllEntriesInDB(); //get all budgets
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
