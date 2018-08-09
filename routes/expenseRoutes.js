@@ -105,7 +105,7 @@ class ExpenseRoutes extends Crud {
 
   checkValidity(expense, expenseType, budget, employee) {
     let valid =
-      this._checkExpenseDate(expense, expenseType) &&
+      (this._checkExpenseDate(expense, expenseType)||expenseType.recurringFlag) &&
       this._checkBalance(expense, expenseType, budget) &&
       employee.isActive;
     let err = {
