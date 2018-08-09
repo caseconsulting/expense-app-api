@@ -125,7 +125,7 @@ Resources:
         ViewerCertificate:
           AcmCertificateArn: !Ref AppCertificate
           MinimumProtocolVersion: TLSv1.1_2016
-          SSLSupportMethod: sni-only
+          SslSupportMethod: sni-only
   s3FrontEnd:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'
@@ -356,7 +356,7 @@ Resources:
       SecurityGroups:
         - !Ref ALBSecurityGroup
       Subnets: !Ref Subnets
-  ALBListener:
+  ALBHttpsListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
       DefaultActions:
@@ -575,10 +575,6 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     DependsOn: ALBSecurityGroup
     Properties:
-      GroupName: !Join
-        - ''
-        - - expense-app-api-
-          - !Ref Stage
       GroupDescription: Enable SSH access and HTTP from the load balancer only
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -603,10 +599,6 @@ Resources:
   ALBSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupName: !Join
-        - ''
-        - - expense-app-api-lb-
-          - !Ref Stage
       GroupDescription: Enable HTTPS for the load balancer
       SecurityGroupIngress:
         - IpProtocol: tcp
