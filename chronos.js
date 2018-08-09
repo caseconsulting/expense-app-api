@@ -15,8 +15,11 @@ async function start() {
   }
 
   _.forEach(budgets, oldBudget => {
+    budgets = _.filter(budgets, budget => {
+      return budget.recurringFlag;
+    });
     //budget anniversary date is today
-    if (moment(oldBudget.fiscalEndDate).isSame(moment().format('YYYY-MM-DD'))) {
+    if (moment(oldBudget.fiscalEndDate, 'YYYY-MM-DD').isBefore(moment(), 'day')) {
       let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
       if (expenseType.recurringFlag) {
         //filter by the ones that are recurring
@@ -48,13 +51,12 @@ function _makeNewBudget(oldBudget, expenseType) {
       .format('YYYY-MM-DD') //increment the budgets fiscal end day by one year
   };
 
-  if (oldBudget.pendingAmount > expenseType.budget) {
-    newBudget.pendingAmount = oldBudget.pendingAmount - expenseType.budget;
-  }
+  // if (oldBudget.pendingAmount > expenseType.budget) {
+  //   newBudget.pendingAmount = oldBudget.pendingAmount - expenseType.budget;
+  // }
   if (oldBudget.reimbursedAmount > expenseType.budget) {
     newBudget.reimbursedAmount = oldBudget.reimbursedAmount - expenseType.budget;
   }
-
   return newBudget;
 }
 
