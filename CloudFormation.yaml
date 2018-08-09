@@ -113,6 +113,7 @@ Resources:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
+        HttpVersion: http2
         CustomErrorResponses:
           - ErrorCode: '404'
             ResponsePagePath: '/index.html'
