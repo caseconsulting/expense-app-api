@@ -227,14 +227,16 @@ class Crud {
       if (this.databaseModify.tableName === 'dev-expenses') {
         this._delete(req.params.id)
           .then(value => value)
-          .catch(error => error);
+          .catch(error => this._handleError(res, error));
       }
-      return this.databaseModify
-        .removeFromDB(req.params.id)
-        .then(data => {
-          res.status(200).send(data);
-        })
-        .catch(err => this._handleError(res, err));
+      else {
+        return this.databaseModify
+          .removeFromDB(req.params.id)
+          .then(data => {
+            res.status(200).send(data);
+          })
+          .catch(err => this._handleError(res, err));
+      }
     } else {
       let err = {
         code: 403,
