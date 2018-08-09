@@ -1,11 +1,11 @@
 const _ = require('lodash');
-const databaseModify = require('js/databaseModify');
+const databaseModify = require('./js/databaseModify');
 const budgetDynamo = new databaseModify('budgets');
 const expenseTypeDynamo = new databaseModify('expense-types');
 const uuid = require('uuid/v4');
 const moment = require('moment');
 
-export async function something() {
+async function start() {
   let budgets, expenseTypes;
   try {
     budgets = await budgetDynamo.getAllEntriesInDB(); //get all budgets
@@ -57,3 +57,5 @@ function _makeNewBudget(oldBudget, expenseType) {
 
   return newBudget;
 }
+
+module.exports = { start };

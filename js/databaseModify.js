@@ -1,5 +1,9 @@
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+require('dotenv').config({
+  silent: true
+});
+
 const STAGE = process.env.STAGE;
 
 class databaseModify {
