@@ -79,7 +79,7 @@ class EmployeeRoutes extends Crud {
 
       let newBudget = {
         id: uuid(),
-        expenseTypeId: recurringExpenseType.expenseTypeId,
+        expenseTypeId: recurringExpenseType.id,
         userId: userId,
         reimbursedAmount: 0,
         pendingAmount: 0,
