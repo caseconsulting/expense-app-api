@@ -109,6 +109,7 @@ class Special {
           expenseTypeName: expenseType.budgetName,
           description: expenseType.description,
           odFlag: expenseType.odFlag,
+          expenseTypeId: expenseType.id,
           budgetObject : _.find(filteredBugets, filter => expenseType.id === filter.expenseTypeId)
         };
       });
