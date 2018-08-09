@@ -29,6 +29,8 @@ class ExpenseRoutes extends Crud {
     budget = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
     expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
 
+
+
     return this._isReimbursed(expense)
       .then(() => this._removeFromBudget(budget, expense, expenseType))
       .then(() => this.expenseDynamo.removeFromDB(id))

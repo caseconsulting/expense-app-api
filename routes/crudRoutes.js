@@ -224,7 +224,7 @@ class Crud {
    */
   onDelete(req, res) {
     if (this._isAdmin(req)) {
-      if (this.databaseModify.tableName === 'Expense') {
+      if (this.databaseModify.tableName === 'dev-expenses') {
         this._delete(req.params.id)
           .then(value => value)
           .catch(error => error);
