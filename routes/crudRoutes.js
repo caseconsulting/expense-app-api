@@ -26,6 +26,7 @@ const checkJwt = jwt({
 });
 
 class Crud {
+
   constructor() {
     this._router = express.Router();
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
@@ -210,6 +211,11 @@ class Crud {
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
+    } else if (!this._isAdmin(req) && this._getTableName() === 'dev-expenses') {
+      return this._update(req.params.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._updateDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
     } else {
       let err = {
         code: 403,
@@ -250,7 +256,8 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    if (this._isAdmin(req) || this._getTableName() === 'dev-expense-types') {
+    const EXPENSE_TYPES = 'dev-expense-types';
+    if (this._isAdmin(req) || this._getTableName() === EXPENSE_TYPES) {
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
