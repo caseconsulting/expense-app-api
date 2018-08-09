@@ -3,6 +3,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
+const STAGE = process.env.STAGE;
 // const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 // Authentication middleware. When used, the
@@ -26,7 +27,6 @@ const checkJwt = jwt({
 });
 
 class Crud {
-
   constructor() {
     this._router = express.Router();
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
@@ -103,17 +103,17 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === 'Employee') {
+    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === '') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
+    } else if (this._isAdmin(req) && this._getTableName() !== '') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (!this._isAdmin(req) && this._getTableName() === 'dev-expenses') {
+    } else if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-expenses`) {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -165,7 +165,7 @@ class Crud {
           }
         })
         .catch(err => this._handleError(res, err));
-    } else if (this._getTableName() === 'dev-expenses' && !this._isAdmin(req)) {
+    } else if (this._getTableName() === `${STAGE}-expenses` && !this._isAdmin(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
           res.status(200).send(_.first(expense));
@@ -208,17 +208,17 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === 'Employee') {
+    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === `${STAGE}-employees`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (this._isAdmin(req) && this._getTableName() !== 'Employee') {
+    } else if (this._isAdmin(req) && this._getTableName() !== `${STAGE}-employees`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
+    } else if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-expenses`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
@@ -246,8 +246,7 @@ class Crud {
         this._delete(req.params.id)
           .then(value => value)
           .catch(error => this._handleError(res, error));
-      }
-      else {
+      } else {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
@@ -268,8 +267,7 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    const EXPENSE_TYPES = 'dev-expense-types';
-    if (this._isAdmin(req) || this._getTableName() === EXPENSE_TYPES) {
+    if (this._isAdmin(req) || this.databaseModify.tableName === `${STAGE}-expense-types`) {
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
