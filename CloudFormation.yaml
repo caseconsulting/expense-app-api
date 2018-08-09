@@ -105,6 +105,15 @@ Resources:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
+        CustomErrorResponses:
+          - ErrorCode: '404'
+            ResponsePagePath: '/index.html'
+            ResponseCode: '200'
+            ErrorCachingMinTTL: '300'
+          - ErrorCode: '403'
+            ResponsePagePath: '/index.html'
+            ResponseCode: '200'
+            ErrorCachingMinTTL: '300'
         ViewerCertificate:
           CloudFrontDefaultCertificate: 'true'
   s3FrontEnd:
