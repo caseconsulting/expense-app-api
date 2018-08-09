@@ -113,7 +113,7 @@ class Crud {
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (!this._isAdmin(req) && this._getTableName() === 'Expense') {
+    } else if (!this._isAdmin(req) && this._getTableName() === 'dev-expenses') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -165,7 +165,7 @@ class Crud {
           }
         })
         .catch(err => this._handleError(res, err));
-    } else if (this._getTableName() === 'Expense' && !this._isAdmin(req)) {
+    } else if (this._getTableName() === 'dev-expenses' && !this._isAdmin(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
           res.status(200).send(_.first(expense));
@@ -174,6 +174,18 @@ class Crud {
           this._handleError(res, err);
         }
       });
+    } else if (this._getTableName() === 'dev-expense-types' && !this._isAdmin(req)) {
+      this.databaseModify
+        .readFromDB(req.params.id)
+        .then(output => {
+          if (_.first(output)) {
+            res.status(200).send(_.first(output));
+          } else {
+            let err = NOT_FOUND;
+            throw err;
+          }
+        })
+        .catch(err => this._handleError(res, err));
     } else {
       let err = FORBIDDEN;
       this._handleError(res, err);
