@@ -549,6 +549,10 @@ Resources:
             - |
               - runuser -l centos -c 'cd ~/app && npm run start'
             - |
+              - [ sh, -c, echo "== Schedule Chronos" ]
+            - |
+              - runuser -l centos -c '(crontab -l ; echo "1 0 * * * cd /home/centos/app && /usr/local/bin/npm run chronos") 2> /dev/null | sort | uniq | crontab -'
+            - |
               final_message: "The system is finally up, after $UPTIME seconds"
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
