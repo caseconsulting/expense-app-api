@@ -475,7 +475,7 @@ Resources:
             - |
               - [ sh, -c, echo "== Install EPEL packages" ]
             - |
-              - yum install -y python34 python34-pip
+              - yum install -y python34 python34-pip bzip2
             - |
               - python3 --version
             - |
@@ -551,7 +551,7 @@ Resources:
             - |
               - [ sh, -c, echo "== Schedule Chronos" ]
             - |
-              - runuser -l centos -c '(crontab -l ; echo "1 0 * * * cd /home/centos/app && /usr/local/bin/npm run chronos") 2> /dev/null | sort | uniq | crontab -'
+              - runuser -l centos -c '(crontab -l ; echo "1 0 * * * cd /home/centos/app && /usr/local/bin/npm run chronos &>> /home/centos/app/logs/chronos.log") 2> /dev/null | sort | uniq | crontab -'
             - |
               final_message: "The system is finally up, after $UPTIME seconds"
   InstanceSecurityGroup:
