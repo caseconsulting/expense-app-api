@@ -242,7 +242,7 @@ class Crud {
    */
   onDelete(req, res) {
     if (this._isAdmin(req)) {
-      if (this.databaseModify.tableName === 'dev-expenses') {
+      if (this.databaseModify.tableName === `${STAGE}-expenses`) {
         this._delete(req.params.id)
           .then(value => value)
           .catch(error => this._handleError(res, error));
@@ -254,6 +254,10 @@ class Crud {
           })
           .catch(err => this._handleError(res, err));
       }
+    } else if (this._isUser(req) && (this.databaseModify.tableName === `${STAGE}-expenses`)) {
+      this._delete(req.params.id)
+        .then(value => value)
+        .catch(error => this._handleError(res, error));
     } else {
       let err = {
         code: 403,
@@ -285,6 +289,9 @@ class Crud {
   }
   _isAdmin(req) {
     return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
+  }
+  _isUser(req) {
+    return req.employee.employeeRole === 'user';
   }
 }
 
