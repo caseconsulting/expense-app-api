@@ -256,7 +256,7 @@ class Crud {
       }
     } else if (this._isUser(req) && (this.databaseModify.tableName === `${STAGE}-expenses`)) {
       this._delete(req.params.id)
-        .then(value => value)
+        .then(value => res.status(200).send(value))
         .catch(error => this._handleError(res, error));
     } else {
       let err = {
