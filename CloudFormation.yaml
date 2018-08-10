@@ -60,6 +60,10 @@ Parameters:
     Description: The ARN for the api certificate saved in ACM
     Type: 'String'
     ConstraintDescription: must be the name of an existing certificate.
+  AppDomain:
+    Description: The domain name for the front end app
+    Type: 'String'
+    ConstraintDescription: Should match app certificate name.
 Resources:
   cloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -113,6 +117,7 @@ Resources:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
+        HttpVersion: http2
         CustomErrorResponses:
           - ErrorCode: '404'
             ResponsePagePath: '/index.html'
@@ -126,6 +131,8 @@ Resources:
           AcmCertificateArn: !Ref AppCertificate
           MinimumProtocolVersion: TLSv1.1_2016
           SslSupportMethod: sni-only
+        Aliases:
+          - !Ref AppDomain
   s3FrontEnd:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'
