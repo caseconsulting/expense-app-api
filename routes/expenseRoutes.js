@@ -1,36 +1,34 @@
 const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
-const budgetDynamo = new databaseModify('budgets');
-const expenseTypeDynamo = new databaseModify('expense-types');
-const employeeDynamo = new databaseModify('employees');
-const expenseDynamo = new databaseModify('expenses');
-// const _ = require('lodash');
+const _ = require('lodash');
 const uuid = require('uuid/v4');
-
 const Moment = require('moment');
 const MomentRange = require('moment-range');
-
+const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
+
 class ExpenseRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = expenseDynamo;
-    this.budgetDynamo = budgetDynamo;
-    this.expenseTypeDynamo = expenseTypeDynamo;
-    this.employeeDynamo = employeeDynamo;
-    this.expenseDynamo = expenseDynamo;
+    this.budgetDynamo = new databaseModify('budgets');
+    this.expenseTypeDynamo = new databaseModify('expense-types');
+    this.employeeDynamo = new databaseModify('employees');
+    this.expenseDynamo = new databaseModify('expenses');
+    this.databaseModify = this.expenseDynamo;
     this.moment = moment;
   }
 
   async _delete(id) {
-    let expense, budget, expenseType;
+    let expense, budget, expenseType, budgets;
 
-    expense = await this.expenseDynamo.findObjectInDB(id);
-    budget = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-    expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
-
-
-
+    try {
+      expense = await this.expenseDynamo.findObjectInDB(id);
+      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+      expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
+      budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+    } catch (err) {
+      throw err;
+    }
     return this._isReimbursed(expense)
       .then(() => this._removeFromBudget(budget, expense, expenseType))
       .then(() => this.expenseDynamo.removeFromDB(id))
@@ -41,7 +39,7 @@ class ExpenseRoutes extends Crud {
 
   async _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId }) {
     //query DB to see if Budget exists
-    let expenseType, budget, expense, employee;
+    let expenseType, budget, expense, employee, budgets;
     expense = {
       id: uuid,
       purchaseDate: purchaseDate,
@@ -52,12 +50,13 @@ class ExpenseRoutes extends Crud {
       receipt: receipt,
       expenseTypeId: expenseTypeId,
       userId: userId,
-      createdAt: moment().format('YYYY-MM-DD')
+      createdAt: moment().format(IsoFormat)
     };
     try {
       employee = await this.employeeDynamo.findObjectInDB(expense.userId);
       expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
-      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
     } catch (err) {
       throw err;
     }
@@ -74,7 +73,7 @@ class ExpenseRoutes extends Crud {
     id,
     { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }
   ) {
-    let expenseType, budget, newExpense, employee, oldExpense;
+    let expenseType, budget, newExpense, employee, oldExpense, budgets;
     newExpense = {
       id: id,
       purchaseDate: purchaseDate,
@@ -91,14 +90,15 @@ class ExpenseRoutes extends Crud {
       oldExpense = await this.expenseDynamo.findObjectInDB(id);
       employee = await this.employeeDynamo.findObjectInDB(userId);
       expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
-      budget = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      budget = this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate);
     } catch (err) {
       throw err;
     }
 
     return this.checkValidity(newExpense, expenseType, budget, employee)
       .then(() => this._isReimbursed(oldExpense))
-      .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget))
+      .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
       .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
       .catch(err => {
         throw err;
@@ -107,7 +107,8 @@ class ExpenseRoutes extends Crud {
 
   checkValidity(expense, expenseType, budget, employee) {
     let valid =
-      (this._checkExpenseDate(expense, expenseType)||expenseType.recurringFlag) &&
+      (this._checkExpenseDate(expense.purchaseDate, expenseType.startDate, expenseType.endDate) ||
+        (budget && expenseType.recurringFlag)) &&
       this._checkBalance(expense, expenseType, budget) &&
       employee.isActive;
     let err = {
@@ -122,16 +123,15 @@ class ExpenseRoutes extends Crud {
 
   _checkBalance(expense, expenseType, budget) {
     if (budget === null && expense.cost <= expenseType.budget) {
+      // no budget exists yet, but the cost is valid
       return true;
-    }
-    else if (budget === null && expense.cost <= expenseType.budget * 2 && expenseType.odFlag)
-    {
+    } else if (budget === null && expense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
+      // if no budget exists yet, the expense type is overdraftable and the cost is valid
       return true;
-    }
-    else if (budget === null) {
+    } else if (budget === null) {
+      // any other case where the budget is null
       return false;
     }
-
 
     let sum = budget.pendingAmount + budget.reimbursedAmount + expense.cost;
     if (sum <= expenseType.budget) {
@@ -144,14 +144,13 @@ class ExpenseRoutes extends Crud {
     }
   }
 
-  _checkExpenseDate(expense, expenseType) {
-    let startDate = moment(expenseType.startDate, 'YYYY-MM-DD');
-    let endDate = moment(expenseType.endDate, 'YYYY-MM-DD');
-    let date = moment(expense.purchaseDate);
-    let range = moment().range(startDate, endDate);
-    let dateValid = range.contains(date); //true or false
-
-    return dateValid;
+  _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
+    let startDate, endDate, date, range;
+    startDate = moment(stringStartDate, IsoFormat);
+    endDate = moment(stringEndDate, IsoFormat);
+    date = moment(purchaseDate);
+    range = moment().range(startDate, endDate);
+    return range.contains(date);
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
@@ -191,12 +190,39 @@ class ExpenseRoutes extends Crud {
     return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
   }
 
-  _performBudgetUpdate(oldExpense, newExpense, budget) {
+  _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
     //Just reimbursing the cost
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
-      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+      let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
+      if (overdraftAmount) {
+        //is overdrafted
+        //move purchaseDate to next year
+        let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
+        let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
+        if (nextYearsBudget) {
+          //if next years budget exists
+          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+          budget.reimbursedAmount += newExpense.cost;
+          if (budget.reimbursedAmount >= expenseType.budget) {
+            //get overdrafted amount
+            //move to next year
+            let overAmount = budget.reimbursedAmount - expenseType.budget;
+            budget.reimbursedAmount -= overAmount;
+            nextYearsBudget.reimbursedAmount += overAmount;
+            return this.budgetDynamo.updateEntryInDB(nextYearsBudget).then(this.budgetDynamo.updateEntryInDB(budget));
+          }
+        } else {
+          // normal reimburse
+          //if next budget does not exist
+          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+          budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+        }
+      } else {
+        // normal reimburse
+        budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+        budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+      }
     }
     //if the old is unreimbursed and the new is unreimbursed but the cost is different
     else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
@@ -221,35 +247,21 @@ class ExpenseRoutes extends Crud {
       return this.budgetDynamo.updateEntryInDB(budget);
     }
   }
-  // _createFiscalYear(employee, expenseType) {
-  //   let start, end;
-  //   if (expenseType.recurringFlag) {
-  //     //For the script?
-  //     // let hireDate = moment(employee.hireDate);
-  //     // let hireYear = hireDate.year();
-  //     // let currentYear = moment().year();
-  //     // let yearDiff = currentYear - hireYear;
-  //     // let fiscalStartDate = hireDate.add(yearDiff, 'years');
-  //     // let fiscalEndDate = fiscalStartDate.add(1, 'years');
-  //     //
-  //     // fiscalEndDate = fiscalEndDate.subtract(1, 'days');
-  //     // start = moment(fiscalStartDate).format('MM-DD-YYYY');
-  //     // end = moment(fiscalEndDate).format('MM-DD-YYYY');
-  //   }
-  //   else {
-  //     start = expenseType.fiscalStartDate;
-  //     end = expenseType.fiscalEndDate;
-  //   }
-  //   return {
-  //     startDate: start,
-  //     endDate: end
-  //   };
-  // }
 
-  /**
-   * Removes the previous information from the database, including from employee's
-   *  balance
-   * adds the new information
-   */
+  _findBudgetWithMatchingRange(budgets, purchaseDate) {
+    return _.find(budgets, budget =>
+      this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
+    );
+  }
+
+  _calculateOverdraft(budget, expenseType) {
+    let sum = budget.reimbursedAmount + budget.pendingAmount;
+    if (expenseType.odFlag && sum > expenseType.budget) {
+      let difference = sum - expenseType.budget;
+      return difference;
+    } else {
+      return 0;
+    }
+  }
 }
 module.exports = ExpenseRoutes;
