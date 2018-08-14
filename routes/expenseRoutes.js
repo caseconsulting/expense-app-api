@@ -126,13 +126,13 @@ class ExpenseRoutes extends Crud {
   _checkBalance(expense, expenseType, budget, oldExpense) {
 
     let oldCost = oldExpense ? oldExpense.cost : 0;
-    if (budget === null && expense.cost <= expenseType.budget) {
+    if (!budget && expense.cost <= expenseType.budget) {
       // no budget exists yet, but the cost is valid
       return true;
-    } else if (budget === null && expense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
+    } else if (!budget && expense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
       // if no budget exists yet, the expense type is overdraftable and the cost is valid
       return true;
-    } else if (budget === null) {
+    } else if (!budget) {
       // any other case where the budget is null
       return false;
     }
