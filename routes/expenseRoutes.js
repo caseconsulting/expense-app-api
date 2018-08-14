@@ -103,7 +103,7 @@ class ExpenseRoutes extends Crud {
       };
       throw err;
     }
-    return  this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
+    return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._isReimbursed(oldExpense))
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
       .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
@@ -113,26 +113,32 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
+    let expenseTypeValid, err;
     let validDateRange = this._checkExpenseDate(expense.purchaseDate, expenseType.startDate, expenseType.endDate);
     let balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
-
+    if (expense && oldExpense) {
+      expenseTypeValid = expense.expenseTypeId === oldExpense.expenseTypeId;
+    } else {
+      expenseTypeValid = true;
+    }
     let valid =
-      (validDateRange ||
-        (budget && expenseType.recurringFlag)) &&
+      expenseTypeValid &&
+      (validDateRange || (budget && expenseType.recurringFlag)) &&
       balanceCheck &&
       employee.isActive;
-    let err = {
+
+    err = {
       code: 403,
       message: `expense is not valid because either
         1.) the employee is not active.
         2.) because the expense is over the budget limit.
-        3.) expense is outside of the expenseType window.`
+        3.) expense is outside of the expenseType window.
+        4.) expense type not valid`
     };
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
-
     let oldCost = oldExpense ? oldExpense.cost : 0;
     if (!budget && expense.cost <= expenseType.budget) {
       // no budget exists yet, but the cost is valid
