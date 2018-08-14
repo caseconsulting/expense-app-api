@@ -14,4 +14,4 @@ class Ping { //open route for checking server
     res.status(200).send('I can hear you');//sends back health res
   }
 }
-module.exports = Ping;
+module.exports = Ping; //exports class to be called outside
