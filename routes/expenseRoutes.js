@@ -114,7 +114,9 @@ class ExpenseRoutes extends Crud {
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
     let expenseTypeValid, err;
-    let validDateRange = this._checkExpenseDate(expense.purchaseDate, expenseType.startDate, expenseType.endDate);
+    let startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
+    let endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
+    let validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     let balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     if (expense && oldExpense) {
       expenseTypeValid = expense.expenseTypeId === oldExpense.expenseTypeId;
@@ -123,7 +125,7 @@ class ExpenseRoutes extends Crud {
     }
     let valid =
       expenseTypeValid &&
-      (validDateRange || (budget && expenseType.recurringFlag)) &&
+      validDateRange &&
       balanceCheck &&
       employee.isActive;
 
@@ -276,7 +278,7 @@ class ExpenseRoutes extends Crud {
     } else {
       let err = {
         code: 403,
-        message: 'No budgets are within matching range'
+        message: 'Purchase Date is out of range of the budget'
       };
       throw err;
     }
