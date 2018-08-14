@@ -125,7 +125,7 @@ class ExpenseRoutes extends Crud {
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
 
-    let oldCost = oldExpense.cost ? oldExpense.cost : 0;
+    let oldCost = oldExpense ? oldExpense.cost : 0;
     if (budget === null && expense.cost <= expenseType.budget) {
       // no budget exists yet, but the cost is valid
       return true;
