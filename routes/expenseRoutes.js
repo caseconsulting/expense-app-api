@@ -108,10 +108,11 @@ class ExpenseRoutes extends Crud {
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
     let validDateRange = this._checkExpenseDate(expense.purchaseDate, expenseType.startDate, expenseType.endDate);
     let balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
+    let expenseTypeIdCheck = expenseType.id === oldExpense.expenseTypeId;
     let valid =
       (validDateRange ||
         (budget && expenseType.recurringFlag)) &&
-      balanceCheck &&
+      balanceCheck && expenseTypeIdCheck &&
       employee.isActive;
     let err = {
       code: 403,
