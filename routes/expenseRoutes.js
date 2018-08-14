@@ -96,7 +96,14 @@ class ExpenseRoutes extends Crud {
       throw err;
     }
 
-    return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
+  if (expenseType.id === oldExpense.expenseTypeId) {
+    let err = {
+      code: 403,
+      message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+    };
+    throw err;
+    }
+    return  this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._isReimbursed(oldExpense))
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
       .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
@@ -108,11 +115,11 @@ class ExpenseRoutes extends Crud {
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
     let validDateRange = this._checkExpenseDate(expense.purchaseDate, expenseType.startDate, expenseType.endDate);
     let balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
-    let expenseTypeIdCheck = expenseType.id === oldExpense.expenseTypeId;
+
     let valid =
       (validDateRange ||
         (budget && expenseType.recurringFlag)) &&
-      balanceCheck && expenseTypeIdCheck &&
+      balanceCheck &&
       employee.isActive;
     let err = {
       code: 403,
