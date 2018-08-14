@@ -1,6 +1,6 @@
 var express = require('express');
 
-class Ping {
+class Ping { //open route for checking server
   constructor() {
     this._router = express.Router();
     this._router.get('/', this.talkBack.bind(this));
