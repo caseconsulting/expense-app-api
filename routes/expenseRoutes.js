@@ -163,6 +163,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
+
     let startDate, endDate, date, range;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
@@ -267,9 +268,18 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    return _.find(budgets, budget =>
+    let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
     );
+    if(validBudgets) {
+      return validBudgets;
+    } else {
+      let err = {
+        code: 403,
+        message: 'No budgets are within matching range'
+      };
+      throw err;
+    }
   }
 
   _calculateOverdraft(budget, expenseType) {
