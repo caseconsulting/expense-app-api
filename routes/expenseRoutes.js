@@ -96,12 +96,12 @@ class ExpenseRoutes extends Crud {
       throw err;
     }
 
-  if (expenseType.id === oldExpense.expenseTypeId) {
-    let err = {
-      code: 403,
-      message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
-    };
-    throw err;
+    if (expenseType.id === oldExpense.expenseTypeId) {
+      let err = {
+        code: 403,
+        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+      };
+      throw err;
     }
     return  this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._isReimbursed(oldExpense))
