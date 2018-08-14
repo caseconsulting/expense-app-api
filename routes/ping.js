@@ -11,7 +11,7 @@ class Ping { //open route for checking server
   }
 
   talkBack(req, res) {
-    res.status(200).send('I can hear you');
+    res.status(200).send('I can hear you');//sends back health res
   }
 }
 module.exports = Ping;
