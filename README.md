@@ -20,7 +20,7 @@ In order to use **Auth0** authentication, you will need to define some environme
 
 The following environment variables are required to support multiple environments:
 
-* **API_PORT**
+* **EXPRESS_PORT**
 * **NODE_ENV**
 * **STAGE**
 
@@ -43,7 +43,7 @@ npm run start
 To run locally (on a different port):
 
 ```
-API_PORT=8081 npm run start
+EXPRESS_PORT=8081 npm run start
 ```
 
 To run unit tests (with Jasmine):
