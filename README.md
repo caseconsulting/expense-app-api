@@ -29,7 +29,7 @@ The `.env` file in the **case-expense-app** S3 bucket in the company AWS account
 Download this file to the project root directory:
 
 ```
-aws s3 cp s3://case-expense-app/.env.local .env
+aws s3 cp s3://case-expense-app/.env .env
 ```
 
 ## Application tasks
