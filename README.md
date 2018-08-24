@@ -13,10 +13,16 @@ npm dedupe
 
 ## Environment variables
 
-In order to use **Auth0** authentication, you will need to define two environment variables:
+In order to use **Auth0** authentication, you will need to define some environment variables:
 
 * **AUTH0_AUDIENCE**
 * **AUTH0_DOMAIN**
+
+The following environment variables are required to support multiple environments:
+
+* **EXPRESS_PORT**
+* **NODE_ENV**
+* **STAGE**
 
 The **dotenv** Node.js module is used to pick up environment variables from a `.env` file in the project root directory.
 The `.env.local` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run
