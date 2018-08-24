@@ -11,10 +11,19 @@ npm install --no-optional
 npm dedupe
 ```
 
-Make local .env file from .env_sample:
+## Environment variables
+
+In order to use **Auth0** authentication, you will need to define two environment variables:
+
+* **AUTH0_AUDIENCE**
+* **AUTH0_DOMAIN**
+
+The **dotenv** Node.js module is used to pick up environment variables from a `.env` file in the project root directory.
+The `.env.local` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run
+locally. Download this file to the project root directory:
 
 ```
-cp .env_sample .env
+aws s3 cp s3://case-expense-app/api/.env.local .env
 ```
 
 ## Application tasks
