@@ -15,13 +15,12 @@ npm dedupe
 
 In order to use **Auth0** authentication, you will need to define some environment variables:
 
-* **AUTH0_AUDIENCE**
-* **AUTH0_DOMAIN**
+* **VUE_APP_AUTH0_AUDIENCE**
+* **VUE_APP_AUTH0_DOMAIN**
 
 The following environment variables are required to support multiple environments:
 
 * **EXPRESS_PORT**
-* **NODE_ENV**
 * **STAGE**
 
 The **dotenv** Node.js module is used to pick up environment variables from a `.env` file in the project root directory.
