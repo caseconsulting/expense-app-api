@@ -20,16 +20,16 @@ In order to use **Auth0** authentication, you will need to define some environme
 
 The following environment variables are required to support multiple environments:
 
-* **EXPRESS_PORT**
+* **API_PORT**
 * **NODE_ENV**
 * **STAGE**
 
 The **dotenv** Node.js module is used to pick up environment variables from a `.env` file in the project root directory.
-The `.env.local` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run
-locally. Download this file to the project root directory:
+The `.env` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run locally.
+Download this file to the project root directory:
 
 ```
-aws s3 cp s3://case-expense-app/api/.env.local .env
+aws s3 cp s3://case-expense-app/.env.local .env
 ```
 
 ## Application tasks
@@ -43,7 +43,7 @@ npm run start
 To run locally (on a different port):
 
 ```
-EXPRESS_PORT=8081 npm run start
+API_PORT=8081 npm run start
 ```
 
 To run unit tests (with Jasmine):
