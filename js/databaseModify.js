@@ -210,86 +210,86 @@ class databaseModify {
    */
   buildUpdateParams(objToUpdate) {
     switch (this.tableName) {
-    case `${STAGE}-expenses`:
-      return {
-        TableName: `${STAGE}-expenses`,
-        Key: {
-          id: objToUpdate.id
-        },
-        UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
+      case `${STAGE}-expenses`:
+        return {
+          TableName: `${STAGE}-expenses`,
+          Key: {
+            id: objToUpdate.id
+          },
+          UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
          description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui, createdAt = :cat`,
-        ExpressionAttributeValues: {
-          ':pd': objToUpdate.purchaseDate,
-          ':rd': objToUpdate.reimbursedDate,
-          ':c': objToUpdate.cost,
-          ':d': objToUpdate.description,
-          ':n': objToUpdate.note,
-          ':r': objToUpdate.receipt,
-          ':eti': objToUpdate.expenseTypeId,
-          ':ui': objToUpdate.userId,
-          ':cat': objToUpdate.createdAt
-        },
-        ReturnValues: 'ALL_NEW'
-      };
-    case `${STAGE}-employees`:
-      return {
-        TableName: `${STAGE}-employees`,
-        Key: {
-          id: objToUpdate.id
-        },
-        UpdateExpression: `set firstName = :fn, middleName = :mn,
+          ExpressionAttributeValues: {
+            ':pd': objToUpdate.purchaseDate,
+            ':rd': objToUpdate.reimbursedDate,
+            ':c': objToUpdate.cost,
+            ':d': objToUpdate.description,
+            ':n': objToUpdate.note,
+            ':r': objToUpdate.receipt,
+            ':eti': objToUpdate.expenseTypeId,
+            ':ui': objToUpdate.userId,
+            ':cat': objToUpdate.createdAt
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      case `${STAGE}-employees`:
+        return {
+          TableName: `${STAGE}-employees`,
+          Key: {
+            id: objToUpdate.id
+          },
+          UpdateExpression: `set firstName = :fn, middleName = :mn,
         lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
         employeeRole = :er, email = :eml`,
-        ExpressionAttributeValues: {
-          ':fn': objToUpdate.firstName,
-          ':mn': objToUpdate.middleName,
-          ':ln': objToUpdate.lastName,
-          ':eid': objToUpdate.empId,
-          ':hd': objToUpdate.hireDate,
-          ':et': objToUpdate.expenseTypes,
-          ':ia': objToUpdate.isActive,
-          ':er': objToUpdate.employeeRole,
-          ':eml': objToUpdate.email
-        },
-        ReturnValues: 'ALL_NEW'
-      };
-    case `${STAGE}-expense-types`:
-      return {
-        TableName: `${STAGE}-expense-types`,
-        Key: {
-          id: objToUpdate.id
-        },
-        UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
+          ExpressionAttributeValues: {
+            ':fn': objToUpdate.firstName,
+            ':mn': objToUpdate.middleName,
+            ':ln': objToUpdate.lastName,
+            ':eid': objToUpdate.empId,
+            ':hd': objToUpdate.hireDate,
+            ':et': objToUpdate.expenseTypes,
+            ':ia': objToUpdate.isActive,
+            ':er': objToUpdate.employeeRole,
+            ':eml': objToUpdate.email
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      case `${STAGE}-expense-types`:
+        return {
+          TableName: `${STAGE}-expense-types`,
+          Key: {
+            id: objToUpdate.id
+          },
+          UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
           startDate = :sd, endDate= :ed,recurringFlag = :rf`,
-        ExpressionAttributeValues: {
-          ':bn': objToUpdate.budgetName,
-          ':b': objToUpdate.budget,
-          ':odf': objToUpdate.odFlag,
-          ':d': objToUpdate.description,
-          ':sd': objToUpdate.startDate,
-          ':ed': objToUpdate.endDate,
-          ':rf': objToUpdate.recurringFlag
-        },
-        ReturnValues: 'ALL_NEW'
-      };
-    case `${STAGE}-budgets`:
-      return {
-        TableName: `${STAGE}-budgets`,
-        Key: {
-          id: objToUpdate.id
-        },
-        UpdateExpression: `set expenseTypeId = :eti, userId = :ui,
+          ExpressionAttributeValues: {
+            ':bn': objToUpdate.budgetName,
+            ':b': objToUpdate.budget,
+            ':odf': objToUpdate.odFlag,
+            ':d': objToUpdate.description,
+            ':sd': objToUpdate.startDate,
+            ':ed': objToUpdate.endDate,
+            ':rf': objToUpdate.recurringFlag
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      case `${STAGE}-budgets`:
+        return {
+          TableName: `${STAGE}-budgets`,
+          Key: {
+            id: objToUpdate.id
+          },
+          UpdateExpression: `set expenseTypeId = :eti, userId = :ui,
           reimbursedAmount = :ra, fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
-        ExpressionAttributeValues: {
-          ':eti': objToUpdate.expenseTypeId,
-          ':ui': objToUpdate.userId,
-          ':ra': objToUpdate.reimbursedAmount,
-          ':pa': objToUpdate.pendingAmount,
-          ':fsd': objToUpdate.fiscalStartDate,
-          ':fed': objToUpdate.fiscalEndDate
-        },
-        ReturnValues: 'ALL_NEW'
-      };
+          ExpressionAttributeValues: {
+            ':eti': objToUpdate.expenseTypeId,
+            ':ui': objToUpdate.userId,
+            ':ra': objToUpdate.reimbursedAmount,
+            ':pa': objToUpdate.pendingAmount,
+            ':fsd': objToUpdate.fiscalStartDate,
+            ':fed': objToUpdate.fiscalEndDate
+          },
+          ReturnValues: 'ALL_NEW'
+        };
     }
   }
 }
