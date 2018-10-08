@@ -55,8 +55,13 @@ class ExpenseRoutes extends Crud {
     try {
       employee = await this.employeeDynamo.findObjectInDB(expense.userId);
       expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
-      budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+      if (_.isEmpty(budgets)) {
+        budget = await this._createNewBudget(expenseType, employee);
+      } else {
+        budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+      }
     } catch (err) {
       throw err;
     }
@@ -123,11 +128,7 @@ class ExpenseRoutes extends Crud {
     } else {
       expenseTypeValid = true;
     }
-    let valid =
-      expenseTypeValid &&
-      validDateRange &&
-      balanceCheck &&
-      employee.isActive;
+    let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
 
     err = {
       code: 403,
@@ -165,13 +166,46 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-
     let startDate, endDate, date, range;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
     date = moment(purchaseDate);
     range = moment().range(startDate, endDate);
     return range.contains(date);
+  }
+
+  // TBD - duplicated from employee routes
+  _getBudgetDates(hireDate) {
+    let currentYear = moment().year();
+    let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+    let startDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
+    let endDate = moment([currentYear + 1, anniversaryMonth, anniversaryDay - 1]);
+
+    return {
+      startDate,
+      endDate
+    };
+  }
+
+  _createNewBudget(expenseType, employee) {
+    const newBudget = {
+      id: uuid(),
+      expenseTypeId: expenseType.id,
+      userId: employee.id,
+      reimbursedAmount: 0,
+      pendingAmount: 0
+    };
+    if (expenseType.recurringFlag) {
+      // TBD - duplicated from employee routes
+      const dates = this._getBudgetDates(employee.hireDate);
+      newBudget.fiscalStartDate = dates.startDate.format('YYYY-MM-DD');
+      newBudget.fiscalEndDate = dates.endDate.format('YYYY-MM-DD');
+    } else {
+      newBudget.fiscalStartDate = expenseType.startDate;
+      newBudget.fiscalEndDate = expenseType.endDate;
+    }
+    return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
@@ -244,15 +278,13 @@ class ExpenseRoutes extends Crud {
         budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
         budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
       }
-    }
-    //if the old is unreimbursed and the new is unreimbursed but the cost is different
-    else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
+    } else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
+      //if the old is unreimbursed and the new is unreimbursed but the cost is different
       budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
       budget.reimbursedAmount += newExpense.cost; //add new cost to reimbursedAmount
-    }
-    //If an employee wants to edit before reimbursement
-    //if the old is unreimbursed and the new is unreimbursed but the cost is different
-    else if (!oldExpense.reimbursedDate && !newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
+    } else if (!oldExpense.reimbursedDate && !newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
+      //If an employee wants to edit before reimbursement
+      //if the old is unreimbursed and the new is unreimbursed but the cost is different
       budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
       budget.pendingAmount += newExpense.cost; //add new cost to pendingAmount
     }
@@ -269,11 +301,29 @@ class ExpenseRoutes extends Crud {
     }
   }
 
+  _isPurchaseWithinRange(expenseType, purchaseDate) {
+    if (expenseType.recurringFlag) {
+      return true;
+    } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
+      throw {
+        code: 403,
+        message: 'Purchase Date is before ' + expenseType.startDate
+      };
+    } else if (expenseType.endDate && expenseType.endDate < purchaseDate) {
+      throw {
+        code: 403,
+        message: 'Purchase Date is after ' + expenseType.endDate
+      };
+    } else {
+      return true;
+    }
+  }
+
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
     );
-    if(validBudgets) {
+    if (validBudgets) {
       return validBudgets;
     } else {
       let err = {
