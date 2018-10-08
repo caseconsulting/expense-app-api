@@ -197,7 +197,7 @@ class databaseModify {
       .scan(params)
       .promise()
       .then(function(data) {
-        return data.Items;
+        return _.sortBy(data.Items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
       .catch(function(err) {
         throw err;
