@@ -183,6 +183,20 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
         LogFilePrefix: s3-logs/resources/
+  s3Attachments:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-attachments-
+          - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/attachments/
   s3Logs:
     Type: 'AWS::S3::Bucket'
     Properties:
