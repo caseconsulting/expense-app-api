@@ -29,10 +29,9 @@ class EmployeeRoutes extends Crud {
       isActive: true
     };
 
-    return this._createRecurringExpenses(uuid, hireDate)
-      .then(() => {
-        return expense;
-      });
+    return this._createRecurringExpenses(uuid, hireDate).then(() => {
+      return expense;
+    });
   }
 
   _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole, isActive }) {
@@ -70,13 +69,13 @@ class EmployeeRoutes extends Crud {
     let dates = this._getBudgetDates(hireDate);
     let expenseTypeList;
     //get all recurring expenseTypes
-    try{
+    try {
       expenseTypeList = await expenseTypeDynamo.getAllEntriesInDB();
+    } catch (err) {
+      throw err;
     }
-    catch(err){ throw err; }
-    expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag );
-    return _.forEach(expenseTypeList, (recurringExpenseType) => {
-
+    expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
+    return _.forEach(expenseTypeList, recurringExpenseType => {
       let newBudget = {
         id: uuid(),
         expenseTypeId: recurringExpenseType.id,
@@ -99,9 +98,9 @@ class EmployeeRoutes extends Crud {
   _getBudgetDates(hireDate) {
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date();  // from 1 to 31
+    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
     let startDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([currentYear + 1, anniversaryMonth, anniversaryDay - 1 ]);
+    let endDate = moment([currentYear + 1, anniversaryMonth, anniversaryDay - 1]);
 
     return {
       startDate,
