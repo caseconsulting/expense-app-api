@@ -217,7 +217,8 @@ class databaseModify {
             id: objToUpdate.id
           },
           UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
-         description = :d, note = :n, receipt = :r, expenseTypeId = :eti, userId = :ui, createdAt = :cat`,
+                                 description = :d, note = :n, receipt = :r, expenseTypeId = :eti,
+                                 userId = :ui, createdAt = :cat`,
           ExpressionAttributeValues: {
             ':pd': objToUpdate.purchaseDate,
             ':rd': objToUpdate.reimbursedDate,
@@ -237,9 +238,9 @@ class databaseModify {
           Key: {
             id: objToUpdate.id
           },
-          UpdateExpression: `set firstName = :fn, middleName = :mn,
-        lastName = :ln, empId = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
-        employeeRole = :er, email = :eml`,
+          UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
+                                 empId = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
+                                 employeeRole = :er, email = :eml`,
           ExpressionAttributeValues: {
             ':fn': objToUpdate.firstName,
             ':mn': objToUpdate.middleName,
@@ -260,7 +261,7 @@ class databaseModify {
             id: objToUpdate.id
           },
           UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
-          startDate = :sd, endDate= :ed,recurringFlag = :rf`,
+                                 startDate = :sd, endDate= :ed,recurringFlag = :rf`,
           ExpressionAttributeValues: {
             ':bn': objToUpdate.budgetName,
             ':b': objToUpdate.budget,
@@ -278,8 +279,8 @@ class databaseModify {
           Key: {
             id: objToUpdate.id
           },
-          UpdateExpression: `set expenseTypeId = :eti, userId = :ui,
-          reimbursedAmount = :ra, fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
+          UpdateExpression: `set expenseTypeId = :eti, userId = :ui, reimbursedAmount = :ra,
+                                 fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
           ExpressionAttributeValues: {
             ':eti': objToUpdate.expenseTypeId,
             ':ui': objToUpdate.userId,
