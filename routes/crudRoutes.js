@@ -174,7 +174,7 @@ class Crud {
           this._handleError(res, err);
         }
       });
-    } else if (this._getTableName() === 'dev-expense-types' && !this._isAdmin(req)) {
+    } else if (this._getTableName() === `${STAGE}-expense-types` && !this._isAdmin(req)) {
       this.databaseModify
         .readFromDB(req.params.id)
         .then(output => {
@@ -223,7 +223,7 @@ class Crud {
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (!this._isAdmin(req) && this._getTableName() === 'dev-expenses') {
+    } else if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-expenses`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
@@ -254,7 +254,7 @@ class Crud {
           })
           .catch(err => this._handleError(res, err));
       }
-    } else if (this._isUser(req) && (this.databaseModify.tableName === `${STAGE}-expenses`)) {
+    } else if (this._isUser(req) && this.databaseModify.tableName === `${STAGE}-expenses`) {
       this._delete(req.params.id)
         .then(value => res.status(200).send(value))
         .catch(error => this._handleError(res, error));
