@@ -311,6 +311,8 @@ Resources:
           AttributeType: S
         - AttributeName: userId
           AttributeType: S
+        - AttributeName: fiscalEndDate
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -333,6 +335,15 @@ Resources:
               KeyType: HASH
             - AttributeName: expenseTypeId
               KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
+        - IndexName: fiscalEndDate-index
+          KeySchema:
+            - AttributeName: fiscalEndDate
+              KeyType: HASH
           Projection:
             ProjectionType: ALL
           ProvisionedThroughput:
