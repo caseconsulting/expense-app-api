@@ -44,9 +44,9 @@ class Special {
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
     this._router.get('/getAll', checkJwt, getUserInfo, this.showAll.bind(this));
     //Not Garbage
-    this._router.get('/getAllExpenses', checkJwt, getUserInfo,this.getAllExpenses.bind(this));//Admin
+    this._router.get('/getAllExpenses', checkJwt, getUserInfo, this.getAllExpenses.bind(this)); //Admin
 
-    this._router.get('/:id', checkJwt, this.empExpenses.bind(this));//User
+    this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
   }
 
   get router() {
@@ -65,29 +65,25 @@ class Special {
     return res.status(err.code).send(err.message);
   }
 
-
   getEmployeeName(expense) {
-    return this.employeeData.readFromDB(expense.userId)
-      .then(employee => {
-        let emp = employee[0];
-        expense.employeeName = `${emp.firstName} ${emp.middleName} ${
-          emp.lastName}`;
-        return expense;
-      });
+    return this.employeeData.readFromDB(expense.userId).then(employee => {
+      let emp = employee[0];
+      expense.employeeName = `${emp.firstName} ${emp.middleName} ${emp.lastName}`;
+      return expense;
+    });
   }
 
-
   getExpenseTypeName(expense) {
-    return this.expenseTypeData.readFromDB(expense.expenseTypeId)
-      .then(expenseType => {
-        let type = expenseType[0];
-        expense.budgetName = type.budgetName;
-        return expense;
-      });
+    return this.expenseTypeData.readFromDB(expense.expenseTypeId).then(expenseType => {
+      let type = expenseType[0];
+      expense.budgetName = type.budgetName;
+      return expense;
+    });
   }
 
   showList(req, res) {
-    return this.expenseData.getAllEntriesInDB()
+    return this.expenseData
+      .getAllEntriesInDB()
       .then(values => this._processExpenses(values))
       .then(returnValue => {
         res.status(200).send(returnValue);
@@ -95,58 +91,54 @@ class Special {
   }
 
   async empExpenses(req, res) {
-    try
-    {
-      let userID = req.params.id;
-      let budgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
-      let filteredBugets = _.filter(budgets, budget => {
+    try {
+      const userID = req.params.id;
+      const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
+      const openBudgets = _.filter(userBudgets, budget => {
         return Moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
       });
-      let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-      let returnObject = _.map(expensesTypes, expenseType => {
+      const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
+      const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
+      const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
+      const returnObject = _.map(openExpenseTypes, expenseType => {
         return {
-          budget : expenseType.budget,
+          budget: expenseType.budget,
           expenseTypeName: expenseType.budgetName,
           description: expenseType.description,
           odFlag: expenseType.odFlag,
           expenseTypeId: expenseType.id,
-          budgetObject : _.find(filteredBugets, filter => expenseType.id === filter.expenseTypeId)
+          budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
         };
       });
       res.status(200).send(returnObject);
-    }
-    catch(error)
-    {
+    } catch (error) {
       this._handleError(res, error);
     }
   }
 
-  async showAll(req, res){
+  async showAll(req, res) {
     try {
       let expenses = await this.expenseData.getAllEntriesInDB();
       let users = await this.employeeData.getAllEntriesInDB();
       let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-      res.status(200).send((this._findExpenseTypes(expenses,users, expensesTypes)));
-    }
-    catch(error){
+      res.status(200).send(this._findExpenseTypes(expenses, users, expensesTypes));
+    } catch (error) {
       this._handleError(res, error);
     }
   }
 
-  _findEmployee(expenses, user, expensesTypes){
-    let filteredExpenses = _.filter(expenses, (expense) => expense.userId === user.id);
+  _findEmployee(expenses, user, expensesTypes) {
+    let filteredExpenses = _.filter(expenses, expense => expense.userId === user.id);
     let temp = null;
     let returnObject = {
       firstName: user.firstName,
       middleName: user.middleName,
       lastName: user.lastName
     };
-    temp = _.forEach(expensesTypes, (type) => {
-
+    temp = _.forEach(expensesTypes, type => {
       type.expenses = [];
       _.forEach(filteredExpenses, expense => {
-        if (type.id === expense.expenseTypeId)
-        {
+        if (type.id === expense.expenseTypeId) {
           type.expenses.push(expense);
         }
       });
@@ -176,19 +168,18 @@ class Special {
         let expenses = await this.expenseData.getAllEntriesInDB();
         let users = await this.employeeData.getAllEntriesInDB();
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-        res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
+        res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else if (this._isUser(req)) {
         let userID = req.employee.id;
         let user = _.first(await this.employeeData.readFromDB(userID));
         let users = [user];
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
-        res.status(200).send((this._getEmployeeName(expenses, users, expensesTypes)));
+        res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else {
         res.status(403).send('Permission denied. Insuffient user permissions');
       }
-    }
-    catch(error) {
+    } catch (error) {
       this._handleError(res, error);
     }
   }
@@ -197,10 +188,9 @@ class Special {
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
       let employee = _.find(users, emp => emp.id === expense.userId);
-      if (expenseType !== undefined && employee !== undefined){
+      if (expenseType !== undefined && employee !== undefined) {
         expense.budgetName = expenseType.budgetName;
-        expense.employeeName = `${employee.firstName} ${employee.middleName} ${
-          employee.lastName}`;
+        expense.employeeName = `${employee.firstName} ${employee.middleName} ${employee.lastName}`;
         expense.firstName = employee.firstName;
         expense.middleName = employee.middleName;
         expense.lastName = employee.lastName;
@@ -210,13 +200,12 @@ class Special {
   }
 
   _expenseMapping(expenses, employee, expenseType) {
-    return _.filter(expenses, expense => expense.userId === employee.id
-      && expense.expenseTypeId === expenseType.id);
+    return _.filter(expenses, expense => expense.userId === employee.id && expense.expenseTypeId === expenseType.id);
   }
 
   _processExpenses(expenseData) {
     let processedExpenses = [];
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       processedExpenses = _.map(expenseData, expense => {
         return this.getEmployeeName(expense);
       });
@@ -225,14 +214,14 @@ class Special {
         return this.getExpenseTypeName(expense);
       });
       resolve(
-        Promise.all(processedExpenses).then((values) => {
+        Promise.all(processedExpenses).then(values => {
           return values;
         })
       );
     });
   }
-  _isAdmin(req){
-    return (req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin');
+  _isAdmin(req) {
+    return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
   }
   _isUser(req) {
     return req.employee.employeeRole === 'user';
