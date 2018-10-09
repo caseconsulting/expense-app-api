@@ -185,7 +185,7 @@ class Special {
   }
 
   _fullName(employee) {
-    const middleName = employee.middleName.trim();
+    const middleName = employee.middleName ? employee.middleName.trim() : '';
     return `${employee.firstName} ${middleName ? middleName + ' ' : ''}${employee.lastName}`;
   }
 
