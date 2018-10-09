@@ -8,24 +8,20 @@ const moment = require('moment');
 async function start() {
   let budgets, expenseTypes;
   try {
-    budgets = await budgetDynamo.getAllEntriesInDB(); //get all budgets
+    let today = moment().format('YYYY-MM-DD');
+    //budget anniversary date is today
+    budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', today);
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
   } catch (err) {
     throw err;
   }
 
   _.forEach(budgets, oldBudget => {
-    budgets = _.filter(budgets, budget => {
-      return budget.recurringFlag;
-    });
-    //budget anniversary date is today
-    if (moment(oldBudget.fiscalEndDate, 'YYYY-MM-DD').isBefore(moment(), 'day')) {
-      let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
-      if (expenseType.recurringFlag) {
-        //filter by the ones that are recurring
-        let newBudget = _makeNewBudget(oldBudget, expenseType);
-        return budgetDynamo.addToDB(newBudget);
-      }
+    let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
+    if (expenseType.recurringFlag) {
+      //filter by the ones that are recurring
+      let newBudget = _makeNewBudget(oldBudget, expenseType);
+      return budgetDynamo.addToDB(newBudget);
     }
   });
 }
