@@ -68,7 +68,7 @@ class Special {
   getEmployeeName(expense) {
     return this.employeeData.readFromDB(expense.userId).then(employee => {
       let emp = employee[0];
-      expense.employeeName = `${emp.firstName} ${emp.middleName} ${emp.lastName}`;
+      expense.employeeName = this._fullName(emp);
       return expense;
     });
   }
@@ -184,13 +184,18 @@ class Special {
     }
   }
 
+  _fullName(employee) {
+    const middleName = employee.middleName.trim();
+    return `${employee.firstName} ${middleName ? middleName + ' ' : ''}${employee.lastName}`;
+  }
+
   _getEmployeeName(expenses, users, expenseTypes) {
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
       let employee = _.find(users, emp => emp.id === expense.userId);
       if (expenseType !== undefined && employee !== undefined) {
         expense.budgetName = expenseType.budgetName;
-        expense.employeeName = `${employee.firstName} ${employee.middleName} ${employee.lastName}`;
+        expense.employeeName = this._fullName(employee);
         expense.firstName = employee.firstName;
         expense.middleName = employee.middleName;
         expense.lastName = employee.lastName;
