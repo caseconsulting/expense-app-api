@@ -585,7 +585,9 @@ Resources:
             - |
               - [ sh, -c, echo "== Schedule Chronos" ]
             - |
-              - runuser -l centos -c '(crontab -l ; echo "1 0 * * * cd /home/centos/app && /usr/local/bin/npm run chronos &>> /home/centos/app/logs/chronos.log") 2> /dev/null | sort | uniq | crontab -'
+              - chmod +x /home/centos/app/chronos.js              
+            - |
+              - runuser -l centos -c '(crontab -l ; echo "1 0 * * * cd /home/centos/app && PATH=/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/centos/.local/bin:/home/centos/bin && /usr/local/bin/npm run chronos &>> /home/centos/app/logs/chronos.log") 2> /dev/null | sort | uniq | crontab -'
             - |
               final_message: "The system is finally up, after $UPTIME seconds"
   InstanceSecurityGroup:
