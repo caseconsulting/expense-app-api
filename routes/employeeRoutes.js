@@ -99,8 +99,10 @@ class EmployeeRoutes extends Crud {
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-    let startDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([currentYear + 1, anniversaryMonth, anniversaryDay - 1]);
+    const comparisonDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
+    let startYear = comparisonDate.isBefore(moment(), 'day') ? currentYear - 1 : currentYear;
+    let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
+    let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
 
     return {
       startDate,
