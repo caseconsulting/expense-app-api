@@ -177,7 +177,7 @@ class Special {
         let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else {
-        res.status(403).send('Permission denied. Insuffient user permissions');
+        res.status(403).send('Permission denied. Insufficient user permissions');
       }
     } catch (error) {
       this._handleError(res, error);
