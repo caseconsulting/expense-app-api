@@ -33,17 +33,31 @@ aws s3 cp s3://case-expense-app/.env .env
 
 ## Application tasks
 
-To run locally (on default port of 3000):
+To run locally (using pm2 configuration defined in services.yml):
 
 ```
 npm run start
 ```
 
-To run locally (on a different port):
+To stop running locally (using pm2):
+
+```
+npm run stop
+```
+
+To run locally (using pm2 configuration defined in services.yml, but on a different port):
 
 ```
 EXPRESS_PORT=8081 npm run start
 ```
+
+To run locally (using nodemon, with debug enabled):
+
+```
+npm run debug
+```
+
+To stop running locally (using nodemon), press CTRL-C in same window.
 
 To run unit tests (with Jasmine):
 
