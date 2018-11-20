@@ -47,9 +47,9 @@ function _makeNewBudget(oldBudget, expenseType) {
       .format('YYYY-MM-DD') //increment the budgets fiscal end day by one year
   };
 
-  // if (oldBudget.pendingAmount > expenseType.budget) {
-  //   newBudget.pendingAmount = oldBudget.pendingAmount - expenseType.budget;
-  // }
+  if (oldBudget.pendingAmount > expenseType.budget) {
+    newBudget.pendingAmount = oldBudget.pendingAmount - expenseType.budget;
+  }
   if (oldBudget.reimbursedAmount > expenseType.budget) {
     newBudget.reimbursedAmount = oldBudget.reimbursedAmount - expenseType.budget;
   }
