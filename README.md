@@ -90,8 +90,9 @@ Run the following commands to update and restart the server, making sure to subs
 ```
 cd app
 git pull
-npm install
+npm install --no-optional
 npm prune
+npm dedupe
 aws s3 cp s3://case-consulting-expense-app-resources-<env>/.env .env
 npm run restart
 ```
