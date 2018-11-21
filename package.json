@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "ajv": "^6.5.5",
-    "aws-sdk": "^2.358.0",
+    "aws-sdk": "^2.360.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.5",
