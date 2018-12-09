@@ -34,6 +34,8 @@
     "moment": "^2.22.2",
     "moment-range": "^4.0.1",
     "morgan": "^1.9.1",
+    "multer": "^1.4.1",
+    "multer-s3": "^2.9.0",
     "pm2": "^3.2.2",
     "pug": "^2.0.3",
     "serve-favicon": "^2.5.0",

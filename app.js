@@ -20,14 +20,18 @@ const ping = new Ping();
 const ExpenseRoutes = require('./routes/expenseRoutes');
 const expenseRoutes = new ExpenseRoutes();
 
-var ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
+const ExpenseTypeRoutes = require('./routes/expenseTypeRoutes');
 const expenseTypeRoutes = new ExpenseTypeRoutes();
 
-var EmployeeRoutes = require('./routes/employeeRoutes');
+const EmployeeRoutes = require('./routes/employeeRoutes');
 const employeeRoutes = new EmployeeRoutes();
 
-var SpecialRoutes = require('./routes/specialRoutes');
+const SpecialRoutes = require('./routes/specialRoutes');
 const specialRoutes = new SpecialRoutes();
+
+const AttachmentRoutes = require('./routes/attachmentRoutes');
+const attachmentRoutes = new AttachmentRoutes();
+
 var app = express();
 
 // view engine setup
@@ -55,6 +59,8 @@ app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
 app.use('/special', specialRoutes.router);
 app.use('/budgets', budget.router);
+app.use('/attachment', attachmentRoutes.router);
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');

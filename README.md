@@ -89,6 +89,7 @@ Run the following commands to update and restart the server, making sure to subs
 
 ```
 cd app
+git checkout -- package-lock.json
 git pull
 npm install --no-optional
 npm prune
