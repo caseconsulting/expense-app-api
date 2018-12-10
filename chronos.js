@@ -46,11 +46,9 @@ function _makeNewBudget(oldBudget, expenseType) {
       .add(1, 'years')
       .format('YYYY-MM-DD') //increment the budgets fiscal end day by one year
   };
-  let sum = oldBudget.reimbursedAmount + oldBudget.pendingAmount;
-  if (sum > expenseType.budget) {
-    let overage = sum - expenseType.budget;
-    newBudget.pendingAmount = oldBudget.pendingAmount;
-    newBudget.reimbursedAmount = overage - oldBudget.pendingAmount;
+  if (oldBudget.reimbursedAmount > expenseType.budget) {
+    let overage = oldBudget.reimbursedAmount - expenseType.budget;
+    newBudget.reimbursedAmount = overage;
   }
   return newBudget;
 }
