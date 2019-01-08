@@ -129,14 +129,24 @@ class ExpenseRoutes extends Crud {
       expenseTypeValid = true;
     }
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
-
+    let errMessage = 'expense is not valid because:';
+    if(!valid) {
+      if(!expenseTypeValid) {
+        errMessage.append('\nexpense type not valid');
+      }
+      if(!validDateRange) {
+        errMessage.append('\nexpense is outside of the expenseType window');
+      }
+      if(!balanceCheck) {
+        errMessage.append('\nbecause the expense is over the budget limit');
+      }
+      if(!employee.isActive) {
+        errMessage.append('\nthe employee is not active');
+      }
+    }
     err = {
       code: 403,
-      message: `expense is not valid because either
-        1.) the employee is not active.
-        2.) because the expense is over the budget limit.
-        3.) expense is outside of the expenseType window.
-        4.) expense type not valid`
+      message: errMessage
     };
     return valid ? Promise.resolve() : Promise.reject(err);
   }
