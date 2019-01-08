@@ -38,7 +38,7 @@ var upload = multer({
     contentType: multerS3.AUTO_CONTENT_TYPE,
     serverSideEncryption: 'AES256',
     key: function(req, file, cb) {
-      cb(null, `${req.body.userId}/${req.body.expenseId}/${file.originalname}`);
+      cb(null, `${req.params.userId}/${req.params.expenseId}/${file.originalname}`);
     }
   })
 });
@@ -46,8 +46,8 @@ var upload = multer({
 class Attachment {
   constructor() {
     this._router = express.Router();
-    // this._router.post('/', upload.single('receipt'), this.onUpload.bind(this));
-    this._router.post('/', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
+    // this._router.post('/:userId/:expenseId', upload.single('receipt'), this.onUpload.bind(this));
+    this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
   }
 
   get router() {
