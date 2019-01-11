@@ -1,7 +1,5 @@
 const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
-const expenseTypesDyanmo = new databaseModify('expense-types');
-const uuid = require('uuid/v4');
 const Moment = require('moment');
 const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
@@ -10,7 +8,8 @@ const moment = MomentRange.extendMoment(Moment);
 class ExpenseTypeRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = expenseTypesDyanmo;
+    this.expenseTypeDynamo = new databaseModify('expense-types');
+    this.databaseModify = this.expenseTypeDynamo;
   }
   _add(uuid, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
     let expenseType = {
@@ -23,9 +22,10 @@ class ExpenseTypeRoutes extends Crud {
       endDate: endDate,
       recurringFlag: recurringFlag
     };
+
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
-      .then(() => expenseTypesDyanmo.addToDB(expenseType))
+      .then(() => this.expenseTypeDynamo.addToDB(expenseType))
       .catch(err => {
         throw err;
       });
@@ -33,7 +33,7 @@ class ExpenseTypeRoutes extends Crud {
 
   _update(id, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
     let expenseType = {
-      id: uuid,
+      id: id,
       budgetName: budgetName,
       budget: parseFloat(budget),
       odFlag: odFlag,
@@ -42,14 +42,14 @@ class ExpenseTypeRoutes extends Crud {
       endDate: endDate,
       recurringFlag: recurringFlag
     };
+
     return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate))
-      .then(() => expenseTypesDyanmo.updateEntryInDB(expenseType))
+      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
+      .then(() => this.expenseTypeDynamo.updateEntryInDB(expenseType))
       .catch(err => {
         throw err;
       });
   }
-
   _checkFields(expenseType) {
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
@@ -72,7 +72,6 @@ class ExpenseTypeRoutes extends Crud {
       message: 'The dates are invalid.'
     };
     return valid ? Promise.resolve() : Promise.reject(err);
-
   }
 
 }
