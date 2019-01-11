@@ -23,7 +23,8 @@ class ExpenseTypeRoutes extends Crud {
       endDate: endDate,
       recurringFlag: recurringFlag
     };
-    return this.checkValidity(expenseType)
+    return this._checkFields(expenseType)
+      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
       .then(() => expenseTypesDyanmo.addToDB(expenseType))
       .catch(err => {
         throw err;
@@ -41,38 +42,38 @@ class ExpenseTypeRoutes extends Crud {
       endDate: endDate,
       recurringFlag: recurringFlag
     };
-    return this.checkValidity(expenseType)
+    return this._checkFields(expenseType)
+      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate))
       .then(() => expenseTypesDyanmo.updateEntryInDB(expenseType))
       .catch(err => {
         throw err;
       });
   }
-  checkValidity(expenseType) {
+
+  _checkFields(expenseType) {
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
     let budgetCheck =  expenseType.budget > 0;
     let descriptionCheck = !!expenseType.description;
-    let recurringBool = expenseType !== undefined;
-    let startDateCheck = recurringBool || !!expenseType.startDate;
-    let endDateCheck = recurringBool || !!expenseType.endDate;
-    let datesCheck = moment(expenseType.startDate, IsoFormat).isBefore(expenseType.endDate, IsoFormat);
-    let fieldsCheck = idCheck && budgetNameCheck && budgetCheck && descriptionCheck;
-    let validDates = startDateCheck && endDateCheck && datesCheck;
-    let valid = fieldsCheck && validDates;
-    let errMessage = '';
-    if(!valid) {
-      if(!fieldsCheck) {
-        errMessage.append('One of the fields is empty.\n');
-      }
-      if(!validDates) {
-        errMessage.append('The dates are not valid');
-      }
-    }
-    let error = {
+    let valid = idCheck && budgetNameCheck && budgetCheck && descriptionCheck;
+    let err = {
       code: 403,
-      message: errMessage
+      message: 'One of the required fields is empty.'
     };
-    return valid ? Promise.resolve() : Promise.reject(error);
+    return valid ? Promise.resolve() : Promise.reject(err);
   }
+  _checkDates(startDate, endDate, recurringFlag) {
+    let valid = recurringFlag;
+    if(!valid && !!startDate && !!endDate) {
+      valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
+    }
+    let err = {
+      code: 403,
+      message: 'The dates are invalid.'
+    };
+    return valid ? Promise.resolve() : Promise.reject(err);
+
+  }
+
 }
 module.exports = ExpenseTypeRoutes;
