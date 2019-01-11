@@ -52,8 +52,8 @@ class Attachment {
     this._router = express.Router();
     // this._router.post('/:userId/:expenseId', upload.single('receipt'), this.onUpload.bind(this));
     this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
-    // this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
-    this.router.get('/:userId/:expenseId', this.getAttachmentFromS3.bind(this));
+    this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
+    // this.router.get('/:userId/:expenseId', this.getAttachmentFromS3.bind(this));
   }
 
   get router() {
@@ -75,7 +75,10 @@ class Attachment {
       if (err) {
         throw err;
       } else {
-        res.status(200).send(data);
+        data.name = fileExt;
+        res.setHeader('Content-Type', data.ContentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${fileExt}" filename*="${fileExt}"`);
+        res.status(200).send(data.Body);
       }
     });
   }
