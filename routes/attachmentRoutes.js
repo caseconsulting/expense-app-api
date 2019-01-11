@@ -1,4 +1,7 @@
 const express = require('express');
+const databaseModify = require('../js/databaseModify');
+const expenseDynamo = new databaseModify('expenses');
+
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
@@ -45,9 +48,12 @@ var upload = multer({
 
 class Attachment {
   constructor() {
+    this.expenseData = expenseDynamo;
     this._router = express.Router();
     // this._router.post('/:userId/:expenseId', upload.single('receipt'), this.onUpload.bind(this));
     this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
+    this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
+    // this.router.get('/:userId/:expenseId', this.getAttachmentFromS3.bind(this));
   }
 
   get router() {
@@ -59,6 +65,22 @@ class Attachment {
    */
   onUpload(req, res) {
     res.send('Successfully uploaded file:' + req.file.key);
+  }
+  async getAttachmentFromS3(req, res) {
+    let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
+    let fileExt = expense.receipt;
+    let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
+    var params = { Bucket: BUCKET, Key: filePath };
+    s3.getObject(params, (err, data) => {
+      if (err) {
+        throw err;
+      } else {
+        data.name = fileExt;
+        res.setHeader('Content-Type', data.ContentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${fileExt}" filename*="${fileExt}"`);
+        res.status(200).send(data.Body);
+      }
+    });
   }
 }
 
