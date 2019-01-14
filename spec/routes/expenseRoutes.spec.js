@@ -94,27 +94,6 @@ describe('expenseRoutes', () => {
     });
   }); //_update
 
-  describe('createNewBalance', () => {
-    let employee;
-    beforeEach(() => {
-      employee = {
-        firstName: '{firstName}',
-        middleName: '{middleName}',
-        lastName: '{lastName}',
-        empId: '{empId}',
-        hireDate: '{hireDate}',
-        expenseTypes: undefined
-      };
-      spyOn(expenseRoutes.employeeDynamo, 'updateEntryInDB').and.returnValue(Promise.resolve());
-    });
-    it('should add expense to employee if they dont have it already', done => {
-      expenseRoutes.createNewBalance(employee).then(() => {
-        expect(expenseRoutes.employeeDynamo.updateEntryInDB).toHaveBeenCalledWith(employee);
-        done();
-      });
-    });
-  }); // createNewBalance
-
   describe('validateCostToBudget', () => {
     let expenseType, employee, expenseTypeId, cost, userId;
 
