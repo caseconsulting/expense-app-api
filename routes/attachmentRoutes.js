@@ -71,15 +71,9 @@ class Attachment {
     let fileExt = expense.receipt;
     let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
     var params = { Bucket: BUCKET, Key: filePath };
-    s3.getObject(params, (err, data) => {
-      if (err) {
-        throw err;
-      } else {
-        data.name = fileExt;
-        res.setHeader('Content-Type', data.ContentType);
-        res.setHeader('Content-Disposition', `attachment; filename="${fileExt}" filename*="${fileExt}"`);
-        res.status(200).send(data.Body);
-      }
+    s3.getSignedUrl('getObject', params, (err, data) => {
+      if (err) throw err;
+      else res.status(200).send(data);
     });
   }
 }
