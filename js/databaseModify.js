@@ -218,7 +218,7 @@ class databaseModify {
           },
           UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
                                  description = :d, note = :n, receipt = :r, expenseTypeId = :eti,
-                                 userId = :ui, createdAt = :cat`,
+                                 userId = :ui, createdAt = :cat, rurl = :rurl`,
           ExpressionAttributeValues: {
             ':pd': objToUpdate.purchaseDate,
             ':rd': objToUpdate.reimbursedDate,
@@ -228,7 +228,8 @@ class databaseModify {
             ':r': objToUpdate.receipt,
             ':eti': objToUpdate.expenseTypeId,
             ':ui': objToUpdate.userId,
-            ':cat': objToUpdate.createdAt
+            ':cat': objToUpdate.createdAt,
+            ':rurl': objToUpdate.url
           },
           ReturnValues: 'ALL_NEW'
         };

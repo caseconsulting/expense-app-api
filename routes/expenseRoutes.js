@@ -37,7 +37,7 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  async _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId }) {
+  async _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url }) {
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee, budgets;
     expense = {
@@ -50,7 +50,8 @@ class ExpenseRoutes extends Crud {
       receipt: receipt,
       expenseTypeId: expenseTypeId,
       userId: userId,
-      createdAt: moment().format(IsoFormat)
+      createdAt: moment().format(IsoFormat),
+      url: url
     };
     try {
       employee = await this.employeeDynamo.findObjectInDB(expense.userId);
@@ -76,7 +77,7 @@ class ExpenseRoutes extends Crud {
 
   async _update(
     id,
-    { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt }
+    { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt, url }
   ) {
     let expenseType, budget, newExpense, employee, oldExpense, budgets;
     newExpense = {
@@ -89,8 +90,10 @@ class ExpenseRoutes extends Crud {
       receipt: receipt,
       expenseTypeId: expenseTypeId,
       userId: userId,
-      createdAt: createdAt
+      createdAt: createdAt,
+      url: url
     };
+
     try {
       oldExpense = await this.expenseDynamo.findObjectInDB(id);
       employee = await this.employeeDynamo.findObjectInDB(userId);
@@ -130,17 +133,17 @@ class ExpenseRoutes extends Crud {
     }
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'expense is not valid because:';
-    if(!valid) {
-      if(!expenseTypeValid) {
+    if (!valid) {
+      if (!expenseTypeValid) {
         errMessage.append('\nexpense type not valid');
       }
-      if(!validDateRange) {
+      if (!validDateRange) {
         errMessage.append('\nexpense is outside of the expenseType window');
       }
-      if(!balanceCheck) {
+      if (!balanceCheck) {
         errMessage.append('\nbecause the expense is over the budget limit');
       }
-      if(!employee.isActive) {
+      if (!employee.isActive) {
         errMessage.append('\nthe employee is not active');
       }
     }
