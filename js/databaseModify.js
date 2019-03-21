@@ -204,35 +204,86 @@ class databaseModify {
       });
   }
 
+  buildExpressionAttributeValues(objToUpdate) {
+    return _.pickBy(
+      {
+        ':pd': objToUpdate.purchaseDate,
+        ':rd': objToUpdate.reimbursedDate,
+        ':c': objToUpdate.cost,
+        ':d': objToUpdate.description,
+        ':n': objToUpdate.note,
+        ':r': objToUpdate.receipt,
+        ':eti': objToUpdate.expenseTypeId,
+        ':ui': objToUpdate.userId,
+        ':cat': objToUpdate.createdAt,
+        ':rurl': objToUpdate.url
+      },
+      _.identity
+    );
+  }
+
   /**
    * Builds the parameters for update depending on the this.tablePath
    * @return the parameters for update
    */
   buildUpdateParams(objToUpdate) {
     switch (this.tableName) {
-      case `${STAGE}-expenses`:
-        return {
+      case `${STAGE}-expenses`: {
+        let ExpressionAttributeValues = {},
+          UpdateExpression = 'set ';
+        let params = {
           TableName: `${STAGE}-expenses`,
           Key: {
             id: objToUpdate.id
           },
-          UpdateExpression: `set purchaseDate = :pd, reimbursedDate = :rd, cost = :c,
-                                 description = :d, note = :n, receipt = :r, expenseTypeId = :eti,
-                                 userId = :ui, createdAt = :cat, rurl = :rurl`,
-          ExpressionAttributeValues: {
-            ':pd': objToUpdate.purchaseDate,
-            ':rd': objToUpdate.reimbursedDate,
-            ':c': objToUpdate.cost,
-            ':d': objToUpdate.description,
-            ':n': objToUpdate.note,
-            ':r': objToUpdate.receipt,
-            ':eti': objToUpdate.expenseTypeId,
-            ':ui': objToUpdate.userId,
-            ':cat': objToUpdate.createdAt,
-            ':rurl': objToUpdate.url
-          },
           ReturnValues: 'ALL_NEW'
         };
+        if (objToUpdate.purchaseDate) {
+          ExpressionAttributeValues[':pd'] = objToUpdate.purchaseDate;
+          UpdateExpression += 'purchaseDate = :pd,';
+        }
+        if (objToUpdate.reimbursedDate) {
+          ExpressionAttributeValues[':rd'] = objToUpdate.reimbursedDate;
+          UpdateExpression += 'reimbursedDate = :rd,';
+        }
+        if (objToUpdate.cost) {
+          ExpressionAttributeValues[':c'] = objToUpdate.cost;
+          UpdateExpression += 'cost = :c,';
+        }
+        if (objToUpdate.description) {
+          ExpressionAttributeValues[':d'] = objToUpdate.description;
+          UpdateExpression += 'description = :d,';
+        }
+        if (objToUpdate.note) {
+          ExpressionAttributeValues[':n'] = objToUpdate.note;
+          UpdateExpression += 'note = :n,';
+        }
+        if (objToUpdate.receipt) {
+          ExpressionAttributeValues[':r'] = objToUpdate.receipt;
+          UpdateExpression += 'receipt = :r,';
+        }
+        if (objToUpdate.expenseTypeId) {
+          ExpressionAttributeValues[':eti'] = objToUpdate.expenseTypeId;
+          UpdateExpression += 'expenseTypeId = :eti,';
+        }
+        if (objToUpdate.userId) {
+          ExpressionAttributeValues[':ui'] = objToUpdate.userId;
+          UpdateExpression += 'userId = :ui,';
+        }
+        if (objToUpdate.createdAt) {
+          ExpressionAttributeValues[':cat'] = objToUpdate.createdAt;
+          UpdateExpression += 'createdAt = :cat,';
+        }
+        if (objToUpdate.url) {
+          ExpressionAttributeValues[':url'] = objToUpdate.url;
+          UpdateExpression += '#url = :url,';
+          _.set(params, 'ExpressionAttributeNames', { '#url': 'url' });
+        }
+        UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
+        _.set(params, 'ExpressionAttributeValues', ExpressionAttributeValues);
+        _.set(params, 'UpdateExpression', UpdateExpression);
+        return params;
+      }
       case `${STAGE}-employees`:
         return {
           TableName: `${STAGE}-employees`,
