@@ -135,16 +135,16 @@ class ExpenseRoutes extends Crud {
     let errMessage = 'expense is not valid because:';
     if (!valid) {
       if (!expenseTypeValid) {
-        errMessage.concat('\nexpense type not valid');
+        errMessage += '\nexpense type not valid';
       }
       if (!validDateRange) {
-        errMessage.concat('\nexpense is outside of the expenseType window');
+        errMessage += '\nexpense is outside of the expenseType window';
       }
       if (!balanceCheck) {
-        errMessage.concat('\nbecause the expense is over the budget limit');
+        errMessage += '\nbecause the expense is over the budget limit';
       }
       if (!employee.isActive) {
-        errMessage.concat('\nthe employee is not active');
+        errMessage += '\nthe employee is not active';
       }
     }
     err = {
