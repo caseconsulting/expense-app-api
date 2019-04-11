@@ -15,6 +15,7 @@ const getUserInfo = (req, res, next) => {
       next();
     })
     .catch(err => {
+      console.error(err);
       throw err;
     });
 

@@ -35,6 +35,7 @@ class databaseModify {
         }
       })
       .catch(function(err) {
+        console.error(err);
         throw err; //Throw error and handle properly in crudRoutes
       });
   }
@@ -56,6 +57,7 @@ class databaseModify {
           return newDyanmoObj;
         })
         .catch(function(err) {
+          console.error(err);
           throw err; //Throw error and handle properly in crudRoutes
         });
     } else {
@@ -92,6 +94,7 @@ class databaseModify {
         }
       })
       .catch(function(err) {
+        console.error(err);
         throw err;
       });
   }
@@ -119,6 +122,7 @@ class databaseModify {
         }
       })
       .catch(err => {
+        console.error(err);
         throw err;
       });
   }
@@ -149,6 +153,7 @@ class databaseModify {
         }
       })
       .catch(err => {
+        console.error(err);
         throw err;
       });
   }
@@ -170,6 +175,7 @@ class databaseModify {
       .promise()
       .then(data => data.Attributes)
       .catch(function(err) {
+        console.error(err);
         throw err;
       }); //Throw error and handle properly in crudRoutes
   }
@@ -184,6 +190,7 @@ class databaseModify {
         return data.Attributes;
       })
       .catch(function(err) {
+        console.error(err);
         throw err;
       });
   }
@@ -200,6 +207,7 @@ class databaseModify {
         return _.sortBy(data.Items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
       .catch(function(err) {
+        console.error(err);
         throw err;
       });
   }
