@@ -6,24 +6,30 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 
 async function start() {
-  let budgets, expenseTypes;
+  let budgets = [],
+    expenseTypes = [];
   try {
-    let today = moment().format('YYYY-MM-DD');
     //budget anniversary date is today
+    const today = moment().format('YYYY-MM-DD');
+
     budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', today);
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
-  } catch (err) {
-    throw err;
-  }
 
-  _.forEach(budgets, oldBudget => {
-    let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
-    if (expenseType.recurringFlag) {
-      //filter by the ones that are recurring
-      let newBudget = _makeNewBudget(oldBudget, expenseType);
-      return budgetDynamo.addToDB(newBudget);
+    _.forEach(budgets, oldBudget => {
+      let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
+      if (expenseType.recurringFlag) {
+        //filter by the ones that are recurring
+        let newBudget = _makeNewBudget(oldBudget, expenseType);
+        return budgetDynamo.addToDB(newBudget);
+      }
+    });
+  } catch (err) {
+    if (err.message && err.message === 'Item not found') {
+      console.warn('No employees with an anniversary today');
+    } else {
+      console.error(err);
     }
-  });
+  }
 }
 
 function _getExpenseType(expenseTypes, expenseTypeId) {
