@@ -283,7 +283,7 @@ class ExpenseRoutes extends Crud {
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
       let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
-      if (overdraftAmount) {
+      if (overdraftAmount > 0) {
         //is overdrafted
         //move purchaseDate to next year
         let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
