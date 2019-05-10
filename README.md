@@ -87,6 +87,7 @@ ssh -i ~/projects/expense-app-dev.pem centos@ec2-12-345-67-89.compute-1.amazonaw
 
 Run the following commands to update and restart the server, making sure to substitute the proper environment for "<env>" in the bucket name:
 
+dev
 ```
 cd app
 git checkout -- package-lock.json
@@ -94,6 +95,30 @@ git pull
 npm install --no-optional
 npm prune
 npm dedupe
-aws s3 cp s3://case-consulting-expense-app-resources-<env>/.env .env
+aws s3 cp s3://case-consulting-expense-app-resources-dev/.env .env
+npm run restart
+```
+
+test
+```
+cd app
+git checkout -- package-lock.json
+git pull
+npm install --no-optional
+npm prune
+npm dedupe
+aws s3 cp s3://case-consulting-expense-app-resources-test/.env .env
+npm run restart
+```
+
+prod
+```
+cd app
+git checkout -- package-lock.json
+git pull
+npm install --no-optional
+npm prune
+npm dedupe
+aws s3 cp s3://case-consulting-expense-app-resources-prod/.env .env
 npm run restart
 ```
