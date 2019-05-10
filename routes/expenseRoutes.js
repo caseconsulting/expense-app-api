@@ -176,7 +176,7 @@ class ExpenseRoutes extends Crud {
       return false;
     }
 
-    let sum = budget.pendingAmount + budget.reimbursedAmount + expense.cost - oldCost;
+    let sum = (budget.pendingAmount + budget.reimbursedAmount + expense.cost - oldCost).toFixed(2);
     if (sum <= expenseType.budget) {
       return true;
     } else if (expenseType.odFlag && sum <= 2 * expenseType.budget) {
