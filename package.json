@@ -10,12 +10,13 @@
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list",
     "pm2:monit": "pm2 monit",
+    "precommit": "npm run validate && npm run eslint && npm run test",
     "restart": "pm2 restart services.yml",
     "start": "pm2 start services.yml",
     "stop": "pm2 stop services.yml",
     "test": "jasmine || true",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine || true",
-    "validate": "npm ls",
+    "validate": "npm ci",
     "chronos": "node -e 'require(\"./chronos\").start()'"
   },
   "dependencies": {
