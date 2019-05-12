@@ -8,6 +8,7 @@ Install required Node.js modules:
 
 ```
 npm install --no-optional
+npm prune
 npm dedupe
 ```
 
