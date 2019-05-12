@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "expense-app-api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -49,6 +49,7 @@
     "eslint": "^5.16.0",
     "jasmine": "^3.4.0",
     "nodemon": "^1.19.0",
+    "nyc": "^14.1.1",
     "precommit-hook": "^3.0.0"
   },
   "pre-commit": [

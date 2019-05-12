@@ -68,13 +68,13 @@ npm run test
 To upgrade to the latest version of a specific Node.js module:
 
 ```
-npm install <module-name> --save
+npm install --save <module-name>
 ```
 
 To upgrade to the latest version of a specific Node.js module, which is a development dependency only:
 
 ```
-npm install <module-name> --save-dev
+npm install --save-dev <module-name>
 ```
 
 ## Deployment
