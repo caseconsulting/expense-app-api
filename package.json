@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "chronos": "node -e 'require(\"./chronos\").start()'",
     "debug": "nodemon --trace-warnings --inspect bin/www",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
     "lint": "eslint .",
@@ -16,8 +17,7 @@
     "stop": "pm2 stop services.yml",
     "test": "jasmine || true",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine || true",
-    "validate": "npm ci",
-    "chronos": "node -e 'require(\"./chronos\").start()'"
+    "validate": "npm ci"
   },
   "dependencies": {
     "ajv": "^6.10.0",
