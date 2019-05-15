@@ -11,16 +11,17 @@ class ExpenseTypeRoutes extends Crud {
     this.expenseTypeDynamo = new databaseModify('expense-types');
     this.databaseModify = this.expenseTypeDynamo;
   }
-  _add(uuid, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
+
+  _add(id, { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag }) {
     let expenseType = {
-      id: uuid,
-      budgetName: budgetName,
+      id,
+      budgetName,
       budget: parseFloat(budget),
-      odFlag: odFlag,
-      description: description,
-      startDate: startDate,
-      endDate: endDate,
-      recurringFlag: recurringFlag
+      odFlag,
+      description,
+      startDate,
+      endDate,
+      recurringFlag
     };
 
     return this._checkFields(expenseType)
@@ -31,16 +32,16 @@ class ExpenseTypeRoutes extends Crud {
       });
   }
 
-  _update(id, { budgetName, budget, odFlag, description,startDate, endDate, recurringFlag }) {
+  _update(id, { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag }) {
     let expenseType = {
-      id: id,
-      budgetName: budgetName,
+      id,
+      budgetName,
       budget: parseFloat(budget),
-      odFlag: odFlag,
-      description: description,
-      startDate: startDate,
-      endDate: endDate,
-      recurringFlag: recurringFlag
+      odFlag,
+      description,
+      startDate,
+      endDate,
+      recurringFlag
     };
 
     return this._checkFields(expenseType)
@@ -50,10 +51,11 @@ class ExpenseTypeRoutes extends Crud {
         throw err;
       });
   }
+
   _checkFields(expenseType) {
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
-    let budgetCheck =  expenseType.budget > 0;
+    let budgetCheck = expenseType.budget > 0;
     let descriptionCheck = !!expenseType.description;
     let valid = idCheck && budgetNameCheck && budgetCheck && descriptionCheck;
     let err = {
@@ -62,9 +64,10 @@ class ExpenseTypeRoutes extends Crud {
     };
     return valid ? Promise.resolve() : Promise.reject(err);
   }
+
   _checkDates(startDate, endDate, recurringFlag) {
     let valid = recurringFlag;
-    if(!valid && !!startDate && !!endDate) {
+    if (!valid && !!startDate && !!endDate) {
       valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
     }
     let err = {
@@ -73,6 +76,5 @@ class ExpenseTypeRoutes extends Crud {
     };
     return valid ? Promise.resolve() : Promise.reject(err);
   }
-
 }
 module.exports = ExpenseTypeRoutes;

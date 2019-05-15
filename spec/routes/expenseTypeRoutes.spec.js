@@ -1,72 +1,84 @@
-const uuid = require('uuid/v4');
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
+const _ = require('lodash');
 
 describe('expenseTypeRoutes', () => {
+  const id = 'id';
+  const budgetName = 'budgetName';
+  const budget = 1000;
+  const odFlag = true;
+  const description = 'description';
+  const startDate = '2019-05-14';
+  const endDate = '2019-05-16';
+  const recurringFlag = false;
+
   let databaseModify, expenseTypeRoutes;
   beforeEach(() => {
-    databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
-    expenseTypeRoutes = new ExpenseTypeRoutes(databaseModify, uuid());
+    expenseTypeRoutes = new ExpenseTypeRoutes();
+    databaseModify = jasmine.createSpyObj('databaseModify', ['addToDB', 'updateEntryInDB']);
+    spyOn(expenseTypeRoutes, 'databaseModify').and.returnValue(databaseModify);
   });
 
   describe('_add', () => {
-    let newExpenseType, uuid;
+    let expenseType, newExpenseType;
     beforeEach(() => {
-      uuid = 'uuid';
-      newExpenseType = {
-        id: uuid,
-        budgetName: 'name',
-        description: 'description',
-        budget: 100,
-        odFlag: true
-      };
+      expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      newExpenseType = _.merge({}, expenseType, { id });
+
+      spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
+      spyOn(expenseTypeRoutes, '_checkDates').and.returnValue(Promise.resolve());
+      databaseModify.addToDB.and.returnValue(Promise.resolve(newExpenseType));
+    });
+    afterEach(() => {
+      expect(expenseTypeRoutes._checkFields).toHaveBeenCalledWith(newExpenseType);
+      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
     });
     it('should take in object types', done => {
-      return expenseTypeRoutes._add(uuid, newExpenseType).then(expenseType => {
-        expect(expenseType).toEqual(newExpenseType);
+      return expenseTypeRoutes._add(id, expenseType).then(result => {
+        expect(result).toEqual(newExpenseType);
         done();
       });
     });
   }); // _add
 
   describe('_update', () => {
-    let expectedExpenseType, id;
+    let expenseType, updatedExpenseType;
     beforeEach(() => {
-      id = 'id';
-      expectedExpenseType = {
-        budgetName: 'new name',
-        budget: 1000,
-        odFlag: false,
-        description: 'new description'
-      };
+      expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      updatedExpenseType = _.merge({}, expenseType, { id });
+
+      spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
+      spyOn(expenseTypeRoutes, '_checkDates').and.returnValue(Promise.resolve());
     });
+
+    afterEach(() => {
+      expect(expenseTypeRoutes._checkFields).toHaveBeenCalledWith(updatedExpenseType);
+      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
+    });
+
     describe('when object is found in databaseModify', () => {
       beforeEach(() => {
-        databaseModify.findObjectInDB.and.returnValue(Promise.resolve());
+        databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(updatedExpenseType));
       });
       it('should take in object types', done => {
-        return expenseTypeRoutes._update(id, expectedExpenseType).then(newExpenseType => {
-          expect(newExpenseType).toEqual({
-            id: 'id',
-            budgetName: 'new name',
-            budget: 1000,
-            odFlag: false,
-            description: 'new description'
-          });
+        return expenseTypeRoutes._update(id, expenseType).then(result => {
+          expect(result).toEqual(updatedExpenseType);
           done();
         });
       });
-    }); //when object is found in databaseModify
-    describe('when databaseModify throws an error', () => {
+    }); // when object is found in databaseModify
+
+    xdescribe('when databaseModify throws an error', () => {
       let expectedErr;
       beforeEach(() => {
         expectedErr = 'error in databaseModify';
-        databaseModify.findObjectInDB.and.returnValue(Promise.reject(expectedErr));
+        databaseModify.updateEntryInDB.and.returnValue(Promise.reject(expectedErr));
       });
-      it('should throw the error', () => {
-        return expenseTypeRoutes._update(id, expectedExpenseType).catch(err => {
+      it('should throw the error', done => {
+        return expenseTypeRoutes._update(id, expenseType).catch(err => {
           expect(err).toEqual(expectedErr);
+          done();
         });
       });
-    }); //when databaseModify throws an error
+    }); // when databaseModify throws an error
   }); // _update
 }); // employeeRoutes
