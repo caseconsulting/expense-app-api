@@ -12,6 +12,7 @@ describe('expenseTypeRoutes', () => {
   const recurringFlag = false;
 
   let expenseTypeDynamo, expenseTypeRoutes;
+
   beforeEach(() => {
     expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['addToDB', 'updateEntryInDB']);
 
@@ -21,6 +22,7 @@ describe('expenseTypeRoutes', () => {
 
   describe('_add', () => {
     let expenseType, newExpenseType;
+
     beforeEach(() => {
       expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
       newExpenseType = _.merge({}, expenseType, { id });
@@ -35,34 +37,45 @@ describe('expenseTypeRoutes', () => {
       expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
     });
 
-    describe('when object added to DynamoDB', () => {
-      it('should take in object types', done => {
+    describe('when DynamoDB is successful', () => {
+      it('should return added object', done => {
         return expenseTypeRoutes._add(id, expenseType).then(result => {
           expect(result).toEqual(newExpenseType);
           done();
         });
       });
-    }); // when object added to DynamoDB
+    }); // when DynamoDB is successful
 
-    describe('when DynamoDB add throws an error', () => {
+    describe('when DynamoDB throws an error', () => {
       let expectedErr;
+
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
         expenseTypeDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
       });
+
       it('should throw the error', done => {
         return expenseTypeRoutes._add(id, expenseType).catch(err => {
           expect(err).toEqual(expectedErr);
           done();
         });
       });
-    }); // when DynamoDB update throws an error
+    }); // when DynamoDB throws an error
   }); // _add
 
   describe('_update', () => {
     let expenseType, updatedExpenseType;
+
     beforeEach(() => {
-      expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      expenseType = {
+        budgetName,
+        budget,
+        odFlag,
+        description,
+        startDate,
+        endDate,
+        recurringFlag
+      };
       updatedExpenseType = _.merge({}, expenseType, { id });
 
       spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
@@ -74,24 +87,27 @@ describe('expenseTypeRoutes', () => {
       expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
     });
 
-    describe('when object updated in DynamoDB', () => {
+    describe('when DynamoDB is successful', () => {
       beforeEach(() => {
         expenseTypeDynamo.updateEntryInDB.and.returnValue(Promise.resolve(updatedExpenseType));
       });
-      it('should take in object types', done => {
+
+      it('should return updated object', done => {
         return expenseTypeRoutes._update(id, expenseType).then(result => {
           expect(result).toEqual(updatedExpenseType);
           done();
         });
       });
-    }); // when object updated in DynamoDB
+    }); // when DynamoDB is successful
 
-    describe('when DynamoDB update throws an error', () => {
+    describe('when DynamoDB throws an error', () => {
       let expectedErr;
+
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
         expenseTypeDynamo.updateEntryInDB.and.returnValue(Promise.reject(expectedErr));
       });
+
       it('should throw the error', done => {
         return expenseTypeRoutes._update(id, expenseType).catch(err => {
           expect(err).toEqual(expectedErr);

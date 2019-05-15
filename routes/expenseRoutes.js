@@ -38,23 +38,23 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  async _add(uuid, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url }) {
+  async _add(id, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url }) {
     console.warn('Expense _add');
 
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee, budgets;
     expense = {
-      id: uuid,
-      purchaseDate: purchaseDate,
-      reimbursedDate: reimbursedDate,
+      id,
+      purchaseDate,
+      reimbursedDate,
       cost: parseFloat(cost),
-      description: description,
-      note: note,
-      receipt: receipt,
-      expenseTypeId: expenseTypeId,
-      userId: userId,
+      description,
+      note,
+      receipt,
+      expenseTypeId,
+      userId,
       createdAt: moment().format(IsoFormat),
-      url: url
+      url
     };
 
     try {
@@ -86,17 +86,17 @@ class ExpenseRoutes extends Crud {
     console.warn('Expense _update');
     let expenseType, budget, newExpense, employee, oldExpense, budgets;
     newExpense = {
-      id: id,
-      purchaseDate: purchaseDate,
-      reimbursedDate: reimbursedDate,
+      id,
+      purchaseDate,
+      reimbursedDate,
       cost: parseFloat(cost),
-      description: description,
-      note: note,
-      receipt: receipt,
-      expenseTypeId: expenseTypeId,
-      userId: userId,
-      createdAt: createdAt,
-      url: url
+      description,
+      note,
+      receipt,
+      expenseTypeId,
+      userId,
+      createdAt,
+      url
     };
 
     try {

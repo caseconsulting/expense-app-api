@@ -17,7 +17,6 @@ describe('crudRoutes', () => {
       'tableName'
     ]);
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
-
   });
 
   describe('_inputChecker', () => {
@@ -49,13 +48,12 @@ describe('crudRoutes', () => {
       spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
       spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
       spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
-
     });
     describe('if the user role is admin or super-admin', () => {
       beforeEach(() => {
         req = {
           body: 'body',
-          employee:{
+          employee: {
             role: 'super-admin'
           }
         };
@@ -74,11 +72,10 @@ describe('crudRoutes', () => {
       beforeEach(() => {
         req = {
           body: 'body',
-          employee:{
+          employee: {
             role: 'user'
           }
         };
-
       });
       it('should add req.body', done => {
         return crudRoutes.create(req, res).then(() => {
@@ -98,7 +95,7 @@ describe('crudRoutes', () => {
         };
         req = {
           body: 'body',
-          employee:{
+          employee: {
             role: 'NO_PERMISSION'
           }
         };
@@ -183,7 +180,7 @@ describe('crudRoutes', () => {
         req = {
           body: 'body',
           params: { id: 'id' },
-          employee:{
+          employee: {
             role: 'super-admin'
           }
         };
@@ -203,11 +200,10 @@ describe('crudRoutes', () => {
         req = {
           body: 'body',
           params: { id: 'id' },
-          employee:{
+          employee: {
             role: 'user'
           }
         };
-
       });
       it('should add req.body', done => {
         return crudRoutes.update(req, res).then(() => {
@@ -227,7 +223,7 @@ describe('crudRoutes', () => {
         };
         req = {
           body: 'body',
-          employee:{
+          employee: {
             role: 'NO_PERMISSION'
           }
         };
