@@ -15,8 +15,8 @@
     "restart": "pm2 restart services.yml",
     "start": "pm2 start services.yml",
     "stop": "pm2 stop services.yml",
-    "test": "jasmine || true",
-    "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine || true",
+    "test": "jasmine",
+    "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine",
     "validate": "npm ls"
   },
   "dependencies": {

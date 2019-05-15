@@ -1,7 +1,8 @@
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
+
 const _ = require('lodash');
 
-describe('expenseTypeRoutes', () => {
+xdescribe('expenseTypeRoutes', () => {
   const id = 'id';
   const budgetName = 'budgetName';
   const budget = 1000;
