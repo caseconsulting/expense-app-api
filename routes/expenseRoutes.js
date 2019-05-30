@@ -7,6 +7,10 @@ const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 
+const Employee = require('./../models/employee');
+const Expense = require('./../models/expense');
+const ExpenseType = require('./../models/expenseType');
+
 class ExpenseRoutes extends Crud {
   constructor() {
     super();
@@ -38,30 +42,19 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  async _add(id, { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url }) {
+  async _add(id, data) {
     console.warn('Expense _add');
 
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee, budgets;
-    expense = {
-      id,
-      purchaseDate,
-      reimbursedDate,
-      cost: parseFloat(cost),
-      description,
-      note,
-      receipt,
-      expenseTypeId,
-      userId,
-      createdAt: moment().format(IsoFormat),
-      url
-    };
+    expense = new Expense(data);
+    expense.id = id;
 
     try {
-      employee = await this.employeeDynamo.findObjectInDB(expense.userId);
-      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
+      employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
       if (_.isEmpty(budgets)) {
         budget = await this._createNewBudget(expenseType, employee);
       } else {
@@ -79,31 +72,17 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  async _update(
-    id,
-    { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, createdAt, url }
-  ) {
+  async _update(id, data) {
     console.warn('Expense _update');
     let expenseType, budget, newExpense, employee, oldExpense, budgets;
-    newExpense = {
-      id,
-      purchaseDate,
-      reimbursedDate,
-      cost: parseFloat(cost),
-      description,
-      note,
-      receipt,
-      expenseTypeId,
-      userId,
-      createdAt,
-      url
-    };
+    newExpense = new Expense(data);
+    newExpense.id = id;
 
     try {
-      oldExpense = await this.expenseDynamo.findObjectInDB(id);
-      employee = await this.employeeDynamo.findObjectInDB(userId);
-      expenseType = await this.expenseTypeDynamo.findObjectInDB(expenseTypeId);
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(userId, expenseTypeId);
+      oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+      employee = await this.employeeDynamo.findObjectInDB(newExpense.userId);
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
+      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
       budget = this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate);
     } catch (err) {
       throw err;

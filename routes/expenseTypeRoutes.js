@@ -5,6 +5,8 @@ const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 
+const ExpenseType = require('./../models/expenseType');
+
 class ExpenseTypeRoutes extends Crud {
   constructor() {
     super();
@@ -12,17 +14,9 @@ class ExpenseTypeRoutes extends Crud {
     this.databaseModify = this.expenseTypeDynamo;
   }
 
-  _add(id, { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag }) {
-    let expenseType = {
-      id,
-      budgetName,
-      budget: parseFloat(budget),
-      odFlag,
-      description,
-      startDate,
-      endDate,
-      recurringFlag
-    };
+  _add(id, data) {
+    let expenseType = new ExpenseType(data);
+    expenseType.id = id;
 
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
@@ -32,17 +26,9 @@ class ExpenseTypeRoutes extends Crud {
       });
   }
 
-  _update(id, { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag }) {
-    let expenseType = {
-      id,
-      budgetName,
-      budget: parseFloat(budget),
-      odFlag,
-      description,
-      startDate,
-      endDate,
-      recurringFlag
-    };
+  _update(id, data) {
+    let expenseType = new ExpenseType(data);
+    expenseType.id = id;
 
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))

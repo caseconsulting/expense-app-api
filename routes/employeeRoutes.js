@@ -5,57 +5,31 @@ const moment = require('moment');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 
+const Employee = require('./../models/employee');
+
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = employeeDynamo;
   }
 
-  _add(uuid, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole }) {
-    if (!middleName) {
-      middleName = ' ';
-    }
+  _add(uuid, data) {
+    let employee = new Employee(data);
+    employee.id = uuid;
 
-    let expense = {
-      id: uuid,
-      firstName,
-      middleName,
-      lastName,
-      empId,
-      hireDate,
-      expenseTypes,
-      email,
-      employeeRole,
-      isActive: true
-    };
-
-    return this._createRecurringExpenses(uuid, hireDate).then(() => {
-      return expense;
+    return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
+      return employee;
     });
   }
 
-  _update(id, { firstName, middleName, lastName, empId, hireDate, expenseTypes, email, employeeRole, isActive }) {
-    if (!middleName) {
-      middleName = 'N/A';
-    }
-    if (!expenseTypes) {
-      expenseTypes = [];
-    }
+  _update(id, data) {
+    let employee = new Employee(data);
+    employee.id = id;
+
     return this.databaseModify
       .findObjectInDB(id)
       .then(() => {
-        return {
-          id,
-          firstName,
-          middleName,
-          lastName,
-          empId,
-          hireDate,
-          expenseTypes,
-          email,
-          employeeRole,
-          isActive
-        };
+        return employee;
       })
       .catch(err => {
         throw err;
