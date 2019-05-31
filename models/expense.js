@@ -1,3 +1,20 @@
+/**
+ * Expense model
+ *
+ * Fields:
+ * - id
+ * - purchaseDate
+ * - reimbursedDate
+ * - note
+ * - url
+ * - createdAt
+ * - receipt
+ * - cost
+ * - name
+ * - description
+ * - userId
+ * - expenseTypeId
+ */
 class Expense {
   constructor(data) {
     this.id = data.id;
