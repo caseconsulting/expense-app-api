@@ -6,3 +6,4 @@ coverage
 /logs
 .nyc_output
 *.pid
+.vscode/
