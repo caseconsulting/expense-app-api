@@ -6,4 +6,8 @@ coverage
 /logs
 .nyc_output
 *.pid
+<<<<<<< HEAD
 .vscode
+=======
+.vscode/
+>>>>>>> added vscode to gitignore added update to jshintrc to stop es6 warnings
