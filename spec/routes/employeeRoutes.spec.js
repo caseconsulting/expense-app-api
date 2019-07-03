@@ -1,5 +1,6 @@
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
+<<<<<<< HEAD
 
 describe('employeeRoutes', () => {
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, employeeRoutes;
@@ -30,6 +31,7 @@ describe('employeeRoutes', () => {
     employeeRoutes.expenseDynamo = expenseDynamo;
     spyOn(employeeRoutes, 'getUUID').and.returnValue(uuid);
   });
+
 
   describe('_add', () => {
     let expectedEmployee, data;
