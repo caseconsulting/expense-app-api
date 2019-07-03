@@ -1,14 +1,14 @@
 const uuid = require('uuid/v4');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
-describe('employeeRoutes', () => {
+xdescribe('employeeRoutes', () => {
   let databaseModify, employeeRoutes;
   beforeEach(() => {
     databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
     employeeRoutes = new EmployeeRoutes(databaseModify, uuid());
   });
 
-  fdescribe('_add', () => {
+  describe('_add', () => {
     let expectedEmployee, uuid, data;
     beforeEach(() => {
       data = {
