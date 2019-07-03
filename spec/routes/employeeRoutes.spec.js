@@ -1,13 +1,11 @@
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
-<<<<<<< HEAD
 
 describe('employeeRoutes', () => {
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, employeeRoutes;
   const uuid = 'uuid';
   const id = 'id';
   const userId = '{userId}';
-  
   beforeEach(() => {
 
     employeeRoutes = new EmployeeRoutes();
@@ -32,7 +30,6 @@ describe('employeeRoutes', () => {
     employeeRoutes.expenseDynamo = expenseDynamo;
     spyOn(employeeRoutes, 'getUUID').and.returnValue(uuid);
   });
-
 
   describe('_add', () => {
     let expectedEmployee, uuid, data;
