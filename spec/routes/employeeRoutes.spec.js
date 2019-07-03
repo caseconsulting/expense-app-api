@@ -1,45 +1,42 @@
 const uuid = require('uuid/v4');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
-
-xdescribe('employeeRoutes', () => {
+const Employee = require('../../models/employee');
+describe('employeeRoutes', () => {
   let databaseModify, employeeRoutes;
   beforeEach(() => {
     databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
     employeeRoutes = new EmployeeRoutes(databaseModify, uuid());
   });
 
-  describe('_add', () => {
-    let newEmployee, uuid, expectedObj;
+  fdescribe('_add', () => {
+    let expectedEmployee, uuid, data;
     beforeEach(() => {
-      newEmployee = {
+      data = {
+        id: 'uuid',
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',
         employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
-        expenseTypes: '[expenseTypes]'
+        expenseTypes: '[expenseTypes]',
+        email: '{email}',
+        employeeRole: '{employeeRole}',
+        isActive: '{isActive}'
       };
       uuid = 'uuid';
+      expectedEmployee = new Employee(data);
+
+      spyOn(EmployeeRoutes.prototype,'_createRecurringExpenses')
+        .and.returnValue(Promise.resolve(expectedEmployee));
     });
-    describe('if the promise resolves', () => {
-      beforeEach(() => {
-        expectedObj = {
-          id: 'uuid',
-          firstName: '{firstName}',
-          middleName: '{middleName}',
-          lastName: '{lastName}',
-          employeeNumber: '{employeeNumber}',
-          hireDate: '{hireDate}',
-          expenseTypes: '[expenseTypes]'
-        };
+    it('should call _createRecurringExpenses and return the added employee', done => {
+      employeeRoutes._add(uuid, data).then( returnedEmployee =>{
+        expect(returnedEmployee).toEqual(expectedEmployee);
+        expect(EmployeeRoutes.prototype._createRecurringExpenses).toHaveBeenCalledWith(uuid, expectedEmployee.hireDate);
+        done();
       });
-      it('should return a new employee object', done => {
-        employeeRoutes._add(uuid, newEmployee).then(data => {
-          expect(data).toEqual(expectedObj);
-          done();
-        });
-      });
-    }); // if the promise resolves
+    });
+
   }); // _add
 
   describe('update', () => {
