@@ -18,7 +18,6 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = employeeDynamo;
     this.budgetDynamo = new databaseModify('budgets');
     this.expenseTypeDynamo = new databaseModify('expense-types');
-<<<<<<< HEAD
   }
 
   async _delete(id) {
@@ -44,8 +43,6 @@ class EmployeeRoutes extends Crud {
       console.error('Error Code: ' + err.code);
       throw err;
     }
-=======
->>>>>>> refactored spec for _createRecurringExpenses in employeeRoutes
   }
 
   async _add(id, data) {
