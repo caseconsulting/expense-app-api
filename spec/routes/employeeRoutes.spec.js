@@ -1,11 +1,11 @@
-const uuid = require('uuid/v4');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
-xdescribe('employeeRoutes', () => {
-  let databaseModify, employeeRoutes;
+
+describe('employeeRoutes', () => {
+  let employeeRoutes;
   beforeEach(() => {
-    databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
-    employeeRoutes = new EmployeeRoutes(databaseModify, uuid());
+    employeeRoutes = new EmployeeRoutes();
+    employeeRoutes.databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
   });
 
   describe('_add', () => {
@@ -39,37 +39,34 @@ xdescribe('employeeRoutes', () => {
 
   }); // _add
 
-  describe('update', () => {
-    let employeeObj, id, expectedObj;
+  describe('_update', () => {
+    let expectedEmployee, data, id;
     beforeEach(() => {
-      employeeObj = {
+      data = {
+        id: '{id}',
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',
         employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
-        expenseTypes: '[expenseTypes]'
+        expenseTypes: '[expenseTypes]',
+        email: '{email}',
+        employeeRole: '{employeeRole}',
+        isActive: '{isActive}'
       };
-      id = 'id';
+      id = '{id}';
+      
     });
     describe('if promise resolves', () => {
       beforeEach(() => {
-        databaseModify.findObjectInDB.and.returnValue(Promise.resolve({}));
-        expectedObj = {
-          id: 'id',
-          firstName: '{firstName}',
-          middleName: '{middleName}',
-          lastName: '{lastName}',
-          employeeNumber: '{employeeNumber}',
-          hireDate: '{hireDate}',
-          expenseTypes: '[expenseTypes]'
-        };
+        expectedEmployee = new Employee(data);
+        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.resolve({expectedEmployee}));
       });
 
       it('should return updated employee object', done => {
-        employeeRoutes._update(id, employeeObj).then(data => {
-          expect(databaseModify.findObjectInDB).toHaveBeenCalledWith(id);
-          expect(data).toEqual(expectedObj);
+        employeeRoutes._update(id, data).then(returnedEmployee => {
+          expect(returnedEmployee).toEqual(expectedEmployee);
+          expect(employeeRoutes.databaseModify.findObjectInDB).toHaveBeenCalledWith(id);
           done();
         });
       });
@@ -77,15 +74,15 @@ xdescribe('employeeRoutes', () => {
     describe('if the promise is rejected', () => {
       let expectedErr;
       beforeEach(() => {
-        databaseModify.findObjectInDB.and.returnValue(Promise.reject('server error'));
+        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.reject('server error'));
         expectedErr = 'server error';
       });
 
       it('should return error from server', () => {
-        employeeRoutes._update(id, employeeObj).catch(err => {
+        employeeRoutes._update(id, data).catch(err => {
           expect(err).toEqual(expectedErr);
         });
-      });
-    });
-  }); // if the promise is rejected
+      });// should return error from server
+    });// if the promise is rejected
+  }); // _update
 }); // employeeRoutes
