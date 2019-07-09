@@ -114,7 +114,7 @@ class EmployeeRoutes extends Crud {
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
     let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
-
+    
     return {
       startDate,
       endDate
