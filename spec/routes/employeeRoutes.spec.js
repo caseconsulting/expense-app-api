@@ -1,7 +1,7 @@
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
 
-describe('employeeRoutes', () => {
+xdescribe('employeeRoutes', () => {
   let employeeRoutes;
   beforeEach(() => {
     employeeRoutes = new EmployeeRoutes();
@@ -85,4 +85,66 @@ describe('employeeRoutes', () => {
       });// should return error from server
     });// if the promise is rejected
   }); // _update
+
+  describe('_createRecurringExpenses', () => {
+    let userId, hireDate, newBudget, results, dates,expenseTypeDynamo, budgetDynamo;
+    const databaseModify = require('../../js/databaseModify');
+    budgetDynamo = new databaseModify('budgets');
+    expenseTypeDynamo = new databaseModify('expense-types');
+    beforeEach(() => {
+      userId = 'userId';
+      hireDate = 'YYYY-MM-DD';
+      newBudget = {
+        id: '{id}',
+        expenseTypeId: '{expenseTypeId}',
+        userId: '{userId}',
+        reimbursedAmount: 0,
+        pendingAmount: 0,
+        fiscalStartDate: '{fiscalStartDate}',
+        fiscalEndDate: '{fiscalEndDate}'
+      };
+      dates = {
+        startDate: jasmine.createSpyObj('startDate', ['format']),
+        endDate: jasmine.createSpyObj('endDate', ['format'])
+      };
+
+      dates.startDate.format.and.returnValue('{fiscalStartDate}');
+      dates.endDate.format.and.returnValue('{fiscalEndDate}');
+
+      spyOn(budgetDynamo, 'addToDB');
+      spyOn(expenseTypeDynamo, 'getAllEntriesInDB');
+
+
+      spyOn(EmployeeRoutes.prototype, '_getBudgetDates').and.returnValue(dates);     
+    });
+    it('should return a list of created budgets', async (done) => {
+      results = await employeeRoutes._createRecurringExpenses(userId, hireDate);
+      
+      
+      expect(EmployeeRoutes.prototype._getBudgetDates).toHaveBeenCalledWith(hireDate);
+      expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+      expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
+      expect(results).toEqual(jasmine.any(Object));
+      done();
+    }); // should return a list of created budgets
+  }); // _createRecurringExpenses
+
+  describe('_getBudgetDates', () => {
+    let hireDate, returnedObj, expectedObj;
+    const moment = require('moment');
+    beforeEach(() => {
+      hireDate = '1970-12-30';
+      expectedObj = {
+        startDate: moment([moment().year(), 12, 31]),
+        endDate: moment([moment().year()+1, 12, 30])
+      };
+    });
+
+    it('should return an object with a start and end date', done => {
+      returnedObj = employeeRoutes._getBudgetDates(hireDate);
+      expect(returnedObj).toEqual(expectedObj);
+      done();
+    }); // should return an object with a start and end date
+  }); // _getBudgetDates
+  
 }); // employeeRoutes
