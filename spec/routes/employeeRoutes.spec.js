@@ -183,7 +183,6 @@ describe('employeeRoutes', () => {
         endDate: expectedEndDate
       };
 
-
     });
 
     it('should return an object with a start and end date', done => {
