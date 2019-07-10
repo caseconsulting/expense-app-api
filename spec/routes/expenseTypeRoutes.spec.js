@@ -113,4 +113,45 @@ xdescribe('expenseTypeRoutes', () => {
       });
     }); // when DynamoDB update throws an error
   }); // _update
+
+  describe('_checkFields', () => {
+    let expenseType;
+  
+    describe('if a vaild expense type is given', () => {
+      let keptItsPromise;
+      beforeEach(() => {
+        expenseType = { id, budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+        keptItsPromise = false;
+      });
+
+      it('should return a resolved promise', done => {
+        expenseTypeRoutes._checkFields(expenseType).then(()=>{
+          keptItsPromise = true;
+          expect(keptItsPromise).toBe(true);
+          done();
+        }).catch(()=> done(new Error('Promise should resolve')));
+      }); // should return a resolved promise
+    }); // if a vaild expense type is given
+    describe('if a misformed expense type object is given', () => {
+      let expectedErr;
+      beforeEach(() => {
+        expectedErr = {
+          code: 403,
+          message: 'One of the required fields is empty.'
+        };
+        expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      });
+      
+      it('should return a promise rejection', done => {
+        let returnedErr;
+        expenseTypeRoutes._checkFields(expenseType)
+          .then(() => done(new Error('Promise should reject')))
+          .catch((err) => {
+            returnedErr = err;
+            expect(returnedErr).toEqual(expectedErr);
+            done();
+          });
+      }); // should return a promise rejection
+    }); // if a misformed expense type object is given
+  }); // _checkFields
 }); // employeeRoutes
