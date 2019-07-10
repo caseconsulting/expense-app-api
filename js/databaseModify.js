@@ -321,7 +321,7 @@ class databaseModify {
             id: objToUpdate.id
           },
           UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
-                                 startDate = :sd, endDate= :ed,recurringFlag = :rf`,
+                                 startDate = :sd, endDate= :ed, recurringFlag = :rf, requiredFlag = :rqf`,
           ExpressionAttributeValues: {
             ':bn': objToUpdate.budgetName,
             ':b': objToUpdate.budget,
@@ -329,7 +329,8 @@ class databaseModify {
             ':d': objToUpdate.description,
             ':sd': objToUpdate.startDate,
             ':ed': objToUpdate.endDate,
-            ':rf': objToUpdate.recurringFlag
+            ':rf': objToUpdate.recurringFlag,
+            ':rqf': objToUpdate.requiredFlag
           },
           ReturnValues: 'ALL_NEW'
         };
