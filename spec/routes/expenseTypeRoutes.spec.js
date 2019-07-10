@@ -1,6 +1,5 @@
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
-
-const _ = require('lodash');
+const ExpenseType = require('../../models/expenseType');
 
 xdescribe('expenseTypeRoutes', () => {
   const id = 'id';
@@ -15,48 +14,41 @@ xdescribe('expenseTypeRoutes', () => {
   let expenseTypeDynamo, expenseTypeRoutes;
 
   beforeEach(() => {
-    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['addToDB', 'updateEntryInDB']);
-
     expenseTypeRoutes = new ExpenseTypeRoutes();
+    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['addToDB', 'updateEntryInDB']);
     expenseTypeRoutes.expenseTypeDynamo = expenseTypeDynamo;
   });
 
   describe('_add', () => {
-    let expenseType, newExpenseType;
+    let expectedExpenseType, data;
 
     beforeEach(() => {
-      expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
-      newExpenseType = _.merge({}, expenseType, { id });
+      data = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      expectedExpenseType = new ExpenseType(data);
 
       spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
       spyOn(expenseTypeRoutes, '_checkDates').and.returnValue(Promise.resolve());
-      expenseTypeDynamo.addToDB.and.returnValue(Promise.resolve(newExpenseType));
+      expenseTypeDynamo.addToDB.and.returnValue(Promise.resolve(expectedExpenseType));
     });
 
-    afterEach(() => {
-      expect(expenseTypeRoutes._checkFields).toHaveBeenCalledWith(newExpenseType);
-      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
-    });
-
-    describe('when DynamoDB is successful', () => {
+    describe('when addToDB is successful', () => {
       it('should return added object', done => {
-        return expenseTypeRoutes._add(id, expenseType).then(result => {
-          expect(result).toEqual(newExpenseType);
+        return expenseTypeRoutes._add(id, data).then(result => {
+          expect(result).toEqual(expectedExpenseType);
           done();
         });
       });
     }); // when DynamoDB is successful
 
-    describe('when DynamoDB throws an error', () => {
+    describe('when addToDB fails', () => {
       let expectedErr;
-
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
         expenseTypeDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
       });
 
       it('should throw the error', done => {
-        return expenseTypeRoutes._add(id, expenseType).catch(err => {
+        return expenseTypeRoutes._add(id, data).catch(err => {
           expect(err).toEqual(expectedErr);
           done();
         });
