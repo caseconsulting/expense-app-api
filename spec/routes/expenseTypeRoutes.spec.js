@@ -141,17 +141,61 @@ xdescribe('expenseTypeRoutes', () => {
         };
         expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
       });
-      
       it('should return a promise rejection', done => {
-        let returnedErr;
         expenseTypeRoutes._checkFields(expenseType)
           .then(() => done(new Error('Promise should reject')))
           .catch((err) => {
-            returnedErr = err;
-            expect(returnedErr).toEqual(expectedErr);
+            expect(err).toEqual(expectedErr);
             done();
           });
       }); // should return a promise rejection
     }); // if a misformed expense type object is given
   }); // _checkFields
+
+  describe('_checkDates', () => {
+    let startDate, endDate, recurringFlag, keptItsPromise;
+    
+    describe('if valid date range is given', () => {
+      beforeEach(() => {
+        startDate = '1970-12-01';
+        endDate = '1970-12-31';
+        recurringFlag = false;
+        keptItsPromise = false;
+      });
+
+      it('should return a resolved promise', done => {
+        expenseTypeRoutes
+          ._checkDates(startDate, endDate, recurringFlag)
+          .then(() => {
+            keptItsPromise = true;
+            expect(keptItsPromise).toBe(true);
+            done();
+          })
+          .catch(() => done(new Error('Promise should resolve')));
+      }); // should return a resolved promise
+    }); // if valid date range is given
+
+    describe('if an invalid range is given', () => {
+      let expectedErr;
+      beforeEach(() => {
+        expectedErr = {
+          code: 403,
+          message: 'The dates are invalid.'
+        };
+        startDate = '2019-12-31';
+        endDate = '1970-12-31';
+        recurringFlag = false;
+        keptItsPromise = false;
+      });
+      it('should return a promise rejection', done => {
+        expenseTypeRoutes._checkDates(startDate,endDate,recurringFlag)
+          .then(()=>done(new Error('Promise should reject')))
+          .catch((err)=>{
+            keptItsPromise = true;
+            expect(err).toEqual(expectedErr);
+            done();
+          });
+      }); // should return a promise rejection
+    }); // if an invalid range is given
+  }); // _checkDates
 }); // employeeRoutes
