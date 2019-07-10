@@ -1,7 +1,7 @@
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
 
-xdescribe('employeeRoutes', () => {
+describe('employeeRoutes', () => {
   let employeeRoutes;
   beforeEach(() => {
     employeeRoutes = new EmployeeRoutes();
@@ -86,7 +86,7 @@ xdescribe('employeeRoutes', () => {
     });// if the promise is rejected
   }); // _update
 
-  describe('_createRecurringExpenses', () => {
+  xdescribe('_createRecurringExpenses', () => {
     let userId, hireDate, newBudget, results, dates,expenseTypeDynamo, budgetDynamo;
     const databaseModify = require('../../js/databaseModify');
     budgetDynamo = new databaseModify('budgets');
@@ -130,18 +130,37 @@ xdescribe('employeeRoutes', () => {
   }); // _createRecurringExpenses
 
   describe('_getBudgetDates', () => {
-    let hireDate, returnedObj, expectedObj;
     const moment = require('moment');
+    let hireDate,
+      expectedObj,
+      expectedAnniversaryMonth,
+      expectedAnniversaryDay,
+      currentYear,
+      expectedStartDate,
+      expectedEndDate,
+      startYear,
+      anniversaryComparisonDate;
+      
     beforeEach(() => {
-      hireDate = '1970-12-30';
+      hireDate = '1970-12-31';
+      expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+      expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+      currentYear = moment().year();
+      anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+      startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+      expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay-1]);
+
       expectedObj = {
-        startDate: moment([moment().year(), 12, 31]),
-        endDate: moment([moment().year()+1, 12, 30])
+        startDate: expectedStartDate,
+        endDate: expectedEndDate
       };
+
+
     });
 
     it('should return an object with a start and end date', done => {
-      returnedObj = employeeRoutes._getBudgetDates(hireDate);
+      let returnedObj = employeeRoutes._getBudgetDates(hireDate);
       expect(returnedObj).toEqual(expectedObj);
       done();
     }); // should return an object with a start and end date
