@@ -32,6 +32,7 @@ class ExpenseRoutes extends Crud {
       expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
       budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
     } catch (err) {
+      console.error('Error Code: ' + err.code);
       throw err;
     }
     return this._isReimbursed(expense)
@@ -61,6 +62,7 @@ class ExpenseRoutes extends Crud {
         budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
       }
     } catch (err) {
+      console.error('Error Code: ' + err.code);
       throw err;
     }
 
@@ -85,6 +87,7 @@ class ExpenseRoutes extends Crud {
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
       budget = this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate);
     } catch (err) {
+      console.error('Error Code: ' + err.code);
       throw err;
     }
 

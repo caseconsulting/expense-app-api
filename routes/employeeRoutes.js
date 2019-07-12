@@ -46,6 +46,7 @@ class EmployeeRoutes extends Crud {
     try {
       expenseTypeList = await expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
+      console.error('Error Code: ' + err.code);
       throw err;
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
