@@ -75,7 +75,11 @@ class ExpenseRoutes extends Crud {
       }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+<<<<<<< HEAD
       budget = await this._getBudgetData(budgets, expenseType, employee, expense);
+=======
+      budget = this._getBudgetData(budgets, expenseType, employee, expense);
+>>>>>>> expense routes _add spec finished with refactor of tested function
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -89,6 +93,7 @@ class ExpenseRoutes extends Crud {
       });
   }
 
+<<<<<<< HEAD
   async _getBudgetData(budgets, expenseType, employee, expense) {
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
@@ -101,6 +106,16 @@ class ExpenseRoutes extends Crud {
     return uuid();
   }
 
+=======
+  async _getBudgetData(budgets,expenseType,employee, expense){
+    if (_.isEmpty(budgets)) {
+      return await this._createNewBudget(expenseType, employee);
+    } else {
+      return this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+    }
+
+  }
+>>>>>>> expense routes _add spec finished with refactor of tested function
   async _update(id, data) {
     console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
 
@@ -259,7 +274,7 @@ class ExpenseRoutes extends Crud {
     }
     return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
-
+  
   _decideIfBudgetExists(budget, expense, expenseType) {
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
