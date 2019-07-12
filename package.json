@@ -6,7 +6,7 @@
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "debug": "nodemon --trace-warnings --inspect bin/www",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
-    "lint": "eslint .",
+    "lint": "npm run eslint",
     "pm2": "pm2",
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list",
