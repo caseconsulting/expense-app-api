@@ -1,10 +1,10 @@
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 
 const _ = require('lodash');
-const Moment = require('moment');
-const MomentRange = require('moment-range');
-const IsoFormat = 'YYYY-MM-DD';
-const moment = MomentRange.extendMoment(Moment);
+
+const Employee = require('../../models/employee');
+const Expense = require('../../models/expense');
+const ExpenseType = require('../../models/expenseType');
 
 describe('expenseRoutes', () => {
   const id = 'id';
@@ -17,9 +17,29 @@ describe('expenseRoutes', () => {
   const expenseTypeId = '{expenseTypeId}';
   const userId = '{userId}';
   const url = '{url}';
-  const employee = '{employee}';
-  const expenseType = '{expenseType}';
   const budget = '{budget}';
+  const employee = {
+    id: '{id}',
+    firstName: '{firstName}',
+    middleName: '{middleName}',
+    lastName: '{lastName}',
+    empId: '{empId}',
+    hireDate: '{hireDate}',
+    expenseTypes: '[expenseTypes]',
+    email: '{email}',
+    employeeRole: '{employeeRole}',
+    isActive: '{isActive}'
+  };
+  const expenseType = {
+    id: '{id}',
+    budgetName: '{budgetName}',
+    budget: '{1000}',
+    odFlag: '{true}',
+    description: '{description}',
+    startDate: '{2019-05-14}',
+    endDate: '{2019-05-16}',
+    recurringFlag: '{false}'
+  };
 
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
 
@@ -46,61 +66,38 @@ describe('expenseRoutes', () => {
     expenseRoutes.expenseDynamo = expenseDynamo;
   });
 
-  xdescribe('_add', () => {
-    let expense, newExpense, budgets;
+  describe('_add', () => {
+    let data, expectedExpense, localExpenseType, localEmployee;
 
     beforeEach(() => {
-      expense = { purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
-      newExpense = _.merge({}, expense, { id, createdAt: moment().format(IsoFormat) });
-
+      data = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
+      expectedExpense = new Expense(data);
+      localExpenseType = new ExpenseType(expenseType);
+      localEmployee = new Employee(employee);
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
       expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-      spyOn(expenseRoutes, '_isPurchaseWithinRange').and.returnValue(Promise.resolve(true));
-      spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(budget));
-      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));
+      expenseDynamo.addToDB.and.returnValue(expectedExpense);
+      spyOn(expenseRoutes, '_isPurchaseWithinRange').and.returnValue(true);
+      spyOn(expenseRoutes, '_getBudgetData').and.returnValue(budget);
+      spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes, '_decideIfBudgetExists').and.returnValue(Promise.resolve());
     });
 
     afterEach(() => {
-      expect(expenseRoutes._isPurchaseWithinRange).toHaveBeenCalledWith(expenseType, purchaseDate);
+      expect(expenseRoutes._isPurchaseWithinRange).toHaveBeenCalledWith(localExpenseType, purchaseDate);
+      expect(expenseRoutes.checkValidity)
+        .toHaveBeenCalledWith(expectedExpense, localExpenseType, budget, localEmployee);
+      expect(expenseRoutes._decideIfBudgetExists).toHaveBeenCalledWith(budget, expectedExpense, localExpenseType);
+      expect(expenseDynamo.addToDB).toHaveBeenCalledWith(expectedExpense);
     });
 
-    describe('when DynamoDB is successful', () => {
-      describe('when empty budgets', () => {
-        beforeEach(() => {
-          budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([]));
-        });
-
-        afterEach(() => {
-          expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee);
-          expect(expenseRoutes._findBudgetWithMatchingRange).not.toHaveBeenCalled();
-        });
-
-        it('should return added object', done => {
-          return expenseRoutes._add(id, expense).then(created => {
-            expect(created).toEqual(newExpense);
-            done();
-          });
-        });
-      }); // when empty budgets
-
-      describe('when budgets', () => {
-        beforeEach(() => {
-          budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));
-        });
-
-        afterEach(() => {
-          expect(expenseRoutes._createNewBudget).not.toHaveBeenCalled();
-          expect(expenseRoutes._findBudgetWithMatchingRange).toHaveBeenCalledWith(budgets, purchaseDate);
-        });
-
-        it('should return added object', done => {
-          return expenseRoutes._add(id, expense).then(created => {
-            expect(created).toEqual(newExpense);
-            done();
-          });
-        });
-      }); // when budgets
-    }); // when DynamoDB is successful
+    it('should return added object', done => {
+      return expenseRoutes._add(id, data).then(createdExpense => {
+        expect(createdExpense).toEqual(expectedExpense);
+        done();
+      });
+    });
   }); //_add
 
   xdescribe('_update', () => {
