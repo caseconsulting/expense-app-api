@@ -259,7 +259,7 @@ class ExpenseRoutes extends Crud {
     }
     return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
-
+  
   _decideIfBudgetExists(budget, expense, expenseType) {
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
