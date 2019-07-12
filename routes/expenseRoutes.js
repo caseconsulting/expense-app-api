@@ -102,6 +102,14 @@ class ExpenseRoutes extends Crud {
       });
   }
 
+  async _getBudgetData(budgets,expenseType,employee, expense){
+    if (_.isEmpty(budgets)) {
+      return await this._createNewBudget(expenseType, employee);
+    } else {
+      return this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+    }
+
+  }
   async _update(id, data) {
     console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
 
@@ -250,7 +258,7 @@ class ExpenseRoutes extends Crud {
     }
     return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
-
+  
   _decideIfBudgetExists(budget, expense, expenseType) {
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
