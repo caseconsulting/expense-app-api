@@ -1,6 +1,7 @@
 const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
+const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const STAGE = process.env.STAGE;
@@ -168,6 +169,11 @@ class Crud {
     } else if (this._getTableName() === `${STAGE}-expenses` && !this._isAdmin(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
+          console.warn(
+            moment().format(),
+            'crudRoutes _read',
+            `from table ${this._getTableName()} for employee ${req.employee.id}`
+          );
           res.status(200).send(_.first(expense));
         } else {
           let err = FORBIDDEN;
@@ -179,6 +185,11 @@ class Crud {
         .readFromDB(req.params.id)
         .then(output => {
           if (_.first(output)) {
+            console.warn(
+              moment().format(),
+              'crudRoutes _read',
+              `from table ${this._getTableName()} for employee ${req.employee.id}`
+            );
             res.status(200).send(_.first(output));
           } else {
             let err = NOT_FOUND;

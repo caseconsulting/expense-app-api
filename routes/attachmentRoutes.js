@@ -1,6 +1,7 @@
 const express = require('express');
 const databaseModify = require('../js/databaseModify');
 const expenseDynamo = new databaseModify('expenses');
+const moment = require('moment');
 
 const multer = require('multer');
 const multerS3 = require('multer-s3');
@@ -67,6 +68,8 @@ class Attachment {
     res.send('Successfully uploaded file:' + req.file.key);
   }
   async getAttachmentFromS3(req, res) {
+    console.warn(moment().format(), 'Attachment _getAttachmentFromS3', `for attachment ${req.params.expenseId}`);
+
     let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
     let fileExt = expense.receipt;
     let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;

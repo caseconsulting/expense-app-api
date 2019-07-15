@@ -14,9 +14,11 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = employeeDynamo;
   }
 
-  _add(uuid, data) {
+  _add(id, data) {
+    console.warn(moment().format(), 'Employee _add', `for employee ${id}`);
+
     let employee = new Employee(data);
-    employee.id = uuid;
+    employee.id = id;
 
     return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
       return employee;
@@ -24,6 +26,8 @@ class EmployeeRoutes extends Crud {
   }
 
   _update(id, data) {
+    console.warn(moment().format(), 'Employee _update', `for employee ${id}`);
+
     let employee = new Employee(data);
     employee.id = id;
 

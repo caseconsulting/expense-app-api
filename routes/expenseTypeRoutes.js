@@ -15,6 +15,8 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _add(id, data) {
+    console.warn(moment().format(), 'ExpenseType _add', `for expenseType ${id}`);
+
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
 
@@ -27,6 +29,8 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _update(id, data) {
+    console.warn(moment().format(), 'ExpenseType _update', `for expenseType ${id}`);
+
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
 

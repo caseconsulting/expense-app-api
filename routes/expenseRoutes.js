@@ -24,14 +24,15 @@ class ExpenseRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn('Expense _delete');
+    console.warn(moment().format(), 'Expense _delete', `for expense ${id}`);
+
     let expense, budget, expenseType, rawBudgets;
     var budgets = [];
 
     try {
       expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      rawBudgets.forEach(function (e) {
+      rawBudgets.forEach(function(e) {
         budgets.push(new Budget(e));
       });
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
@@ -49,7 +50,7 @@ class ExpenseRoutes extends Crud {
   }
 
   async _add(id, data) {
-    console.warn('Expense _add');
+    console.warn(moment().format(), 'Expense _add', `for expense ${id}`);
 
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee, rawBudgets;
@@ -63,7 +64,7 @@ class ExpenseRoutes extends Crud {
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      rawBudgets.forEach(function (e) {
+      rawBudgets.forEach(function(e) {
         budgets.push(new Budget(e));
       });
       if (_.isEmpty(budgets)) {
@@ -85,7 +86,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _update(id, data) {
-    console.warn('Expense _update');
+    console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
+
     let expenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
     newExpense = new Expense(data);
@@ -96,7 +98,7 @@ class ExpenseRoutes extends Crud {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
-      rawBudgets.forEach(function (e) {
+      rawBudgets.forEach(function(e) {
         budgets.push(new Budget(e));
       });
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
@@ -108,7 +110,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -122,8 +124,6 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    console.warn('Expense checkValidity');
-
     let expenseTypeValid, err;
     let startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
     let endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
@@ -158,8 +158,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
-    console.warn('Expense _checkBalance');
-
     let oldCost = oldExpense ? oldExpense.cost : 0;
     if (!budget && expense.cost <= expenseType.budget) {
       // no budget exists yet, but the cost is valid
@@ -184,7 +182,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-    console.warn('Expense _checkExpenseDate');
     let startDate, endDate, date, range;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
@@ -195,8 +192,6 @@ class ExpenseRoutes extends Crud {
 
   // TBD - duplicated from employee routes
   _getBudgetDates(hireDate) {
-    console.warn('Expense _getBudgetDates');
-
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
@@ -212,8 +207,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _createNewBudget(expenseType, employee) {
-    console.warn('Expense _createNewBudget');
-
     const newBudget = {
       id: uuid(),
       expenseTypeId: expenseType.id,
@@ -234,7 +227,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
-    console.warn('Expense _decideIfBudgetExists');
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
       budget = this._addExpenseToBudget(expense, budget);
@@ -255,7 +247,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _addExpenseToBudget(expense, budget) {
-    console.warn('Expense _addExpenseToBudget');
     if (!expense.reimbursedDate) {
       budget.pendingAmount += expense.cost;
     } else {
@@ -265,7 +256,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursed(expense) {
-    console.warn('Expense _isReimbursed');
     let err = {
       code: 403,
       message: 'expense cannot perform action because it has already been reimbursed'
@@ -274,7 +264,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn('Expense _performBudgetUpdate');
     //Just reimbursing the cost
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
@@ -322,7 +311,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _removeFromBudget(budget, expense, expenseType) {
-    console.warn('Expense _removeFromBudget');
     budget.pendingAmount -= expense.cost;
     if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
       return this.budgetDynamo.removeFromDB(budget.id);
@@ -332,7 +320,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPurchaseWithinRange(expenseType, purchaseDate) {
-    console.warn('Expense _isPurchaseWithinRange');
     if (expenseType.recurringFlag) {
       return true;
     } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
@@ -351,7 +338,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    console.warn('Expense _findBudgetWithMatchingRange');
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
     );
@@ -367,7 +353,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _calculateOverdraft(budget, expenseType) {
-    console.warn('Expense _calculateOverdraft');
     let sum = budget.reimbursedAmount + budget.pendingAmount;
     if (expenseType.odFlag && sum > expenseType.budget) {
       let difference = sum - expenseType.budget;
