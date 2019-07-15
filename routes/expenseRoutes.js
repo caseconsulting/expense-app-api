@@ -10,6 +10,7 @@ const moment = MomentRange.extendMoment(Moment);
 const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
+const Budget = require('./../models/budget');
 
 class ExpenseRoutes extends Crud {
   constructor() {
@@ -24,13 +25,17 @@ class ExpenseRoutes extends Crud {
 
   async _delete(id) {
     console.warn('Expense _delete');
-    let expense, budget, expenseType, budgets;
+    let expense, budget, expenseType;
+    var budgets = [];
 
     try {
-      expense = await this.expenseDynamo.findObjectInDB(id);
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      expenseType = await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId);
-      budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+      expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+      rawBudgets.forEach(function (e) {
+        budgets.push(new Budget(e));
+      });
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
+      budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -47,7 +52,9 @@ class ExpenseRoutes extends Crud {
     console.warn('Expense _add');
 
     //query DB to see if Budget exists
-    let expenseType, budget, expense, employee, budgets;
+    let expenseType, budget, expense, employee;
+    var budgets = [];
+
     expense = new Expense(data);
     expense.id = id;
 
@@ -55,11 +62,14 @@ class ExpenseRoutes extends Crud {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+      rawBudgets.forEach(function (e) {
+        budgets.push(new Budget(e));
+      });
       if (_.isEmpty(budgets)) {
-        budget = await this._createNewBudget(expenseType, employee);
+        budget = new Budget(await this._createNewBudget(expenseType, employee));
       } else {
-        budget = this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+        budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
       }
     } catch (err) {
       console.error('Error Code: ' + err.code);
@@ -76,16 +86,20 @@ class ExpenseRoutes extends Crud {
 
   async _update(id, data) {
     console.warn('Expense _update');
-    let expenseType, budget, newExpense, employee, oldExpense, budgets;
+    let expenseType, budget, newExpense, employee, oldExpense;
+    var budgets = [];
     newExpense = new Expense(data);
     newExpense.id = id;
 
     try {
       oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
-      employee = await this.employeeDynamo.findObjectInDB(newExpense.userId);
+      employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
-      budget = this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate);
+      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
+      rawBudgets.forEach(function (e) {
+        budgets.push(new Budget(e));
+      });
+      budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;

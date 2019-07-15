@@ -6,6 +6,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Employee = require('./../models/employee');
+const Budget = require('./../models/budget');
 
 class EmployeeRoutes extends Crud {
   constructor() {
@@ -51,7 +52,7 @@ class EmployeeRoutes extends Crud {
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
     return _.forEach(expenseTypeList, recurringExpenseType => {
-      let newBudget = {
+      let newBudget = new Budget({
         id: uuid(),
         expenseTypeId: recurringExpenseType.id,
         userId: userId,
@@ -59,7 +60,7 @@ class EmployeeRoutes extends Crud {
         pendingAmount: 0,
         fiscalStartDate: dates.startDate.format('YYYY-MM-DD'),
         fiscalEndDate: dates.endDate.format('YYYY-MM-DD')
-      };
+      });
       return budgetDynamo.addToDB(newBudget).then(() => {
         return; //tell forEach to continue looping
       });
