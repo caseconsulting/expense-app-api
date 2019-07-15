@@ -25,7 +25,7 @@ class ExpenseRoutes extends Crud {
 
   async _delete(id) {
     console.warn('Expense _delete');
-    let expense, budget, expenseType;
+    let expense, budget, expenseType, rawBudgets;
     var budgets = [];
 
     try {
@@ -52,7 +52,7 @@ class ExpenseRoutes extends Crud {
     console.warn('Expense _add');
 
     //query DB to see if Budget exists
-    let expenseType, budget, expense, employee;
+    let expenseType, budget, expense, employee, rawBudgets;
     var budgets = [];
 
     expense = new Expense(data);
@@ -86,7 +86,7 @@ class ExpenseRoutes extends Crud {
 
   async _update(id, data) {
     console.warn('Expense _update');
-    let expenseType, budget, newExpense, employee, oldExpense;
+    let expenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
     newExpense = new Expense(data);
     newExpense.id = id;
