@@ -106,10 +106,10 @@ class ExpenseRoutes extends Crud {
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee);
     } else {
-      return this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+      return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
     }
-
   }
+
   async _update(id, data) {
     console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
 

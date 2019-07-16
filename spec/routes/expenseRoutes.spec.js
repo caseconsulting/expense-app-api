@@ -224,6 +224,45 @@ describe('expenseRoutes', () => {
           });
       });
     }); // when expenseTypes do not match
-
   }); //_update
-});
+
+  describe('_getBudgetData', () => {
+    let expense, budgets;
+
+    describe('if the list of budgets contains a budget', () => {
+      beforeEach(() => {
+        budgets = [budget];
+        expense = {
+          purchaseDate: '{purchaseDate}'
+        };
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budgets);
+      });
+      it('should call _findBudgetWithMatchingRange', async done => {
+        expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(budgetsInRange => {
+          expect(budgetsInRange).toEqual(budgets);
+          expect(expenseRoutes._findBudgetWithMatchingRange).toHaveBeenCalledWith(budgets, expense.purchaseDate);
+          done();
+        });
+      }); // should call _findBudgetWithMatchingRange
+    }); // if the list of budgets contains a budget
+
+    describe('if budgets is empty', () => {
+      beforeEach(() => {
+        budgets = [];
+        expense = {
+          purchaseDate: '{purchaseDate}'
+        };
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
+      });
+      it('should call _createNewBudget', async done => {
+        expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
+          expect(newBudgets).toEqual(['I\'m a new budget']);
+          expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee);
+          done();
+        });
+      }); // should call _createNewBudget
+    }); // if budgets is empty
+  }); // _getBudgetData
+
+
+}); //expenseRoutes
