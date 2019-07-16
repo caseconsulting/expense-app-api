@@ -6,7 +6,7 @@
  * - firstName
  * - middleName
  * - lastName
- * - empId
+ * - employeeNumber
  * - hireDate
  * - expenseTypes
  * - email
@@ -19,7 +19,7 @@ class Employee {
     this.firstName = data.firstName;
     this.middleName = data.middleName;
     this.lastName = data.lastName;
-    this.empId = Number(data.empId);
+    this.employeeNumber = Number(data.employeeNumber);
     this.hireDate = data.hireDate;
     this.expenseTypes = data.expenseTypes;
     this.email = data.email;

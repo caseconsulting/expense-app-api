@@ -15,7 +15,7 @@ xdescribe('employeeRoutes', () => {
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',
-        empId: '{empId}',
+        employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
         expenseTypes: '[expenseTypes]'
       };
@@ -28,7 +28,7 @@ xdescribe('employeeRoutes', () => {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
-          empId: '{empId}',
+          employeeNumber: '{employeeNumber}',
           hireDate: '{hireDate}',
           expenseTypes: '[expenseTypes]'
         };
@@ -49,7 +49,7 @@ xdescribe('employeeRoutes', () => {
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',
-        empId: '{empId}',
+        employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
         expenseTypes: '[expenseTypes]'
       };
@@ -63,7 +63,7 @@ xdescribe('employeeRoutes', () => {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
-          empId: '{empId}',
+          employeeNumber: '{employeeNumber}',
           hireDate: '{hireDate}',
           expenseTypes: '[expenseTypes]'
         };

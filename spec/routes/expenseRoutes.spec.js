@@ -162,7 +162,7 @@ describe('expenseRoutes', () => {
         firstName: '{firstName}',
         middleName: '{middleName}',
         lastName: '{lastName}',
-        empId: '{empId}',
+        employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
         expenseTypes: []
       };
@@ -213,7 +213,7 @@ describe('expenseRoutes', () => {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
-          empId: '{empId}',
+          employeeNumber: '{employeeNumber}',
           hireDate: '{hireDate}',
           expenseTypes: [
             {
@@ -255,7 +255,7 @@ describe('expenseRoutes', () => {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
-          empId: '{empId}',
+          employeeNumber: '{employeeNumber}',
           hireDate: '{hireDate}',
           expenseTypes: [
             {
@@ -275,7 +275,7 @@ describe('expenseRoutes', () => {
           firstName: '{firstName}',
           middleName: '{middleName}',
           lastName: '{lastName}',
-          empId: '{empId}',
+          employeeNumber: '{employeeNumber}',
           hireDate: '{hireDate}',
           expenseTypes: [
             {
