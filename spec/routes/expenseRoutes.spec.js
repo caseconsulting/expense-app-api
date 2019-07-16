@@ -88,7 +88,7 @@ describe('expenseRoutes', () => {
       expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
     });
 
-    it('should return added object', done => {
+    it('should return deleted object', done => {
       return expenseRoutes._delete(id).then(deletedExpense => {
         expect(deletedExpense).toEqual(expense);
         done();
@@ -143,52 +143,91 @@ describe('expenseRoutes', () => {
     });
   }); //_add
 
-  xdescribe('_update', () => {
-    let newExpense, id;
+  describe('_update', () => {
+    let data, localExpenseType, newExpense, oldExpense, budgets;
     beforeEach(() => {
-      id = '{id}';
-      newExpense = {
-        expenseId: '{expenseId}',
-        purchaseDate: '{purchaseDate}',
-        reimbursedDate: '{reimbursedDate}',
-        cost: '{cost}',
-        description: '{description}',
-        note: '{note}',
-        receipt: '{receipt}',
-        expenseTypeId: '{expenseTypeId}',
-        userId: '{userId}',
-        createdAt: '{createdAt}'
-      };
-      expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(newExpense));
-      spyOn(expenseRoutes, 'deleteCostFromBudget').and.returnValue(Promise.resolve());
-      spyOn(expenseRoutes, 'validateCostToBudget').and.returnValue(Promise.resolve());
+      data = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
+      newExpense = new Expense(data);
+      oldExpense = new Expense(data);
+      budgets = [budget];
+
+      expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(data));
+      employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
+
+      budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgets));
+      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
     });
-    it('should update an expense', () => {
-      return expenseRoutes._update(id, newExpense).then(updated => {
-        expect(expenseRoutes.deleteCostFromBudget).toHaveBeenCalledWith(
-          newExpense.expenseTypeId,
-          newExpense.userId,
-          newExpense.cost
-        );
-        expect(expenseRoutes.validateCostToBudget).toHaveBeenCalledWith(
-          newExpense.expenseTypeId,
-          newExpense.userId,
-          newExpense.cost
-        );
-        expect(updated).toEqual({
-          id: '{id}',
-          purchaseDate: '{purchaseDate}',
-          reimbursedDate: '{reimbursedDate}',
-          cost: '{cost}',
-          description: '{description}',
-          note: '{note}',
-          receipt: '{receipt}',
-          expenseTypeId: '{expenseTypeId}',
-          userId: '{userId}',
-          createdAt: '{createdAt}'
-        });
+
+    describe('when expenseTypes match', () => {
+      beforeEach(() => {
+        expenseType.id = '{expenseTypeId}';
+        localExpenseType = new ExpenseType(expenseType);
+        expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
+
+        expenseDynamo.updateEntryInDB.and.returnValue(newExpense);
+        spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
+        spyOn(expenseRoutes, '_performBudgetUpdate').and.returnValue(Promise.resolve());
+        spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       });
-    });
+
+      afterEach(() => {
+        expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
+          newExpense,
+          localExpenseType,
+          budget,
+          employee,
+          oldExpense
+        );
+
+        expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(oldExpense);
+        expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          localExpenseType
+        );
+        expect(expenseDynamo.updateEntryInDB).toHaveBeenCalledWith(newExpense);
+      });
+
+      it('should return the updated expense', done => {
+        return expenseRoutes
+          ._update(id, data)
+          .then(updatedExpense => {
+            expect(updatedExpense).toEqual(newExpense);
+            done();
+          })
+          .catch(err => {
+            console.warn(err);
+            done(new Error('object rejected'));
+          });
+      });
+    }); // when expenseTypes match
+    
+    describe('when expenseTypes do not match', () => {
+      let expectedError;
+      beforeEach(() => {
+        expectedError = {
+          code: 403,
+          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        };
+        expenseType.id = '{notTheSameexpenseTypeId}';
+        localExpenseType = new ExpenseType(expenseType);
+        expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
+      });
+
+      it('should throw an error', done => {
+        return expenseRoutes
+          ._update(id, data)
+          .then(() => {
+            done(new Error('object recived - error expected'));
+          })
+          .catch(err => {
+            expect(err).toEqual(expectedError);
+            done();
+          });
+      });
+    }); // when expenseTypes do not match
   }); //_update
 
   xdescribe('validateCostToBudget', () => {
