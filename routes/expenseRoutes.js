@@ -181,7 +181,7 @@ class ExpenseRoutes extends Crud {
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
-  _areExpenseTypesEqual(expense, oldExpense) {
+  _areExpenseTypesEqual(expense, oldExpense){
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;
     } else {
