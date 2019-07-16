@@ -111,16 +111,14 @@ class ExpenseRoutes extends Crud {
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
     console.warn('Expense checkValidity');
 
-    let expenseTypeValid, err;
-    let startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
-    let endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
-    let validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
-    let balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
-    if (expense && oldExpense) {
-      expenseTypeValid = expense.expenseTypeId === oldExpense.expenseTypeId;
-    } else {
-      expenseTypeValid = true;
-    }
+    let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
+
+    startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
+    endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
+    validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
+    balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
+    expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
+    
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
@@ -142,6 +140,14 @@ class ExpenseRoutes extends Crud {
       message: errMessage
     };
     return valid ? Promise.resolve() : Promise.reject(err);
+  }
+
+  _areExpenseTypesEqual(expense, oldExpense){
+    if (expense && oldExpense) {
+      return expense.expenseTypeId === oldExpense.expenseTypeId;
+    } else {
+      return true; //this is a new expense
+    }
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
