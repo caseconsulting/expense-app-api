@@ -318,7 +318,7 @@ describe('expenseRoutes', () => {
       it('should call _createNewBudget', async done => {
         expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
           expect(newBudgets).toEqual(['I\'m a new budget']);
-          expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
+          expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee);
           done();
         });
       }); // should call _createNewBudget
