@@ -36,8 +36,8 @@ describe('expenseRoutes', () => {
     budget: '{1000}',
     odFlag: '{true}',
     description: '{description}',
-    startDate: '{2019-05-14}',
-    endDate: '{2019-05-16}',
+    startDate: '{startDate}',
+    endDate: '{endDate}',
     recurringFlag: '{false}'
   };
 
@@ -264,5 +264,145 @@ describe('expenseRoutes', () => {
     }); // if budgets is empty
   }); // _getBudgetData
 
+  describe('checkValidity', () => {
+    let expectedErrorObject, expense, oldExpense, startDate, endDate;
 
+    beforeEach(() => {
+      expense = {
+        purchaseDate:'{purchaseDate}'
+      };
+      oldExpense = 'oldExpense';
+      startDate = '{startDate}';
+      endDate = '{endDate}';
+      expenseType.recurringFlag = false;
+    });
+    
+    afterEach(() => {
+      expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
+      expect(expenseRoutes._checkBalance).toHaveBeenCalledWith(expense, expenseType, budget, oldExpense);
+      expect(expenseRoutes._areExpenseTypesEqual).toHaveBeenCalledWith(expense, oldExpense);
+    });
+
+    describe('all checks are true', () => {
+      let keptItsPromise;
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
+        spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
+        spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
+        employee.isActive = true;
+      });
+      
+      it('should return a resolved promise', done => {
+        expenseRoutes
+          .checkValidity(expense, expenseType, budget, employee, oldExpense)
+          .then(() => {
+            keptItsPromise = true;
+            expect(keptItsPromise).toBe(true);
+            done();
+          })
+          .catch(() => done(new Error('Promise should resolve')));
+      }); // should return a resolved promise
+    }); // all checks are true
+
+    describe('expense is outside of the expense type window', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
+        spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
+        spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
+        employee.isActive = true;
+        expectedErrorObject = {
+          code: 403,
+          message: 'Expense is not valid because: the expense is outside of the expense type window'
+        };
+      });
+
+      it('should return an error object with the right error message', done => {
+        expenseRoutes
+          .checkValidity(expense, expenseType, budget, employee, oldExpense)
+          .then(() => {
+            done(new Error('Promise should reject'));
+          })
+          .catch((returnedErrorObject) =>{
+            expect(returnedErrorObject).toEqual(expectedErrorObject);
+            done();
+          });
+      }); // should return an error object with the right error message
+    }); // expense is outside of the expense type window
+
+    describe('expense is over the budget limit', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
+        spyOn(expenseRoutes, '_checkBalance').and.returnValue(false);
+        spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
+        employee.isActive = true;
+        expectedErrorObject = {
+          code: 403,
+          message: 'Expense is not valid because: the expense is over the budget limit'
+        };
+      });
+
+      it('should return an error object with the right error message', done => {
+        expenseRoutes
+          .checkValidity(expense, expenseType, budget, employee, oldExpense)
+          .then(() => {
+            done(new Error('Promise should reject'));
+          })
+          .catch((returnedErrorObject) =>{
+            expect(returnedErrorObject).toEqual(expectedErrorObject);
+            done();
+          });
+      }); // should return an error object with the right error message
+    }); // expense is over the budget limit
+
+    describe('expense type is not valid', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
+        spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
+        spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(false);
+        employee.isActive = true;
+        expectedErrorObject = {
+          code: 403,
+          message: 'Expense is not valid because: the expense type is not valid'
+        };
+      });
+
+      it('should return an error object with the right error message', done => {
+        expenseRoutes
+          .checkValidity(expense, expenseType, budget, employee, oldExpense)
+          .then(() => {
+            done(new Error('Promise should reject'));
+          })
+          .catch(returnedErrorObject => {
+            expect(returnedErrorObject).toEqual(expectedErrorObject);
+            done();
+          });
+      }); // should return an error object with the right error message
+    }); // expense type is not valid
+
+    describe('employee is not active', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
+        spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
+        spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
+        employee.isActive = false;
+        expectedErrorObject = {
+          code: 403,
+          message: 'Expense is not valid because: the employee is not active'
+        };
+      });
+
+      it('should return an error object with the right error message', done => {
+        expenseRoutes
+          .checkValidity(expense, expenseType, budget, employee, oldExpense)
+          .then(() => {
+            done(new Error('Promise should reject'));
+          })
+          .catch(returnedErrorObject => {
+            expect(returnedErrorObject).toEqual(expectedErrorObject);
+            done();
+          });
+      }); // should return an error object with the right error message
+    }); // employee is not active
+
+  }); // checkValidity
 }); //expenseRoutes
