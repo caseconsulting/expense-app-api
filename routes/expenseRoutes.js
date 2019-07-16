@@ -77,7 +77,7 @@ class ExpenseRoutes extends Crud {
       }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      budget = this._getBudgetData(budgets, expenseType, employee, expense);
+      budget = await this._getBudgetData(budgets, expenseType, employee, expense);
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -95,10 +95,10 @@ class ExpenseRoutes extends Crud {
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee);
     } else {
-      return this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+      return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
     }
-
   }
+
   async _update(id, data) {
     console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
 
