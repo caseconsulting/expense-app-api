@@ -77,15 +77,7 @@ class ExpenseRoutes extends Crud {
       }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-<<<<<<< HEAD
-<<<<<<< HEAD
       budget = await this._getBudgetData(budgets, expenseType, employee, expense);
-=======
-      budget = this._getBudgetData(budgets, expenseType, employee, expense);
->>>>>>> expense routes _add spec finished with refactor of tested function
-=======
-      budget = await this._getBudgetData(budgets, expenseType, employee, expense);
->>>>>>> finished spec for _getBudgetData in expenseRoutes
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -99,7 +91,6 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-<<<<<<< HEAD
   async _getBudgetData(budgets, expenseType, employee, expense) {
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
@@ -112,19 +103,6 @@ class ExpenseRoutes extends Crud {
     return uuid();
   }
 
-=======
-  async _getBudgetData(budgets,expenseType,employee, expense){
-    if (_.isEmpty(budgets)) {
-      return await this._createNewBudget(expenseType, employee);
-    } else {
-      return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
-    }
-  }
-<<<<<<< HEAD
->>>>>>> expense routes _add spec finished with refactor of tested function
-=======
-
->>>>>>> finished spec for _getBudgetData in expenseRoutes
   async _update(id, data) {
     console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
 
@@ -180,6 +158,7 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
+
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
