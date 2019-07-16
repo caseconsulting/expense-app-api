@@ -1,10 +1,5 @@
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 
-<<<<<<< HEAD
-=======
-// const _ = require('lodash');
-
->>>>>>> removed old tests from expenseRoutes
 const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
