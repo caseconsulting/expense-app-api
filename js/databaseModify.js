@@ -158,6 +158,33 @@ class databaseModify {
       });
   }
 
+  querySecondaryIndexInDB2(secondaryIndex, queryKey, queryParam) {
+    const params = {
+      TableName: this.tableName,
+      IndexName: secondaryIndex,
+      ExpressionAttributeValues: {
+        ':queryKey': queryParam
+      },
+      KeyConditionExpression: `${queryKey} = :queryKey`
+    };
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient
+      .query(params)
+      .promise()
+      .then(data => {
+        if (!_.isEmpty(data.Items)) {
+          return data.Items;
+        } else {
+          return null;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        throw err;
+      });
+  }
+
   /**
    * Removes the object from the database according to its index key
    */

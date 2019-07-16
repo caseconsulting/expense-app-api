@@ -257,6 +257,10 @@ class Crud {
         this._delete(req.params.id)
           .then(value => res.status(200).send(value))
           .catch(error => this._handleError(res, error));
+      } else if (this.databaseModify.tableName === `${STAGE}-employees`) {
+        this._delete(req.params.id)
+          .then(value => res.status(200).send(value))
+          .catch(error => this._handleError(res, error));
       } else {
         return this.databaseModify
           .removeFromDB(req.params.id)

@@ -8,10 +8,33 @@ const uuid = require('uuid/v4');
 const Employee = require('./../models/employee');
 const Budget = require('./../models/budget');
 
+const budgetDynamo = new databaseModify('budgets'); //added
+
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = employeeDynamo;
+    this.budgetData = budgetDynamo; //added
+  }
+
+  async _delete(id) {
+    console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
+
+    let employee, userBudgets;
+
+    try {
+      userBudgets = await this.budgetData.querySecondaryIndexInDB2('userId-expenseTypeId-index', 'userId', id);
+
+      if (userBudgets === null) {
+        employee = new Employee(await this.databaseModify.removeFromDB(id));
+        return employee;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      console.error('Error Code: ' + err.code);
+      throw err;
+    }
   }
 
   _add(id, data) {
@@ -89,6 +112,22 @@ class EmployeeRoutes extends Crud {
       endDate
     };
   }
+
+  //function created to see if employee has any expenses
+  // async _empExpenseHistory(id) {
+  //   try {
+  //     const userID = id;
+  //     const userBudgets = await this.budgetData.querySecondaryIndexInDB2(
+  //       'userId-expenseTypeId-index',
+  //       'userId',
+  //       userID
+  //     );
+  //     return userBudgets;
+  //   } catch (error) {
+  //     console.error('Error Code: ' + error.code);
+  //     throw error;
+  //   }
+  // }
 }
 
 module.exports = EmployeeRoutes;

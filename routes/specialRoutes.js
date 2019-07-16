@@ -116,6 +116,33 @@ class Special {
     }
   }
 
+  //function created to see if employee has any expenses
+  async empExpenseHistory(req, res) {
+    try {
+      const userID = req.params.id;
+      const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
+      console.warn('emp Expense History', userBudgets);
+      // const openExpenseTypeIds = _.map(userBudgets, fb => fb.expenseTypeId);
+      // const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
+      // const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
+      // const returnObject = _.map(openExpenseTypes, expenseType => {
+      //   return {
+      //     budget: expenseType.budget,
+      //     expenseTypeName: expenseType.budgetName,
+      //     description: expenseType.description,
+      //     odFlag: expenseType.odFlag,
+      //     expenseTypeId: expenseType.id,
+      //     budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
+      //   };
+      // });
+
+      const returnObject = null;
+      res.status(200).send(returnObject);
+    } catch (error) {
+      this._handleError(res, error);
+    }
+  }
+
   async showAll(req, res) {
     try {
       let expenses = await this.expenseData.getAllEntriesInDB();
