@@ -59,14 +59,23 @@ class ExpenseRoutes extends Crud {
     expense = new Expense(data);
     expense.id = id;
 
+    console.warn(
+      moment().format(),
+      'Expense _add',
+      `for expense type id ${expense.expenseTypeId} for user ${expense.userId}`
+    );
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      rawBudgets.forEach(function(e) {
-        budgets.push(new Budget(e));
-      });
+
+      if (rawBudgets) {
+        rawBudgets.forEach(function(e) {
+          budgets.push(new Budget(e));
+        });
+      }
+
       if (_.isEmpty(budgets)) {
         budget = new Budget(await this._createNewBudget(expenseType, employee));
       } else {
