@@ -77,7 +77,7 @@ class ExpenseRoutes extends Crud {
       }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      budget = this._getBudgetData(budgets, expenseType, employee, expense);
+      budget = await this._getBudgetData(budgets, expenseType, employee, expense);
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
