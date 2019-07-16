@@ -66,6 +66,43 @@ describe('expenseRoutes', () => {
     expenseRoutes.expenseDynamo = expenseDynamo;
   });
 
+
+  describe('_delete', () => {
+    let expense;
+    beforeEach(() => {
+      expense = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
+
+      expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expense));
+      expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
+      budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));
+      expenseDynamo.removeFromDB.and.returnValue(expense);
+
+      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes, '_removeFromBudget').and.returnValue(Promise.resolve());
+    });
+
+    afterEach(() => {
+      expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(expense);
+      expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, expenseType);
+      expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
+    });
+
+    it('should return added object', done => {
+      return expenseRoutes._delete(id).then(deletedExpense => {
+        expect(deletedExpense).toEqual(expense);
+        done();
+      }).catch(err =>{ 
+        console.warn(err);
+        done(new Error('object rejected'));
+      });
+    });
+
+
+
+  }); // _delete
+
+
   describe('_add', () => {
     let data, expectedExpense, localExpenseType, localEmployee;
 
@@ -93,10 +130,16 @@ describe('expenseRoutes', () => {
     });
 
     it('should return added object', done => {
-      return expenseRoutes._add(id, data).then(createdExpense => {
-        expect(createdExpense).toEqual(expectedExpense);
-        done();
-      });
+      return expenseRoutes
+        ._add(id, data)
+        .then(createdExpense => {
+          expect(createdExpense).toEqual(expectedExpense);
+          done();
+        })
+        .catch(err => {
+          console.warn(err);
+          done(new Error('object rejected'));
+        });
     });
   }); //_add
 
