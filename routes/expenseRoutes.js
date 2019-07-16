@@ -180,7 +180,11 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> finished spec for checkValidity in expenseRoutes
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
@@ -204,13 +208,23 @@ class ExpenseRoutes extends Crud {
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
+<<<<<<< HEAD
   _areExpenseTypesEqual(expense, oldExpense) {
+=======
+  _areExpenseTypesEqual(expense, oldExpense){
+>>>>>>> finished spec for checkValidity in expenseRoutes
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;
     } else {
       return true; //this is a new expense
     }
   }
+<<<<<<< HEAD
+=======
+
+  _checkBalance(expense, expenseType, budget, oldExpense) {
+    console.warn('Expense _checkBalance');
+>>>>>>> finished spec for checkValidity in expenseRoutes
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
     expense.cost = Number(expense.cost);
