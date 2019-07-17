@@ -20,7 +20,7 @@ class ExpenseType {
     this.endDate = data.endDate;
 
     // We need to make sure this value is always stored as a number, not a string
-    this.budget = Number(data.budget);
+    this.budget = Number(data.budget).toFixed(2);
 
     this.requiredFlag = data.requiredFlag;
     this.recurringFlag = data.recurringFlag;
