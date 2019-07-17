@@ -404,4 +404,31 @@ describe('expenseRoutes', () => {
     }); // employee is not active
 
   }); // checkValidity
+
+  describe('_areExpenseTypesEqual', () => {
+    let expense, oldExpense;
+    describe('if both expenses exist', () => {
+      beforeEach(() => {
+        expense = { expenseTypeId: '{expenseTypeId#1}' };
+        oldExpense = { expenseTypeId: '{expenseTypeId#2}' };
+      });
+      it('should compare the two expenseType Id\'s', done => {
+        let result = expenseRoutes._areExpenseTypesEqual(expense,oldExpense);
+        expect(result).toBe(false);
+        done();
+      }); // should compare the two expenseType Id's
+    }); // if both expenses exis
+
+    describe('if there is no old expense', () => {
+      beforeEach(() => {
+        expense = { expenseTypeId: '{expenseTypeId#1}' };
+        oldExpense = undefined;
+      });
+      it('should return true when the oldExpense does not exist', done => {
+        let result = expenseRoutes._areExpenseTypesEqual(expense,oldExpense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true when the oldExpense does not exist
+    }); // if there is no old expense
+  }); // _areExpenseTypesEqual 
 }); //expenseRoutes
