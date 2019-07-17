@@ -119,7 +119,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -180,7 +180,7 @@ class ExpenseRoutes extends Crud {
       return false;
     }
 
-    let sum = (budget.pendingAmount + budget.reimbursedAmount + expense.cost - oldCost).toFixed(2);
+    let sum = Number((budget.pendingAmount + budget.reimbursedAmount + expense.cost - oldCost).toFixed(2));
     if (sum <= expenseType.budget) {
       return true;
     } else if (expenseType.odFlag && sum <= 2 * expenseType.budget) {
