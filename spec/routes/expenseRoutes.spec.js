@@ -555,4 +555,41 @@ describe('expenseRoutes', () => {
       }); // should return false
     }); // when the purchase date does not fall between the start and end dates
   }); // _checkExpenseDate
+
+  describe('_getBudgetDates', () => {
+    const moment = require('moment');
+    let hireDate,
+      expectedObj,
+      expectedAnniversaryMonth,
+      expectedAnniversaryDay,
+      currentYear,
+      expectedStartDate,
+      expectedEndDate,
+      startYear,
+      anniversaryComparisonDate;
+      
+    beforeEach(() => {
+      hireDate = '1970-12-31';
+      expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+      expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+      currentYear = moment().year();
+      anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+      startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+      expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay-1]);
+
+      expectedObj = {
+        startDate: expectedStartDate,
+        endDate: expectedEndDate
+      };
+
+
+    });
+
+    it('should return an object with a start and end date', done => {
+      let returnedObj = expenseRoutes._getBudgetDates(hireDate);
+      expect(returnedObj).toEqual(expectedObj);
+      done();
+    }); // should return an object with a start and end date
+  }); // _getBudgetDates
 }); //expenseRoutes
