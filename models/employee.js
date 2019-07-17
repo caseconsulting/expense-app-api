@@ -26,9 +26,9 @@ class Employee {
     this.employeeRole = data.employeeRole;
     this.isActive = data.isActive;
 
-    // If the person's middle name is not defined, we want it to be stored as N/A
+    // If the person's middle name is not defined
     if (!this.middleName) {
-      this.middleName = 'N/A';
+      this.middleName = ' ';
     }
 
     // If expense types have not been defined, instantiate them in this model with
