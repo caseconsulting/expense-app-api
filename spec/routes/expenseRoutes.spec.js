@@ -523,4 +523,36 @@ describe('expenseRoutes', () => {
       }); // should return false
     }); // when budget amount cannot cover the expense
   }); // _checkBalance
+
+  describe('_checkExpenseDate', () => {
+    let purchaseDate, stringStartDate, stringEndDate;
+    
+    describe('when the purchase date falls within the start and end dates', () => {
+      beforeEach(() => {
+        purchaseDate = '1996-08-15';
+        stringStartDate = '1996-08-14';
+        stringEndDate = '1996-08-16';
+      });
+
+      it('should return true', done => {
+        let result = expenseRoutes._checkExpenseDate(purchaseDate,stringStartDate, stringEndDate);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // when the purchase date falls within the start and end dates
+
+    describe('when the purchase date does not fall between the start and end dates', () => {
+      beforeEach(() => {
+        purchaseDate = '1997-08-15';
+        stringStartDate = '1996-08-14';
+        stringEndDate = '1996-08-16';
+      });
+
+      it('should return false', done => {
+        let result = expenseRoutes._checkExpenseDate(purchaseDate, stringStartDate, stringEndDate);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // when the purchase date does not fall between the start and end dates
+  }); // _checkExpenseDate
 }); //expenseRoutes
