@@ -431,4 +431,96 @@ describe('expenseRoutes', () => {
       }); // should return true when the oldExpense does not exist
     }); // if there is no old expense
   }); // _areExpenseTypesEqual 
+
+  describe('_checkBalance', () => {
+    let expense, oldExpense, budget,expenseType;
+
+    beforeEach(() => {
+      expense = oldExpense = {
+        cost: 0
+      };
+      expenseType = {
+        budget: 0,
+        odFlag:false
+      };
+      budget = {
+        reimbursedAmount: 0,
+        pendingAmount: 0
+      };
+    });
+    describe('no budget exsits yet, but cost is valid', () => {
+      beforeEach(() => { budget = undefined; });
+      it('should return true', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // no budget exsits yet, but cost is valid
+
+    describe('no budget exists yet, the expense type is overdraftable and the cost is valid', () => {
+      beforeEach(() => {
+        expense.cost = 100;
+        expenseType.budget = 51;
+        expenseType.odFlag = true; 
+        budget = undefined;
+      });
+      it('should return true', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // no budget exists yet, the expense type is overdraftable and the cost is valid
+    
+    describe('any other case where the budget is null', () => {
+      beforeEach(() => {
+        expense.cost = 100;
+        expenseType.budget = 49;
+        expenseType.odFlag = false;
+        budget = undefined;
+      });
+
+      it('should return false', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // any other case where the budget is null
+
+    describe('sum is less than or equal to the budget', () => {
+      beforeEach(() => {
+        expense.cost = 0;
+        expenseType.budget = 0;
+      });
+      it('should return true', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // sum is less than or equal to the budget
+    
+    describe('expenseType allows overdrafting and sum is less than or equal to two times the budget', () => {
+      beforeEach(() => {
+        budget.pendingAmount = 2;
+        expenseType.budget = 1;
+        expenseType.odFlag = true;
+      });
+      it('should return true', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // expenseType allows overdrafting and sum is less than or equal to two times the budget
+
+    describe('when budget amount cannot cover the expense', () => {
+      beforeEach(() => {
+        expenseType.budget = -1;
+        expenseType.odFlag = false;
+      });
+      it('should return false', done => {
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // when budget amount cannot cover the expense
+  }); // _checkBalance
 }); //expenseRoutes
