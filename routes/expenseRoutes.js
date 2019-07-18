@@ -119,7 +119,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -335,12 +335,12 @@ class ExpenseRoutes extends Crud {
     } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
       throw {
         code: 403,
-        message: 'Purchase Date is before ' + expenseType.startDate
+        message: `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. Select a later purchase date`
       };
     } else if (expenseType.endDate && expenseType.endDate < purchaseDate) {
       throw {
         code: 403,
-        message: 'Purchase Date is after ' + expenseType.endDate
+        message: `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. Select an earlier purchase date`
       };
     } else {
       return true;
@@ -348,6 +348,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
+    console.warn('here at budget', budgets);
+
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
     );
@@ -356,7 +358,7 @@ class ExpenseRoutes extends Crud {
     } else {
       let err = {
         code: 403,
-        message: 'Purchase Date is out of range of the budget'
+        message: 'Purchase Date is out of the anniversary budget range'
       };
       throw err;
     }
