@@ -340,7 +340,8 @@ class databaseModify {
             id: objToUpdate.id
           },
           UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
-                                 startDate = :sd, endDate= :ed, recurringFlag = :rf, requiredFlag = :rqf, isInactive = :ia`,
+                                 startDate = :sd, endDate= :ed, recurringFlag = :rf, requiredFlag = :rqf,
+                                  isInactive = :ia`,
           ExpressionAttributeValues: {
             ':bn': objToUpdate.budgetName,
             ':b': objToUpdate.budget,
