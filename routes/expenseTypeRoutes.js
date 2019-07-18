@@ -33,6 +33,7 @@ class ExpenseTypeRoutes extends Crud {
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
+    console.warn(expenseType);
 
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))

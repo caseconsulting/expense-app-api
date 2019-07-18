@@ -24,6 +24,7 @@ class ExpenseType {
 
     this.requiredFlag = data.requiredFlag;
     this.recurringFlag = data.recurringFlag;
+    this.isInactive = data.isInactive; //mark an expense type as inactive
     this.startDate = data.startDate;
     this.description = data.description;
   }
