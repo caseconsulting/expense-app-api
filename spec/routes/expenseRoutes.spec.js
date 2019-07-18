@@ -759,6 +759,46 @@ describe('expenseRoutes', () => {
         done();
       }); // should add the expense cost to the reimbursedAmount
     }); // when there is a reimbursedDate
-
   }); // _addExpenseToBudget
+
+  describe('_isReimbursed', () => {
+    let expense, keptItsPromise, expectedError;
+    describe('when there is no reimbursedDate', () => {
+      beforeEach(() => {
+        expense = {
+          reimbursedDate: undefined
+        };
+      });
+
+      it('should return a resolved promise', done => {
+        expenseRoutes._isReimbursed(expense).then(()=>{
+          keptItsPromise = true;
+          expect(keptItsPromise).toBe(true);
+          done();
+        }).catch(()=> done(new Error('Promise should resolve')));
+      }); // should return a resolved promise
+    }); // when there is no reimbursedDate
+
+    describe('when there is a reimbursedDate', () => {
+      beforeEach(() => {
+        expense = {
+          reimbursedDate: 'is exist'
+        };
+        expectedError = {
+          code: 403,
+          message: 'expense cannot perform action because it has already been reimbursed'
+        };
+      });
+
+      it('should return an error', done => {
+        expenseRoutes
+          ._isReimbursed(expense)
+          .then(() => done(new Error('Promise should reject')))
+          .catch((err) =>{ 
+            expect(err).toEqual(expectedError);
+            done();
+          });
+      }); // should return an error
+    }); // when there is a reimbursedDate
+  }); // _isReimbursed
 }); //expenseRoutes
