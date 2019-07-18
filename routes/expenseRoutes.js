@@ -70,11 +70,13 @@ class ExpenseRoutes extends Crud {
 
   async _getBudgetData(budgets,expenseType,employee, expense){
     if (_.isEmpty(budgets)) {
-      return await this._createNewBudget(expenseType, employee);
+      return await this._createNewBudget(expenseType, employee, this.getUUID());
     } else {
       return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
     }
   }
+
+  getUUID(){ return uuid(); }
 
   async _update(id, data) {
     console.warn('Expense _update');
@@ -204,11 +206,11 @@ class ExpenseRoutes extends Crud {
     };
   }
 
-  _createNewBudget(expenseType, employee) {
+  _createNewBudget(expenseType, employee, newId) {
     console.warn('Expense _createNewBudget');
 
     const newBudget = {
-      id: uuid(),
+      id: newId,
       expenseTypeId: expenseType.id,
       userId: employee.id,
       reimbursedAmount: 0,
