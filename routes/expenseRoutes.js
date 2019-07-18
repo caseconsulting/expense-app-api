@@ -119,7 +119,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
+        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
       };
       throw err;
     }
@@ -335,12 +335,16 @@ class ExpenseRoutes extends Crud {
     } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
       throw {
         code: 403,
-        message: `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. Select a later purchase date`
+        message:
+          `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
+          'Select a later purchase date'
       };
     } else if (expenseType.endDate && expenseType.endDate < purchaseDate) {
       throw {
         code: 403,
-        message: `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. Select an earlier purchase date`
+        message:
+          `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
+          'Select an earlier purchase date'
       };
     } else {
       return true;
