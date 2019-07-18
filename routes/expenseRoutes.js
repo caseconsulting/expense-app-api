@@ -236,7 +236,7 @@ class ExpenseRoutes extends Crud {
       return this.budgetDynamo.updateEntryInDB(budget);
     } else {
       let newBudget = {
-        id: uuid(),
+        id: this.getUUID(),
         expenseTypeId: expense.expenseTypeId,
         userId: expense.userId,
         reimbursedAmount: 0,

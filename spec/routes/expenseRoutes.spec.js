@@ -654,4 +654,65 @@ describe('expenseRoutes', () => {
       }); // should return the new budget with correct dates
     }); // when an expenseType is not recurring
   }); // _createNewBudget
+
+  describe('_decideIfBudgetExists', () => {
+    let expectedBudget,expense;
+    beforeEach(() => {
+      expense = 'expense';
+      expectedBudget = {
+        id: uuid,
+        expenseTypeId: expenseTypeId,
+        userId: userId,
+        reimbursedAmount: 0,
+        pendingAmount: 0,
+        fiscalStartDate: expenseType.startDate,
+        fiscalEndDate: expenseType.endDate
+      };
+      
+      
+      
+    }); 
+
+    describe('when the budget does exist', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(budget);
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+      });
+      afterEach(()=>{
+        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(expense, budget);
+      });
+
+      it('should call updateEntryInDB and return the budget', async done => {
+        let result = await expenseRoutes._decideIfBudgetExists(budget, expense, expenseType);
+        expect(result).toEqual(budget);
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
+        done();
+      }); // should call updateEntryInDB and return the budget
+    }); // when the budget does exist
+
+    describe('when the budget does not exist', () => {
+      let budget;
+
+      beforeEach(() => {
+        expense = {
+          expenseTypeId: expenseTypeId,
+          userId: userId
+        };
+        spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(expectedBudget);
+        budgetDynamo.addToDB.and.returnValue(Promise.resolve(expectedBudget));
+      });
+
+      afterEach(() => {
+        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(expense, expectedBudget);
+      });
+
+      it('should call addToDB and return a new budget', async done => {
+        let result = await expenseRoutes._decideIfBudgetExists(budget, expense, expenseType);
+        expect(result).toEqual(expectedBudget);
+        expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+        done();
+      }); // should call addToDB and return a new budget
+
+    }); // when the budget does not exist
+  }); // _decideIfBudgetExists
 }); //expenseRoutes
