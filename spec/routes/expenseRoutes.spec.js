@@ -558,7 +558,6 @@ describe('expenseRoutes', () => {
   }); // _checkExpenseDate
 
   describe('_getBudgetDates', () => {
-    const moment = require('moment');
     let hireDate,
       expectedObj,
       expectedAnniversaryMonth,
@@ -593,4 +592,64 @@ describe('expenseRoutes', () => {
       done();
     }); // should return an object with a start and end date
   }); // _getBudgetDates
+
+  describe('_createNewBudget', () => {
+    let expenseType, employee, expectedBudget;
+
+    beforeEach(() => {
+      expectedBudget = {
+        id: id,
+        expenseTypeId: expenseTypeId,
+        userId: userId,
+        reimbursedAmount: 0,
+        pendingAmount: 0
+      };
+      expenseType = {
+        id: expenseTypeId,
+        recurringFlag: false,
+        startDate: '2019-07-01',
+        endDate: '2019-07-31'
+      };
+      employee = {
+        id: userId,
+        hireDate: '2019-07-02'
+      };
+      budgetDynamo.addToDB.and.returnValue(Promise.resolve(expectedBudget));
+    });
+
+    afterEach(() => {
+      expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+    });
+
+    describe('when an expenseType is recurring', () => {
+      beforeEach(() => {
+        expenseType.recurringFlag = true;
+        expectedBudget.fiscalStartDate = '2019-07-02';
+        expectedBudget.fiscalEndDate = '2020-07-01';
+        spyOn(expenseRoutes, '_getBudgetDates').and.returnValue({
+          startDate: moment('2019-07-02'),
+          endDate: moment('2020-07-01')
+        });
+      });
+
+      it('should return the new budget ', async done => {
+        let returnedObject = await expenseRoutes._createNewBudget(expenseType, employee, id);
+        expect(returnedObject).toEqual(expectedBudget);
+        done();
+      }); // should return the new budget
+    }); // when an expenseType is recurring
+
+    describe('when an expenseType is not recurring', () => {
+      beforeEach(() => {
+        expectedBudget.fiscalStartDate = expenseType.startDate;
+        expectedBudget.fiscalEndDate = expenseType.endDate;
+      });
+
+      it('should return the new budget with correct dates', async done => {
+        let returnedObject = await expenseRoutes._createNewBudget(expenseType, employee, id);
+        expect(returnedObject).toEqual(expectedBudget);
+        done();
+      }); // should return the new budget with correct dates
+    }); // when an expenseType is not recurring
+  }); // _createNewBudget
 }); //expenseRoutes
