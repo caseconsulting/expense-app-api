@@ -834,4 +834,52 @@ describe('expenseRoutes', () => {
 
     }); // when the budget does not exist
   }); // _decideIfBudgetExists
+
+  describe('_addExpenseToBudget', () => {
+    let expense, budget;
+
+    beforeEach(() => {
+      expense = {
+        reimbursedDate: reimbursedDate,
+        cost: 1
+      }; 
+      budget = {
+        pendingAmount: 0,
+        reimbursedAmount: 0
+      };
+    });
+
+    describe('when there is no reimbursedDate ', () => {
+      let expectedBudget;
+      beforeEach(() => {
+        expense.reimbursedDate = undefined;
+        expectedBudget = {
+          pendingAmount: 1,
+          reimbursedAmount: 0
+        };
+      });
+      it('should add the expense cost to the pendingAmount', done => {
+        let result = expenseRoutes._addExpenseToBudget(expense, budget);
+        expect(result).toEqual(expectedBudget);
+        done();
+      }); // should add the expense cost to the pendingAmount
+    }); // when there is no reimbursedDate 
+
+    describe('when there is a reimbursedDate', () => {
+      let expectedBudget;
+      beforeEach(() => {
+        expectedBudget = {
+          pendingAmount: 0,
+          reimbursedAmount: 1
+        };
+      });
+
+      it('should add the expense cost to the reimbursedAmount', done => {
+        let result = expenseRoutes._addExpenseToBudget(expense, budget);
+        expect(result).toEqual(expectedBudget);
+        done();
+      }); // should add the expense cost to the reimbursedAmount
+    }); // when there is a reimbursedDate
+
+  }); // _addExpenseToBudget
 }); //expenseRoutes
