@@ -142,15 +142,7 @@ class databaseModify {
       .query(params)
       .promise()
       .then(data => {
-        if (!_.isEmpty(data.Items)) {
-          return data.Items;
-        } else {
-          let err = {
-            code: 404,
-            message: 'Item not found'
-          };
-          throw err;
-        }
+        return data.Items;
       })
       .catch(err => {
         console.error(err);

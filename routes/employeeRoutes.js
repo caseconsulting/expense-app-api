@@ -17,25 +17,30 @@ class EmployeeRoutes extends Crud {
     this.budgetData = budgetDynamo; //added
   }
 
-  // async _delete(id) {
-  //   console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
+  async _delete(id) {
+    console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
 
-  //   let employee, userBudgets;
+    let employee, userBudgets;
 
-  //   try {
-  //     userBudgets = await this.budgetData.querySecondaryIndexInDB2('userId-expenseTypeId-index', 'userId', id);
+    try {
+      userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', id);
 
-  //     if (userBudgets === null) {
-  //       employee = new Employee(await this.databaseModify.removeFromDB(id));
-  //       return employee;
-  //     } else {
-  //       return null;
-  //     }
-  //   } catch (err) {
-  //     console.error('Error Code: ' + err.code);
-  //     throw err;
-  //   }
-  // }
+      //can only delete a user if they have no budget data
+      if (userBudgets.length === 0) {
+        employee = new Employee(await this.databaseModify.removeFromDB(id));
+        return employee;
+      } else {
+        let err = {
+          code: 403,
+          message: 'Employee can not be deleted if they have expenses'
+        };
+        throw err;
+      }
+    } catch (err) {
+      console.error('Error Code: ' + err.code);
+      throw err;
+    }
+  }
 
   _add(id, data) {
     console.warn(moment().format(), 'Employee _add', `for employee ${id}`);

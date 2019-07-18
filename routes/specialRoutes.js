@@ -47,6 +47,7 @@ class Special {
     this._router.get('/getAllExpenses', checkJwt, getUserInfo, this.getAllExpenses.bind(this)); //Admin
 
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
+    this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
   }
 
   get router() {
@@ -114,6 +115,23 @@ class Special {
     } catch (error) {
       this._handleError(res, error);
     }
+  }
+
+  getAllEmployeeExpenses(req, res) {
+    const userID = req.params.id;
+    this.expenseData
+      .querySecondaryIndexInDB('userId-expenses', 'userId', userID)
+      .then(data => {
+        console.warn(data);
+        res.status(200).send(data);
+      })
+      .catch(err => {
+        this._handleError(res, err);
+      });
+
+    // res.status(200).send(returnObject);
+
+    // this._handleError(res, error);
   }
 
   //function created to see if employee has any expenses
