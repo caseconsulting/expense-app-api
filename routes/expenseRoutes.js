@@ -241,7 +241,6 @@ class ExpenseRoutes extends Crud {
 
   _createNewBudget(expenseType, employee, newId) {
     console.warn('Expense _createNewBudget');
-
     const newBudget = {
       id: newId,
       expenseTypeId: expenseType.id,
