@@ -9,24 +9,26 @@ const Employee = require('./../models/employee');
 const Budget = require('./../models/budget');
 
 const budgetDynamo = new databaseModify('budgets'); //added
+const expenseDynamo = new databaseModify('expenses');
 
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = employeeDynamo;
     this.budgetData = budgetDynamo; //added
+    this.expenseData = expenseDynamo;
   }
 
   async _delete(id) {
     console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
 
-    let employee, userBudgets;
+    let employee, userExpenses;
 
     try {
-      userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', id);
+      userExpenses = await this.expenseData.querySecondaryIndexInDB('userId-expenses', 'userId', id);
 
       //can only delete a user if they have no budget data
-      if (userBudgets.length === 0) {
+      if (userExpenses.length === 0) {
         employee = new Employee(await this.databaseModify.removeFromDB(id));
         return employee;
       } else {
