@@ -27,6 +27,7 @@ class ExpenseType {
     this.isInactive = data.isInactive; //mark an expense type as inactive
     this.startDate = data.startDate;
     this.description = data.description;
+    this.categories = data.categories;
   }
 }
 

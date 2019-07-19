@@ -341,7 +341,7 @@ class databaseModify {
           },
           UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
                                  startDate = :sd, endDate= :ed, recurringFlag = :rf, requiredFlag = :rqf,
-                                  isInactive = :ia`,
+                                  isInactive = :ia, categories = :c`,
           ExpressionAttributeValues: {
             ':bn': objToUpdate.budgetName,
             ':b': objToUpdate.budget,
@@ -351,7 +351,8 @@ class databaseModify {
             ':ed': objToUpdate.endDate,
             ':rf': objToUpdate.recurringFlag,
             ':rqf': objToUpdate.requiredFlag,
-            ':ia': objToUpdate.isInactive
+            ':ia': objToUpdate.isInactive,
+            ':c': objToUpdate.categories
           },
           ReturnValues: 'ALL_NEW'
         };
