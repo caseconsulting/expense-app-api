@@ -801,4 +801,45 @@ describe('expenseRoutes', () => {
       }); // should return an error
     }); // when there is a reimbursedDate
   }); // _isReimbursed
+
+  describe('_removeFromBudget', () => {
+    let expense, budget, expenseType;
+    beforeEach(() => {
+      expenseType = {
+        recurringFlag: false
+      };
+      expense = {
+        cost: 0
+      };
+      budget = {
+        id:id,
+        pendingAmount: 0,
+        reimbursedAmount: 0
+      };
+    });
+    describe('when the budget is empty and not recurring expenseType', () => {
+      beforeEach(() => {
+        budgetDynamo.removeFromDB.and.returnValue(Promise.resolve('removed-budget'));
+      });
+      it('should call removeFromDB and return the deleted budget', async done => {
+        let result = await expenseRoutes._removeFromBudget(budget,expense, expenseType);
+        expect(result).toEqual('removed-budget');
+        expect(budgetDynamo.removeFromDB).toHaveBeenCalledWith(budget.id);
+        done();
+      }); // should call removeFromDB and return the deleted budget
+    }); // when the budget is empty and not recurring expenseType
+
+    describe('when the budget is not empty or the expenseType is recurring', () => {
+      beforeEach(() => {
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve('updated-budget'));
+        expenseType.recurringFlag = true;
+      });
+      it('should call updateEntryInDB and return the updated budget', async done => {
+        let result = await expenseRoutes._removeFromBudget(budget, expense, expenseType);
+        expect(result).toEqual('updated-budget');
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
+        done();
+      }); // should call updateEntryInDB and return the updated budget
+    }); // when the budget is not empty or the expenseType is recurring
+  }); // _removeFromBudget
 }); //expenseRoutes
