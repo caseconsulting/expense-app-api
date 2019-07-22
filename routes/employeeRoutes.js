@@ -49,6 +49,7 @@ class EmployeeRoutes extends Crud {
 
     let employee = new Employee(data);
     employee.id = id;
+    employee.isActive = true;
 
     return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
       return employee;
