@@ -842,7 +842,7 @@ describe('expenseRoutes', () => {
     }); // when the budget is not empty or the expenseType is recurring
   }); // _removeFromBudget
 
-  fdescribe('_isPurchaseWithinRange', () => {
+  describe('_isPurchaseWithinRange', () => {
     let expenseType, purchaseDate, expectedError;
 
     beforeEach(() => {
