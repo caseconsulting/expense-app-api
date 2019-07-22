@@ -841,4 +841,73 @@ describe('expenseRoutes', () => {
       }); // should call updateEntryInDB and return the updated budget
     }); // when the budget is not empty or the expenseType is recurring
   }); // _removeFromBudget
+
+  fdescribe('_isPurchaseWithinRange', () => {
+    let expenseType, purchaseDate, expectedError;
+
+    beforeEach(() => {
+      expenseType = {
+        recurringFlag: true,
+        startDate: '1970-12-01',
+        endDate: '1970-12-31'
+      };
+    });
+    describe('when the expenseType is reccurring', () => {
+      it('should return true', done => {
+        let result = expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // when the expenseType is reccurring
+
+    describe('when the purchase date comes before the start date', () => {
+      beforeEach(() => {
+        purchaseDate = '1970-11-01';
+        expenseType.recurringFlag = false;
+        expectedError = {
+          code: 403,
+          message: 'Purchase Date is before ' + expenseType.startDate
+        };
+      });
+      it('should throw error object', done => {
+        try {
+          expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+        } catch (thrownError) {
+          expect(thrownError).toEqual(expectedError);
+        }
+        done();
+      }); // should throw error object
+    }); // when the purchase date comes before the start date
+
+    describe('when the purchase date comes after the end date', () => {
+      beforeEach(() => {
+        purchaseDate = '1971-12-01';
+        expenseType.recurringFlag = false;
+        expectedError = {
+          code: 403,
+          message: 'Purchase Date is after ' + expenseType.endDate
+        };
+      });
+      it('should throw error object', done => {
+        try {
+          expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+        } catch (thrownError) {
+          expect(thrownError).toEqual(expectedError);
+        }
+        done();
+      }); // should throw error object
+    }); // when the purchase date comes after the end date
+
+    describe('when the date falls between the start and end dates', () => {
+      beforeEach(() => {
+        purchaseDate = '1970-12-15';
+        expenseType.recurringFlag = false;
+      });
+      it('should return true', done => {
+        let result = expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // when the date falls between the start and end dates
+  }); // _isPurchaseWithinRange
 }); //expenseRoutes
