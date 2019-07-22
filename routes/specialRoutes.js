@@ -48,6 +48,7 @@ class Special {
 
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
+    this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
   }
 
   get router() {
@@ -121,6 +122,23 @@ class Special {
     const userID = req.params.id;
     this.expenseData
       .querySecondaryIndexInDB('userId-expenses', 'userId', userID)
+      .then(data => {
+        console.warn(data);
+        res.status(200).send(data);
+      })
+      .catch(err => {
+        this._handleError(res, err);
+      });
+
+    // res.status(200).send(returnObject);
+
+    // this._handleError(res, error);
+  }
+
+  getAllExpenseTypeExpenses(req, res) {
+    const userID = req.params.id;
+    this.expenseData
+      .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', userID)
       .then(data => {
         console.warn(data);
         res.status(200).send(data);

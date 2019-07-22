@@ -6,12 +6,41 @@ const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 
 const ExpenseType = require('./../models/expenseType');
+const expenseDynamo = new databaseModify('expenses');
 
 class ExpenseTypeRoutes extends Crud {
   constructor() {
     super();
     this.expenseTypeDynamo = new databaseModify('expense-types');
+
     this.databaseModify = this.expenseTypeDynamo;
+    this.expenseData = expenseDynamo;
+  }
+
+  async _delete(id) {
+    console.warn(moment().format(), 'ExpenseType _delete', `for expenseType ${id}`);
+
+    let expenseType, typeExpenses;
+
+    try {
+      typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
+      console.warn(typeExpenses);
+
+      //can only delete an expense type if they have no expense data
+      if (typeExpenses.length === 0) {
+        expenseType = new ExpenseType(await this.databaseModify.removeFromDB(id));
+        return expenseType;
+      } else {
+        let err = {
+          code: 403,
+          message: 'Expense Type can not be deleted if they have expenses'
+        };
+        throw err;
+      }
+    } catch (err) {
+      console.error('Error Code: ' + err.code);
+      throw err;
+    }
   }
 
   _add(id, data) {
