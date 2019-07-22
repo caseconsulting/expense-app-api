@@ -972,4 +972,53 @@ describe('expenseRoutes', () => {
       }); // should return true
     }); // when the date falls between the start and end dates
   }); // _isPurchaseWithinRange
+
+  describe('_findBudgetWithMatchingRange', () => {
+    let budgets, budget, purchaseDate;
+
+    beforeEach(() => {
+      purchaseDate = '1970-12-01';
+      budget = {
+        fiscalStartDate: '1970-12-01',
+        fiscalEndDate: '1970-12-31'
+      };
+      budgets = [budget];
+    });
+    describe('when valid budgets are found', () => {
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
+      });
+
+      it('should return the array of valid budgets', done => {
+        let results = expenseRoutes._findBudgetWithMatchingRange(budgets,purchaseDate);
+        expect(results).toEqual(budget);
+        expect(expenseRoutes._checkExpenseDate)
+          .toHaveBeenCalledWith(purchaseDate, budget.fiscalStartDate,budget.fiscalEndDate);
+        done();
+      }); // should return the array of valid budgets
+    }); // when validBudgets are found
+  
+    describe('when no valid budgets are found', () => {
+      let expectedError;
+      beforeEach(() => {
+        expectedError = {
+          code: 403,
+          message: 'Purchase Date is out of range of the budget'
+        };
+        spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
+      });
+
+      it('should throw an error', done => {
+        try {
+          expenseRoutes._findBudgetWithMatchingRange(budgets, purchaseDate);
+          done(new Error('_findBudgetWithMatchingRange should throw an error when no valid budgets are found'));
+        } catch (thrownError) {
+          expect(thrownError).toEqual(expectedError);
+          expect(expenseRoutes._checkExpenseDate)
+            .toHaveBeenCalledWith(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate);
+          done();
+        }
+      }); // should throw an error
+    }); // when no valid budgets are found
+  }); // _findBudgetWithMatchingRange
 }); //expenseRoutes
