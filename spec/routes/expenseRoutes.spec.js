@@ -1023,4 +1023,45 @@ describe('expenseRoutes', () => {
       }); // should throw an error
     }); // when no valid budgets are found
   }); // _findBudgetWithMatchingRange
+
+  describe('_calculateOverdraft', () => {
+    let budget, expenseType;
+    describe('when expenseType can be overdrafted and sum is less than the expenseTypes budget', () => {
+      beforeEach(() => {
+        budget = {
+          reimbursedAmount: 0,
+          pendingAmount: 2
+        };
+        expenseType = {
+          odFlag: true,
+          budget: 1
+        };
+      });
+
+      it('should return the difference of sum and the expenseType budget', done => {
+        let result = expenseRoutes._calculateOverdraft(budget, expenseType);
+        expect(result).toEqual(1);
+        done();
+      }); // should return the difference of sum and the expenseType budget
+    }); // when expenseType can be overdrafted and sum is less than the expenseTypes budget
+
+    describe('when the expenseType is not overdraftable or the sum is less than the budget for the expenseType', () => {
+      beforeEach(() => {
+        budget = {
+          reimbursedAmount: 0,
+          pendingAmount: 1
+        };
+        expenseType = {
+          odFlag: true,
+          budget: 1
+        };
+      });
+
+      it('should return zero', done => {
+        let result = expenseRoutes._calculateOverdraft(budget, expenseType);
+        expect(result).toEqual(0);
+        done();
+      }); // should return zero
+    }); // when the expenseType is not overdraftable or the sum is less than the budget for the expenseType
+  }); // _calculateOverdraft
 }); //expenseRoutes
