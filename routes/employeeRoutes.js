@@ -50,10 +50,29 @@ class EmployeeRoutes extends Crud {
     let employee = new Employee(data);
     employee.id = id;
     employee.isActive = true;
+    this._isNotDuplicateEmployee(employee);
 
     return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
       return employee;
     });
+  }
+
+  _isNotDuplicateEmployee(employee) {
+    console.warn('TESTTTTTT', `for employee number ${employee.employeeNumber}`);
+
+    // if (false) {
+    //   throw {
+    //     code: 403,
+    //     message: 'Employee number already taken. Please enter a new Employee number'
+    //   };
+    // } else if (false) {
+    //   throw {
+    //     code: 403,
+    //     message: 'Employee email already taken. Please enter a new Employee email'
+    //   };
+    // } else {
+    //   return true;
+    // }
   }
 
   _update(id, data) {
