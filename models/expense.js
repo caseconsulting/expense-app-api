@@ -33,6 +33,7 @@ class Expense {
     this.description = data.description;
     this.userId = data.userId;
     this.expenseTypeId = data.expenseTypeId;
+    this.categories = data.categories;
   }
 }
 

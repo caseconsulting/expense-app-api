@@ -243,7 +243,8 @@ class databaseModify {
         ':eti': objToUpdate.expenseTypeId,
         ':ui': objToUpdate.userId,
         ':cat': objToUpdate.createdAt,
-        ':rurl': objToUpdate.url
+        ':rurl': objToUpdate.url,
+        ':cate': objToUpdate.categories
       },
       _.identity
     );
@@ -305,6 +306,10 @@ class databaseModify {
           ExpressionAttributeValues[':url'] = objToUpdate.url;
           UpdateExpression += '#url = :url,';
           _.set(params, 'ExpressionAttributeNames', { '#url': 'url' });
+        }
+        if (objToUpdate.cate) {
+          ExpressionAttributeValues[':cate'] = objToUpdate.categories;
+          UpdateExpression += 'categories = :cate,';
         }
         UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
         _.set(params, 'ExpressionAttributeValues', ExpressionAttributeValues);
