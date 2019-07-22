@@ -872,10 +872,11 @@ describe('expenseRoutes', () => {
       it('should throw error object', done => {
         try {
           expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+          done(new Error('error should be thrown when purchase date is not in range'));
         } catch (thrownError) {
           expect(thrownError).toEqual(expectedError);
+          done();
         }
-        done();
       }); // should throw error object
     }); // when the purchase date comes before the start date
 
@@ -891,10 +892,11 @@ describe('expenseRoutes', () => {
       it('should throw error object', done => {
         try {
           expenseRoutes._isPurchaseWithinRange(expenseType, purchaseDate);
+          done(new Error('error should be thrown when purchase date is not in range'));
         } catch (thrownError) {
           expect(thrownError).toEqual(expectedError);
+          done();
         }
-        done();
       }); // should throw error object
     }); // when the purchase date comes after the end date
 
