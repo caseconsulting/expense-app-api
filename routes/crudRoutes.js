@@ -253,16 +253,27 @@ class Crud {
    */
   onDelete(req, res) {
     if (this._isAdmin(req)) {
-      if (this.databaseModify.tableName === `${STAGE}-expenses`) {
+      if (
+        this.databaseModify.tableName === `${STAGE}-expenses` ||
+        this.databaseModify.tableName === `${STAGE}-employees` ||
+        this.databaseModify.tableName === `${STAGE}-expense-types`
+      ) {
         this._delete(req.params.id)
           .then(value => res.status(200).send(value))
           .catch(error => this._handleError(res, error));
-      } else if (this.databaseModify.tableName === `${STAGE}-employees`) {
-        console.warn('correct');
-        this._delete(req.params.id)
-          .then(value => res.status(200).send(value))
-          .catch(error => this._handleError(res, error));
-      } else {
+      }
+      // else if (this.databaseModify.tableName === `${STAGE}-employees`) {
+      //   console.warn('correct');
+      //   this._delete(req.params.id)
+      //     .then(value => res.status(200).send(value))
+      //     .catch(error => this._handleError(res, error));
+      // } else if (this.databaseModify.tableName === `${STAGE}-expense-types`) {
+      //   console.warn('correct');
+      //   this._delete(req.params.id)
+      //     .then(value => res.status(200).send(value))
+      //     .catch(error => this._handleError(res, error));
+      // }
+      else {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
