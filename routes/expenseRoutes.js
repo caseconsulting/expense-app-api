@@ -332,7 +332,7 @@ class ExpenseRoutes extends Crud {
   _budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
     if (overdraftAmount > 0) {
-      budget = this._movePurchaseToNextBudgetYear(oldExpense, newExpense, budget, budgets, expenseType);
+      return this._movePurchaseToNextBudgetYear(oldExpense, newExpense, budget, budgets, expenseType);
     } else {
       // normal reimburse
       budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
