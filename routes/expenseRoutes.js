@@ -68,7 +68,7 @@ class ExpenseRoutes extends Crud {
       });
   }
 
-  async _getBudgetData(budgets,expenseType,employee, expense){
+  async _getBudgetData(budgets, expenseType, employee, expense) {
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
     } else {
@@ -76,7 +76,9 @@ class ExpenseRoutes extends Crud {
     }
   }
 
-  getUUID(){ return uuid(); }
+  getUUID() {
+    return uuid();
+  }
 
   async _update(id, data) {
     console.warn('Expense _update');
@@ -120,7 +122,7 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
-    
+
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
@@ -144,7 +146,7 @@ class ExpenseRoutes extends Crud {
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
-  _areExpenseTypesEqual(expense, oldExpense){
+  _areExpenseTypesEqual(expense, oldExpense) {
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;
     } else {
@@ -227,7 +229,7 @@ class ExpenseRoutes extends Crud {
     }
     return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
-  
+
   _decideIfBudgetExists(budget, expense, expenseType) {
     console.warn('Expense _decideIfBudgetExists');
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
@@ -273,35 +275,7 @@ class ExpenseRoutes extends Crud {
     //Just reimbursing the cost
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
-      let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
-      if (overdraftAmount > 0) {
-        //is overdrafted
-        //move purchaseDate to next year
-        let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
-        let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-        if (nextYearsBudget) {
-          //if next years budget exists
-          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-          budget.reimbursedAmount += newExpense.cost;
-          if (budget.reimbursedAmount >= expenseType.budget) {
-            //get overdrafted amount
-            //move to next year
-            let overAmount = budget.reimbursedAmount - expenseType.budget;
-            budget.reimbursedAmount -= overAmount;
-            nextYearsBudget.reimbursedAmount += overAmount;
-            return this.budgetDynamo.updateEntryInDB(nextYearsBudget).then(this.budgetDynamo.updateEntryInDB(budget));
-          }
-        } else {
-          // normal reimburse
-          //if next budget does not exist
-          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-          budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
-        }
-      } else {
-        // normal reimburse
-        budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-        budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
-      }
+      budget = this._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
     } else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
       //if the old is unreimbursed and the new is unreimbursed but the cost is different
       budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
@@ -316,6 +290,39 @@ class ExpenseRoutes extends Crud {
     return this.budgetDynamo.updateEntryInDB(budget);
   }
 
+  _budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType) {
+    let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
+    if (overdraftAmount > 0) {
+      //is overdrafted
+      //move purchaseDate to next year
+      let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
+      let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
+      if (nextYearsBudget) {
+        //if next years budget exists
+        budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+        budget.reimbursedAmount += newExpense.cost;
+        if (budget.reimbursedAmount >= expenseType.budget) {
+          //get overdrafted amount
+          //move to next year
+          let overAmount = budget.reimbursedAmount - expenseType.budget;
+          budget.reimbursedAmount -= overAmount;
+          nextYearsBudget.reimbursedAmount += overAmount;
+          return this.budgetDynamo.updateEntryInDB(nextYearsBudget).then(this.budgetDynamo.updateEntryInDB(budget));
+        }
+      } else {
+        // normal reimburse
+        //if next budget does not exist
+        budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+        budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+      }
+    } else {
+      // normal reimburse
+      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+    }
+
+    return budget;
+  }
   _removeFromBudget(budget, expense, expenseType) {
     console.warn('Expense _removeFromBudget');
     budget.pendingAmount -= expense.cost;
