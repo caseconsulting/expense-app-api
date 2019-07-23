@@ -67,6 +67,14 @@ class ExpenseRoutes extends Crud {
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
+      if (expenseType.isInactive) {
+        let err = {
+          code: 403,
+          message:
+            'The Expense Type selected is Inactive. New Expenses can not be created with an Inactive Expense Type'
+        };
+        throw err;
+      }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
 
@@ -106,6 +114,13 @@ class ExpenseRoutes extends Crud {
       oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
       employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
+      if (expenseType.isInactive && employee.employeeRole === 'user') {
+        let err = {
+          code: 403,
+          message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
+        };
+        throw err;
+      }
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
       rawBudgets.forEach(function(e) {
         budgets.push(new Budget(e));
