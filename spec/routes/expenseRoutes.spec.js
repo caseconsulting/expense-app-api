@@ -1096,4 +1096,64 @@ describe('expenseRoutes', () => {
       }); // should return a budget with an updated pendingAmount
     }); // when both new and old expenses are reimbursed and both costs are different
   }); // _performBudgetUpdate
+
+  describe('_budgetUpdateForReimbursedExpense', () => {
+    let oldExpense, newExpense, budgets, budget;
+    beforeEach(() => {
+      spyOn(expenseRoutes,'_calculateOverdraft');
+      budgets = ['budget'];
+      oldExpense = 'oldExpense';
+      newExpense = 'newExpense';
+    });
+    describe('when overdraft amount is greater than zero', () => {
+      beforeEach(() => {
+        budget = 'moved-purchase-to-next-year';
+        expenseRoutes._calculateOverdraft.and.returnValue(1);
+        spyOn(expenseRoutes, '_movePurchaseToNextBudgetYear').and.returnValue(budget);
+      });
+      
+      afterEach(()=>{
+        expect(expenseRoutes._movePurchaseToNextBudgetYear).toHaveBeenCalledWith(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          expenseType
+        );
+        expect(expenseRoutes._calculateOverdraft).toHaveBeenCalledWith(budget,expenseType);
+      });
+      it('should call _movePurchaseToNextYear', done => {
+        let result = expenseRoutes
+          ._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
+        expect(result).toEqual(budget);
+        done();
+      }); // should call _movePurchaseToNextYear
+    }); // when overdraft amount is greater than zero
+    describe('when the overdraft amount is zero or less', () => {
+      let expectedBudget;
+      beforeEach(() => {
+        budget = {
+          pendingAmount: 1,
+          reimbursedAmount: 0
+        };
+        expectedBudget = {
+          pendingAmount: 0,
+          reimbursedAmount: 1
+        };
+        oldExpense = {
+          cost: 1
+        };
+        newExpense = {
+          cost: 1
+        };
+        expenseRoutes._calculateOverdraft.and.returnValue(-1);
+      });
+      it('should preform a normal budget operation', done => {
+        let result = expenseRoutes
+          ._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
+        expect(result).toEqual(expectedBudget);
+        done();
+      }); // should preform a normal budget operation
+    }); // when the overdraft amount is zero or less
+  }); // _budgetUpdateForReimbursedExpense 
 }); //expenseRoutes
