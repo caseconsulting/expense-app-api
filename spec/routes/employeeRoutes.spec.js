@@ -2,10 +2,34 @@ const EmployeeRoutes = require('../../routes/employeeRoutes');
 const Employee = require('../../models/employee');
 
 describe('employeeRoutes', () => {
-  let employeeRoutes;
+  let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, employeeRoutes;
+  const uuid = 'uuid';
+  const id = 'id';
+  const userId = '{userId}';
+  
   beforeEach(() => {
+
     employeeRoutes = new EmployeeRoutes();
     employeeRoutes.databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
+    budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
+      'addToDB',
+      'queryWithTwoIndexesInDB',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['findObjectInDB', 'getAllEntriesInDB']);
+    employeeDynamo = jasmine.createSpyObj('employeeDynamo', ['findObjectInDB']);
+    expenseDynamo = jasmine.createSpyObj('expenseDynamo', [
+      'addToDB',
+      'findObjectInDB',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+    employeeRoutes.budgetDynamo = budgetDynamo;
+    employeeRoutes.expenseTypeDynamo = expenseTypeDynamo;
+    employeeRoutes.employeeDynamo = employeeDynamo;
+    employeeRoutes.expenseDynamo = expenseDynamo;
+    spyOn(employeeRoutes, 'getUUID').and.returnValue(uuid);
   });
 
   describe('_add', () => {
@@ -86,18 +110,14 @@ describe('employeeRoutes', () => {
     });// if the promise is rejected
   }); // _update
 
-  xdescribe('_createRecurringExpenses', () => {
-    let userId, hireDate, newBudget, results, dates,expenseTypeDynamo, budgetDynamo;
-    const databaseModify = require('../../js/databaseModify');
-    budgetDynamo = new databaseModify('budgets');
-    expenseTypeDynamo = new databaseModify('expense-types');
+  describe('_createRecurringExpenses', () => {
+    let hireDate, newBudget, dates, expenseType;
     beforeEach(() => {
-      userId = 'userId';
       hireDate = 'YYYY-MM-DD';
       newBudget = {
-        id: '{id}',
-        expenseTypeId: '{expenseTypeId}',
-        userId: '{userId}',
+        id: uuid,
+        expenseTypeId: id,
+        userId: userId,
         reimbursedAmount: 0,
         pendingAmount: 0,
         fiscalStartDate: '{fiscalStartDate}',
@@ -108,24 +128,32 @@ describe('employeeRoutes', () => {
         endDate: jasmine.createSpyObj('endDate', ['format'])
       };
 
+      expenseType = {
+        id: id,
+        recurringFlag: true
+      };
+
       dates.startDate.format.and.returnValue('{fiscalStartDate}');
       dates.endDate.format.and.returnValue('{fiscalEndDate}');
 
-      spyOn(budgetDynamo, 'addToDB');
-      spyOn(expenseTypeDynamo, 'getAllEntriesInDB');
+      spyOn(employeeRoutes, '_getBudgetDates').and.returnValue(dates);     
 
-
-      spyOn(EmployeeRoutes.prototype, '_getBudgetDates').and.returnValue(dates);     
+      expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+      budgetDynamo.addToDB.and.returnValue(Promise.resolve());
     });
-    it('should return a list of created budgets', async (done) => {
-      results = await employeeRoutes._createRecurringExpenses(userId, hireDate);
-      
-      
-      expect(EmployeeRoutes.prototype._getBudgetDates).toHaveBeenCalledWith(hireDate);
+
+    afterEach(()=>{
+      expect(employeeRoutes._getBudgetDates).toHaveBeenCalledWith(hireDate);
       expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
       expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
-      expect(results).toEqual(jasmine.any(Object));
-      done();
+    });
+
+    it('should return a list of created budgets', (done) => {
+      employeeRoutes._createRecurringExpenses(userId, hireDate).then((results)=>{
+        expect(results).toEqual([expenseType]);
+        done();
+      });
+      
     }); // should return a list of created budgets
   }); // _createRecurringExpenses
 
