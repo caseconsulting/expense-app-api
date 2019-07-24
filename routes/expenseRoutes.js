@@ -169,10 +169,6 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
-<<<<<<< HEAD
-=======
-
->>>>>>> finished spec for _preformBudgetUpdate with refactor in expenseRoutes
     let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
