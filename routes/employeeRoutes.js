@@ -11,6 +11,8 @@ class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = employeeDynamo;
+    this.budgetDynamo = new databaseModify('budgets');
+    this.expenseTypeDynamo = new databaseModify('expense-types');
   }
 
   _add(uuid, data) {
@@ -37,21 +39,18 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
-    const budgetDynamo = new databaseModify('budgets');
-    const expenseTypeDynamo = new databaseModify('expense-types');
-
     let dates = this._getBudgetDates(hireDate);
     let expenseTypeList;
     //get all recurring expenseTypes
     try {
-      expenseTypeList = await expenseTypeDynamo.getAllEntriesInDB();
+      expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
       throw err;
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
     return _.forEach(expenseTypeList, recurringExpenseType => {
       let newBudget = {
-        id: uuid(),
+        id: this.getUUID(),
         expenseTypeId: recurringExpenseType.id,
         userId: userId,
         reimbursedAmount: 0,
@@ -59,7 +58,7 @@ class EmployeeRoutes extends Crud {
         fiscalStartDate: dates.startDate.format('YYYY-MM-DD'),
         fiscalEndDate: dates.endDate.format('YYYY-MM-DD')
       };
-      return budgetDynamo.addToDB(newBudget).then(() => {
+      return this.budgetDynamo.addToDB(newBudget).then(() => {
         return; //tell forEach to continue looping
       });
     });
@@ -77,11 +76,14 @@ class EmployeeRoutes extends Crud {
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
     let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
-    
+
     return {
       startDate,
       endDate
     };
+  }
+  getUUID() {
+    return uuid();
   }
 }
 
