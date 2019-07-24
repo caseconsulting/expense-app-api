@@ -15,8 +15,8 @@ class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = employeeDynamo;
-    this.budgetData = budgetDynamo; //added
-    this.expenseData = expenseDynamo;
+    this.budgetDynamo = new databaseModify('budgets');
+    this.expenseTypeDynamo = new databaseModify('expense-types');
   }
 
   async _delete(id) {
@@ -73,30 +73,27 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
-    const budgetDynamo = new databaseModify('budgets');
-    const expenseTypeDynamo = new databaseModify('expense-types');
-
     let dates = this._getBudgetDates(hireDate);
     let expenseTypeList;
     //get all recurring expenseTypes
     try {
-      expenseTypeList = await expenseTypeDynamo.getAllEntriesInDB();
+      expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
     return _.forEach(expenseTypeList, recurringExpenseType => {
-      let newBudget = new Budget({
-        id: uuid(),
+      let newBudget = {
+        id: this.getUUID(),
         expenseTypeId: recurringExpenseType.id,
         userId: userId,
         reimbursedAmount: 0,
         pendingAmount: 0,
         fiscalStartDate: dates.startDate.format('YYYY-MM-DD'),
         fiscalEndDate: dates.endDate.format('YYYY-MM-DD')
-      });
-      return budgetDynamo.addToDB(newBudget).then(() => {
+      };
+      return this.budgetDynamo.addToDB(newBudget).then(() => {
         return; //tell forEach to continue looping
       });
     });
@@ -114,28 +111,16 @@ class EmployeeRoutes extends Crud {
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
     let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
-    
+
     return {
       startDate,
       endDate
     };
   }
 
-  //function created to see if employee has any expenses
-  // async _empExpenseHistory(id) {
-  //   try {
-  //     const userID = id;
-  //     const userBudgets = await this.budgetData.querySecondaryIndexInDB2(
-  //       'userId-expenseTypeId-index',
-  //       'userId',
-  //       userID
-  //     );
-  //     return userBudgets;
-  //   } catch (error) {
-  //     console.error('Error Code: ' + error.code);
-  //     throw error;
-  //   }
-  // }
+  getUUID() {
+    return uuid();
+  }
 }
 
 module.exports = EmployeeRoutes;
