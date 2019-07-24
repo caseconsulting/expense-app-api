@@ -59,6 +59,9 @@ class EmployeeRoutes extends Crud {
 
   _isNotDuplicateEmployee(employee) {
     console.warn('TESTTTTTT', `for employee number ${employee.employeeNumber}`);
+    console.warn('IS EMPLOYEE ID IN DATABASE?', databaseModify.findObjectInDB(employee.id));
+    console.warn('IS EMPLOYEE NUMBER IN DATABASE?', databaseModify.findObjectInDB(employee.employeeNumber));
+    console.warn('IS EMPLOYEE EMAIL IN DATABASE?', databaseModify.findObjectInDB(employee.email));
 
     // if (false) {
     //   throw {
