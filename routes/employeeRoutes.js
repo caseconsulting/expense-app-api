@@ -26,7 +26,7 @@ class EmployeeRoutes extends Crud {
     let employee, userExpenses;
 
     try {
-      userExpenses = await this.expenseData.querySecondaryIndexInDB('userId-expenses', 'userId', id);
+      userExpenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', id);
 
       //can only delete a user if they have no budget data
       if (userExpenses.length === 0) {

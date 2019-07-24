@@ -121,7 +121,7 @@ class Special {
   getAllEmployeeExpenses(req, res) {
     const userID = req.params.id;
     this.expenseData
-      .querySecondaryIndexInDB('userId-expenses', 'userId', userID)
+      .querySecondaryIndexInDB('userId-index', 'userId', userID)
       .then(data => {
         console.warn(data);
         res.status(200).send(data);
