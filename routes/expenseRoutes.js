@@ -313,7 +313,35 @@ class ExpenseRoutes extends Crud {
     //Just reimbursing the cost
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
-      budget = this._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
+      let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
+      if (overdraftAmount > 0) {
+        //is overdrafted
+        //move purchaseDate to next year
+        let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
+        let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
+        if (nextYearsBudget) {
+          //if next years budget exists
+          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+          budget.reimbursedAmount += newExpense.cost;
+          if (budget.reimbursedAmount >= expenseType.budget) {
+            //get overdrafted amount
+            //move to next year
+            let overAmount = budget.reimbursedAmount - expenseType.budget;
+            budget.reimbursedAmount -= overAmount;
+            nextYearsBudget.reimbursedAmount += overAmount;
+            return this.budgetDynamo.updateEntryInDB(nextYearsBudget).then(this.budgetDynamo.updateEntryInDB(budget));
+          }
+        } else {
+          // normal reimburse
+          //if next budget does not exist
+          budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+          budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+        }
+      } else {
+        // normal reimburse
+        budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
+        budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
+      }
     } else if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost !== newExpense.cost) {
       //if the old is unreimbursed and the new is unreimbursed but the cost is different
       budget.pendingAmount -= oldExpense.cost; //removing old cost from pendingAmount
@@ -328,45 +356,6 @@ class ExpenseRoutes extends Crud {
     return this.budgetDynamo.updateEntryInDB(budget);
   }
 
-  _budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    let overdraftAmount = this._calculateOverdraft(budget, expenseType); //determine if overdrafted
-    if (overdraftAmount > 0) {
-      return this._movePurchaseToNextBudgetYear(oldExpense, newExpense, budget, budgets, expenseType);
-    } else {
-      // normal reimburse
-      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
-    }
-
-    return budget;
-  }
-
-  _movePurchaseToNextBudgetYear(oldExpense, newExpense, budget, budgets, expenseType) {
-    //is overdrafted
-    //move purchaseDate to next year
-    let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years');
-    let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-    if (nextYearsBudget) {
-      //if next years budget exists
-      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-      budget.reimbursedAmount += newExpense.cost;
-      if (budget.reimbursedAmount >= expenseType.budget) {
-        //get overdrafted amount
-        //move to next year
-        let overAmount = budget.reimbursedAmount - expenseType.budget;
-        budget.reimbursedAmount -= overAmount;
-        nextYearsBudget.reimbursedAmount += overAmount;
-        return this.budgetDynamo.updateEntryInDB(nextYearsBudget).then(this.budgetDynamo.updateEntryInDB(budget));
-      }
-    } else {
-      // normal reimburse
-      //if next budget does not exist
-      budget.pendingAmount -= oldExpense.cost; // removing from pendingAmount
-      budget.reimbursedAmount += newExpense.cost; //adding to reimbursedAmount
-    }
-
-    return budget;
-  }
   _removeFromBudget(budget, expense, expenseType) {
     budget.pendingAmount -= expense.cost;
     if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
