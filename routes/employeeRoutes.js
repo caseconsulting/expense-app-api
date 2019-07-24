@@ -1,15 +1,16 @@
 const Crud = require('./crudRoutes');
+
 const databaseModify = require('../js/databaseModify');
 const employeeDynamo = new databaseModify('employees');
+const budgetDynamo = new databaseModify('budgets'); //added
+const expenseDynamo = new databaseModify('expenses');
+
 const moment = require('moment');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Employee = require('./../models/employee');
 const Budget = require('./../models/budget');
-
-const budgetDynamo = new databaseModify('budgets'); //added
-const expenseDynamo = new databaseModify('expenses');
 
 class EmployeeRoutes extends Crud {
   constructor() {
@@ -44,38 +45,48 @@ class EmployeeRoutes extends Crud {
     }
   }
 
-  _add(id, data) {
+  async _add(id, data) {
     console.warn(moment().format(), 'Employee _add', `for employee ${id}`);
 
     let employee = new Employee(data);
     employee.id = id;
     employee.isActive = true;
-    this._isNotDuplicateEmployee(employee);
 
-    return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
-      return employee;
-    });
+    try {
+      let error = await this._isDuplicateEmployee(employee);
+      if (error) {
+        throw error;
+      }
+      return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
+        return employee;
+      });
+    } catch (err) {
+      console.error('Error Code: ' + err.code);
+      throw err;
+    }
   }
 
-  _isNotDuplicateEmployee(employee) {
-    console.warn('TESTTTTTT', `for employee number ${employee.employeeNumber}`);
-    console.warn('IS EMPLOYEE ID IN DATABASE?', databaseModify.findObjectInDB(employee.id));
-    console.warn('IS EMPLOYEE NUMBER IN DATABASE?', databaseModify.findObjectInDB(employee.employeeNumber));
-    console.warn('IS EMPLOYEE EMAIL IN DATABASE?', databaseModify.findObjectInDB(employee.email));
+  /**
+   * Returns error code if an employee number or email is within the employee database. Return false if not.
+   */
+  async _isDuplicateEmployee(employee) {
+    let allEmployees = await this.databaseModify.getAllEntriesInDB();
+    if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
+      let err = {
+        code: 403,
+        message: 'Employee number already taken. Please enter a new Employee number'
+      };
+      return err;
+    }
 
-    // if (false) {
-    //   throw {
-    //     code: 403,
-    //     message: 'Employee number already taken. Please enter a new Employee number'
-    //   };
-    // } else if (false) {
-    //   throw {
-    //     code: 403,
-    //     message: 'Employee email already taken. Please enter a new Employee email'
-    //   };
-    // } else {
-    //   return true;
-    // }
+    if (allEmployees.some(e => e.email === employee.email)) {
+      let err = {
+        code: 403,
+        message: 'Employee email already taken. Please enter a new email'
+      };
+      return err;
+    }
+    return false;
   }
 
   _update(id, data) {
