@@ -18,6 +18,7 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = employeeDynamo;
     this.budgetDynamo = new databaseModify('budgets');
     this.expenseTypeDynamo = new databaseModify('expense-types');
+<<<<<<< HEAD
   }
 
   async _delete(id) {
@@ -43,6 +44,8 @@ class EmployeeRoutes extends Crud {
       console.error('Error Code: ' + err.code);
       throw err;
     }
+=======
+>>>>>>> refactored spec for _createRecurringExpenses in employeeRoutes
   }
 
   async _add(id, data) {
@@ -144,7 +147,7 @@ class EmployeeRoutes extends Crud {
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
     let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
-    
+
     return {
       startDate,
       endDate
