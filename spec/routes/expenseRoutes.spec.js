@@ -149,6 +149,8 @@ describe('expenseRoutes', () => {
       data = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
       expectedExpense = new Expense(data);
       localExpenseType = new ExpenseType(expenseType);
+      expenseType.isInactive = false;
+      localExpenseType.isInactive = false;
       localEmployee = new Employee(employee);
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
       expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
@@ -158,6 +160,7 @@ describe('expenseRoutes', () => {
       spyOn(expenseRoutes, '_getBudgetData').and.returnValue(budget);
       spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       spyOn(expenseRoutes, '_decideIfBudgetExists').and.returnValue(Promise.resolve());
+
     });
 
     afterEach(() => {
@@ -175,8 +178,8 @@ describe('expenseRoutes', () => {
           expect(createdExpense).toEqual(expectedExpense);
           done();
         })
-        .catch(err => {
-          console.warn(err);
+        .catch((e) => {
+          console.warn(e);
           done(new Error('object rejected'));
         });
     });
