@@ -3,6 +3,7 @@ const ExpenseRoutes = require('../../routes/expenseRoutes');
 const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
+const Budget = require('../../models/budget');
 const moment = require('moment');
 
 describe('expenseRoutes', () => {
@@ -10,13 +11,20 @@ describe('expenseRoutes', () => {
   const id = 'id';
   const purchaseDate = '{purchaseDate}';
   const reimbursedDate = '{reimbursedDate}';
-  const cost = '{cost}';
+  const cost = 0;
   const description = '{description}';
   const note = '{note}';
   const receipt = '{purchareceiptseDate}';
   const expenseTypeId = '{expenseTypeId}';
   const userId = '{userId}';
   const url = '{url}';
+  const name = '{name}';
+  const createdAt = '{createdAt}';
+  const categories = '[categories]';
+  const reimbursedAmount = 0;
+  const pendingAmount = 0;
+  const fiscalStartDate = '{fiscalStartDate}';
+  const fiscalEndDate = '{fiscalEndDate}';
   const budget = '{budget}';
   const employee = {
     id: '{id}',
@@ -33,12 +41,13 @@ describe('expenseRoutes', () => {
   const expenseType = {
     id: '{id}',
     budgetName: '{budgetName}',
-    budget: '{1000}',
+    budget: 0,
     odFlag: '{true}',
-    description: '{description}',
+    description: description,
     startDate: '{startDate}',
     endDate: '{endDate}',
-    recurringFlag: '{false}'
+    recurringFlag: '{false}',
+    categories: categories
   };
 
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
@@ -66,10 +75,35 @@ describe('expenseRoutes', () => {
     spyOn(expenseRoutes, 'getUUID').and.returnValue(uuid);
   });
 
-  describe('_delete', () => {
-    let expense;
+  fdescribe('_delete', () => {
+    let expense, expenseData, budgetData, budget;
     beforeEach(() => {
-      expense = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
+      expenseData = { 
+        id, 
+        purchaseDate, 
+        reimbursedDate, 
+        note,
+        url,
+        createdAt,
+        receipt,
+        cost,
+        name,
+        description,
+        userId,
+        expenseTypeId,
+        categories };
+      budgetData ={
+        id,
+        expenseTypeId,
+        userId,
+        reimbursedAmount,
+        pendingAmount,
+        fiscalStartDate,
+        fiscalEndDate
+      };
+        
+      expense = new Expense(expenseData);
+      budget = new Budget(budgetData);
 
       expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expense));
       expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
@@ -83,7 +117,7 @@ describe('expenseRoutes', () => {
 
     afterEach(() => {
       expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(expense);
-      expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, expenseType);
+      expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, new ExpenseType(expenseType));
       expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
     });
 
@@ -91,8 +125,7 @@ describe('expenseRoutes', () => {
       return expenseRoutes._delete(id).then(deletedExpense => {
         expect(deletedExpense).toEqual(expense);
         done();
-      }).catch(err =>{ 
-        console.warn(err);
+      }).catch(() =>{ 
         done(new Error('object rejected'));
       });
     });
