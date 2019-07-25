@@ -64,7 +64,7 @@ class ExpenseRoutes extends Crud {
     );
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));      
       if (expenseType.isInactive) {
         let err = {
           code: 403,
