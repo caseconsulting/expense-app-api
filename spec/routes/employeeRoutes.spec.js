@@ -32,7 +32,7 @@ describe('employeeRoutes', () => {
   });
 
   describe('_add', () => {
-    let expectedEmployee, uuid, data;
+    let expectedEmployee, data;
     beforeEach(() => {
       data = {
         id: 'uuid',
@@ -44,18 +44,18 @@ describe('employeeRoutes', () => {
         expenseTypes: '[expenseTypes]',
         email: '{email}',
         employeeRole: '{employeeRole}',
-        isActive: '{isActive}'
+        isActive: true
       };
-      uuid = 'uuid';
       expectedEmployee = new Employee(data);
 
-      spyOn(EmployeeRoutes.prototype,'_createRecurringExpenses')
+      spyOn(employeeRoutes,'_createRecurringExpenses')
         .and.returnValue(Promise.resolve(expectedEmployee));
     });
     it('should call _createRecurringExpenses and return the added employee', done => {
       employeeRoutes._add(uuid, data).then( returnedEmployee =>{
         expect(returnedEmployee).toEqual(expectedEmployee);
-        expect(EmployeeRoutes.prototype._createRecurringExpenses).toHaveBeenCalledWith(uuid, expectedEmployee.hireDate);
+        expect(employeeRoutes._createRecurringExpenses)
+          .toHaveBeenCalledWith(expectedEmployee.id, expectedEmployee.hireDate);
         done();
       });
     });
