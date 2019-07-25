@@ -75,7 +75,7 @@ describe('expenseRoutes', () => {
     spyOn(expenseRoutes, 'getUUID').and.returnValue(uuid);
   });
 
-  fdescribe('_delete', () => {
+  describe('_delete', () => {
     let expense, expenseData, budgetData, budget;
     beforeEach(() => {
       expenseData = { 
