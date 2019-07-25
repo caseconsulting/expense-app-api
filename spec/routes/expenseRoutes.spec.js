@@ -300,7 +300,7 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
-          budget,
+          new Budget(budget),
           budgets,
           localExpenseType
         );
@@ -309,7 +309,7 @@ describe('expenseRoutes', () => {
 
       it('should return the updated expense', done => {
         return expenseRoutes
-          ._update(id, data)
+          ._update(id, expenseData)
           .then(updatedExpense => {
             expect(updatedExpense).toEqual(newExpense);
             done();
