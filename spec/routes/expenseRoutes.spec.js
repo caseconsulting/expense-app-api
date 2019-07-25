@@ -25,13 +25,12 @@ describe('expenseRoutes', () => {
   const pendingAmount = 0;
   const fiscalStartDate = '{fiscalStartDate}';
   const fiscalEndDate = '{fiscalEndDate}';
-  const budget = '{budget}';
   const employee = {
     id: '{id}',
     firstName: '{firstName}',
     middleName: '{middleName}',
     lastName: '{lastName}',
-    empId: '{empId}',
+    employeeNumber: 0,
     hireDate: '{hireDate}',
     expenseTypes: '[expenseTypes]',
     email: '{email}',
@@ -47,7 +46,19 @@ describe('expenseRoutes', () => {
     startDate: '{startDate}',
     endDate: '{endDate}',
     recurringFlag: '{false}',
+    isInactive:'{isInactive}',
+    requiredFlag:'{requiredFlag}',
     categories: categories
+  };
+
+  const budget = {
+    id,
+    expenseTypeId,
+    userId,
+    reimbursedAmount,
+    pendingAmount,
+    fiscalStartDate,
+    fiscalEndDate
   };
 
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
@@ -172,14 +183,29 @@ describe('expenseRoutes', () => {
   }); //_add
 
   describe('_update', () => {
-    let data, localExpenseType, newExpense, oldExpense, budgets;
+    let expenseData, localExpenseType, newExpense, oldExpense, budgets;
     beforeEach(() => {
-      data = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
-      newExpense = new Expense(data);
-      oldExpense = new Expense(data);
-      budgets = [budget];
+      expenseData = {
+        id,
+        purchaseDate,
+        reimbursedDate,
+        note,
+        url,
+        createdAt,
+        receipt,
+        cost,
+        name,
+        description,
+        userId,
+        expenseTypeId,
+        categories
+      };
+      newExpense = new Expense(expenseData);
+      oldExpense = new Expense(expenseData);
+      budgets = [new Budget(budget)];
+      
 
-      expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(data));
+      expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseData));
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
 
       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgets));
@@ -202,8 +228,8 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
           newExpense,
           localExpenseType,
-          budget,
-          employee,
+          new Budget(budget),
+          new Employee(employee),
           oldExpense
         );
 
@@ -211,7 +237,7 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
-          budget,
+          new Budget(budget),
           budgets,
           localExpenseType
         );
@@ -220,7 +246,7 @@ describe('expenseRoutes', () => {
 
       it('should return the updated expense', done => {
         return expenseRoutes
-          ._update(id, data)
+          ._update(id, expenseData)
           .then(updatedExpense => {
             expect(updatedExpense).toEqual(newExpense);
             done();
@@ -246,7 +272,7 @@ describe('expenseRoutes', () => {
 
       it('should throw an error', done => {
         return expenseRoutes
-          ._update(id, data)
+          ._update(id, expenseData)
           .then(() => {
             done(new Error('object recived - error expected'));
           })
