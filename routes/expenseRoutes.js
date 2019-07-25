@@ -125,6 +125,7 @@ class ExpenseRoutes extends Crud {
         budgets.push(new Budget(e));
       });
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
+      
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -137,6 +138,7 @@ class ExpenseRoutes extends Crud {
       };
       throw err;
     }
+  
     return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._isReimbursed(oldExpense))
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
