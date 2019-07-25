@@ -6,10 +6,6 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Employee = require('./../models/employee');
-const Budget = require('./../models/budget');
-
-const budgetDynamo = new databaseModify('budgets'); //added
-const expenseDynamo = new databaseModify('expenses');
 
 class EmployeeRoutes extends Crud {
   constructor() {
@@ -51,7 +47,7 @@ class EmployeeRoutes extends Crud {
     employee.id = id;
     employee.isActive = true;
 
-    return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
+    return this._createRecurringExpenses(id, employee.hireDate).then(() => {
       return employee;
     });
   }
