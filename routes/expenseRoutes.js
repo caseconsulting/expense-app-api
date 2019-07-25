@@ -25,16 +25,14 @@ class ExpenseRoutes extends Crud {
 
   async _delete(id) {
     console.warn(moment().format(), 'Expense _delete', `for expense ${id}`);
-
-    let expense, budget, expenseType, rawBudgets;
-    var budgets = [];
+    let expense, budget, expenseType, rawBudgets, budgets;
 
     try {
       expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      rawBudgets.forEach(function(e) {
-        budgets.push(new Budget(e));
-      });
+      budgets = [];
+      _.forEach(rawBudgets, (budget)=> budgets.push(new Budget(budget)));
+
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
     } catch (err) {
