@@ -928,7 +928,9 @@ describe('expenseRoutes', () => {
         expenseType.recurringFlag = false;
         expectedError = {
           code: 403,
-          message: 'Purchase Date is before ' + expenseType.startDate
+          message:
+            `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
+            'Select a later purchase date'
         };
       });
       it('should throw error object', done => {
@@ -948,7 +950,9 @@ describe('expenseRoutes', () => {
         expenseType.recurringFlag = false;
         expectedError = {
           code: 403,
-          message: 'Purchase Date is after ' + expenseType.endDate
+          message:
+            `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
+            'Select an earlier purchase date'
         };
       });
       it('should throw error object', done => {
