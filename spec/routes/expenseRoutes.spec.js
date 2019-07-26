@@ -275,66 +275,6 @@ describe('expenseRoutes', () => {
 
       it('should throw an error', done => {
         return expenseRoutes
-          ._update(id, data)
-          .then(() => {
-            done(new Error('object recived - error expected'));
-          })
-          .catch(err => {
-            expect(err).toEqual(expectedError);
-            done();
-          });
-      });
-    }); // when expenseTypes do not match
-  }); //_update
-
-      afterEach(() => {
-        expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
-          newExpense,
-          localExpenseType,
-          new Budget(budget),
-          new Employee(employee),
-          oldExpense
-        );
-
-        expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(oldExpense);
-        expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
-          oldExpense,
-          newExpense,
-          new Budget(budget),
-          budgets,
-          localExpenseType
-        );
-        expect(expenseDynamo.updateEntryInDB).toHaveBeenCalledWith(newExpense);
-      });
-
-      it('should return the updated expense', done => {
-        return expenseRoutes
-          ._update(id, expenseData)
-          .then(updatedExpense => {
-            expect(updatedExpense).toEqual(newExpense);
-            done();
-          })
-          .catch(err => {
-            console.warn(err);
-            done(new Error('object rejected'));
-          });
-      });
-    }); // when expenseTypes match
-    
-    describe('when expenseTypes do not match', () => {
-      let expectedError;
-      beforeEach(() => {
-        expectedError = {
-          code: 403,
-          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
-        };
-        expenseType.id = '{notTheSameexpenseTypeId}';
-        localExpenseType = new ExpenseType(expenseType);
-        expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-      });
-
-      it('should throw an error', done => {
-        return expenseRoutes
           ._update(id, expenseData)
           .then(() => {
             done(new Error('object recived - error expected'));

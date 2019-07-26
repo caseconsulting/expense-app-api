@@ -115,7 +115,7 @@ class EmployeeRoutes extends Crud {
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
     return _.forEach(expenseTypeList, recurringExpenseType => {
-      let newBudget = new Budget({
+      let newBudget = {
         id: this.getUUID(),
         expenseTypeId: recurringExpenseType.id,
         userId: userId,
@@ -123,7 +123,7 @@ class EmployeeRoutes extends Crud {
         pendingAmount: 0,
         fiscalStartDate: dates.startDate.format('YYYY-MM-DD'),
         fiscalEndDate: dates.endDate.format('YYYY-MM-DD')
-      });
+      };
       return this.budgetDynamo.addToDB(newBudget).then(() => {
         return; //tell forEach to continue looping
       });
