@@ -291,8 +291,8 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
           newExpense,
           localExpenseType,
-          budget,
-          employee,
+          new Budget(budget),
+          new Employee(employee),
           oldExpense
         );
 
