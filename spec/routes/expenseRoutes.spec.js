@@ -1069,7 +1069,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: 'Purchase Date is out of range of the budget'
+          message: 'Purchase Date is out of the anniversary budget range'
         };
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
       });
