@@ -2,15 +2,12 @@ const Crud = require('./crudRoutes');
 
 const databaseModify = require('../js/databaseModify');
 const employeeDynamo = new databaseModify('employees');
-const budgetDynamo = new databaseModify('budgets'); //added
-const expenseDynamo = new databaseModify('expenses');
 
 const moment = require('moment');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Employee = require('./../models/employee');
-const Budget = require('./../models/budget');
 
 class EmployeeRoutes extends Crud {
   constructor() {
@@ -57,7 +54,7 @@ class EmployeeRoutes extends Crud {
       if (error) {
         throw error;
       }
-      return this._createRecurringExpenses(uuid, employee.hireDate).then(() => {
+      return this._createRecurringExpenses(this.getUUID(), employee.hireDate).then(() => {
         return employee;
       });
     } catch (err) {
@@ -66,6 +63,7 @@ class EmployeeRoutes extends Crud {
     }
   }
 
+  // TODO: write test for this function. Should throw error not return it.
   /**
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */

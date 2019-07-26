@@ -50,6 +50,7 @@ describe('employeeRoutes', () => {
 
       spyOn(employeeRoutes,'_createRecurringExpenses')
         .and.returnValue(Promise.resolve(expectedEmployee));
+      spyOn(employeeRoutes, '_isDuplicateEmployee').and.returnValue(false);
     });
     it('should call _createRecurringExpenses and return the added employee', done => {
       employeeRoutes._add(uuid, data).then( returnedEmployee =>{
