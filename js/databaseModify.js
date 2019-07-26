@@ -324,7 +324,8 @@ class databaseModify {
           },
           UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
                                  employeeNumber = :eid, hireDate = :hd, expenseTypes = :et, isActive = :ia,
-                                 employeeRole = :er, email = :eml`,
+                                 employeeRole = :er, email = :eml, birthday = :br, jobRole = :jr, prime = :pr, 
+                                 contract = :ct, github = :gh, twitter = :tt`,
           ExpressionAttributeValues: {
             ':fn': objToUpdate.firstName,
             ':mn': objToUpdate.middleName,
@@ -334,7 +335,14 @@ class databaseModify {
             ':et': objToUpdate.expenseTypes,
             ':ia': objToUpdate.isActive,
             ':er': objToUpdate.employeeRole,
-            ':eml': objToUpdate.email
+            ':eml': objToUpdate.email,
+            // New Fields
+            ':br': objToUpdate.birthday,
+            ':jr': objToUpdate.jobRole,
+            ':pr': objToUpdate.prime,
+            ':ct': objToUpdate.contract,
+            ':gh': objToUpdate.github,
+            ':tt': objToUpdate.twitter
           },
           ReturnValues: 'ALL_NEW'
         };
