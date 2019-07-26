@@ -554,7 +554,7 @@ Resources:
               - cd /usr/local/src/tarballs
             - >
               - wget
-              https://nodejs.org/download/release/v8.11.4/node-v8.11.4-linux-x64.tar.gz
+              https://nodejs.org/download/release/v8.16.0/node-v8.16.0-linux-x64.tar.gz
             - |
               - tar --strip-components 1 -xzvf node-v* -C /usr/local
             - |
