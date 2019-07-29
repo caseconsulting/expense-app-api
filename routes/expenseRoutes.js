@@ -90,6 +90,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getBudgetData(budgets, expenseType, employee, expense) {
+    console.warn(moment().format(),'Expense Routes _getBudgetData');
+    
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
     } else {
