@@ -8,7 +8,7 @@ const budgetDynamo = new databaseModify('budgets');
 
 const express = require('express');
 const _ = require('lodash');
-const Moment = require('moment');
+const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 // const jwtAuthz = require('express-jwt-authz');
@@ -68,6 +68,7 @@ class Special {
   }
 
   getEmployeeName(expense) {
+    console.warn(moment().format(), 'Special routes getEmployeeName');
     return this.employeeData.readFromDB(expense.userId).then(employee => {
       let emp = employee[0];
       expense.employeeName = this._fullName(emp);
@@ -76,6 +77,7 @@ class Special {
   }
 
   getExpenseTypeName(expense) {
+    console.warn(moment().format(), 'Special routes getExpenseTypeName');
     return this.expenseTypeData.readFromDB(expense.expenseTypeId).then(expenseType => {
       let type = expenseType[0];
       expense.budgetName = type.budgetName;
@@ -84,6 +86,7 @@ class Special {
   }
 
   showList(req, res) {
+    console.warn(moment().format(), 'Special routes showList');
     return this.expenseData
       .getAllEntriesInDB()
       .then(values => this._processExpenses(values))
@@ -93,11 +96,12 @@ class Special {
   }
 
   async empExpenses(req, res) {
+    console.warn(moment().format(), 'Special routes empExpenses');
     try {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
       const openBudgets = _.filter(userBudgets, budget => {
-        return Moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
+        return moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
       });
       const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
       const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
@@ -119,6 +123,7 @@ class Special {
   }
 
   getAllEmployeeExpenses(req, res) {
+    console.warn(moment().format(), 'Special routes getAllEmployeeExpenses');
     const userID = req.params.id;
     this.expenseData
       .querySecondaryIndexInDB('userId-index', 'userId', userID)
@@ -136,6 +141,7 @@ class Special {
   }
 
   getAllExpenseTypeExpenses(req, res) {
+    console.warn(moment().format(), 'Special routes getAllExpenseTypeExpenses');
     const userID = req.params.id;
     this.expenseData
       .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', userID)
@@ -154,6 +160,7 @@ class Special {
 
   //function created to see if employee has any expenses
   async empExpenseHistory(req, res) {
+    console.warn(moment().format(), 'Special routes empExpenseHistory');
     try {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
@@ -180,6 +187,7 @@ class Special {
   }
 
   async showAll(req, res) {
+    console.warn(moment().format(), 'Special routes showAll');
     try {
       let expenses = await this.expenseData.getAllEntriesInDB();
       let users = await this.employeeData.getAllEntriesInDB();
@@ -191,6 +199,7 @@ class Special {
   }
 
   _findEmployee(expenses, user, expensesTypes) {
+    console.warn('Special routes _findEmployee');
     let filteredExpenses = _.filter(expenses, expense => expense.userId === user.id);
     let temp = null;
     let returnObject = {
@@ -212,9 +221,11 @@ class Special {
   }
 
   _findExpenseTypes(expenses, employees, expenseTypes) {
+    console.warn('Special routes _findExpenseTypes');
     return _.forEach(employees, employee => this._expenseTypeMapping(expenses, employee, expenseTypes));
   }
   _expenseTypeMapping(expenses, employee, expenseTypes) {
+    console.warn('Special routes _expenseTypeMapping');
     return _.map(employee.expenseTypes, employeeExpenseType => {
       let returnedExpenseType = _.find(expenseTypes, et => et.id === employeeExpenseType.id);
       let toBeMerged = this._expenseMapping(expenses, employee, employeeExpenseType);
@@ -226,6 +237,7 @@ class Special {
   }
 
   async getAllExpenses(req, res) {
+    console.warn(moment().format(), 'Special routes getAllExpenses');
     try {
       if (this._isAdmin(req)) {
         let expenses = await this.expenseData.getAllEntriesInDB();
@@ -248,11 +260,13 @@ class Special {
   }
 
   _fullName(employee) {
+    console.warn('Special routes _fullName');
     const middleName = employee.middleName ? employee.middleName.trim() : '';
     return `${employee.firstName} ${middleName ? middleName + ' ' : ''}${employee.lastName}`;
   }
 
   _getEmployeeName(expenses, users, expenseTypes) {
+    console.warn('Special routes _getEmployeeName');
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
       let employee = _.find(users, emp => emp.id === expense.userId);
@@ -268,10 +282,12 @@ class Special {
   }
 
   _expenseMapping(expenses, employee, expenseType) {
+    console.warn('Special routes _expenseMapping');
     return _.filter(expenses, expense => expense.userId === employee.id && expense.expenseTypeId === expenseType.id);
   }
 
   _processExpenses(expenseData) {
+    console.warn('Special routes _processExpenses');
     let processedExpenses = [];
     return new Promise(resolve => {
       processedExpenses = _.map(expenseData, expense => {
