@@ -3,11 +3,8 @@ const _ = require('lodash');
 
 describe('crudRoutes', () => {
   //Create spies for all calls to databaseModify
-  let crudRoutes, databaseModify, _add, _update, _uuid;
+  let crudRoutes, databaseModify;
   beforeEach(() => {
-    _add = jasmine.createSpy('_add');
-    _update = jasmine.createSpy('_update');
-    _uuid = jasmine.createSpy('uuid');
     databaseModify = jasmine.createSpyObj('databaseModify', [
       'addToDB',
       'readFromDB',
@@ -16,7 +13,8 @@ describe('crudRoutes', () => {
       'getAllEntriesInDB',
       'tableName'
     ]);
-    crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
+    crudRoutes = new Crud();
+    crudRoutes.databaseModify = databaseModify;
   });
 
   describe('_inputChecker', () => {
@@ -327,18 +325,18 @@ describe('crudRoutes', () => {
     });
   }); // _handleError
 
-  xdescribe('_createInDatabase', () => {
+  describe('_createInDatabase', () => {
     let res, newObject, data, err;
     beforeEach(() => {
-      data = {};
-      newObject = {};
-      err = {};
+      data = '{data}';
+      newObject = '{newObject}';
+      err = '{err}';
     });
     describe('when _createInDatabase is called without error', () => {
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
-        databaseModify.addToDB.and.returnValue(Promise.resolve({}));
+        databaseModify.addToDB.and.returnValue(Promise.resolve(data));
       });
       it('should respond with a 200 and data', done => {
         return crudRoutes._createInDatabase(res, newObject).then(() => {
@@ -350,8 +348,8 @@ describe('crudRoutes', () => {
     });
     describe('when there is an error', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        databaseModify.addToDB.and.returnValue(Promise.reject({}));
+        spyOn(crudRoutes, '_handleError');
+        databaseModify.addToDB.and.returnValue(Promise.reject(err));
       });
       it('should pass the error to _handleError ', () => {
         return crudRoutes._createInDatabase(res, newObject).then(() => {
