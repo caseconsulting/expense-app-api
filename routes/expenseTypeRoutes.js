@@ -18,13 +18,12 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(moment().format(), 'ExpenseType _delete', `for expenseType ${id}`);
+    console.warn(moment().format(), 'Expense Type _delete', `for expenseType ${id}`);
 
     let expenseType, typeExpenses;
 
     try {
       typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
-      console.warn(typeExpenses);
 
       //can only delete an expense type if they have no expense data
       if (typeExpenses.length === 0) {
@@ -44,7 +43,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _add(id, data) {
-    console.warn(moment().format(), 'ExpenseType _add', `for expenseType ${id}`);
+    console.warn(moment().format(), 'Expense Type _add', `for expenseType ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -58,11 +57,10 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _update(id, data) {
-    console.warn(moment().format(), 'ExpenseType _update', `for expenseType ${id}`);
+    console.warn(moment().format(), 'Expense Type _update', `for expenseType ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
-    console.warn(expenseType);
 
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
@@ -73,6 +71,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkFields(expenseType) {
+    console.warn('Expense Type Routes _checkFields');
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
     let budgetCheck = expenseType.budget > 0;
@@ -86,6 +85,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkDates(startDate, endDate, recurringFlag) {
+    console.warn('Expense Type Routes _checkDates');
     let valid = recurringFlag;
     if (!valid && !!startDate && !!endDate) {
       valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
