@@ -151,7 +151,7 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    console.warn('Expense checkValidity');
+    console.warn('Expense Routes checkValidity');
 
     let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
 
@@ -184,6 +184,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _areExpenseTypesEqual(expense, oldExpense){
+    console.warn('Expense Routes _areExpenseTypesEqual');
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;
     } else {
@@ -192,6 +193,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
+    console.warn('Expense Routes _checkBalance');
     expense.cost = Number(expense.cost);
     let oldCost = oldExpense ? oldExpense.cost : 0;
     if (!budget && expense.cost <= expenseType.budget) {
@@ -217,6 +219,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
+    console.warn('Expense Routes _checkExpenseDate');
     let startDate, endDate, date, range;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
@@ -227,6 +230,7 @@ class ExpenseRoutes extends Crud {
 
   // TBD - duplicated from employee routes
   _getBudgetDates(hireDate) {
+    console.warn('Expense Routes _getBudgetDates');
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
@@ -242,7 +246,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _createNewBudget(expenseType, employee, newId) {
-    console.warn('Expense _createNewBudget');
+    console.warn('Expense Routes _createNewBudget');
     const newBudget = {
       id: newId,
       expenseTypeId: expenseType.id,
@@ -263,6 +267,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
+    console.warn('Expense Routes _decideIfBudgetExists');
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
       budget = this._addExpenseToBudget(expense, budget);
@@ -283,6 +288,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _addExpenseToBudget(expense, budget) {
+    console.warn('Expense Routes _addExpenseToBudget');
     if (!expense.reimbursedDate) {
       budget.pendingAmount += expense.cost;
     } else {
@@ -292,6 +298,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursed(expense) {
+    console.warn('Expense Routes _isReimbursed');
     let err = {
       code: 403,
       message: 'expense cannot perform action because it has already been reimbursed'
@@ -299,7 +306,9 @@ class ExpenseRoutes extends Crud {
     return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
   }
 
+  //TODO: refactor into testable function
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
+    console.warn('Expense Routes _preformBudgetUpdate');
     //Just reimbursing the cost
     //if the old is unreimbursed and the new is reimbursed but the cost is the same
     if (!oldExpense.reimbursedDate && newExpense.reimbursedDate && oldExpense.cost === newExpense.cost) {
@@ -347,6 +356,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _removeFromBudget(budget, expense, expenseType) {
+    console.warn('Expense Routes _removeFromBudget');
     budget.pendingAmount -= expense.cost;
     if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
       return this.budgetDynamo.removeFromDB(budget.id);
@@ -356,6 +366,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPurchaseWithinRange(expenseType, purchaseDate) {
+    console.warn('Expense Routes _isPurchaseWithinRange');
     if (expenseType.recurringFlag) {
       return true;
     } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
@@ -378,7 +389,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    console.warn('here at budget', budgets);
+    console.warn('Expense Routes _findBudgetWithMatchingRange');
 
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
@@ -395,6 +406,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _calculateOverdraft(budget, expenseType) {
+    console.warn('Expense Routes _calculateOverdraft');
     let sum = budget.reimbursedAmount + budget.pendingAmount;
     if (expenseType.odFlag && sum > expenseType.budget) {
       let difference = sum - expenseType.budget;
