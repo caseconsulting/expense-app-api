@@ -71,6 +71,7 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
+    console.warn('CRUD routes _validateInputs');
     if (newObject.id) {
       let inputCheckerCurried = _.curry(this._inputChecker);
       return new Promise(function(resolve, reject) {
@@ -92,6 +93,7 @@ class Crud {
   }
 
   _createInDatabase(res, newObject) {
+    console.warn('CRUD routes _createInDatabase');
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
@@ -104,6 +106,8 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
+    console.warn(moment().format(), 'CRUD routes create');
+
     if (req.employee.employeeRole === 'super-admin' && this._getTableName() === '') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
@@ -146,6 +150,7 @@ class Crud {
   /* eslint-enable no-unused-vars */
 
   read(req, res) {
+    console.warn(moment().format(), 'CRUD routes read');
     const FORBIDDEN = {
       code: 403,
       message: 'Unable to get objects from database due to insuffieicient user permissions'
@@ -207,6 +212,7 @@ class Crud {
    * Updates the object
    */
   _updateDatabase(res, newObject) {
+    console.warn('CRUD routes _updateDatabase');
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
@@ -219,6 +225,8 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
+    console.warn(moment().format(), 'CRUD routes update');
+
     if (req.employee.employeeRole === 'super-admin' && this._getTableName() === `${STAGE}-employees`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
@@ -252,6 +260,8 @@ class Crud {
    * delete the specified entry
    */
   onDelete(req, res) {
+    console.warn(moment().format(), 'CRUD routes onDelete');
+
     if (this._isAdmin(req)) {
       if (
         this.databaseModify.tableName === `${STAGE}-expenses` ||
@@ -298,6 +308,7 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
+    console.warn(moment().format(), 'CRUD routes showList');
     if (
       this._isAdmin(req) ||
       this.databaseModify.tableName === `${STAGE}-expense-types` ||
