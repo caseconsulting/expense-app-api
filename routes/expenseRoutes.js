@@ -48,8 +48,6 @@ class ExpenseRoutes extends Crud {
   }
 
   async _add(id, data) {
-    console.warn(moment().format(), 'Expense _add', `for expense ${id}`);
-
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee;
     var budgets = [];
