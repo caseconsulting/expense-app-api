@@ -19,7 +19,7 @@ describe('crudRoutes', () => {
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
   });
 
-  fdescribe('_inputChecker', () => {
+  describe('_inputChecker', () => {
     let objectToCheck;
     beforeEach(() => {
       objectToCheck = '{objectToCheck}';
