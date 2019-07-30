@@ -359,18 +359,18 @@ describe('crudRoutes', () => {
     });
   }); // _createInDatabase
 
-  xdescribe('_updateDatabase', () => {
+  describe('_updateDatabase', () => {
     let res, newObject, data, err;
     beforeEach(() => {
-      data = {};
-      newObject = {};
-      err = {};
+      data = '{data}';
+      newObject = '{newObject}';
+      err = '{err}';
     });
     describe('when _updateDatabase is called without error', () => {
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
-        databaseModify.updateEntryInDB.and.returnValue(Promise.resolve({}));
+        databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(data));
       });
       it('should respond with a 200 and data', done => {
         return crudRoutes._updateDatabase(res, newObject).then(() => {
@@ -383,7 +383,7 @@ describe('crudRoutes', () => {
     describe('when there is an error', () => {
       beforeEach(() => {
         spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        databaseModify.updateEntryInDB.and.returnValue(Promise.reject({}));
+        databaseModify.updateEntryInDB.and.returnValue(Promise.reject(err));
       });
       it('should pass the error to _handleError ', () => {
         return crudRoutes._updateDatabase(res, newObject).then(() => {
