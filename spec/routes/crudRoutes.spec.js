@@ -19,10 +19,12 @@ describe('crudRoutes', () => {
     crudRoutes = new Crud(databaseModify, _add, _update, _uuid);
   });
 
-  describe('_inputChecker', () => {
+  fdescribe('_inputChecker', () => {
     let objectToCheck;
-    beforeEach(() => (objectToCheck = '{objectToCheck}'));
-    beforeEach(() => spyOn(_, 'includes'));
+    beforeEach(() => {
+      objectToCheck = '{objectToCheck}';
+      spyOn(_, 'includes');
+    });
     afterEach(() => {
       expect(_.includes).toHaveBeenCalledWith(objectToCheck, '');
     });
