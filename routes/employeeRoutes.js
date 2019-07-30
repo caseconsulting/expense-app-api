@@ -68,6 +68,7 @@ class EmployeeRoutes extends Crud {
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */
   async _isDuplicateEmployee(employee) {
+    console.warn('Employee Routes _isDuplicateEmployee');
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
     if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
       let err = {
@@ -104,6 +105,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
+    console.warn('Employee Routes _createRecurringExpenses');
     let dates = this._getBudgetDates(hireDate);
     let expenseTypeList;
     //get all recurring expenseTypes
@@ -135,6 +137,7 @@ class EmployeeRoutes extends Crud {
   }
 
   _getBudgetDates(hireDate) {
+    console.warn('Employee Routes _getBudgetDates');
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
