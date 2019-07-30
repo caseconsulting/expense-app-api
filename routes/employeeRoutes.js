@@ -1,7 +1,6 @@
 const Crud = require('./crudRoutes');
 
 const databaseModify = require('../js/databaseModify');
-const employeeDynamo = new databaseModify('employees');
 
 const moment = require('moment');
 const _ = require('lodash');
@@ -12,9 +11,10 @@ const Employee = require('./../models/employee');
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = employeeDynamo;
+    this.databaseModify = new databaseModify('employees');
     this.budgetDynamo = new databaseModify('budgets');
     this.expenseTypeDynamo = new databaseModify('expense-types');
+    this.expenseData = new databaseModify('expenses');
   }
 
   async _delete(id) {
