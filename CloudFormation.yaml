@@ -400,6 +400,45 @@ Resources:
       HealthCheckPath: /ping
       UnhealthyThresholdCount: 5
       VpcId: !Ref VpcId
+  ExpenseAppApiLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: S3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
   ExpenseAppApiRole:
     Type: 'AWS::IAM::Role'
     Properties:
