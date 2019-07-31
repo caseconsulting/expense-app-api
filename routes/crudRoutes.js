@@ -335,11 +335,9 @@ class Crud {
    */
   showList(req, res) {
     console.warn(moment().format(), 'CRUD routes showList');
-    if (
-      this._isAdmin(req) ||
-      this.databaseModify.tableName === `${STAGE}-expense-types` ||
-      this.databaseModify.tableName === `${STAGE}-employees`
-    ) {
+
+    let hasPermission = this._checkPermissionForShowList(req);
+    if (hasPermission){
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
@@ -352,6 +350,14 @@ class Crud {
       this._handleError(res, err);
     }
   }
+
+  _checkPermissionForShowList(req){
+    return (
+      this._isAdmin(req) ||
+      this.databaseModify.tableName === `${STAGE}-expense-types` ||
+      this.databaseModify.tableName === `${STAGE}-employees`);
+  }
+  
   _getTableName() {
     return this.databaseModify.tableName;
   }

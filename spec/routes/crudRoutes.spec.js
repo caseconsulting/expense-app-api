@@ -272,37 +272,60 @@ describe('crudRoutes', () => {
     });
   }); // onDelete
 
-  xdescribe('showList', () => {
+  describe('showList', () => {
     let res, req, err, data;
     beforeEach(() => {
       req = { body: 'body' };
-      err = {};
-      data = {};
+      err = '{err}';
+      data = '{data}';
+      res = '{res}';
+      spyOn(crudRoutes, '_checkPermissionForShowList');
+      spyOn(crudRoutes, '_handleError');
     });
-    describe('when showList is called without error', () => {
+    describe('when user has permission', () => {
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve({}));
+        crudRoutes._checkPermissionForShowList.and.returnValue(true);
       });
-      it('should return the complete json file ', done => {
-        return crudRoutes.showList(req, res).then(() => {
-          expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(data);
-          done();
+      describe('when getAllEntriesInDB resolves', () => {
+        beforeEach(() => {
+          databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(data));
         });
-      });
-    });
-    describe('when there is an error', () => {
+        it('should return the entry from database', done => {
+          crudRoutes.showList(req, res).then(() => {
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(data);
+            done();
+          });
+        }); // should return the entry from database
+      }); // when getAllEntriesInDB resolves
+
+      describe('when getAllEntriesInDB rejects', () => {
+        beforeEach(() => {
+          databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+        });
+        it('should pass the error to _handleError', done => {
+          crudRoutes.showList(req, res).then(()=>{
+            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+          });
+          done();
+        }); // should pass the error to _handleError
+
+      }); // when getAllEntriesInDB rejects
+
+    }); // when user has permission
+    describe('when user does not has permission', () => {
       beforeEach(() => {
-        res = {};
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject({}));
+        crudRoutes._checkPermissionForShowList.and.returnValue(false);
+        err = {
+          code: 403,
+          message: 'Unable to get objects from database due to insuffieicient user permissions'
+        };
       });
       it('should pass the error to _handleError ', () => {
-        return crudRoutes.showList(req, res).then(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-        });
+        crudRoutes.showList(req, res);
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);  
       });
     });
   }); // showList
