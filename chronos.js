@@ -59,4 +59,10 @@ function _makeNewBudget(oldBudget, expenseType) {
   return newBudget;
 }
 
-module.exports = { start };
+async function handler(event, context) { 
+  console.info(event);
+  console.info(context);
+  return start();
+}
+
+module.exports = { start, handler };
