@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
+    "claudia": "claudia",
     "debug": "nodemon --trace-warnings --inspect bin/www",
+    "deploy:dev": "claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs8.10 --set-env VUE_APP_AUTH0_DOMAIN=consultwithcase.auth0.com,VUE_APP_AUTH0_AUDIENCE=https://consultwithcase.auth0.com/api/v2/,STAGE=dev --role expense-api-lambda-dev",
+    "destroy": "claudia destroy",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
     "lint": "npm run eslint",
     "pm2": "pm2",
@@ -17,11 +20,13 @@
     "stop": "pm2 stop services.yml",
     "test": "jasmine",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine",
+    "update": "claudia update",
     "validate": "npm ls"
   },
   "dependencies": {
     "ajv": "^6.10.1",
     "aws-sdk": "^2.492.0",
+    "aws-serverless-express": "^3.3.6",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
@@ -46,6 +51,7 @@
   "devDependencies": {
     "acorn": "^6.2.0",
     "aws-sdk-mock": "^4.5.0",
+    "claudia": "^5.6.0",
     "eslint": "^6.0.1",
     "jasmine": "^3.4.0",
     "nodemon": "^1.19.1",
