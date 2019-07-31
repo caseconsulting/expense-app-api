@@ -60,8 +60,11 @@ function _makeNewBudget(oldBudget, expenseType) {
 }
 
 async function handler(event, context) { 
+  /* eslint-disable no-console */ 
   console.info(event);
   console.info(context);
+  /* eslint-enable no-console */ 
+
   return start();
 }
 
