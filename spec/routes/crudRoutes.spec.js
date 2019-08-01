@@ -237,39 +237,103 @@ describe('crudRoutes', () => {
     }); //if user doesnt have permissions
   }); //update
 
-  xdescribe('onDelete', () => {
+  describe('onDelete', () => {
     let res, req, err, data;
     beforeEach(() => {
-      req = { body: 'body' };
-      err = {};
-      data = {};
+      req = { body: 'body',params:{id:'{id}'} };
+      err = '{err}';
+      data = '{data}';
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+      spyOn(crudRoutes, '_handleError');
+      spyOn(crudRoutes,'_onDeleteHelper');
     });
-    describe('when showList is called without error', () => {
+    
+    describe('when a user is an admin', () => {
       beforeEach(() => {
-        res = jasmine.createSpyObj('res', ['status', 'send']);
-        res.status.and.returnValue(res);
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes,'_isAdmin').and.returnValue(true);
       });
-      it('should return the complete json file ', done => {
-        return crudRoutes.showList(req, res).then(() => {
-          expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(data);
+
+      describe('when working with expenses, expense-types or employees dynamo tables', () => {
+        beforeEach(() => {
+          spyOn(crudRoutes,'_checkTableName').and.returnValue(true);
+        });
+
+        afterEach(()=>{
+          expect(crudRoutes._checkTableName).toHaveBeenCalledWith(['expenses','expense-types','employees']);
+        });
+
+        it('should call _onDeleteHelper', done => {
+          crudRoutes.onDelete(req,res);
+          expect(crudRoutes._onDeleteHelper).toHaveBeenCalledWith(req.params.id, res);
           done();
+        }); // should call _onDeleteHelper
+      }); // when working with expenses, expense-types or employees dynamo tables
+
+      describe('when working with any other dynamo table', () => {
+        beforeEach(() => {
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
-      });
-    });
-    describe('when there is an error', () => {
+
+        describe('when removeFromDB promise resolves', () => {
+          beforeEach(() => {
+            crudRoutes.databaseModify.removeFromDB.and.returnValue(Promise.resolve(data));
+          });
+
+          it('should respond to caller with deleted object', done => {
+            crudRoutes.onDelete(req, res).then(() => {
+              expect(res.status).toHaveBeenCalledWith(200);
+              expect(res.send).toHaveBeenCalledWith(data);
+              done();
+            });
+          }); // should respond to caller with deleted object
+          
+        }); // when removeFromDB promise resolves
+
+        describe('when removeFromDB promise rejects', () => {
+          beforeEach(() => {
+            crudRoutes.databaseModify.removeFromDB.and.returnValue(Promise.reject(err));
+          });
+
+          it('should pass the error to _handleError', done => {
+            crudRoutes.onDelete(req, res).then(()=>{
+              expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+              done();
+            });
+          }); // should pass the error to _handleError
+        }); // when removeFromDB promise rejects
+      }); // when working with any other dynamo table
+    }); // when a user is an admin
+
+    describe('when a user is not an admin ', () => {
       beforeEach(() => {
-        res = {};
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject({}));
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_checkPermissionForOnDelete').and.returnValue(true);
       });
-      it('should pass the error to _handleError ', () => {
-        return crudRoutes.showList(req, res).then(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-        });
+
+      it('should call _onDeleteHelper', done => {
+        crudRoutes.onDelete(req, res);
+        expect(crudRoutes._onDeleteHelper).toHaveBeenCalledWith(req.params.id, res);
+        done();
+      }); // should call _onDeleteHelper
+    }); // when a user is not an admin 
+
+    describe('if the user has no permissions', () => {
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unable to delete object in database due to insuffieicient user permissions'
+        };
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_checkPermissionForOnDelete').and.returnValue(false);
       });
-    });
+
+      it('should call _handleError with error message', done => {
+        crudRoutes.onDelete(req, res);
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        done();
+      }); // should call _handleError with error message
+    }); // if the user has no permissions
   }); // onDelete
 
   describe('showList', () => {

@@ -289,26 +289,9 @@ class Crud {
     console.warn(moment().format(), 'CRUD routes onDelete');
 
     if (this._isAdmin(req)) {
-      if (
-        this.databaseModify.tableName === `${STAGE}-expenses` ||
-        this.databaseModify.tableName === `${STAGE}-employees` ||
-        this.databaseModify.tableName === `${STAGE}-expense-types`
-      ) {
-        this._delete(req.params.id)
-          .then(value => res.status(200).send(value))
-          .catch(error => this._handleError(res, error));
+      if (this._checkTableName(['expenses','expense-types','employees'])) {
+        this._onDeleteHelper(req.params.id, res);
       }
-      // else if (this.databaseModify.tableName === `${STAGE}-employees`) {
-      //   console.warn('correct');
-      //   this._delete(req.params.id)
-      //     .then(value => res.status(200).send(value))
-      //     .catch(error => this._handleError(res, error));
-      // } else if (this.databaseModify.tableName === `${STAGE}-expense-types`) {
-      //   console.warn('correct');
-      //   this._delete(req.params.id)
-      //     .then(value => res.status(200).send(value))
-      //     .catch(error => this._handleError(res, error));
-      // }
       else {
         return this.databaseModify
           .removeFromDB(req.params.id)
@@ -317,10 +300,8 @@ class Crud {
           })
           .catch(err => this._handleError(res, err));
       }
-    } else if (this._isUser(req) && this.databaseModify.tableName === `${STAGE}-expenses`) {
-      this._delete(req.params.id)
-        .then(value => res.status(200).send(value))
-        .catch(error => this._handleError(res, error));
+    } else if (this._checkPermissionForOnDelete(req)) {
+      this._onDeleteHelper(req.params.id,res);
     } else {
       let err = {
         code: 403,
@@ -329,7 +310,21 @@ class Crud {
       this._handleError(res, err);
     }
   }
+  _onDeleteHelper(id, res){
+    this._delete(id)
+      .then(value => res.status(200).send(value))
+      .catch(error => this._handleError(res, error));
+  }
+  // checks to see if the current table name is in the list of vaild table names
+  // returns true if found and false if the current table name is not in the list
+  _checkTableName(listOfValidTables){
+    let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
+    return foundItem != undefined;
+  }
 
+  _checkPermissionForOnDelete(req){
+    return this._isUser(req) && this._checkTableName(['expenses']);
+  }
   /**
    * Retrieve all items in a given list specified by request
    */
@@ -353,9 +348,7 @@ class Crud {
 
   _checkPermissionForShowList(req){
     return (
-      this._isAdmin(req) ||
-      this.databaseModify.tableName === `${STAGE}-expense-types` ||
-      this.databaseModify.tableName === `${STAGE}-employees`);
+      this._isAdmin(req) || this._checkTableName(['expense-types','employees']));
   }
   
   _getTableName() {
