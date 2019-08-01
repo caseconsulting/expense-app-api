@@ -49,12 +49,12 @@ describe('crudRoutes', () => {
       spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
       spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
     });
-    describe('if the user role is admin or super-admin', () => {
+    describe('if the user role is admin', () => {
       beforeEach(() => {
         req = {
           body: 'body',
           employee: {
-            role: 'super-admin'
+            role: 'admin'
           }
         };
       });
@@ -66,7 +66,7 @@ describe('crudRoutes', () => {
           done();
         });
       });
-    }); //if the user role is admin or super-admin
+    }); //if the user role is admin
 
     describe('if a user role is user and submitting an expense', () => {
       beforeEach(() => {
@@ -176,13 +176,13 @@ describe('crudRoutes', () => {
       spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
     });
 
-    describe('if the user role is admin or super-admin', () => {
+    describe('if the user role is admin', () => {
       beforeEach(() => {
         req = {
           body: 'body',
           params: { id: 'id' },
           employee: {
-            role: 'super-admin'
+            role: 'admin'
           }
         };
       });
@@ -194,7 +194,7 @@ describe('crudRoutes', () => {
           done();
         });
       });
-    }); //if the user role is admin or super-admin
+    }); //if the user role is admin
 
     describe('if a user role is user and submitting an expense', () => {
       beforeEach(() => {
