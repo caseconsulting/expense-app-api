@@ -342,7 +342,10 @@ class databaseModify {
             ':pr': objToUpdate.prime,
             ':ct': objToUpdate.contract,
             ':gh': objToUpdate.github,
-            ':tt': objToUpdate.twitter
+            ':tt': objToUpdate.twitter, 
+            ':cty': objToUpdate.city,
+            ':st': objToUpdate.state,
+            ':cry': objToUpdate.country
           },
           ReturnValues: 'ALL_NEW'
         };
