@@ -8,3 +8,4 @@ coverage
 *.pid
 .vscode
 claudia.json
+packaged.yaml

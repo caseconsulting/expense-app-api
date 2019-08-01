@@ -6,6 +6,7 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 
 async function start() {
+  console.log(`started at ${moment().toString()}`); // eslint-disable-line no-console
   let budgets = [],
     expenseTypes = [];
   try {
@@ -29,6 +30,8 @@ async function start() {
     } else {
       console.error(err);
     }
+  } finally {
+    console.log(`ended at ${moment().toString()}`); // eslint-disable-line no-console
   }
 }
 
@@ -59,11 +62,8 @@ function _makeNewBudget(oldBudget, expenseType) {
   return newBudget;
 }
 
-async function handler(event, context) { 
-  /* eslint-disable no-console */ 
-  console.info(event);
-  console.info(context);
-  /* eslint-enable no-console */ 
+async function handler(event) { 
+  console.info(JSON.stringify(event)); // eslint-disable-line no-console
 
   return start();
 }

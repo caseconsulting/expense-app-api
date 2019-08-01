@@ -671,3 +671,22 @@ Resources:
             - ''
             - - expense-app-api-lb-
               - !Ref Stage
+  ChronosFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Provides the nightly update to employee budgets.
+      Runtime: nodejs8.10
+      Handler: chronos.handler
+      Timeout: 900
+      CodeUri: ./
+      Events:
+        ChronosSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn

@@ -10,6 +10,7 @@
     "destroy": "claudia destroy",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
     "lint": "npm run eslint",
+    "package:chronos:dev": "aws cloudformation package --template-file CloudFormation.yaml --s3-bucket case-consulting-expense-app-resources-dev --s3-prefix expense-app-api --output-template-file packaged.yaml",
     "pm2": "pm2",
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list",
