@@ -19,6 +19,9 @@
  * - contract
  * - github
  * - twitter
+ * - city
+ * - state
+ * - country
  */
 class Employee {
   constructor(data) {
@@ -36,34 +39,31 @@ class Employee {
     // New fields
     if (data.birthday) {
       this.birthday = data.birthday;
-    } else {
-      this.birthday = ' ';
-    }
+    } 
     if (data.jobRole) {
       this.jobRole = data.jobRole;
-    } else {
-      this.jobRole = ' ';
-    }
+    } 
     if (data.prime) {
       this.prime = data.prime;
-    } else {
-      this.prime = ' ';
-    }
+    } 
     if (data.contract) {
       this.contract = data.contract;
-    } else {
-      this.contract = ' ';
-    }
+    } 
     if (data.github) {
       this.github = data.github;
-    } else {
-      this.github = ' ';
-    }
+    } 
     if (data.twitter) {
       this.twitter = data.twitter;
-    } else {
-      this.twitter = ' ';
-    }
+    } 
+    if (data.city) {
+      this.city = data.city;
+    } 
+    if (data.state) {
+      this.state = data.state;
+    } 
+    if (data.country) {
+      this.country = data.country;
+    } 
 
     // If the person's middle name is not defined
     if (!this.middleName) {
