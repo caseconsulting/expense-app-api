@@ -539,4 +539,46 @@ describe('crudRoutes', () => {
       });
     }); //if newObject does not have an id
   }); //_validateInputs
+
+  describe('_onDeleteHelper', () => {
+    let res, id, data, error;
+    beforeEach(() => {
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+      spyOn(crudRoutes, '_handleError');
+      id = 'id';
+      data = '{data}';
+      error = '{error}';
+    });
+    
+    afterEach(()=>{
+      expect(crudRoutes._delete).toHaveBeenCalledWith(id);
+    });
+    
+    describe('when _delete promise resolves', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes,'_delete').and.returnValue(Promise.resolve(data));
+      });
+      it('should respond to caller with deleted object', done => {
+        crudRoutes._onDeleteHelper(id, res).then(()=>{
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
+        });
+      }); // should respond to caller with deleted object
+    }); // when _delete promise resolves
+
+    describe('when _delete promise rejects', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_delete').and.returnValue(Promise.reject(error));
+      });
+      it('should call _handleError with error message', done => {
+        crudRoutes._onDeleteHelper(id, res).then(()=>{
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, error);
+          done();
+        });
+      }); // should call _handleError with error message
+
+    }); // when _delete promise rejects
+  }); // _onDeleteHelper
 }); // crudRoutes

@@ -290,6 +290,7 @@ class Crud {
 
     if (this._isAdmin(req)) {
       if (this._checkTableName(['expenses','expense-types','employees'])) {
+        //TODO: should this promise be returned? Did not return before
         this._onDeleteHelper(req.params.id, res);
       }
       else {
@@ -311,7 +312,8 @@ class Crud {
     }
   }
   _onDeleteHelper(id, res){
-    this._delete(id)
+    console.warn('CRUD routes _onDeleteHelper');
+    return this._delete(id)
       .then(value => res.status(200).send(value))
       .catch(error => this._handleError(res, error));
   }
