@@ -99,6 +99,32 @@ class databaseModify {
       });
   }
 
+  readFromDBURL(passedID) {
+    const params = {
+      TableName: this.tableName,
+      ExpressionAttributeValues: {
+        ':id': passedID
+      },
+      KeyConditionExpression: 'id = :id'
+    };
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient
+      .query(params)
+      .promise()
+      .then(function(data) {
+        if (!_.isEmpty(data.Items)) {
+          return data.Items;
+        } else {
+          return null;
+        }
+      })
+      .catch(function(err) {
+        console.error(err);
+        throw err;
+      });
+  }
+
   queryWithTwoIndexesInDB(userId, expenseTypeId) {
     const params = {
       TableName: this.tableName,
@@ -387,6 +413,21 @@ class databaseModify {
             ':pa': objToUpdate.pendingAmount,
             ':fsd': objToUpdate.fiscalStartDate,
             ':fed': objToUpdate.fiscalEndDate
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      case `${STAGE}-training-urls`:
+        console.warn('here we are');
+        return {
+          TableName: `${STAGE}-training-urls`,
+          Key: {
+            id: objToUpdate.id
+          },
+
+          UpdateExpression: 'set hits = :ht, category = :ct',
+          ExpressionAttributeValues: {
+            ':ht': objToUpdate.hits,
+            ':ct': objToUpdate.category
           },
           ReturnValues: 'ALL_NEW'
         };

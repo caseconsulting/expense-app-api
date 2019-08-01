@@ -94,6 +94,7 @@ class Crud {
 
   _createInDatabase(res, newObject) {
     console.warn('CRUD routes _createInDatabase');
+    console.warn('obj', newObject);
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
@@ -108,7 +109,13 @@ class Crud {
   create(req, res) {
     console.warn(moment().format(), 'CRUD routes create');
 
-    if (req.employee.employeeRole === 'admin' && this._getTableName() === '') {
+    //added for creating a new training-urls entry
+    if (this._getTableName() === `${STAGE}-training-urls`) {
+      return this._add(req.body.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._createInDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    } else if (req.employee.employeeRole === 'admin' && this._getTableName() === '') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -159,7 +166,20 @@ class Crud {
       code: 404,
       message: 'entry not found in database'
     };
-    if (this._isAdmin(req)) {
+    //added for the training-urls table (not sure if works will have to be tested)
+    if (this._getTableName() === `${STAGE}-training-urls`) {
+      return this.databaseModify
+        .readFromDBURL(req.params.id)
+        .then(output => {
+          if (_.first(output)) {
+            res.status(200).send(_.first(output));
+          } else {
+            let err = NOT_FOUND;
+            throw err;
+          }
+        })
+        .catch(err => this._handleError(res, err));
+    } else if (this._isAdmin(req)) {
       return this.databaseModify
         .readFromDB(req.params.id)
         .then(output => {
@@ -227,7 +247,13 @@ class Crud {
   update(req, res) {
     console.warn(moment().format(), 'CRUD routes update');
 
-    if (req.employee.employeeRole === 'admin' && this._getTableName() === `${STAGE}-employees`) {
+    //added if statement for training-url table
+    if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-training-url`) {
+      return this._update(req.body.id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._updateDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
+    } else if (req.employee.employeeRole === 'admin' && this._getTableName() === `${STAGE}-employees`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))

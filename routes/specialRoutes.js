@@ -5,6 +5,7 @@ const employeeDynamo = new databaseModify('employees');
 const expenseDynamo = new databaseModify('expenses');
 const expenseTypeDynamo = new databaseModify('expense-types');
 const budgetDynamo = new databaseModify('budgets');
+const trainingDynamo = new databaseModify('training-urls');
 
 const express = require('express');
 const _ = require('lodash');
@@ -39,6 +40,7 @@ class Special {
     this.employeeData = employeeDynamo;
     this.expenseTypeData = expenseTypeDynamo;
     this.budgetData = budgetDynamo;
+    this.trainingURLData = trainingDynamo;
     this._router = express.Router();
     //Garbage
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
@@ -49,6 +51,8 @@ class Special {
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
+
+    this._router.get('/getURLInfo/:id', checkJwt, this.getURLInfo.bind(this));
   }
 
   get router() {
@@ -279,6 +283,31 @@ class Special {
       }
     });
     return expenses;
+  }
+
+  //created to get the url information from the dynamo table
+  async getURLInfo(req, res) {
+    var atob = require('atob');
+    var decoded = atob(req.params.id);
+    console.warn(moment().format(), 'Training URL route getURLINFO', `with URL ${decoded}`);
+    const NOT_FOUND = {
+      code: 404,
+      message: 'entry not found in database'
+    };
+
+    return this.trainingURLData
+      .readFromDBURL(decoded)
+      .then(output => {
+        if (_.first(output)) {
+          res.status(200).send(_.first(output));
+        } else if (output === null) {
+          res.status(200).send(null);
+        } else {
+          let err = NOT_FOUND;
+          throw err;
+        }
+      })
+      .catch(err => this._handleError(res, err));
   }
 
   _expenseMapping(expenses, employee, expenseType) {
