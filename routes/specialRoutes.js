@@ -305,7 +305,7 @@ class Special {
     });
   }
   _isAdmin(req) {
-    return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
+    return req.employee.employeeRole === 'admin';
   }
   _isUser(req) {
     return req.employee.employeeRole === 'user';
