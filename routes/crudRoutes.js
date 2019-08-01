@@ -108,7 +108,7 @@ class Crud {
   create(req, res) {
     console.warn(moment().format(), 'CRUD routes create');
 
-    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === '') {
+    if (req.employee.employeeRole === 'admin' && this._getTableName() === '') {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
@@ -227,7 +227,7 @@ class Crud {
   update(req, res) {
     console.warn(moment().format(), 'CRUD routes update');
 
-    if (req.employee.employeeRole === 'super-admin' && this._getTableName() === `${STAGE}-employees`) {
+    if (req.employee.employeeRole === 'admin' && this._getTableName() === `${STAGE}-employees`) {
       return this._update(req.params.id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
@@ -330,7 +330,7 @@ class Crud {
     return this.databaseModify.tableName;
   }
   _isAdmin(req) {
-    return req.employee.employeeRole === 'admin' || req.employee.employeeRole === 'super-admin';
+    return req.employee.employeeRole === 'admin';
   }
   _isUser(req) {
     return req.employee.employeeRole === 'user';
