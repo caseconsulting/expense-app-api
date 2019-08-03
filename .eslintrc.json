@@ -20,12 +20,7 @@
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-    "no-console": [
-      "error",
-      {
-        "allow": ["warn", "error"]
-      }
-    ]
+    "no-console": "off"
   },
   "globals": {
     "_": true,
