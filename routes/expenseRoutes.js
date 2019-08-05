@@ -31,7 +31,7 @@ class ExpenseRoutes extends Crud {
       expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
       budgets = [];
-      _.forEach(rawBudgets, (budget)=> budgets.push(new Budget(budget)));
+      _.forEach(rawBudgets, budget => budgets.push(new Budget(budget)));
 
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
@@ -62,7 +62,7 @@ class ExpenseRoutes extends Crud {
     );
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));      
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       if (expenseType.isInactive) {
         let err = {
           code: 403,
@@ -88,8 +88,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getBudgetData(budgets, expenseType, employee, expense) {
-    console.warn(moment().format(),'Expense Routes _getBudgetData');
-    
+    console.warn(moment().format(), 'Expense Routes _getBudgetData');
+
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
     } else {
@@ -125,7 +125,6 @@ class ExpenseRoutes extends Crud {
         budgets.push(new Budget(e));
       });
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
-      
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -138,7 +137,7 @@ class ExpenseRoutes extends Crud {
       };
       throw err;
     }
-  
+
     return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._isReimbursed(oldExpense))
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
@@ -181,7 +180,7 @@ class ExpenseRoutes extends Crud {
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
-  _areExpenseTypesEqual(expense, oldExpense){
+  _areExpenseTypesEqual(expense, oldExpense) {
     console.warn('Expense Routes _areExpenseTypesEqual');
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;

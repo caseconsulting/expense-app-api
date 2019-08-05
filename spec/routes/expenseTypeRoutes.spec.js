@@ -23,7 +23,7 @@ describe('expenseTypeRoutes', () => {
     let expectedExpenseType, data;
 
     beforeEach(() => {
-      data = {id, budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
+      data = { id, budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
       expectedExpenseType = new ExpenseType(data);
 
       spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
@@ -116,7 +116,7 @@ describe('expenseTypeRoutes', () => {
 
   describe('_checkFields', () => {
     let expenseType;
-  
+
     describe('if a vaild expense type is given', () => {
       let keptItsPromise;
       beforeEach(() => {
@@ -125,11 +125,14 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a resolved promise', done => {
-        expenseTypeRoutes._checkFields(expenseType).then(()=>{
-          keptItsPromise = true;
-          expect(keptItsPromise).toBe(true);
-          done();
-        }).catch(()=> done(new Error('Promise should resolve')));
+        expenseTypeRoutes
+          ._checkFields(expenseType)
+          .then(() => {
+            keptItsPromise = true;
+            expect(keptItsPromise).toBe(true);
+            done();
+          })
+          .catch(() => done(new Error('Promise should resolve')));
       }); // should return a resolved promise
     }); // if a vaild expense type is given
     describe('if a misformed expense type object is given', () => {
@@ -142,9 +145,10 @@ describe('expenseTypeRoutes', () => {
         expenseType = { budgetName, budget, odFlag, description, startDate, endDate, recurringFlag };
       });
       it('should return a promise rejection', done => {
-        expenseTypeRoutes._checkFields(expenseType)
+        expenseTypeRoutes
+          ._checkFields(expenseType)
           .then(() => done(new Error('Promise should reject')))
-          .catch((err) => {
+          .catch(err => {
             expect(err).toEqual(expectedErr);
             done();
           });
@@ -154,7 +158,7 @@ describe('expenseTypeRoutes', () => {
 
   describe('_checkDates', () => {
     let startDate, endDate, recurringFlag, keptItsPromise;
-    
+
     describe('if valid date range is given', () => {
       beforeEach(() => {
         startDate = '1970-12-01';
@@ -188,9 +192,10 @@ describe('expenseTypeRoutes', () => {
         keptItsPromise = false;
       });
       it('should return a promise rejection', done => {
-        expenseTypeRoutes._checkDates(startDate,endDate,recurringFlag)
-          .then(()=>done(new Error('Promise should reject')))
-          .catch((err)=>{
+        expenseTypeRoutes
+          ._checkDates(startDate, endDate, recurringFlag)
+          .then(() => done(new Error('Promise should reject')))
+          .catch(err => {
             keptItsPromise = true;
             expect(err).toEqual(expectedErr);
             done();

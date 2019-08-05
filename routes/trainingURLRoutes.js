@@ -20,6 +20,7 @@ class TrainingURLRoutes extends Crud {
     let trainingURL = new TrainingUrls(data);
     trainingURL.id = url;
 
+    console.log('URL', trainingURL);
     return this._checkFields(trainingURL)
       .then(() => this.databaseModify.addToDB(trainingURL))
       .catch(err => {
