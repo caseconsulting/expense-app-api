@@ -581,4 +581,34 @@ describe('crudRoutes', () => {
 
     }); // when _delete promise rejects
   }); // _onDeleteHelper
+  describe('_checkTableName', () => {
+    let listOfValidTables, stage;
+    beforeEach(() => {
+      stage = process.env.STAGE;
+    });
+    describe('if the current table is in the list of valid tables', () => {
+      beforeEach(() => {
+        listOfValidTables = ['valid-table-name'];
+        crudRoutes.databaseModify.tableName = `${stage}-valid-table-name`;
+      });
+      
+      it('should return true', done => {
+        let result = crudRoutes._checkTableName(listOfValidTables);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // if the current table is in the list of valid tables
+
+    describe('if the current table is not in the list of valid tables', () => {
+      beforeEach(() => {
+        listOfValidTables = ['valid-table-name'];
+        crudRoutes.databaseModify.tableName = `${stage}-not-valid-table-name`;
+      });
+      it('should return false', done => {
+        let result = crudRoutes._checkTableName(listOfValidTables);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // if the current table is not in the list of valid tables
+  }); // _checkTableName
 }); // crudRoutes
