@@ -37,23 +37,14 @@ class Employee {
     this.isInactive = data.isInactive;
 
     // New fields
-    // if (data.birthday)
     this.birthday = data.birthday;
-    // if (data.jobRole)
     this.jobRole = data.jobRole;
-    // if (data.prime)
     this.prime = data.prime;
-    // if (data.contract)
     this.contract = data.contract;
-    // if (data.github)
     this.github = data.github;
-    // if (data.twitter)
     this.twitter = data.twitter;
-    // if (data.city)
     this.city = data.city;
-    // if (data.state)
     this.st = data.state;
-    // if (data.country)
     this.country = data.country;
 
     if (!this.middleName) {

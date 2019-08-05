@@ -23,8 +23,8 @@ class Expense {
     // DynamoDB interprets NULL values as true. If we do not include them as
     // class attributes, then it will be undefined in DynamoDB.
     if (data.reimbursedDate) this.reimbursedDate = data.reimbursedDate;
-    if (data.note) this.note = data.note;
-    if (data.url) this.url = data.url;
+    this.note = data.note;
+    this.url = data.url;
 
     this.createdAt = data.createdAt;
     this.receipt = data.receipt;
@@ -34,6 +34,13 @@ class Expense {
     this.userId = data.userId;
     this.expenseTypeId = data.expenseTypeId;
     this.categories = data.categories;
+
+    //sets null values to an empty string
+    for (var propName in this) {
+      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+        this[propName] = ' ';
+      }
+    }
   }
 }
 
