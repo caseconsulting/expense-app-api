@@ -342,126 +342,39 @@ class databaseModify {
         _.set(params, 'UpdateExpression', UpdateExpression);
         return params;
       }
-      case `${STAGE}-employees`: {
-        let ExpressionAttributeValues = {},
-          UpdateExpression = 'set ';
-        let params = {
+      case `${STAGE}-employees`:
+        return {
           TableName: `${STAGE}-employees`,
           Key: {
             id: objToUpdate.id
           },
+          UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
+                               employeeNumber = :eid, hireDate = :hd, expenseTypes = :et, isInactive = :ia,
+                               employeeRole = :er, email = :eml, birthday = :br, jobRole = :jr, prime = :pr,
+                               contract = :ct, github = :gh, twitter = :tt, city = :cty, st = :st, country = :cry`,
+          ExpressionAttributeValues: {
+            ':fn': objToUpdate.firstName,
+            ':mn': objToUpdate.middleName,
+            ':ln': objToUpdate.lastName,
+            ':eid': objToUpdate.employeeNumber,
+            ':hd': objToUpdate.hireDate,
+            ':et': objToUpdate.expenseTypes,
+            ':ia': objToUpdate.isInactive,
+            ':er': objToUpdate.employeeRole,
+            ':eml': objToUpdate.email,
+            // New Fields
+            ':br': objToUpdate.birthday,
+            ':jr': objToUpdate.jobRole,
+            ':pr': objToUpdate.prime,
+            ':ct': objToUpdate.contract,
+            ':gh': objToUpdate.github || ' ',
+            ':tt': objToUpdate.twitter,
+            ':cty': objToUpdate.city,
+            ':st': objToUpdate.st,
+            ':cry': objToUpdate.country
+          },
           ReturnValues: 'ALL_NEW'
         };
-        if (objToUpdate.firstName) {
-          ExpressionAttributeValues[':fn'] = objToUpdate.firstName;
-          UpdateExpression += 'firstName = :fn,';
-        }
-        if (objToUpdate.middleName) {
-          ExpressionAttributeValues[':mn'] = objToUpdate.middleName;
-          UpdateExpression += 'middleName = :mn,';
-        }
-        if (objToUpdate.lastName) {
-          ExpressionAttributeValues[':ln'] = objToUpdate.lastName;
-          UpdateExpression += 'lastName = :ln,';
-        }
-        if (objToUpdate.employeeNumber) {
-          ExpressionAttributeValues[':eid'] = objToUpdate.employeeNumber;
-          UpdateExpression += 'employeeNumber = :eid,';
-        }
-        if (objToUpdate.hireDate) {
-          ExpressionAttributeValues[':hd'] = objToUpdate.hireDate;
-          UpdateExpression += 'hireDate = :hd,';
-        }
-        if (objToUpdate.expenseTypes) {
-          ExpressionAttributeValues[':et'] = objToUpdate.expenseTypes;
-          UpdateExpression += 'expenseTypes = :et,';
-        }
-        if (objToUpdate.isInactive) {
-          ExpressionAttributeValues[':ia'] = objToUpdate.isInactive;
-          UpdateExpression += 'isInactive = :ia,';
-        }
-        if (objToUpdate.employeeRole) {
-          ExpressionAttributeValues[':er'] = objToUpdate.employeeRole;
-          UpdateExpression += 'employeeRole = :er,';
-        }
-        if (objToUpdate.email) {
-          ExpressionAttributeValues[':eml'] = objToUpdate.email;
-          UpdateExpression += 'email = :eml,';
-        }
-        // New Fields
-        if (objToUpdate.birthday) {
-          ExpressionAttributeValues[':br'] = objToUpdate.birthday;
-          UpdateExpression += 'birthday = :br,';
-        }
-        if (objToUpdate.jobRole) {
-          ExpressionAttributeValues[':jr'] = objToUpdate.jobRole;
-          UpdateExpression += 'jobRole = :jr,';
-        }
-        if (objToUpdate.prime) {
-          ExpressionAttributeValues[':pr'] = objToUpdate.prime;
-          UpdateExpression += 'prime = :pr,';
-        }
-        if (objToUpdate.contract) {
-          ExpressionAttributeValues[':ct'] = objToUpdate.contract;
-          UpdateExpression += 'contract = :ct,';
-        }
-        if (objToUpdate.github) {
-          ExpressionAttributeValues[':gh'] = objToUpdate.github;
-          UpdateExpression += 'github = :gh,';
-        }
-        if (objToUpdate.twitter) {
-          ExpressionAttributeValues[':tt'] = objToUpdate.twitter;
-          UpdateExpression += 'twitter = :tt,';
-        }
-        if (objToUpdate.city) {
-          ExpressionAttributeValues[':cty'] = objToUpdate.city;
-          UpdateExpression += 'city = :cty,';
-        }
-        if (objToUpdate.st) {
-          ExpressionAttributeValues[':st'] = objToUpdate.st;
-          UpdateExpression += 'st = :st,';
-        }
-        if (objToUpdate.country) {
-          ExpressionAttributeValues[':cry'] = objToUpdate.country;
-          UpdateExpression += 'country = :cry,';
-        }
-        UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
-        _.set(params, 'ExpressionAttributeValues', ExpressionAttributeValues);
-        _.set(params, 'UpdateExpression', UpdateExpression);
-        return params;
-      }
-      // return {
-      //   TableName: `${STAGE}-employees`,
-      //   Key: {
-      //     id: objToUpdate.id
-      //   },
-      //   UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
-      //                          employeeNumber = :eid, hireDate = :hd, expenseTypes = :et, isInactive = :ia,
-      //                          employeeRole = :er, email = :eml, birthday = :br, jobRole = :jr, prime = :pr,
-      //                          contract = :ct, github = :gh, twitter = :tt, city = :cty, st = :st, country = :cry`,
-      //   ExpressionAttributeValues: {
-      //     ':fn': objToUpdate.firstName,
-      //     ':mn': objToUpdate.middleName,
-      //     ':ln': objToUpdate.lastName,
-      //     ':eid': objToUpdate.employeeNumber,
-      //     ':hd': objToUpdate.hireDate,
-      //     ':et': objToUpdate.expenseTypes,
-      //     ':ia': objToUpdate.isInactive,
-      //     ':er': objToUpdate.employeeRole,
-      //     ':eml': objToUpdate.email,
-      //     // New Fields
-      //     ':br': objToUpdate.birthday,
-      //     ':jr': objToUpdate.jobRole,
-      //     ':pr': objToUpdate.prime,
-      //     ':ct': objToUpdate.contract,
-      //     ':gh': objToUpdate.github || ' ',
-      //     ':tt': objToUpdate.twitter,
-      //     ':cty': objToUpdate.city,
-      //     ':st': objToUpdate.st,
-      //     ':cry': objToUpdate.country
-      //   },
-      //   ReturnValues: 'ALL_NEW'
-      // };
       case `${STAGE}-expense-types`:
         return {
           TableName: `${STAGE}-expense-types`,
