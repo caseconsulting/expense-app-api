@@ -54,7 +54,7 @@ class EmployeeRoutes extends Crud {
       if (error) {
         throw error;
       }
-      return this._createRecurringExpenses(this.getUUID(), employee.hireDate).then(() => {
+      return this._createRecurringExpenses(employee.id, employee.hireDate).then(() => {
         return employee;
       });
     } catch (err) {
