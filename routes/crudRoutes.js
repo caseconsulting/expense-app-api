@@ -276,7 +276,7 @@ class Crud {
     } else {
       let err = {
         code: 403,
-        message: 'Unable to update object in database due to insuffieicient user permissions'
+        message: 'Unable to update object in database due to insufficient user permissions'
       };
       this._handleError(res, err);
     }
