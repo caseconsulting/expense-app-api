@@ -133,7 +133,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -157,7 +157,7 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
-    let valid = expenseTypeValid && validDateRange && balanceCheck && employee.isActive;
+    let valid = expenseTypeValid && validDateRange && balanceCheck && !employee.isInactive;
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
       if (!expenseTypeValid) {
@@ -169,7 +169,7 @@ class ExpenseRoutes extends Crud {
       if (!balanceCheck) {
         errMessage += ' the expense is over the budget limit';
       }
-      if (!employee.isActive) {
+      if (employee.isInactive) {
         errMessage += ' the employee is not active';
       }
     }

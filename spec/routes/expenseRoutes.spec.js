@@ -35,7 +35,7 @@ describe('expenseRoutes', () => {
     expenseTypes: '[expenseTypes]',
     email: '{email}',
     employeeRole: '{employeeRole}',
-    isActive: '{isActive}'
+    isInactive: '{isInactive}'
   };
   const expenseType = {
     id: '{id}',
@@ -46,8 +46,8 @@ describe('expenseRoutes', () => {
     startDate: '{startDate}',
     endDate: '{endDate}',
     recurringFlag: '{false}',
-    isInactive:'{isInactive}',
-    requiredFlag:'{requiredFlag}',
+    isInactive: '{isInactive}',
+    requiredFlag: '{requiredFlag}',
     categories: categories
   };
 
@@ -89,10 +89,10 @@ describe('expenseRoutes', () => {
   describe('_delete', () => {
     let expense, expenseData, budgetData, budget;
     beforeEach(() => {
-      expenseData = { 
-        id, 
-        purchaseDate, 
-        reimbursedDate, 
+      expenseData = {
+        id,
+        purchaseDate,
+        reimbursedDate,
         note,
         url,
         createdAt,
@@ -102,8 +102,9 @@ describe('expenseRoutes', () => {
         description,
         userId,
         expenseTypeId,
-        categories };
-      budgetData ={
+        categories
+      };
+      budgetData = {
         id,
         expenseTypeId,
         userId,
@@ -112,7 +113,7 @@ describe('expenseRoutes', () => {
         fiscalStartDate,
         fiscalEndDate
       };
-        
+
       expense = new Expense(expenseData);
       budget = new Budget(budgetData);
 
@@ -133,12 +134,15 @@ describe('expenseRoutes', () => {
     });
 
     it('should return deleted object', done => {
-      return expenseRoutes._delete(id).then(deletedExpense => {
-        expect(deletedExpense).toEqual(expense);
-        done();
-      }).catch(() =>{ 
-        done(new Error('object rejected'));
-      });
+      return expenseRoutes
+        ._delete(id)
+        .then(deletedExpense => {
+          expect(deletedExpense).toEqual(expense);
+          done();
+        })
+        .catch(() => {
+          done(new Error('object rejected'));
+        });
     });
   }); // _delete
 
@@ -160,13 +164,16 @@ describe('expenseRoutes', () => {
       spyOn(expenseRoutes, '_getBudgetData').and.returnValue(budget);
       spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       spyOn(expenseRoutes, '_decideIfBudgetExists').and.returnValue(Promise.resolve());
-
     });
 
     afterEach(() => {
       expect(expenseRoutes._isPurchaseWithinRange).toHaveBeenCalledWith(localExpenseType, purchaseDate);
-      expect(expenseRoutes.checkValidity)
-        .toHaveBeenCalledWith(expectedExpense, localExpenseType, budget, localEmployee);
+      expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
+        expectedExpense,
+        localExpenseType,
+        budget,
+        localEmployee
+      );
       expect(expenseRoutes._decideIfBudgetExists).toHaveBeenCalledWith(budget, expectedExpense, localExpenseType);
       expect(expenseDynamo.addToDB).toHaveBeenCalledWith(expectedExpense);
     });
@@ -178,7 +185,7 @@ describe('expenseRoutes', () => {
           expect(createdExpense).toEqual(expectedExpense);
           done();
         })
-        .catch((e) => {
+        .catch(e => {
           console.warn(e);
           done(new Error('object rejected'));
         });
@@ -206,7 +213,6 @@ describe('expenseRoutes', () => {
       newExpense = new Expense(expenseData);
       oldExpense = new Expense(expenseData);
       budgets = [new Budget(budget)];
-      
 
       expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseData));
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
@@ -260,13 +266,13 @@ describe('expenseRoutes', () => {
           });
       });
     }); // when expenseTypes match
-    
+
     describe('when expenseTypes do not match', () => {
       let expectedError;
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+          message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
         };
         expenseType.id = '{notTheSameexpenseTypeId}';
         localExpenseType = new ExpenseType(expenseType);
@@ -313,11 +319,11 @@ describe('expenseRoutes', () => {
         expense = {
           purchaseDate: '{purchaseDate}'
         };
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(["I'm a new budget"]));
       });
       it('should call _createNewBudget', async done => {
         expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
-          expect(newBudgets).toEqual(['I\'m a new budget']);
+          expect(newBudgets).toEqual(["I'm a new budget"]);
           expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
           done();
         });
@@ -330,14 +336,14 @@ describe('expenseRoutes', () => {
 
     beforeEach(() => {
       expense = {
-        purchaseDate:'{purchaseDate}'
+        purchaseDate: '{purchaseDate}'
       };
       oldExpense = 'oldExpense';
       startDate = '{startDate}';
       endDate = '{endDate}';
       expenseType.recurringFlag = false;
     });
-    
+
     afterEach(() => {
       expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
       expect(expenseRoutes._checkBalance).toHaveBeenCalledWith(expense, expenseType, budget, oldExpense);
@@ -350,9 +356,9 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isActive = true;
+        employee.isInactive = false;
       });
-      
+
       it('should return a resolved promise', done => {
         expenseRoutes
           .checkValidity(expense, expenseType, budget, employee, oldExpense)
@@ -370,7 +376,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isActive = true;
+        employee.isInactive = false;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the expense is outside of the expense type window'
@@ -383,7 +389,7 @@ describe('expenseRoutes', () => {
           .then(() => {
             done(new Error('Promise should reject'));
           })
-          .catch((returnedErrorObject) =>{
+          .catch(returnedErrorObject => {
             expect(returnedErrorObject).toEqual(expectedErrorObject);
             done();
           });
@@ -395,7 +401,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(false);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isActive = true;
+        employee.isInactive = false;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the expense is over the budget limit'
@@ -408,7 +414,7 @@ describe('expenseRoutes', () => {
           .then(() => {
             done(new Error('Promise should reject'));
           })
-          .catch((returnedErrorObject) =>{
+          .catch(returnedErrorObject => {
             expect(returnedErrorObject).toEqual(expectedErrorObject);
             done();
           });
@@ -420,7 +426,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(false);
-        employee.isActive = true;
+        employee.isInactive = false;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the expense type is not valid'
@@ -445,7 +451,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isActive = false;
+        employee.isInactive = true;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the employee is not active'
@@ -464,7 +470,6 @@ describe('expenseRoutes', () => {
           });
       }); // should return an error object with the right error message
     }); // employee is not active
-
   }); // checkValidity
 
   describe('_areExpenseTypesEqual', () => {
@@ -474,8 +479,8 @@ describe('expenseRoutes', () => {
         expense = { expenseTypeId: '{expenseTypeId#1}' };
         oldExpense = { expenseTypeId: '{expenseTypeId#2}' };
       });
-      it('should compare the two expenseType Id\'s', done => {
-        let result = expenseRoutes._areExpenseTypesEqual(expense,oldExpense);
+      it("should compare the two expenseType Id's", done => {
+        let result = expenseRoutes._areExpenseTypesEqual(expense, oldExpense);
         expect(result).toBe(false);
         done();
       }); // should compare the two expenseType Id's
@@ -487,15 +492,15 @@ describe('expenseRoutes', () => {
         oldExpense = undefined;
       });
       it('should return true when the oldExpense does not exist', done => {
-        let result = expenseRoutes._areExpenseTypesEqual(expense,oldExpense);
+        let result = expenseRoutes._areExpenseTypesEqual(expense, oldExpense);
         expect(result).toBe(true);
         done();
       }); // should return true when the oldExpense does not exist
     }); // if there is no old expense
-  }); // _areExpenseTypesEqual 
+  }); // _areExpenseTypesEqual
 
   describe('_checkBalance', () => {
-    let expense, oldExpense, budget,expenseType;
+    let expense, oldExpense, budget, expenseType;
 
     beforeEach(() => {
       expense = oldExpense = {
@@ -503,7 +508,7 @@ describe('expenseRoutes', () => {
       };
       expenseType = {
         budget: 0,
-        odFlag:false
+        odFlag: false
       };
       budget = {
         reimbursedAmount: 0,
@@ -511,7 +516,9 @@ describe('expenseRoutes', () => {
       };
     });
     describe('no budget exsits yet, but cost is valid', () => {
-      beforeEach(() => { budget = undefined; });
+      beforeEach(() => {
+        budget = undefined;
+      });
       it('should return true', done => {
         let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
         expect(result).toBe(true);
@@ -523,7 +530,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expense.cost = 100;
         expenseType.budget = 51;
-        expenseType.odFlag = true; 
+        expenseType.odFlag = true;
         budget = undefined;
       });
       it('should return true', done => {
@@ -532,7 +539,7 @@ describe('expenseRoutes', () => {
         done();
       }); // should return true
     }); // no budget exists yet, the expense type is overdraftable and the cost is valid
-    
+
     describe('any other case where the budget is null', () => {
       beforeEach(() => {
         expense.cost = 100;
@@ -559,7 +566,7 @@ describe('expenseRoutes', () => {
         done();
       }); // should return true
     }); // sum is less than or equal to the budget
-    
+
     describe('expenseType allows overdrafting and sum is less than or equal to two times the budget', () => {
       beforeEach(() => {
         budget.pendingAmount = 2;
@@ -588,7 +595,7 @@ describe('expenseRoutes', () => {
 
   describe('_checkExpenseDate', () => {
     let purchaseDate, stringStartDate, stringEndDate;
-    
+
     describe('when the purchase date falls within the start and end dates', () => {
       beforeEach(() => {
         purchaseDate = '1996-08-15';
@@ -597,7 +604,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should return true', done => {
-        let result = expenseRoutes._checkExpenseDate(purchaseDate,stringStartDate, stringEndDate);
+        let result = expenseRoutes._checkExpenseDate(purchaseDate, stringStartDate, stringEndDate);
         expect(result).toBe(true);
         done();
       }); // should return true
@@ -628,7 +635,7 @@ describe('expenseRoutes', () => {
       expectedEndDate,
       startYear,
       anniversaryComparisonDate;
-      
+
     beforeEach(() => {
       hireDate = '1970-12-31';
       expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
@@ -637,14 +644,12 @@ describe('expenseRoutes', () => {
       anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
       startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
       expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay-1]);
+      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay - 1]);
 
       expectedObj = {
         startDate: expectedStartDate,
         endDate: expectedEndDate
       };
-
-
     });
 
     it('should return an object with a start and end date', done => {
@@ -715,7 +720,7 @@ describe('expenseRoutes', () => {
   }); // _createNewBudget
 
   describe('_decideIfBudgetExists', () => {
-    let expectedBudget,expense;
+    let expectedBudget, expense;
     beforeEach(() => {
       expense = 'expense';
       expectedBudget = {
@@ -727,17 +732,14 @@ describe('expenseRoutes', () => {
         fiscalStartDate: expenseType.startDate,
         fiscalEndDate: expenseType.endDate
       };
-      
-      
-      
-    }); 
+    });
 
     describe('when the budget does exist', () => {
       beforeEach(() => {
         spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(budget);
         budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
       });
-      afterEach(()=>{
+      afterEach(() => {
         expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(expense, budget);
       });
 
@@ -771,7 +773,6 @@ describe('expenseRoutes', () => {
         expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
         done();
       }); // should call addToDB and return a new budget
-
     }); // when the budget does not exist
   }); // _decideIfBudgetExists
 
@@ -782,7 +783,7 @@ describe('expenseRoutes', () => {
       expense = {
         reimbursedDate: reimbursedDate,
         cost: 1
-      }; 
+      };
       budget = {
         pendingAmount: 0,
         reimbursedAmount: 0
@@ -803,7 +804,7 @@ describe('expenseRoutes', () => {
         expect(result).toEqual(expectedBudget);
         done();
       }); // should add the expense cost to the pendingAmount
-    }); // when there is no reimbursedDate 
+    }); // when there is no reimbursedDate
 
     describe('when there is a reimbursedDate', () => {
       let expectedBudget;
@@ -832,11 +833,14 @@ describe('expenseRoutes', () => {
       });
 
       it('should return a resolved promise', done => {
-        expenseRoutes._isReimbursed(expense).then(()=>{
-          keptItsPromise = true;
-          expect(keptItsPromise).toBe(true);
-          done();
-        }).catch(()=> done(new Error('Promise should resolve')));
+        expenseRoutes
+          ._isReimbursed(expense)
+          .then(() => {
+            keptItsPromise = true;
+            expect(keptItsPromise).toBe(true);
+            done();
+          })
+          .catch(() => done(new Error('Promise should resolve')));
       }); // should return a resolved promise
     }); // when there is no reimbursedDate
 
@@ -855,7 +859,7 @@ describe('expenseRoutes', () => {
         expenseRoutes
           ._isReimbursed(expense)
           .then(() => done(new Error('Promise should reject')))
-          .catch((err) =>{ 
+          .catch(err => {
             expect(err).toEqual(expectedError);
             done();
           });
@@ -873,7 +877,7 @@ describe('expenseRoutes', () => {
         cost: 0
       };
       budget = {
-        id:id,
+        id: id,
         pendingAmount: 0,
         reimbursedAmount: 0
       };
@@ -883,7 +887,7 @@ describe('expenseRoutes', () => {
         budgetDynamo.removeFromDB.and.returnValue(Promise.resolve('removed-budget'));
       });
       it('should call removeFromDB and return the deleted budget', async done => {
-        let result = await expenseRoutes._removeFromBudget(budget,expense, expenseType);
+        let result = await expenseRoutes._removeFromBudget(budget, expense, expenseType);
         expect(result).toEqual('removed-budget');
         expect(budgetDynamo.removeFromDB).toHaveBeenCalledWith(budget.id);
         done();
@@ -996,14 +1000,17 @@ describe('expenseRoutes', () => {
       });
 
       it('should return the array of valid budgets', done => {
-        let results = expenseRoutes._findBudgetWithMatchingRange(budgets,purchaseDate);
+        let results = expenseRoutes._findBudgetWithMatchingRange(budgets, purchaseDate);
         expect(results).toEqual(budget);
-        expect(expenseRoutes._checkExpenseDate)
-          .toHaveBeenCalledWith(purchaseDate, budget.fiscalStartDate,budget.fiscalEndDate);
+        expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(
+          purchaseDate,
+          budget.fiscalStartDate,
+          budget.fiscalEndDate
+        );
         done();
       }); // should return the array of valid budgets
     }); // when validBudgets are found
-  
+
     describe('when no valid budgets are found', () => {
       let expectedError;
       beforeEach(() => {
@@ -1020,8 +1027,11 @@ describe('expenseRoutes', () => {
           done(new Error('_findBudgetWithMatchingRange should throw an error when no valid budgets are found'));
         } catch (thrownError) {
           expect(thrownError).toEqual(expectedError);
-          expect(expenseRoutes._checkExpenseDate)
-            .toHaveBeenCalledWith(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate);
+          expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(
+            purchaseDate,
+            budget.fiscalStartDate,
+            budget.fiscalEndDate
+          );
           done();
         }
       }); // should throw an error
@@ -1084,13 +1094,12 @@ describe('expenseRoutes', () => {
         pendingAmount: 1,
         reimbursedAmount: 0
       };
-
     });
-    
+
     afterEach(() => {
       expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
     });
-    
+
     describe('when the old expense is unreimbursed and the new expense is reimbursed but cost is the same', () => {
       beforeEach(() => {
         oldExpense.reimbursedDate = undefined;
@@ -1099,7 +1108,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_budgetUpdateForReimbursedExpense').and.returnValue(budget);
       });
 
-      afterEach(()=>{
+      afterEach(() => {
         expect(expenseRoutes._budgetUpdateForReimbursedExpense).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
@@ -1109,8 +1118,9 @@ describe('expenseRoutes', () => {
         );
       });
       it('should return the updated budget and call updateEntryInDB', done => {
-        expenseRoutes._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
-          .then((returnedBudget)=>{
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
             expect(returnedBudget).toEqual(budget);
             done();
           });
@@ -1130,8 +1140,9 @@ describe('expenseRoutes', () => {
         budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
       });
       it('should return a budget with updated budget amounts', done => {
-        expenseRoutes._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
-          .then((returnedBudget)=>{
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
             expect(returnedBudget).toEqual(expectedBudget);
             done();
           });
@@ -1153,7 +1164,8 @@ describe('expenseRoutes', () => {
       });
 
       it('should return a budget with an updated pendingAmount', done => {
-        expenseRoutes._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
           .then(returnedBudget => {
             expect(returnedBudget).toEqual(expectedBudget);
             done();
@@ -1165,7 +1177,7 @@ describe('expenseRoutes', () => {
   xdescribe('_budgetUpdateForReimbursedExpense', () => {
     let oldExpense, newExpense, budgets, budget;
     beforeEach(() => {
-      spyOn(expenseRoutes,'_calculateOverdraft');
+      spyOn(expenseRoutes, '_calculateOverdraft');
       budgets = ['budget'];
       oldExpense = 'oldExpense';
       newExpense = 'newExpense';
@@ -1176,8 +1188,8 @@ describe('expenseRoutes', () => {
         expenseRoutes._calculateOverdraft.and.returnValue(1);
         spyOn(expenseRoutes, '_movePurchaseToNextBudgetYear').and.returnValue(budget);
       });
-      
-      afterEach(()=>{
+
+      afterEach(() => {
         expect(expenseRoutes._movePurchaseToNextBudgetYear).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
@@ -1185,11 +1197,16 @@ describe('expenseRoutes', () => {
           budgets,
           expenseType
         );
-        expect(expenseRoutes._calculateOverdraft).toHaveBeenCalledWith(budget,expenseType);
+        expect(expenseRoutes._calculateOverdraft).toHaveBeenCalledWith(budget, expenseType);
       });
       it('should call _movePurchaseToNextYear', done => {
-        let result = expenseRoutes
-          ._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
+        let result = expenseRoutes._budgetUpdateForReimbursedExpense(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          expenseType
+        );
         expect(result).toEqual(budget);
         done();
       }); // should call _movePurchaseToNextYear
@@ -1214,13 +1231,18 @@ describe('expenseRoutes', () => {
         expenseRoutes._calculateOverdraft.and.returnValue(-1);
       });
       it('should preform a normal budget operation', done => {
-        let result = expenseRoutes
-          ._budgetUpdateForReimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
+        let result = expenseRoutes._budgetUpdateForReimbursedExpense(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          expenseType
+        );
         expect(result).toEqual(expectedBudget);
         done();
       }); // should preform a normal budget operation
     }); // when the overdraft amount is zero or less
-  }); // _budgetUpdateForReimbursedExpense 
+  }); // _budgetUpdateForReimbursedExpense
 
   xdescribe('_movePurchaseToNextBudgetYear', () => {
     let budget, budgets, newExpense, oldExpense;

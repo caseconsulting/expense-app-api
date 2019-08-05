@@ -34,7 +34,7 @@ class Employee {
     this.expenseTypes = data.expenseTypes;
     this.email = data.email;
     this.employeeRole = data.employeeRole;
-    this.isActive = data.isActive;
+    this.isInactive = data.isInactive;
 
     // New fields
     this.birthday = data.birthday;
@@ -54,7 +54,7 @@ class Employee {
     }
 
     //sets null values to an empty string
-    for (var propName in this) { 
+    for (var propName in this) {
       if (this[propName] === null || this[propName] === undefined) {
         this[propName] = ' ';
       }

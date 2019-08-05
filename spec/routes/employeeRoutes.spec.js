@@ -7,7 +7,6 @@ describe('employeeRoutes', () => {
   const id = 'id';
   const userId = '{userId}';
   beforeEach(() => {
-
     employeeRoutes = new EmployeeRoutes();
     employeeRoutes.databaseModify = jasmine.createSpyObj('databaseModify', ['findObjectInDB']);
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -44,23 +43,23 @@ describe('employeeRoutes', () => {
         expenseTypes: '[expenseTypes]',
         email: '{email}',
         employeeRole: '{employeeRole}',
-        isActive: true
+        isInactive: false
       };
       expectedEmployee = new Employee(data);
 
-      spyOn(employeeRoutes,'_createRecurringExpenses')
-        .and.returnValue(Promise.resolve(expectedEmployee));
+      spyOn(employeeRoutes, '_createRecurringExpenses').and.returnValue(Promise.resolve(expectedEmployee));
       spyOn(employeeRoutes, '_isDuplicateEmployee').and.returnValue(false);
     });
     it('should call _createRecurringExpenses and return the added employee', done => {
-      employeeRoutes._add(uuid, data).then( returnedEmployee =>{
+      employeeRoutes._add(uuid, data).then(returnedEmployee => {
         expect(returnedEmployee).toEqual(expectedEmployee);
-        expect(employeeRoutes._createRecurringExpenses)
-          .toHaveBeenCalledWith(expectedEmployee.id, expectedEmployee.hireDate);
+        expect(employeeRoutes._createRecurringExpenses).toHaveBeenCalledWith(
+          expectedEmployee.id,
+          expectedEmployee.hireDate
+        );
         done();
       });
     });
-
   }); // _add
 
   describe('_update', () => {
@@ -76,15 +75,14 @@ describe('employeeRoutes', () => {
         expenseTypes: '[expenseTypes]',
         email: '{email}',
         employeeRole: '{employeeRole}',
-        isActive: '{isActive}'
+        isInactive: '{isInactive}'
       };
       id = '{id}';
-      
     });
     describe('if promise resolves', () => {
       beforeEach(() => {
         expectedEmployee = new Employee(data);
-        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.resolve({expectedEmployee}));
+        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.resolve({ expectedEmployee }));
       });
 
       it('should return updated employee object', done => {
@@ -106,8 +104,8 @@ describe('employeeRoutes', () => {
         employeeRoutes._update(id, data).catch(err => {
           expect(err).toEqual(expectedErr);
         });
-      });// should return error from server
-    });// if the promise is rejected
+      }); // should return error from server
+    }); // if the promise is rejected
   }); // _update
 
   describe('_createRecurringExpenses', () => {
@@ -136,24 +134,23 @@ describe('employeeRoutes', () => {
       dates.startDate.format.and.returnValue('{fiscalStartDate}');
       dates.endDate.format.and.returnValue('{fiscalEndDate}');
 
-      spyOn(employeeRoutes, '_getBudgetDates').and.returnValue(dates);     
+      spyOn(employeeRoutes, '_getBudgetDates').and.returnValue(dates);
 
       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
       budgetDynamo.addToDB.and.returnValue(Promise.resolve());
     });
 
-    afterEach(()=>{
+    afterEach(() => {
       expect(employeeRoutes._getBudgetDates).toHaveBeenCalledWith(hireDate);
       expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
       expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
     });
 
-    it('should return a list of created budgets', (done) => {
-      employeeRoutes._createRecurringExpenses(userId, hireDate).then((results)=>{
+    it('should return a list of created budgets', done => {
+      employeeRoutes._createRecurringExpenses(userId, hireDate).then(results => {
         expect(results).toEqual([expenseType]);
         done();
       });
-      
     }); // should return a list of created budgets
   }); // _createRecurringExpenses
 
@@ -168,7 +165,7 @@ describe('employeeRoutes', () => {
       expectedEndDate,
       startYear,
       anniversaryComparisonDate;
-      
+
     beforeEach(() => {
       hireDate = '1970-12-31';
       expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
@@ -177,13 +174,12 @@ describe('employeeRoutes', () => {
       anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
       startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
       expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay-1]);
+      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay - 1]);
 
       expectedObj = {
         startDate: expectedStartDate,
         endDate: expectedEndDate
       };
-
     });
 
     it('should return an object with a start and end date', done => {
@@ -192,5 +188,4 @@ describe('employeeRoutes', () => {
       done();
     }); // should return an object with a start and end date
   }); // _getBudgetDates
-  
 }); // employeeRoutes
