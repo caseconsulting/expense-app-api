@@ -29,7 +29,6 @@ class Expense {
     this.createdAt = data.createdAt;
     this.receipt = data.receipt;
     this.cost = Number(data.cost).toFixed(2);
-    this.name = data.name;
     this.description = data.description;
     this.userId = data.userId;
     this.expenseTypeId = data.expenseTypeId;
