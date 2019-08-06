@@ -33,19 +33,19 @@ class ExpenseType {
       this.categories = [];
     }
 
-    if (!this.requiredFlag) {
+    if (this.requiredFlag == null) {
       this.requiredFlag = true;
     }
 
-    if (!this.recurringFlag) {
+    if (this.recurringFlag == null) {
       this.recurringFlag = false;
     }
 
-    if (!this.odFlag) {
+    if (this.odFlag == null) {
       this.odFlag = false;
     }
 
-    if (!this.isInactive) {
+    if (this.isInactive == null) {
       this.isInactive = false;
     }
 
