@@ -40,7 +40,6 @@ describe('employeeRoutes', () => {
         lastName: '{lastName}',
         employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
-        expenseTypes: '[expenseTypes]',
         email: '{email}',
         employeeRole: '{employeeRole}',
         isInactive: false
@@ -72,7 +71,6 @@ describe('employeeRoutes', () => {
         lastName: '{lastName}',
         employeeNumber: '{employeeNumber}',
         hireDate: '{hireDate}',
-        expenseTypes: '[expenseTypes]',
         email: '{email}',
         employeeRole: '{employeeRole}',
         isInactive: '{isInactive}'

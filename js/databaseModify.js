@@ -349,7 +349,7 @@ class databaseModify {
             id: objToUpdate.id
           },
           UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
-                               employeeNumber = :eid, hireDate = :hd, expenseTypes = :et, isInactive = :ia,
+                               employeeNumber = :eid, hireDate = :hd, isInactive = :ia,
                                employeeRole = :er, email = :eml, birthday = :br, jobRole = :jr, prime = :pr,
                                contract = :ct, github = :gh, twitter = :tt, city = :cty, st = :st, country = :cry`,
           ExpressionAttributeValues: {
@@ -358,7 +358,6 @@ class databaseModify {
             ':ln': objToUpdate.lastName,
             ':eid': objToUpdate.employeeNumber,
             ':hd': objToUpdate.hireDate,
-            ':et': objToUpdate.expenseTypes,
             ':ia': objToUpdate.isInactive,
             ':er': objToUpdate.employeeRole,
             ':eml': objToUpdate.email,

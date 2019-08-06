@@ -31,7 +31,6 @@ class Employee {
     this.lastName = data.lastName;
     this.employeeNumber = Number(data.employeeNumber);
     this.hireDate = data.hireDate;
-    this.expenseTypes = data.expenseTypes;
     this.email = data.email;
     this.employeeRole = data.employeeRole;
     this.isInactive = data.isInactive;
@@ -49,12 +48,6 @@ class Employee {
 
     if (!this.middleName) {
       this.middleName = ' ';
-    }
-
-    // If expense types have not been defined, instantiate them in this model with
-    // an empty list.
-    if (!this.expenseTypes) {
-      this.expenseTypes = [];
     }
 
     //sets null values to an empty string
