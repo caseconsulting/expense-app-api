@@ -160,21 +160,36 @@ describe('employeeRoutes', () => {
       expectedObj,
       expectedAnniversaryMonth,
       expectedAnniversaryDay,
-      currentYear,
       expectedStartDate,
       expectedEndDate,
-      startYear,
+      expectedAnniversaryYear,
+      today,
       anniversaryComparisonDate;
 
     beforeEach(() => {
-      hireDate = '1970-12-31';
+      hireDate = '2020-12-06';
       expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
       expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-      currentYear = moment().year();
-      anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+      expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
+      anniversaryComparisonDate = moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+      //let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+      let startYear;
+      today = moment();
+
+      if (anniversaryComparisonDate.isBefore(today)) {
+        startYear = today.isBefore(moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay]))
+          ? today.year() - 1
+          : today.year();
+      } else {
+        startYear = today.isBefore(moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]))
+          ? expectedAnniversaryYear
+          : expectedAnniversaryYear - 1;
+      }
+
       expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      expectedEndDate = moment([startYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay - 1]);
+      expectedEndDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay])
+        .add('1', 'years')
+        .subtract('1', 'days');
 
       expectedObj = {
         startDate: expectedStartDate,

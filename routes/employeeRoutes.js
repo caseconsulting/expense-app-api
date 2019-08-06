@@ -106,7 +106,9 @@ class EmployeeRoutes extends Crud {
 
   async _createRecurringExpenses(userId, hireDate) {
     console.warn('Employee Routes _createRecurringExpenses');
+    console.log('hire date', hireDate);
     let dates = this._getBudgetDates(hireDate);
+    console.log('budget date', dates);
     let expenseTypeList;
     //get all recurring expenseTypes
     try {
@@ -138,13 +140,29 @@ class EmployeeRoutes extends Crud {
 
   _getBudgetDates(hireDate) {
     console.warn('Employee Routes _getBudgetDates');
-    let currentYear = moment().year();
+    //let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-    const anniversaryComparisonDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
-    let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+    let anniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
+    const anniversaryComparisonDate = moment([anniversaryYear, anniversaryMonth, anniversaryDay]);
+    //let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
+    let startYear;
+    const today = moment();
+
+    if (anniversaryComparisonDate.isBefore(today)) {
+      startYear = today.isBefore(moment([today.year(), anniversaryMonth, anniversaryDay]))
+        ? today.year() - 1
+        : today.year();
+    } else {
+      startYear = today.isBefore(moment([anniversaryYear, anniversaryMonth, anniversaryDay]))
+        ? anniversaryYear
+        : anniversaryYear - 1;
+    }
+
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
+    let endDate = moment([startYear, anniversaryMonth, anniversaryDay])
+      .add('1', 'years')
+      .subtract('1', 'days');
 
     return {
       startDate,
