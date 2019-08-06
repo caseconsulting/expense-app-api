@@ -28,6 +28,33 @@ class ExpenseType {
     this.startDate = data.startDate;
     this.description = data.description;
     this.categories = data.categories;
+
+    if (!this.categories) {
+      this.categories = [];
+    }
+
+    if (!this.requiredFlag) {
+      this.requiredFlag = true;
+    }
+
+    if (!this.recurringFlag) {
+      this.recurringFlag = false;
+    }
+
+    if (!this.odFlag) {
+      this.odFlag = false;
+    }
+
+    if (!this.isInactive) {
+      this.isInactive = false;
+    }
+
+    //sets null values to an empty string
+    for (var propName in this) {
+      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+        this[propName] = ' ';
+      }
+    }
   }
 }
 

@@ -46,10 +46,6 @@ class Employee {
     this.st = data.state;
     this.country = data.country;
 
-    if (!this.middleName) {
-      this.middleName = ' ';
-    }
-
     //sets null values to an empty string
     for (var propName in this) {
       if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
