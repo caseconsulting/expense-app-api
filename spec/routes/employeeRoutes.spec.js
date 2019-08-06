@@ -167,7 +167,7 @@ describe('employeeRoutes', () => {
       anniversaryComparisonDate;
 
     beforeEach(() => {
-      hireDate = '2020-12-06';
+      hireDate = '1970-12-31';
       expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
       expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
       expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
