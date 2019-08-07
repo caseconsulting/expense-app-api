@@ -34,6 +34,7 @@ class Crud {
     this._router.post('/', checkJwt, getUserInfo, this.create.bind(this));
     this._router.get('/:id', checkJwt, getUserInfo, this.read.bind(this));
     this._router.put('/:id', checkJwt, getUserInfo, this.update.bind(this));
+    this._router.put('/:id/:category', checkJwt, getUserInfo, this.update.bind(this));
     this._router.delete('/:id', checkJwt, getUserInfo, this.onDelete.bind(this));
   }
 
@@ -248,8 +249,10 @@ class Crud {
     console.warn(moment().format(), 'CRUD routes update');
 
     //added if statement for training-url table
-    if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-training-url`) {
-      return this._update(req.body.id, req.body)
+    if (this._getTableName() === `${STAGE}-training-urls`) {
+      console.log('here');
+      console.log('id', req.body.id);
+      return this._update(req.body.id, req.body.category, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
         .catch(err => this._handleError(res, err));
@@ -289,11 +292,10 @@ class Crud {
     console.warn(moment().format(), 'CRUD routes onDelete');
 
     if (this._isAdmin(req)) {
-      if (this._checkTableName(['expenses','expense-types','employees'])) {
+      if (this._checkTableName(['expenses', 'expense-types', 'employees'])) {
         //TODO: should this promise be returned? Did not return before
         this._onDeleteHelper(req.params.id, res);
-      }
-      else {
+      } else {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
@@ -302,7 +304,7 @@ class Crud {
           .catch(err => this._handleError(res, err));
       }
     } else if (this._checkPermissionForOnDelete(req)) {
-      this._onDeleteHelper(req.params.id,res);
+      this._onDeleteHelper(req.params.id, res);
     } else {
       let err = {
         code: 403,
@@ -311,7 +313,7 @@ class Crud {
       this._handleError(res, err);
     }
   }
-  _onDeleteHelper(id, res){
+  _onDeleteHelper(id, res) {
     console.warn('CRUD routes _onDeleteHelper');
     return this._delete(id)
       .then(value => res.status(200).send(value))
@@ -319,12 +321,12 @@ class Crud {
   }
   // checks to see if the current table name is in the list of vaild table names
   // returns true if found and false if the current table name is not in the list
-  _checkTableName(listOfValidTables){
+  _checkTableName(listOfValidTables) {
     let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
     return foundItem != undefined;
   }
 
-  _checkPermissionForOnDelete(req){
+  _checkPermissionForOnDelete(req) {
     return this._isUser(req) && this._checkTableName(['expenses']);
   }
   /**
@@ -334,7 +336,7 @@ class Crud {
     console.warn(moment().format(), 'CRUD routes showList');
 
     let hasPermission = this._checkPermissionForShowList(req);
-    if (hasPermission){
+    if (hasPermission) {
       return this.databaseModify
         .getAllEntriesInDB()
         .then(data => res.status(200).send(data))
@@ -348,11 +350,10 @@ class Crud {
     }
   }
 
-  _checkPermissionForShowList(req){
-    return (
-      this._isAdmin(req) || this._checkTableName(['expense-types','employees']));
+  _checkPermissionForShowList(req) {
+    return this._isAdmin(req) || this._checkTableName(['expense-types', 'employees']);
   }
-  
+
   _getTableName() {
     return this.databaseModify.tableName;
   }

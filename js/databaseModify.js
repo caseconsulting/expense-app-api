@@ -99,23 +99,29 @@ class databaseModify {
       });
   }
 
-  readFromDBURL(passedID) {
+  readFromDBURL(passedID, category) {
+    console.log('readfromDURL');
     const params = {
       TableName: this.tableName,
       ExpressionAttributeValues: {
-        ':id': passedID
+        ':id': passedID,
+        ':category': category
       },
-      KeyConditionExpression: 'id = :id'
+      KeyConditionExpression: 'id = :id AND category = :category'
     };
 
+    console.log('before look up');
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .query(params)
       .promise()
       .then(function(data) {
+        console.log('completed query');
         if (!_.isEmpty(data.Items)) {
+          console.log('found something');
           return data.Items;
         } else {
+          console.log('found nothing');
           return null;
         }
       })
@@ -422,13 +428,13 @@ class databaseModify {
         return {
           TableName: `${STAGE}-training-urls`,
           Key: {
-            id: objToUpdate.id
+            id: objToUpdate.id,
+            category: objToUpdate.category
           },
 
-          UpdateExpression: 'set hits = :ht, category = :ct',
+          UpdateExpression: 'set hits = :ht',
           ExpressionAttributeValues: {
-            ':ht': objToUpdate.hits,
-            ':ct': objToUpdate.category
+            ':ht': objToUpdate.hits
           },
           ReturnValues: 'ALL_NEW'
         };

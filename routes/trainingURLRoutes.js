@@ -27,16 +27,18 @@ class TrainingURLRoutes extends Crud {
       });
   }
 
-  _update(url, data) {
+  _update(id, category, data) {
+    console.log('url', id);
     var atob = require('atob');
-    var decodedURL = atob(url);
-    console.warn(moment().format(), 'Training URL _update', `for url ${decodedURL}`);
+    var decodedURL = atob(id);
+    console.warn(moment().format(), 'Training URL _update', `for url ${decodedURL}`, `and category ${category}`);
 
     let trainingURL = new TrainingUrls(data);
     trainingURL.id = decodedURL;
+    trainingURL.category = category;
 
     return this.databaseModify
-      .readFromDBURL(decodedURL)
+      .readFromDBURL(decodedURL, category)
       .then(() => {
         return trainingURL;
       })
@@ -68,14 +70,26 @@ class TrainingURLRoutes extends Crud {
     return this.databaseModify
       .readFromDBURL(req.params.id)
       .then(output => {
-        if (_.first(output)) {
+        console.log('made it here');
+        if (output) {
+          console.log('made it here1');
           res.status(200).send(_.first(output));
         } else if (output === null) {
+          console.log('made it here2');
           res.status(200).send(null);
         } else {
+          console.log('made it here3');
           let err = NOT_FOUND;
           throw err;
         }
+        // if (_.first(output)) {
+        //   res.status(200).send(_.first(output));
+        // } else if (output === null) {
+        //   res.status(200).send(null);
+        // } else {
+        //   let err = NOT_FOUND;
+        //   throw err;
+        // }
       })
       .catch(err => this._handleError(res, err));
   }

@@ -52,7 +52,7 @@ class Special {
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
 
-    this._router.get('/getURLInfo/:id', checkJwt, this.getURLInfo.bind(this));
+    this._router.get('/getURLInfo/:id/:category', checkJwt, this.getURLInfo.bind(this));
   }
 
   get router() {
@@ -295,19 +295,38 @@ class Special {
       message: 'entry not found in database'
     };
 
-    return this.trainingURLData
-      .readFromDBURL(decoded)
-      .then(output => {
-        if (_.first(output)) {
-          res.status(200).send(_.first(output));
-        } else if (output === null) {
-          res.status(200).send(null);
-        } else {
-          let err = NOT_FOUND;
-          throw err;
-        }
-      })
-      .catch(err => this._handleError(res, err));
+    console.log('category', req.params.category);
+
+    return (
+      this.trainingURLData
+        .readFromDBURL(decoded, req.params.category)
+        .then(output => {
+          console.log('made it here');
+          if (output) {
+            console.log('made it here1');
+            console.log('output', output);
+            res.status(200).send(output);
+          } else if (output === null) {
+            console.log('made it here2');
+            res.status(200).send(null);
+          } else {
+            console.log('made it here3');
+            let err = NOT_FOUND;
+            throw err;
+          }
+        })
+        // .then(output => {
+        //   if (_.first(output)) {
+        //     res.status(200).send(_.first(output));
+        //   } else if (output === null) {
+        //     res.status(200).send(null);
+        //   } else {
+        //     let err = NOT_FOUND;
+        //     throw err;
+        //   }
+        // })
+        .catch(err => this._handleError(res, err))
+    );
   }
 
   _expenseMapping(expenses, employee, expenseType) {

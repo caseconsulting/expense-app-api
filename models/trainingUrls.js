@@ -10,8 +10,8 @@
 class TrainingUrls {
   constructor(data) {
     this.id = data.id;
-    this.hits = data.hits;
     this.category = data.category;
+    this.hits = data.hits;
   }
 }
 
