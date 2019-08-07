@@ -6,22 +6,23 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 
 async function start() {
-  console.log(`started at ${moment().toString()}`); // eslint-disable-line no-console
+  console.log('started');
   let budgets = [],
     expenseTypes = [];
   try {
     //budget anniversary date is today
-    const today = moment().format('YYYY-MM-DD');
-
-    budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', today);
+    const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
+    budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
 
-    _.forEach(budgets, oldBudget => {
+    console.log(`Creating ${budgets.length} new budgets tonight! 🍕`);
+    await asyncForEach(budgets, async oldBudget => {
       let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
       if (expenseType.recurringFlag) {
         //filter by the ones that are recurring
         let newBudget = _makeNewBudget(oldBudget, expenseType);
-        return budgetDynamo.addToDB(newBudget);
+        console.log(`Happy Anniversary user: ${newBudget.userId} 🥳 \n created new budget with id: ${newBudget.id}`);
+        return await budgetDynamo.addToDB(newBudget);
       }
     });
   } catch (err) {
@@ -31,7 +32,13 @@ async function start() {
       console.error(err);
     }
   } finally {
-    console.log(`ended at ${moment().toString()}`); // eslint-disable-line no-console
+    console.log('ended');
+  }
+}
+
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
   }
 }
 
