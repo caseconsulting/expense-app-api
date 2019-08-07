@@ -1,6 +1,4 @@
-/*jshint esversion: 6 */
 const databaseModify = require('../js/databaseModify');
-//const budgetDynamo = new databaseModify('Budgets');
 const employeeDynamo = new databaseModify('employees');
 const expenseDynamo = new databaseModify('expenses');
 const expenseTypeDynamo = new databaseModify('expense-types');
@@ -12,7 +10,6 @@ const _ = require('lodash');
 const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
-// const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
@@ -138,10 +135,6 @@ class Special {
       .catch(err => {
         this._handleError(res, err);
       });
-
-    // res.status(200).send(returnObject);
-
-    // this._handleError(res, error);
   }
 
   getAllExpenseTypeExpenses(req, res) {
@@ -156,10 +149,6 @@ class Special {
       .catch(err => {
         this._handleError(res, err);
       });
-
-    // res.status(200).send(returnObject);
-
-    // this._handleError(res, error);
   }
 
   //function created to see if employee has any expenses
@@ -169,19 +158,6 @@ class Special {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
       console.warn('emp Expense History', userBudgets);
-      // const openExpenseTypeIds = _.map(userBudgets, fb => fb.expenseTypeId);
-      // const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
-      // const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
-      // const returnObject = _.map(openExpenseTypes, expenseType => {
-      //   return {
-      //     budget: expenseType.budget,
-      //     expenseTypeName: expenseType.budgetName,
-      //     description: expenseType.description,
-      //     odFlag: expenseType.odFlag,
-      //     expenseTypeId: expenseType.id,
-      //     budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
-      //   };
-      // });
 
       const returnObject = null;
       res.status(200).send(returnObject);
@@ -341,7 +317,6 @@ class Special {
       processedExpenses = _.map(expenseData, expense => {
         return this.getEmployeeName(expense);
       });
-      //console.log(typeof processedExpenses);
       processedExpenses = _.map(expenseData, expense => {
         return this.getExpenseTypeName(expense);
       });
