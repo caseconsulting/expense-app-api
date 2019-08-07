@@ -6,33 +6,36 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 
 async function start() {
-  console.log('started');
+  console.log('Started chronos');
   let budgets = [],
-    expenseTypes = [];
+    expenseTypes = [],
+    numberRecurring = 0;
   try {
     //budget anniversary date is today
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
     budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
 
-    console.log(`Creating ${budgets.length} new budgets tonight! 🍕`);
-    await asyncForEach(budgets, async oldBudget => {
-      let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
-      if (expenseType.recurringFlag) {
+    if (budgets.length != 0) {
+      await asyncForEach(budgets, async oldBudget => {
+        let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
+        if (expenseType.recurringFlag) {
         //filter by the ones that are recurring
-        let newBudget = _makeNewBudget(oldBudget, expenseType);
-        console.log(`Happy Anniversary user: ${newBudget.userId} 🥳 \n created new budget with id: ${newBudget.id}`);
-        return await budgetDynamo.addToDB(newBudget);
-      }
-    });
-  } catch (err) {
-    if (err.message && err.message === 'Item not found') {
-      console.warn('No employees with an anniversary today');
-    } else {
-      console.error(err);
+          let newBudget = _makeNewBudget(oldBudget, expenseType);
+          console.log(`Happy Anniversary user: ${newBudget.userId} 🥳 \n created new budget with id: ${newBudget.id}`);
+          numberRecurring++;
+          return await budgetDynamo.addToDB(newBudget);
+        }
+      });
+      console.log(`Created ${numberRecurring} new budget${numberRecurring > 1 ? 's' : ''} tonight! 🍕`);
     }
+    else {
+      console.log('There are no new budgets being created tonight 😴🛌');
+    }
+  } catch (err) {
+    console.error(err);
   } finally {
-    console.log('ended');
+    console.log('Ended chronos');
   }
 }
 
@@ -43,10 +46,17 @@ async function asyncForEach(array, callback) {
 }
 
 function _getExpenseType(expenseTypes, expenseTypeId) {
-  return _.find(expenseTypes, expenseType => {
+  let expenseType = _.find(expenseTypes, expenseType => {
     return expenseType.id === expenseTypeId;
   });
+  if (expenseType) {
+    return expenseType;
+  }
+  else {
+    throw new Error('Expense Type does not exist');
+  }
 }
+
 
 function _makeNewBudget(oldBudget, expenseType) {
   let newBudget = {
@@ -65,6 +75,8 @@ function _makeNewBudget(oldBudget, expenseType) {
   if (oldBudget.reimbursedAmount > expenseType.budget) {
     let overage = oldBudget.reimbursedAmount - expenseType.budget;
     newBudget.reimbursedAmount = overage;
+    console.log(`
+    Moving overdrafted amount of ${overage} to new budget: ${newBudget.id} for user ${newBudget.userId} 💰💰💰`);
   }
   return newBudget;
 }
