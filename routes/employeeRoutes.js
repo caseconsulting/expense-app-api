@@ -140,12 +140,10 @@ class EmployeeRoutes extends Crud {
 
   _getBudgetDates(hireDate) {
     console.warn('Employee Routes _getBudgetDates');
-    //let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
     let anniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
     const anniversaryComparisonDate = moment([anniversaryYear, anniversaryMonth, anniversaryDay]);
-    //let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startYear;
     const today = moment();
 
