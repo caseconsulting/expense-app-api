@@ -170,7 +170,6 @@ describe('employeeRoutes', () => {
       expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
       expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
       anniversaryComparisonDate = moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      //let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
       let startYear;
       today = moment();
 
