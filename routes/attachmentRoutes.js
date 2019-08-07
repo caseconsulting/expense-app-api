@@ -7,7 +7,6 @@ const multer = require('multer');
 const multerS3 = require('multer-s3');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
-// const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
@@ -51,10 +50,8 @@ class Attachment {
   constructor() {
     this.expenseData = expenseDynamo;
     this._router = express.Router();
-    // this._router.post('/:userId/:expenseId', upload.single('receipt'), this.onUpload.bind(this));
     this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
     this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
-    // this.router.get('/:userId/:expenseId', this.getAttachmentFromS3.bind(this));
   }
 
   get router() {
