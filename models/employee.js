@@ -22,6 +22,7 @@
  * - city
  * - st
  * - country
+ * - deptDate
  */
 class Employee {
   constructor(data) {
@@ -43,8 +44,9 @@ class Employee {
     this.github = data.github;
     this.twitter = data.twitter;
     this.city = data.city;
-    this.st = data.state;
+    this.st = data.st;
     this.country = data.country;
+    this.deptDate = data.deptDate;
 
     //sets null values to an empty string
     for (var propName in this) {
