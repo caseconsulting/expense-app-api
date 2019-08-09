@@ -20,14 +20,18 @@ class EmployeeRoutes extends Crud {
   async _delete(id) {
     console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
 
-    let employee, userExpenses;
+    let employee, userExpenses, userBudgets;
 
     try {
       userExpenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', id);
 
-      //can only delete a user if they have no budget data
+      //can only delete a user if they have no expenses
       if (userExpenses.length === 0) {
         employee = new Employee(await this.databaseModify.removeFromDB(id));
+        userBudgets = await this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', id);
+        for (let budget of userBudgets) {
+          await this.budgetDynamo.removeFromDB(budget.id); //deletes all users empty budgets
+        }
         return employee;
       } else {
         let err = {
