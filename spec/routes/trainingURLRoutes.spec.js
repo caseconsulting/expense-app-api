@@ -2,8 +2,8 @@ const TrainingURLRoutes = require('../../routes/trainingURLRoutes');
 const TrainingURL = require('../../models/trainingUrls');
 
 describe('trainingURLRoutes', () => {
-  const id = 'https://google.com';
-  const category = '["Conference"]';
+  const id = 'https://testing.com';
+  const category = 'test';
   const hits = 1;
 
   let trainingURLDynamo, trainingURLRoutes;
