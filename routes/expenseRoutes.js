@@ -133,7 +133,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
+        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
       };
       throw err;
     }
@@ -309,9 +309,10 @@ class ExpenseRoutes extends Crud {
     return budget.reimbursedAmount - expenseType.budget;
   }
 
-  _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets, expenseType) {
+  _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
     budget.pendingAmount -= oldExpense.cost; // remove old cost from old budget pending amount
-    let newBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat)); // get new expense budget
+    // get new expense budget
+    let newBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
     if (budget.id !== newBudget.id) {
       // if the new expense is on a new budget
       newBudget.pendingAmount += newExpense.cost; // add new cost to new budget pending amount
@@ -324,7 +325,8 @@ class ExpenseRoutes extends Crud {
 
   async _reimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     budget.pendingAmount -= oldExpense.cost; // remove pending from old budget
-    let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat)); // get new expense budget
+    // get new expense budget
+    let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
 
     if (budget.id === prevBudget.id) {
       prevBudget = budget;
