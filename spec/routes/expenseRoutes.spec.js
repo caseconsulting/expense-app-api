@@ -272,7 +272,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+          message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
         };
         expenseType.id = '{notTheSameexpenseTypeId}';
         localExpenseType = new ExpenseType(expenseType);
@@ -319,11 +319,11 @@ describe('expenseRoutes', () => {
         expense = {
           purchaseDate: '{purchaseDate}'
         };
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(["I'm a new budget"]));
       });
       it('should call _createNewBudget', async done => {
         expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
-          expect(newBudgets).toEqual(['I\'m a new budget']);
+          expect(newBudgets).toEqual(["I'm a new budget"]);
           expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
           done();
         });
@@ -371,7 +371,7 @@ describe('expenseRoutes', () => {
       }); // should return a resolved promise
     }); // all checks are true
 
-    describe('expense is outside of the expense type window', () => {
+    describe('expense is outside of the budget range', () => {
       beforeEach(() => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
@@ -379,7 +379,7 @@ describe('expenseRoutes', () => {
         employee.isInactive = false;
         expectedErrorObject = {
           code: 403,
-          message: 'Expense is not valid because: the expense is outside of the expense type window'
+          message: `Expense is not valid because: the expense is outside the budget range, ${startDate} to ${endDate}`
         };
       });
 
@@ -479,7 +479,7 @@ describe('expenseRoutes', () => {
         expense = { expenseTypeId: '{expenseTypeId#1}' };
         oldExpense = { expenseTypeId: '{expenseTypeId#2}' };
       });
-      it('should compare the two expenseType Id\'s', done => {
+      it("should compare the two expenseType Id's", done => {
         let result = expenseRoutes._areExpenseTypesEqual(expense, oldExpense);
         expect(result).toBe(false);
         done();
@@ -1016,7 +1016,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: 'Purchase Date is out of the anniversary budget range'
+          message: 'Purchase Date is out of your anniversary budget range'
         };
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
       });

@@ -133,7 +133,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -164,7 +164,7 @@ class ExpenseRoutes extends Crud {
         errMessage += ' the expense type is not valid';
       }
       if (!validDateRange) {
-        errMessage += ' the expense is outside of the expense type window';
+        errMessage += ` the expense is outside the budget range, ${startDate} to ${endDate}`;
       }
       if (!balanceCheck) {
         errMessage += ' the expense is over the budget limit';
@@ -420,7 +420,7 @@ class ExpenseRoutes extends Crud {
       console.warn('throw error');
       let err = {
         code: 403,
-        message: 'Purchase Date is out of the anniversary budget range'
+        message: 'Purchase Date is out of your anniversary budget range'
       };
       throw err;
     }
