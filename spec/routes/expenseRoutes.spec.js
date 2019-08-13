@@ -272,7 +272,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
+          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
         };
         expenseType.id = '{notTheSameexpenseTypeId}';
         localExpenseType = new ExpenseType(expenseType);
@@ -319,11 +319,11 @@ describe('expenseRoutes', () => {
         expense = {
           purchaseDate: '{purchaseDate}'
         };
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(["I'm a new budget"]));
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
       });
       it('should call _createNewBudget', async done => {
         expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
-          expect(newBudgets).toEqual(["I'm a new budget"]);
+          expect(newBudgets).toEqual(['I\'m a new budget']);
           expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
           done();
         });
@@ -479,7 +479,7 @@ describe('expenseRoutes', () => {
         expense = { expenseTypeId: '{expenseTypeId#1}' };
         oldExpense = { expenseTypeId: '{expenseTypeId#2}' };
       });
-      it("should compare the two expenseType Id's", done => {
+      it('should compare the two expenseType Id\'s', done => {
         let result = expenseRoutes._areExpenseTypesEqual(expense, oldExpense);
         expect(result).toBe(false);
         done();
