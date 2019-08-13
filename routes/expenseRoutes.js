@@ -73,7 +73,8 @@ class ExpenseRoutes extends Crud {
       }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      budget = await this._getBudgetData(budgets, expenseType, employee, expense);
+      // budget = await this._getBudgetData(budgets, expenseType, employee, expense);
+      budget = await this._getCurrentBudgetData(budgets, expenseType, employee);
     } catch (err) {
       console.error('Error Code: ' + err.code);
       throw err;
@@ -94,6 +95,16 @@ class ExpenseRoutes extends Crud {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
     } else {
       return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
+    }
+  }
+
+  async _getCurrentBudgetData(budgets, expenseType, employee) {
+    console.warn(moment().format(), 'Expense Routes _getCurrentBudgetData');
+
+    if (_.isEmpty(budgets)) {
+      return await this._createNewBudget(expenseType, employee, this.getUUID());
+    } else {
+      return await this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
     }
   }
 
@@ -133,7 +144,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -154,6 +165,9 @@ class ExpenseRoutes extends Crud {
 
     startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
     endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
+    console.warn('THE BUDGET', budget);
+    console.warn('THE START DATE', startDate);
+    console.warn('THE END DATE', endDate);
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
