@@ -144,7 +144,7 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
@@ -321,8 +321,6 @@ class ExpenseRoutes extends Crud {
   }
 
   _calculateBudgetOverage(budget, expenseType) {
-    console.warn('calcoverage budget reimbuse amt', budget.reimbursedAmount);
-    console.warn('calcoverage expenseType budget', expenseType.budget);
     return budget.reimbursedAmount - expenseType.budget;
   }
 
@@ -468,7 +466,6 @@ class ExpenseRoutes extends Crud {
     // get the sorted budget overdrafts
     let budgetOverdrafts = await this._getEmployeeBudgetOverdrafts(sortedBudgets, newExpense.userId, expenseType);
     budgetOverdrafts.unshift(0);
-    console.warn('budgetOverdrafts', budgetOverdrafts);
 
     // get the new expense budget
     let expenseBudget = await this._findBudgetWithMatchingRange(
@@ -521,7 +518,6 @@ class ExpenseRoutes extends Crud {
       }
       currBudgetIndex++; // continue to next budget
     } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
-    console.warn('end of unreimburse');
   }
 
   //TODO: refactor into testable function
