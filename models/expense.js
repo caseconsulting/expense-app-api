@@ -22,7 +22,7 @@ class Expense {
 
     // DynamoDB interprets NULL values as true. If we do not include them as
     // class attributes, then it will be undefined in DynamoDB.
-    if (data.reimbursedDate) this.reimbursedDate = data.reimbursedDate;
+    this.reimbursedDate = data.reimbursedDate;
     this.note = data.note;
     this.url = data.url;
 

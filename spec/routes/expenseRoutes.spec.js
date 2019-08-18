@@ -123,12 +123,12 @@ describe('expenseRoutes', () => {
       expenseDynamo.removeFromDB.and.returnValue(expense);
 
       spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
-      spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes, '_isReimbursedPromise').and.returnValue(Promise.resolve());
       spyOn(expenseRoutes, '_removeFromBudget').and.returnValue(Promise.resolve());
     });
 
     afterEach(() => {
-      expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(expense);
+      expect(expenseRoutes._isReimbursedPromise).toHaveBeenCalledWith(expense);
       expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, new ExpenseType(expenseType));
       expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
     });
@@ -228,7 +228,7 @@ describe('expenseRoutes', () => {
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
 
         expenseDynamo.updateEntryInDB.and.returnValue(newExpense);
-        spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
+        //spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes, '_performBudgetUpdate').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       });
@@ -242,7 +242,7 @@ describe('expenseRoutes', () => {
           oldExpense
         );
 
-        expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(oldExpense);
+        //expect(expenseRoutes._isReimbursed).toHaveBeenCalledWith(oldExpense);
         expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
@@ -272,7 +272,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         expectedError = {
           code: 403,
-          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+          message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
         };
         expenseType.id = '{notTheSameexpenseTypeId}';
         localExpenseType = new ExpenseType(expenseType);
@@ -319,11 +319,11 @@ describe('expenseRoutes', () => {
         expense = {
           purchaseDate: '{purchaseDate}'
         };
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(["I'm a new budget"]));
       });
       it('should call _createNewBudget', async done => {
         expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
-          expect(newBudgets).toEqual(['I\'m a new budget']);
+          expect(newBudgets).toEqual(["I'm a new budget"]);
           expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
           done();
         });
@@ -479,7 +479,7 @@ describe('expenseRoutes', () => {
         expense = { expenseTypeId: '{expenseTypeId#1}' };
         oldExpense = { expenseTypeId: '{expenseTypeId#2}' };
       });
-      it('should compare the two expenseType Id\'s', done => {
+      it("should compare the two expenseType Id's", done => {
         let result = expenseRoutes._areExpenseTypesEqual(expense, oldExpense);
         expect(result).toBe(false);
         done();
@@ -823,47 +823,94 @@ describe('expenseRoutes', () => {
     }); // when there is a reimbursedDate
   }); // _addExpenseToBudget
 
+  // xdescribe('_isReimbursed', () => {
+  //   // old isreimbursed method
+  //   let expense, keptItsPromise, expectedError;
+  //   describe('when there is no reimbursedDate', () => {
+  //     beforeEach(() => {
+  //       expense = {
+  //         reimbursedDate: undefined
+  //       };
+  //     });
+  //
+  //     it('should return a resolved promise', done => {
+  //       expenseRoutes
+  //         ._isReimbursed(expense)
+  //         .then(() => {
+  //           keptItsPromise = true;
+  //           expect(keptItsPromise).toBe(true);
+  //           done();
+  //         })
+  //         .catch(() => done(new Error('Promise should resolve')));
+  //     }); // should return a resolved promise
+  //   }); // when there is no reimbursedDate
+  //
+  //   describe('when there is a reimbursedDate', () => {
+  //     beforeEach(() => {
+  //       expense = {
+  //         reimbursedDate: 'is exist'
+  //       };
+  //       expectedError = {
+  //         code: 403,
+  //         message: 'expense cannot perform action because it has already been reimbursed'
+  //       };
+  //     });
+  //
+  //     it('should return an error', done => {
+  //       expenseRoutes
+  //         ._isReimbursed(expense)
+  //         .then(() => done(new Error('Promise should reject')))
+  //         .catch(err => {
+  //           expect(err).toEqual(expectedError);
+  //           done();
+  //         });
+  //     }); // should return an error
+  //   }); // when there is a reimbursedDate
+  // }); // _isReimbursed
+
   describe('_isReimbursed', () => {
+    // new _isReimbursed method
     let expense, keptItsPromise, expectedError;
-    describe('when there is no reimbursedDate', () => {
+    describe('when the reimbursedDate is undefined', () => {
       beforeEach(() => {
         expense = {
           reimbursedDate: undefined
         };
       });
 
-      it('should return a resolved promise', done => {
-        expenseRoutes
-          ._isReimbursed(expense)
-          .then(() => {
-            keptItsPromise = true;
-            expect(keptItsPromise).toBe(true);
-            done();
-          })
-          .catch(() => done(new Error('Promise should resolve')));
-      }); // should return a resolved promise
+      it('should return false', done => {
+        let result = expenseRoutes._isReimbursed(expense);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // when there is no reimbursedDate
+
+    describe('when the reimbursedDate is blank spaced', () => {
+      beforeEach(() => {
+        expense = {
+          reimbursedDate: ' '
+        };
+      });
+
+      it('should return false', done => {
+        let result = expenseRoutes._isReimbursed(expense);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
     }); // when there is no reimbursedDate
 
     describe('when there is a reimbursedDate', () => {
       beforeEach(() => {
         expense = {
-          reimbursedDate: 'is exist'
-        };
-        expectedError = {
-          code: 403,
-          message: 'expense cannot perform action because it has already been reimbursed'
+          reimbursedDate: '2019-20-05'
         };
       });
 
-      it('should return an error', done => {
-        expenseRoutes
-          ._isReimbursed(expense)
-          .then(() => done(new Error('Promise should reject')))
-          .catch(err => {
-            expect(err).toEqual(expectedError);
-            done();
-          });
-      }); // should return an error
+      it('should return true', done => {
+        let result = expenseRoutes._isReimbursed(expense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
     }); // when there is a reimbursedDate
   }); // _isReimbursed
 

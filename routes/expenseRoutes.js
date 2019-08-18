@@ -39,7 +39,7 @@ class ExpenseRoutes extends Crud {
       console.error('Error Code: ' + err.code);
       throw err;
     }
-    return this._isReimbursed(expense)
+    return this._isReimbursedPromise(expense)
       .then(() => this._removeFromBudget(budget, expense, expenseType))
       .then(() => this.expenseDynamo.removeFromDB(id))
       .catch(err => {
@@ -144,13 +144,15 @@ class ExpenseRoutes extends Crud {
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let err = {
         code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
+        message: "Submitted Expense's expenseTypeId doesn't match with one in the database."
       };
       throw err;
     }
 
+    console.warn('the old expense that is reimbursed is', oldExpense);
+    console.warn('the new expense that is reimbursed is', newExpense);
+
     return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
-      .then(() => this._isReimbursed(oldExpense))
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
       .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
       .catch(err => {
@@ -165,9 +167,6 @@ class ExpenseRoutes extends Crud {
 
     startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
     endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
-    console.warn('THE BUDGET', budget);
-    console.warn('THE START DATE', startDate);
-    console.warn('THE END DATE', endDate);
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
@@ -300,7 +299,7 @@ class ExpenseRoutes extends Crud {
 
   _addExpenseToBudget(expense, budget) {
     console.warn('Expense Routes _addExpenseToBudget');
-    if (!expense.reimbursedDate) {
+    if (!this._isReimbursed(expense)) {
       budget.pendingAmount += expense.cost;
     } else {
       budget.reimbursedAmount += expense.cost;
@@ -309,12 +308,16 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursed(expense) {
+    return !!expense.reimbursedDate && expense.reimbursedDate.trim().length > 0;
+  }
+
+  _isReimbursedPromise(expense) {
     console.warn('Expense Routes _isReimbursed');
     let err = {
       code: 403,
       message: 'expense cannot perform action because it has already been reimbursed'
     };
-    return expense.reimbursedDate ? Promise.reject(err) : Promise.resolve();
+    return this._isReimbursed(expense) ? Promise.reject(err) : Promise.resolve();
   }
 
   _calculateBudgetOverage(budget, expenseType) {
@@ -324,6 +327,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
+    console.warn('Expense Routes _unimbursedExpenseChange');
+
     budget.pendingAmount -= oldExpense.cost; // remove old cost from old budget pending amount
     // get new expense budget
     let newBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
@@ -337,7 +342,9 @@ class ExpenseRoutes extends Crud {
     this.budgetDynamo.updateEntryInDB(budget); // update dynamo budget
   }
 
-  async _reimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType) {
+  async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
+    console.warn('Expense Routes _reimburseExpense');
+
     budget.pendingAmount -= oldExpense.cost; // remove pending from old budget
     // get new expense budget
     let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
@@ -351,43 +358,187 @@ class ExpenseRoutes extends Crud {
     let dbPromise = await this.budgetDynamo.updateEntryInDB(prevBudget);
     let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years'); // increase year by one
 
-    try {
-      let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-      let overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
+    // if over draft is allowed, carry over any overage
+    if (expenseType.odFlag) {
+      try {
+        let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
+        let overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
 
-      // transfer overage to next year if both exist
-      while (nextYearsBudget && overage > 0) {
-        prevBudget.reimbursedAmount -= overage; // top off overdrafted budget
-        nextYearsBudget.reimbursedAmount += overage; // move overage to next years budget
+        // transfer overage to next year if both exist
+        while (nextYearsBudget && overage > 0) {
+          prevBudget.reimbursedAmount -= overage; // top off overdrafted budget
+          nextYearsBudget.reimbursedAmount += overage; // move overage to next years budget
 
-        // update budgets on dynamodb
-        dbPromise = await this.budgetDynamo
-          .updateEntryInDB(prevBudget)
-          .then(this.budgetDynamo.updateEntryInDB(nextYearsBudget));
+          // update budgets on dynamodb
+          dbPromise = await this.budgetDynamo
+            .updateEntryInDB(prevBudget)
+            .then(this.budgetDynamo.updateEntryInDB(nextYearsBudget));
 
-        // update to the next budget iteration
-        prevBudget = nextYearsBudget;
-        purchaseIncremented.add(1, 'years'); // increment budget year
-        nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-        overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
+          // update to the next budget iteration
+          prevBudget = nextYearsBudget;
+          purchaseIncremented.add(1, 'years'); // increment budget year
+          nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
+          overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
+        }
+        return dbPromise;
+      } catch (e) {
+        return dbPromise;
       }
-      return dbPromise;
-    } catch (e) {
-      return dbPromise;
     }
+    return dbPromise;
+  }
+
+  /*
+   * Return an array of sorted budgets by fiscal start date
+   */
+  _sortBudgets(budgets) {
+    console.warn('Expense Routes _sortBudgets');
+
+    return _.sortBy(budgets, [
+      budget => {
+        return moment(budget.fiscalStartDate, IsoFormat);
+      }
+    ]);
+  }
+
+  /*
+   * return true if expense matches expense type, is reimbursed, and within budget range
+   */
+  _isValidExpense(expense, budget, expenseType) {
+    console.warn('Expense Routes _isValidExpense');
+
+    return (
+      expense.expenseTypeId === expenseType.id &&
+      this._isReimbursed(expense) &&
+      this._checkExpenseDate(expense.purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
+    );
+  }
+
+  /*
+   * Return the total cost of reimbursed expenses for an employee within a budget range
+   */
+  async _getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType) {
+    console.warn('Expense Routes _getEmployeeExpensesTotalInBudget');
+
+    let expenses = await this.expenseDynamo.querySecondaryIndexInDB('userId-index', 'userId', employeeId);
+
+    let filteredExpenses = _.filter(expenses, expense => {
+      return this._isValidExpense(expense, budget, expenseType);
+    });
+
+    return _.sumBy(filteredExpenses, expense => {
+      return expense.cost;
+    });
+  }
+
+  /*
+   * calculate the overdraft for a particular employee budget
+   */
+  async _calcOverdraft(budget, employeeId, expenseType) {
+    console.warn('Expense Routes _calcOverdraft');
+    let totalExp = await this._getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType);
+    let overdraft = totalExp - Number(expenseType.budget);
+
+    return overdraft;
+  }
+
+  /*
+   * Return a mapped array of overdrafts for the employee budgets
+   */
+  async _getEmployeeBudgetOverdrafts(budgets, employeeId, expenseType) {
+    console.warn('Expense Routes _getEmployeeBudgetOverdrafts');
+
+    let overdrafts = [];
+    for (let x = 0; x < budgets.length; x++) {
+      let overdraft = await this._calcOverdraft(budgets[x], employeeId, expenseType);
+
+      overdrafts.push(overdraft);
+    }
+    return overdrafts;
+  }
+
+  /*
+   * Unreimburse an expense
+   */
+  async _unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
+    console.warn('Expense Routes _unreimburseExpense');
+    // sort the budgets
+    let sortedBudgets = this._sortBudgets(budgets);
+
+    // get the sorted budget overdrafts
+    let budgetOverdrafts = await this._getEmployeeBudgetOverdrafts(sortedBudgets, newExpense.userId, expenseType);
+    budgetOverdrafts.unshift(0);
+    console.warn('budgetOverdrafts', budgetOverdrafts);
+
+    // get the new expense budget
+    let expenseBudget = await this._findBudgetWithMatchingRange(
+      sortedBudgets,
+      moment(newExpense.purchaseDate, IsoFormat)
+    );
+
+    let currBudgetIndex = 0;
+    let acquiredOverdraft = 0;
+    let performBudgetUpdate = false;
+    let unimburse = Number(oldExpense.cost);
+    let remaining = unimburse;
+    let refund = 0;
+    do {
+      // accumulate the overdrafts
+      if (budgetOverdrafts[currBudgetIndex] === 0) {
+        acquiredOverdraft = 0;
+      } else {
+        acquiredOverdraft += budgetOverdrafts[currBudgetIndex];
+      }
+
+      if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
+        // if reaching the unreimburse expense budget
+        sortedBudgets[currBudgetIndex].pendingAmount += unimburse; // reset pending amount
+        performBudgetUpdate = true; // signal budget updates
+      }
+      if (performBudgetUpdate) {
+        // if should performing budget updates
+        // get the reimbursed amount for the current budget
+        let reimbursedAmnt = sortedBudgets[currBudgetIndex].reimbursedAmount;
+        let totalInBudget = await this._getEmployeeExpensesTotalInBudget(
+          newExpense.userId,
+          sortedBudgets[currBudgetIndex],
+          expenseType
+        ); // get the total expenses in the budget
+
+        // calculate how much to refund for current budget
+        if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
+          refund =
+            Math.max(reimbursedAmnt - (totalInBudget - unimburse), 0) + remaining - (acquiredOverdraft + unimburse);
+        } else {
+          refund = Math.max(reimbursedAmnt - totalInBudget, 0) + remaining - acquiredOverdraft;
+        }
+
+        remaining -= refund; // subtract current refund from remaining refund
+
+        // update budget
+        sortedBudgets[currBudgetIndex].reimbursedAmount -= refund;
+        await this.budgetDynamo.updateEntryInDB(sortedBudgets[currBudgetIndex]); // update budget in table
+      }
+      currBudgetIndex++; // continue to next budget
+    } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
+    console.warn('end of unreimburse');
   }
 
   //TODO: refactor into testable function
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
     console.warn('Expense Routes _preformBudgetUpdate');
 
-    if (!oldExpense.reimbursedDate && newExpense.reimbursedDate) {
+    if (!this._isReimbursed(oldExpense) && this._isReimbursed(newExpense)) {
       //if reimbursing an expense
-      return this._reimbursedExpense(oldExpense, newExpense, budget, budgets, expenseType);
-    } else if (!oldExpense.reimbursedDate && !newExpense.reimbursedDate) {
+      return this._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType);
+    } else if (!this._isReimbursed(oldExpense) && !this._isReimbursed(newExpense)) {
       // if changing an unimbursed expense
       return this._unimbursedExpenseChange(oldExpense, newExpense, budget, budgets, expenseType);
+    } else if (this._isReimbursed(oldExpense) && !this._isReimbursed(newExpense)) {
+      // if unreimbursing an expense
+      return this._unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType);
     }
+    return false;
   }
 
   _removeFromBudget(budget, expense, expenseType) {
@@ -424,6 +575,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
+    console.warn('Expense Routes _findBudgetWithMatchingRange');
+
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
     );
