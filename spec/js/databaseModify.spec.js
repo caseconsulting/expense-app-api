@@ -454,4 +454,61 @@ describe('databaseModify', () => {
       });
     }); // when this.tableName is dev-training-urls
   }); // buildUpdateParams
+
+  describe('_buildExpression', () => {
+    let data;
+
+    beforeEach(() => {
+      data = '{data}';
+    });
+
+    describe('when data has an id attribute', () => {
+      beforeEach(
+        () =>
+          (data = {
+            id: 'id',
+            something: 'something',
+            somethingElse: 'something else',
+            lastThing: 'last thing'
+          })
+      );
+
+      it('should ignore the id attribute', () => {
+        expect(databaseModify._buildExpression(data)).toEqual({
+          ExpressionAttributeValues: {
+            ':a': 'something',
+            ':b': 'something else',
+            ':c': 'last thing'
+          },
+          UpdateExpression: 'set something = :a,somethingElse = :b,lastThing = :c'
+        });
+      });
+    }); // when data has an id attribute
+
+    describe('when data has a url attribute', () => {
+      beforeEach(
+        () =>
+          (data = {
+            id: 'id',
+            something: 'something',
+            somethingElse: 'something else',
+            lastThing: 'last thing',
+            url: 'url'
+          })
+      );
+
+      it('should ignore handle the special case with the url', () => {
+        expect(databaseModify._buildExpression(data)).toEqual({
+          ExpressionAttributeValues: {
+            ':a': 'something',
+            ':b': 'something else',
+            ':c': 'last thing',
+            ':d': 'url'
+          },
+          UpdateExpression: 'set something = :a,somethingElse = :b,lastThing = :c,#url = :d',
+          ExpressionAttributeNames: { '#url': 'url' }
+        });
+      });
+    }); // when data has a url attribute
+  }); // _buildExpression
 });

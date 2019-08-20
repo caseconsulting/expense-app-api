@@ -255,168 +255,104 @@ class databaseModify {
     );
   }
 
-  _buildExpenseUpdateParams(objToUpdate) {
-    let ExpressionAttributeValues = {},
-      UpdateExpression = 'set ';
-    let params = {
-      TableName: `${STAGE}-expenses`,
-      Key: {
-        id: objToUpdate.id
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+  _buildExpression(data) {
+    const alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    let ExpressionAttributeValues = {};
+    let UpdateExpression = 'set ';
+    let ExpressionAttributeNames = {};
+    const attributes = _.keys(_.omit(data, ['id']));
+    _.each(attributes, (attribute, index) => {
+      const value = _.get(data, attribute);
+      if (value) {
+        let expressionAttribute = `:${alpha[index]}`;
+        ExpressionAttributeValues[expressionAttribute] = value;
 
-    if (objToUpdate.purchaseDate) {
-      ExpressionAttributeValues[':pd'] = objToUpdate.purchaseDate;
-      UpdateExpression += 'purchaseDate = :pd,';
-    }
-    if (objToUpdate.reimbursedDate) {
-      ExpressionAttributeValues[':rd'] = objToUpdate.reimbursedDate;
-      UpdateExpression += 'reimbursedDate = :rd,';
-    }
-    if (objToUpdate.cost) {
-      ExpressionAttributeValues[':c'] = objToUpdate.cost;
-      UpdateExpression += 'cost = :c,';
-    }
-    if (objToUpdate.description) {
-      ExpressionAttributeValues[':d'] = objToUpdate.description;
-      UpdateExpression += 'description = :d,';
-    }
-    if (objToUpdate.note) {
-      ExpressionAttributeValues[':n'] = objToUpdate.note;
-      UpdateExpression += 'note = :n,';
-    }
-    if (objToUpdate.receipt) {
-      ExpressionAttributeValues[':r'] = objToUpdate.receipt;
-      UpdateExpression += 'receipt = :r,';
-    }
-    if (objToUpdate.expenseTypeId) {
-      ExpressionAttributeValues[':eti'] = objToUpdate.expenseTypeId;
-      UpdateExpression += 'expenseTypeId = :eti,';
-    }
-    if (objToUpdate.userId) {
-      ExpressionAttributeValues[':ui'] = objToUpdate.userId;
-      UpdateExpression += 'userId = :ui,';
-    }
-    if (objToUpdate.createdAt) {
-      ExpressionAttributeValues[':cat'] = objToUpdate.createdAt;
-      UpdateExpression += 'createdAt = :cat,';
-    }
-    if (objToUpdate.url) {
-      ExpressionAttributeValues[':url'] = objToUpdate.url;
-      UpdateExpression += '#url = :url,';
-      _.set(params, 'ExpressionAttributeNames', { '#url': 'url' });
-    }
-    if (objToUpdate.categories) {
-      ExpressionAttributeValues[':cate'] = objToUpdate.categories;
-      UpdateExpression += 'categories = :cate,';
-    }
-
+        if (attribute === 'url') {
+          UpdateExpression += `#url = ${expressionAttribute},`;
+          _.assign(ExpressionAttributeNames, { '#url': 'url' });
+        } else {
+          UpdateExpression += `${attribute} = ${expressionAttribute},`;
+        }
+      }
+    });
     UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
+    return !_.isEmpty(ExpressionAttributeNames)
+      ? { ExpressionAttributeValues, UpdateExpression, ExpressionAttributeNames }
+      : { ExpressionAttributeValues, UpdateExpression };
+  }
 
-    _.assign(params, { ExpressionAttributeValues, UpdateExpression });
-
-    return params;
+  _buildExpenseUpdateParams(objToUpdate) {
+    return _.assign(
+      {
+        TableName: `${STAGE}-expenses`,
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW'
+      },
+      this._buildExpression(objToUpdate)
+    );
   }
 
   _buildEmployeeUpdateParams(objToUpdate) {
-    return {
-      TableName: `${STAGE}-employees`,
-      Key: {
-        id: objToUpdate.id
+    return _.assign(
+      {
+        TableName: `${STAGE}-employees`,
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW'
       },
-      UpdateExpression: `set firstName = :fn, middleName = :mn, lastName = :ln,
-                           employeeNumber = :eid, hireDate = :hd, isInactive = :ia,
-                           employeeRole = :er, email = :eml, birthday = :br, jobRole = :jr, 
-                           prime = :pr, contract = :ct, github = :gh, twitter = :tt, 
-                           city = :cty, st = :st, country = :cry, deptDate = :dd`,
-      ExpressionAttributeValues: {
-        ':fn': objToUpdate.firstName,
-        ':mn': objToUpdate.middleName,
-        ':ln': objToUpdate.lastName,
-        ':eid': objToUpdate.employeeNumber,
-        ':hd': objToUpdate.hireDate,
-        ':ia': objToUpdate.isInactive,
-        ':er': objToUpdate.employeeRole,
-        ':eml': objToUpdate.email,
-        // New Fields
-        ':br': objToUpdate.birthday,
-        ':jr': objToUpdate.jobRole,
-        ':pr': objToUpdate.prime,
-        ':ct': objToUpdate.contract,
-        ':gh': objToUpdate.github,
-        ':tt': objToUpdate.twitter,
-        ':cty': objToUpdate.city,
-        ':st': objToUpdate.st,
-        ':cry': objToUpdate.country,
-        ':dd': objToUpdate.deptDate
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+      this._buildExpression(objToUpdate)
+    );
   }
 
   _buildExpenseTypeUpdateParams(objToUpdate) {
-    return {
-      TableName: `${STAGE}-expense-types`,
-      Key: {
-        id: objToUpdate.id
+    return _.assign(
+      {
+        TableName: `${STAGE}-expense-types`,
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW'
       },
-      UpdateExpression: `set budgetName = :bn, budget = :b, odFlag = :odf, description = :d,
-                             startDate = :sd, endDate= :ed, recurringFlag = :rf, requiredFlag = :rqf,
-                              isInactive = :ia, categories = :c`,
-      ExpressionAttributeValues: {
-        ':bn': objToUpdate.budgetName,
-        ':b': objToUpdate.budget,
-        ':odf': objToUpdate.odFlag,
-        ':d': objToUpdate.description,
-        ':sd': objToUpdate.startDate,
-        ':ed': objToUpdate.endDate,
-        ':rf': objToUpdate.recurringFlag,
-        ':rqf': objToUpdate.requiredFlag,
-        ':ia': objToUpdate.isInactive,
-        ':c': objToUpdate.categories
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+      this._buildExpression(objToUpdate)
+    );
   }
 
   _buildBudgetUpdateParams(objToUpdate) {
-    return {
-      TableName: `${STAGE}-budgets`,
-      Key: {
-        id: objToUpdate.id
+    return _.assign(
+      {
+        TableName: `${STAGE}-budgets`,
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW'
       },
-      UpdateExpression: `set expenseTypeId = :eti, userId = :ui, reimbursedAmount = :ra,
-                             fiscalStartDate = :fsd, fiscalEndDate = :fed, pendingAmount = :pa`,
-      ExpressionAttributeValues: {
-        ':eti': objToUpdate.expenseTypeId,
-        ':ui': objToUpdate.userId,
-        ':ra': objToUpdate.reimbursedAmount,
-        ':pa': objToUpdate.pendingAmount,
-        ':fsd': objToUpdate.fiscalStartDate,
-        ':fed': objToUpdate.fiscalEndDate
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+      this._buildExpression(objToUpdate)
+    );
   }
 
   _buildTrainingUrlUpdateParams(objToUpdate) {
-    return {
-      TableName: `${STAGE}-training-urls`,
-      Key: {
-        id: objToUpdate.id,
-        category: objToUpdate.category
+    return _.assign(
+      {
+        TableName: `${STAGE}-training-urls`,
+        Key: {
+          id: objToUpdate.id,
+          category: objToUpdate.category
+        },
+        UpdateExpression: 'set hits = :ht',
+        ExpressionAttributeValues: {
+          ':ht': objToUpdate.hits
+        },
+        ReturnValues: 'ALL_NEW'
       },
-      UpdateExpression: 'set hits = :ht',
-      ExpressionAttributeValues: {
-        ':ht': objToUpdate.hits
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+      this._buildExpression(objToUpdate)
+    );
   }
 
   /**
-   * Builds the parameters for update depending on the this.tablePath
+   * Builds the parameters for update depending on the this.tableName
    * @return the parameters for update
    */
   buildUpdateParams(objToUpdate) {
