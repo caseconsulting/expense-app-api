@@ -81,7 +81,7 @@ npm update --save-dev <module-name>
 ## Deployment (dev)
 
 ```
-npm run deploy:dev
+npm run update
 ```
 
 ## Deployment (test & prod)
