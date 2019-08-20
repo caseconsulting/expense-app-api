@@ -78,7 +78,13 @@ To upgrade to the latest version of a specific Node.js module, which is a develo
 npm update --save-dev <module-name>
 ```
 
-## Deployment
+## Deployment (dev)
+
+```
+npm run deploy:dev
+```
+
+## Deployment (test & prod)
 
 Application deployment occurs when an EC2 instance is built.  To update an existing server, ssh to that server using the appropriate key pair.  For example:
 
@@ -87,18 +93,6 @@ ssh -i ~/projects/expense-app-dev.pem centos@ec2-12-345-67-89.compute-1.amazonaw
 ```
 
 Run the following commands to update and restart the server, making sure to substitute the proper environment for "<env>" in the bucket name:
-
-dev
-```
-cd app
-git checkout -- package-lock.json
-git pull
-npm install --no-optional
-npm prune
-npm dedupe
-aws s3 cp s3://case-consulting-expense-app-resources-dev/.env .env
-npm run restart
-```
 
 test
 ```
