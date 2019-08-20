@@ -341,10 +341,6 @@ class databaseModify {
           id: objToUpdate.id,
           category: objToUpdate.category
         },
-        UpdateExpression: 'set hits = :ht',
-        ExpressionAttributeValues: {
-          ':ht': objToUpdate.hits
-        },
         ReturnValues: 'ALL_NEW'
       },
       this._buildExpression(objToUpdate)

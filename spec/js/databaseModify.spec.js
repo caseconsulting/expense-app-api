@@ -511,4 +511,85 @@ describe('databaseModify', () => {
       });
     }); // when data has a url attribute
   }); // _buildExpression
+
+  describe('_buildExpenseUpdateParams', () => {
+    let objToUpdate = '{objToUpdate}';
+    beforeEach(() => spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' }));
+    afterEach(() => expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate));
+    it('should return the appropriate params', () => {
+      expect(databaseModify._buildExpenseUpdateParams(objToUpdate)).toEqual({
+        TableName: 'dev-expenses',
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW',
+        expression: '{expression}'
+      });
+    });
+  }); // _buildExpenseUpdateParams
+
+  describe('_buildEmployeeUpdateParams', () => {
+    let objToUpdate = '{objToUpdate}';
+    beforeEach(() => spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' }));
+    afterEach(() => expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate));
+    it('should return the appropriate params', () => {
+      expect(databaseModify._buildEmployeeUpdateParams(objToUpdate)).toEqual({
+        TableName: 'dev-employees',
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW',
+        expression: '{expression}'
+      });
+    });
+  }); // _buildEmployeeUpdateParams
+
+  describe('_buildExpenseTypeUpdateParams', () => {
+    let objToUpdate = '{objToUpdate}';
+    beforeEach(() => spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' }));
+    afterEach(() => expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate));
+    it('should return the appropriate params', () => {
+      expect(databaseModify._buildExpenseTypeUpdateParams(objToUpdate)).toEqual({
+        TableName: 'dev-expense-types',
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW',
+        expression: '{expression}'
+      });
+    });
+  }); // _buildExpenseTypeUpdateParams
+
+  describe('_buildBudgetUpdateParams', () => {
+    let objToUpdate = '{objToUpdate}';
+    beforeEach(() => spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' }));
+    afterEach(() => expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate));
+    it('should return the appropriate params', () => {
+      expect(databaseModify._buildBudgetUpdateParams(objToUpdate)).toEqual({
+        TableName: 'dev-budgets',
+        Key: {
+          id: objToUpdate.id
+        },
+        ReturnValues: 'ALL_NEW',
+        expression: '{expression}'
+      });
+    });
+  }); // _buildBudgetUpdateParams
+
+  describe('_buildTrainingUrlUpdateParams', () => {
+    let objToUpdate = '{objToUpdate}';
+    beforeEach(() => spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' }));
+    afterEach(() => expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate));
+    it('should return the appropriate params', () => {
+      expect(databaseModify._buildTrainingUrlUpdateParams(objToUpdate)).toEqual({
+        TableName: 'dev-training-urls',
+        Key: {
+          id: objToUpdate.id,
+          category: objToUpdate.category
+        },
+        ReturnValues: 'ALL_NEW',
+        expression: '{expression}'
+      });
+    });
+  }); // _buildTrainingUrlUpdateParams
 });
