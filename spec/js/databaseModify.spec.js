@@ -1,4 +1,5 @@
 const databaseModifyClass = require('../../js/databaseModify');
+const _ = require('lodash');
 
 const AWS = require('aws-sdk-mock');
 
@@ -7,6 +8,71 @@ xdescribe('databaseModify', () => {
   beforeEach(() => {
     databaseModify = new databaseModifyClass('employee.json');
   });
+
+  describe('buildExpressionAttributeValues', () => {
+    let objToUpdate;
+
+    beforeEach(() => {
+      objToUpdate = '{objToUpdate}';
+      spyOn(_, 'pickBy').and.returnValue('result');
+    });
+
+    afterEach(() => {
+      expect(_.pickBy).toHaveBeenCalledWith(
+        {
+          ':pd': objToUpdate.purchaseDate,
+          ':rd': objToUpdate.reimbursedDate,
+          ':c': objToUpdate.cost,
+          ':d': objToUpdate.description,
+          ':n': objToUpdate.note,
+          ':r': objToUpdate.receipt,
+          ':eti': objToUpdate.expenseTypeId,
+          ':ui': objToUpdate.userId,
+          ':cat': objToUpdate.createdAt,
+          ':rurl': objToUpdate.url,
+          ':cate': objToUpdate.categories
+        },
+        _.identity
+      );
+    });
+
+    it('should return result', () => {
+      expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual('result');
+    });
+  }); // buildExpressionAttributeValues
+
+  describe('buildExpressionAttributeValues', () => {
+    let objToUpdate;
+
+    describe('when there are no undefined values', () => {
+      beforeEach(() => {
+        objToUpdate = {
+          purchaseDate: 'my purchase date'
+        };
+      });
+
+      it('should return the appropriate object', () => {
+        expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual({
+          ':pd': 'my purchase date'
+        });
+      });
+    }); // when there are no undefined values
+
+    describe('when there are undefined values', () => {
+      beforeEach(() => {
+        objToUpdate = {
+          purchaseDate: 'my purchase date',
+          reimbursedDate: undefined
+        };
+      });
+
+      it('should return the appropriate object', () => {
+        expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual({
+          ':pd': 'my purchase date'
+        });
+      });
+    }); // when there are undefined values
+  }); // buildExpressionAttributeValues
 
   describe('findObjectInDB', () => {
     //
