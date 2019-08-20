@@ -3,8 +3,9 @@ const _ = require('lodash');
 
 const AWS = require('aws-sdk-mock');
 
-xdescribe('databaseModify', () => {
+describe('databaseModify', () => {
   let databaseModify;
+
   beforeEach(() => {
     databaseModify = new databaseModifyClass('employee.json');
   });
@@ -74,7 +75,7 @@ xdescribe('databaseModify', () => {
     }); // when there are undefined values
   }); // buildExpressionAttributeValues
 
-  describe('findObjectInDB', () => {
+  xdescribe('findObjectInDB', () => {
     //
     let primaryKey;
     beforeEach(() => (primaryKey = '{primaryKey}'));
@@ -365,4 +366,92 @@ xdescribe('databaseModify', () => {
       AWS.restore();
     });
   }); // getAllEntriesInDB
+
+  describe('buildUpdateParams', () => {
+    let objToUpdate;
+
+    beforeEach(() => {
+      objToUpdate = '{objToUpdate}';
+      spyOn(databaseModify, '_buildExpenseUpdateParams').and.returnValue('{expenseParams}');
+      spyOn(databaseModify, '_buildEmployeeUpdateParams').and.returnValue('{employeeParams}');
+      spyOn(databaseModify, '_buildExpenseTypeUpdateParams').and.returnValue('{expenseTypeParams}');
+      spyOn(databaseModify, '_buildBudgetUpdateParams').and.returnValue('{budgetParams}');
+      spyOn(databaseModify, '_buildTrainingUrlUpdateParams').and.returnValue('{trainingUrlParams}');
+    });
+
+    describe('when this.tableName is dev-expenses', () => {
+      beforeEach(() => (databaseModify.tableName = 'dev-expenses'));
+      afterEach(() => {
+        expect(databaseModify._buildExpenseUpdateParams).toHaveBeenCalledWith(objToUpdate);
+        expect(databaseModify._buildEmployeeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildExpenseTypeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildBudgetUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildTrainingUrlUpdateParams).not.toHaveBeenCalled();
+      });
+
+      it('should return {expenseParams}', () => {
+        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{expenseParams}');
+      });
+    }); // when this.tableName is dev-expenses
+
+    describe('when this.tableName is dev-employees', () => {
+      beforeEach(() => (databaseModify.tableName = 'dev-employees'));
+      afterEach(() => {
+        expect(databaseModify._buildExpenseUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildEmployeeUpdateParams).toHaveBeenCalledWith(objToUpdate);
+        expect(databaseModify._buildExpenseTypeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildBudgetUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildTrainingUrlUpdateParams).not.toHaveBeenCalled();
+      });
+
+      it('should return {employeeParams}', () => {
+        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{employeeParams}');
+      });
+    }); // when this.tableName is dev-employees
+
+    describe('when this.tableName is dev-expense-types', () => {
+      beforeEach(() => (databaseModify.tableName = 'dev-expense-types'));
+      afterEach(() => {
+        expect(databaseModify._buildExpenseUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildEmployeeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildExpenseTypeUpdateParams).toHaveBeenCalledWith(objToUpdate);
+        expect(databaseModify._buildBudgetUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildTrainingUrlUpdateParams).not.toHaveBeenCalled();
+      });
+
+      it('should return {expenseTypeParams}', () => {
+        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{expenseTypeParams}');
+      });
+    }); // when this.tableName is dev-expense-types
+
+    describe('when this.tableName is dev-budgets', () => {
+      beforeEach(() => (databaseModify.tableName = 'dev-budgets'));
+      afterEach(() => {
+        expect(databaseModify._buildExpenseUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildEmployeeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildExpenseTypeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildBudgetUpdateParams).toHaveBeenCalledWith(objToUpdate);
+        expect(databaseModify._buildTrainingUrlUpdateParams).not.toHaveBeenCalled();
+      });
+
+      it('should return {budgetParams}', () => {
+        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{budgetParams}');
+      });
+    }); // when this.tableName is dev-budgets
+
+    describe('when this.tableName is dev-training-urls', () => {
+      beforeEach(() => (databaseModify.tableName = 'dev-training-urls'));
+      afterEach(() => {
+        expect(databaseModify._buildExpenseUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildEmployeeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildExpenseTypeUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildBudgetUpdateParams).not.toHaveBeenCalled();
+        expect(databaseModify._buildTrainingUrlUpdateParams).toHaveBeenCalledWith(objToUpdate);
+      });
+
+      it('should return {trainingUrlParams}', () => {
+        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{trainingUrlParams}');
+      });
+    }); // when this.tableName is dev-training-urls
+  }); // buildUpdateParams
 });
