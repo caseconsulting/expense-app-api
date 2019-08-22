@@ -263,7 +263,7 @@ class databaseModify {
     const attributes = _.keys(_.omit(data, ['id']));
     _.each(attributes, (attribute, index) => {
       const value = _.get(data, attribute);
-      if (value) {
+      if (value || value === 0) {
         let expressionAttribute = `:${alpha[index]}`;
         ExpressionAttributeValues[expressionAttribute] = value;
 
