@@ -5,6 +5,13 @@
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "claudia": "claudia",
+    "download:dev:claudia": "aws s3 cp s3://case-consulting-expense-app-resources-dev/claudia.json claudia.json",
+    "download:dev:env": "aws s3 cp s3://case-consulting-expense-app-resources-dev/.env .env",
+    "download:local:env": "aws s3 cp s3://case-expense-app/.env .env",
+    "download:prod:env": "aws s3 cp s3://case-consulting-expense-app-resources-prod/.env .env",
+    "download:prod:claudia": "aws s3 cp s3://case-consulting-expense-app-resources-prod/claudia.json claudia.json",
+    "download:test:env": "aws s3 cp s3://case-consulting-expense-app-resources-test/.env .env",
+    "download:test:claudia": "aws s3 cp s3://case-consulting-expense-app-resources-test/claudia.json claudia.json",
     "debug": "nodemon --trace-warnings --inspect bin/www",
     "deploy:dev": "claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs8.10 --set-env VUE_APP_AUTH0_DOMAIN=consultwithcase.auth0.com,VUE_APP_AUTH0_AUDIENCE=https://consultwithcase.auth0.com/api/v2/,STAGE=dev --role expense-api-lambda-dev",
     "destroy": "claudia destroy",

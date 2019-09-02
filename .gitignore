@@ -2,6 +2,8 @@ node_modules
 coverage
 .DS_Store
 .env
+.env.*
+.env_*
 *.log
 /logs
 .nyc_output
