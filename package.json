@@ -51,7 +51,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "acorn": "^6.2.1",
+    "acorn": "^7.0.0",
     "aws-sdk-mock": "^4.5.0",
     "claudia": "^5.8.0",
     "eslint": "^6.3.0",
