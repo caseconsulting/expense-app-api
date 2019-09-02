@@ -27,13 +27,13 @@
   },
   "dependencies": {
     "ajv": "^6.10.2",
-    "aws-sdk": "^2.503.0",
+    "aws-sdk": "^2.521.0",
     "aws-serverless-express": "^3.3.6",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
-    "dotenv": "^8.0.0",
+    "dotenv": "^8.1.0",
     "express": "^4.17.1",
     "express-jwt": "^5.3.1",
     "express-jwt-authz": "^2.3.1",
@@ -48,13 +48,13 @@
     "pug": "^2.0.4",
     "serve-favicon": "^2.5.0",
     "through": "^2.3.8",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "acorn": "^6.2.1",
     "aws-sdk-mock": "^4.5.0",
-    "claudia": "^5.6.0",
-    "eslint": "^6.1.0",
+    "claudia": "^5.8.0",
+    "eslint": "^6.3.0",
     "jasmine": "^3.4.0",
     "nodemon": "^1.19.1",
     "nyc": "^14.1.1",
