@@ -343,7 +343,9 @@ class ExpenseRoutes extends Crud {
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     console.warn('Expense Routes _reimburseExpense');
 
-    budget.pendingAmount -= oldExpense.cost; // remove pending from old budget
+    budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost);// remove pending from old budget
+
+
     // get new expense budget
     let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
 
@@ -352,7 +354,11 @@ class ExpenseRoutes extends Crud {
     } else {
       await this.budgetDynamo.updateEntryInDB(budget);
     }
-    prevBudget.reimbursedAmount += newExpense.cost; //add reimburse cost to new budget
+    
+    //add reimburse cost to new budget
+    prevBudget.reimbursedAmount = this._addCost(prevBudget.reimbursedAmount, newExpense.cost); 
+    console.log('prevBudget.reimbursedAmount', prevBudget.reimbursedAmount);
+
     let dbPromise = await this.budgetDynamo.updateEntryInDB(prevBudget);
     let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years'); // increase year by one
 
@@ -364,8 +370,10 @@ class ExpenseRoutes extends Crud {
 
         // transfer overage to next year if both exist
         while (nextYearsBudget && overage > 0) {
-          prevBudget.reimbursedAmount -= overage; // top off overdrafted budget
-          nextYearsBudget.reimbursedAmount += overage; // move overage to next years budget
+          // top off overdrafted budget
+          prevBudget.reimbursedAmount = this._subtractCost(prevBudget.reimbursedAmount, overage); 
+          // move overage to next years budget
+          nextYearsBudget.reimbursedAmount = this._addCost(nextYearsBudget.reimbursedAmount, overage); 
 
           // update budgets on dynamodb
           dbPromise = await this.budgetDynamo
@@ -386,6 +394,18 @@ class ExpenseRoutes extends Crud {
     return dbPromise;
   }
 
+  //returns number fixed at 2 decimal places after addtion operation
+  _addCost(addTo, addFrom) {
+    addTo += addFrom;
+    addTo = Number(addTo);
+    return Number(addTo.toFixed(2));
+  }
+  //returns number fixed at 2 decimal places after subtraction operation
+  _subtractCost(subTo, subFrom) {
+    subTo += subFrom;
+    subTo = Number(subTo);
+    return Number(subTo.toFixed(2));
+  }
   /*
    * Return an array of sorted budgets by fiscal start date
    */
