@@ -95,7 +95,6 @@ class Crud {
 
   _createInDatabase(res, newObject) {
     console.warn('CRUD routes _createInDatabase');
-    console.warn('obj', newObject);
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
