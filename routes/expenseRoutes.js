@@ -149,8 +149,8 @@ class ExpenseRoutes extends Crud {
       throw err;
     }
 
-    console.warn('the old expense that is reimbursed is', oldExpense);
-    console.warn('the new expense that is reimbursed is', newExpense);
+    console.warn('the old expense that is reimbursed is', oldExpense.id);
+    console.warn('the new expense that is reimbursed is', newExpense.id);
 
     return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
