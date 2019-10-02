@@ -345,7 +345,6 @@ class ExpenseRoutes extends Crud {
 
     budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost);// remove pending from old budget
 
-
     // get new expense budget
     let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
 
@@ -357,7 +356,6 @@ class ExpenseRoutes extends Crud {
     
     //add reimburse cost to new budget
     prevBudget.reimbursedAmount = this._addCost(prevBudget.reimbursedAmount, newExpense.cost); 
-    console.log('prevBudget.reimbursedAmount', prevBudget.reimbursedAmount);
 
     let dbPromise = await this.budgetDynamo.updateEntryInDB(prevBudget);
     let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years'); // increase year by one
@@ -395,16 +393,16 @@ class ExpenseRoutes extends Crud {
   }
 
   //returns number fixed at 2 decimal places after addtion operation
-  _addCost(addTo, addFrom) {
-    addTo += addFrom;
-    addTo = Number(addTo);
-    return Number(addTo.toFixed(2));
+  _addCost(addTo, addWith) {
+    let newValue = addTo + addWith;
+    newValue = Number(newValue);
+    return Number(newValue.toFixed(2));
   }
   //returns number fixed at 2 decimal places after subtraction operation
-  _subtractCost(subTo, subFrom) {
-    subTo += subFrom;
-    subTo = Number(subTo);
-    return Number(subTo.toFixed(2));
+  _subtractCost(subtractFrom, subtractWith) {
+    let newValue = subtractFrom - subtractWith;
+    newValue = Number(newValue);
+    return Number(newValue.toFixed(2)); 
   }
   /*
    * Return an array of sorted budgets by fiscal start date
