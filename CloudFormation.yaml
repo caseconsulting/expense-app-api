@@ -559,9 +559,9 @@ Resources:
             - |
               - pip3 install --upgrade pip
             - |
-              - pip3 install awscli
+              - runuser -l centos -c 'pip3 install awscli --upgrade --user'
             - |
-              - aws --version
+              - runuser -l centos -c 'aws --version'
             - |
               - [ sh, -c, echo "== Configure AWS CLI" ]
             - |
