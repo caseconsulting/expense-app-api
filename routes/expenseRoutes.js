@@ -25,7 +25,7 @@ class ExpenseRoutes extends Crud {
 
   async _delete(id) {
     console.warn(`[${moment().format()}]`,
-      `Attempting to delete expense ${id}`,
+      `>>> Attempting to delete expense ${id}`,
       '| Processing handled by function expenseRoutes._delete'
     );
 
@@ -62,7 +62,7 @@ class ExpenseRoutes extends Crud {
     if (!this._isReimbursed(expense)) {
       console.warn(
         `[${moment().format()}]`,
-        `Attempting to add pending expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `>>> Attempting to add pending expense ${id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`,
         '| Processing handled by function expenseRoutes._add'
       );
@@ -70,7 +70,7 @@ class ExpenseRoutes extends Crud {
     else {
       console.warn(
         `[${moment().format()}]`,
-        `Attempting to add reimbursed expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `>>> Attempting to add reimbursed expense ${id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`,
         '| Processing handled by function expenseRoutes._add'
       );
@@ -136,7 +136,7 @@ class ExpenseRoutes extends Crud {
 
   async _update(id, data) {
     console.warn(`[${moment().format()}]`,
-      `Updating expense ${id}`,
+      `>>> Attempting to update expense ${id}`,
       '| Processing handled by function expenseRoutes._update'
     );
 
@@ -352,14 +352,14 @@ class ExpenseRoutes extends Crud {
   _addExpenseToBudget(expense, budget) {
     if (!this._isReimbursed(expense)) {
       console.warn(`[${moment().format()}]`,
-        `Adding pending expense ${expense.id} to budget ${budget.id}`,
+        `>>> Adding pending expense ${expense.id} to budget ${budget.id}`,
         '| Processing handled by function expenseRoutes._addExpenseToBudget'
       );
 
       budget.pendingAmount += expense.cost;
     } else {
       console.warn(`[${moment().format()}]`,
-        `Adding reimbursed expense ${expense.id} to budget ${budget.id}`,
+        `>>> Adding reimbursed expense ${expense.id} to budget ${budget.id}`,
         '| Processing handled by function expenseRoutes._addExpenseToBudget'
       );
 
@@ -391,7 +391,7 @@ class ExpenseRoutes extends Crud {
 
   _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
     console.warn(`[${moment().format()}]`,
-      `Changing pending expense ${oldExpense.id}`,
+      `>>> Changing pending expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unimbursedExpenseChange'
     );
 
@@ -410,7 +410,7 @@ class ExpenseRoutes extends Crud {
 
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     console.warn(`[${moment().format()}]`,
-      `Attempting to reimburse expense ${oldExpense.id}`,
+      `>>> Attempting to reimburse expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._reimburseExpense'
     );
 
@@ -456,7 +456,7 @@ class ExpenseRoutes extends Crud {
           overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
         }
         console.warn(`[${moment().format()}]`,
-          `Successfully reimbursed expense ${oldExpense.id}`,
+          `>>> Successfully reimbursed expense ${oldExpense.id}`,
           '| Processing handled by function expenseRoutes._reimburseExpense'
         );
 
@@ -465,6 +465,10 @@ class ExpenseRoutes extends Crud {
         return dbPromise;
       }
     }
+    console.warn(`[${moment().format()}]`,
+      `>>> Successfully reimbursed expense ${oldExpense.id}`,
+      '| Processing handled by function expenseRoutes._reimburseExpense'
+    );
     return dbPromise;
   }
 
@@ -587,7 +591,7 @@ class ExpenseRoutes extends Crud {
    */
   async _unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     console.warn(`[${moment().format()}]`,
-      `Unreimbursing expense ${oldExpense.id}`,
+      `>>> Unreimbursing expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unreimburseExpense'
     );
 
@@ -649,6 +653,10 @@ class ExpenseRoutes extends Crud {
       }
       currBudgetIndex++; // continue to next budget
     } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
+    console.warn(`[${moment().format()}]`,
+      `>>> Successfully unreimbursed expense ${oldExpense.id}`,
+      '| Processing handled by function expenseRoutes._unreimburseExpense'
+    );
   }
 
   //TODO: refactor into testable function
@@ -673,7 +681,7 @@ class ExpenseRoutes extends Crud {
 
   _removeFromBudget(budget, expense, expenseType) {
     console.warn(`[${moment().format()}]`,
-      `Removing expense ${expense.id} from budget ${budget.id}`,
+      `>>> Removing expense ${expense.id} from budget ${budget.id}`,
       '| Processing handled by function expenseRoutes._removeFromBudget'
     );
 
@@ -724,7 +732,6 @@ class ExpenseRoutes extends Crud {
     if (validBudgets) {
       return validBudgets;
     } else {
-      console.warn('throw error');
       let err = {
         code: 403,
         message: 'Purchase Date is out of your anniversary budget range'

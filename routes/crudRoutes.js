@@ -79,7 +79,7 @@ class Crud {
   _validateInputs(res, newObject) {
     console.warn(`[${moment().format()}]`,
       'Validating input checker',
-      '| Processing handled by function crduRoutes._validateInputs'
+      '| Processing handled by function crudRoutes._validateInputs'
     );
 
     if (newObject.id) {
@@ -107,7 +107,7 @@ class Crud {
       .addToDB(newObject)
       .then(data => {
         console.warn(`[${moment().format()}]`,
-          `Successfully added ${newObject.id} to database`,
+          `>>> Successfully added ${newObject.id} to database`,
           '| Processing handled by function crudRoutes._createInDatabase'
         );
         res.status(200).send(data);
@@ -213,10 +213,9 @@ class Crud {
     } else if (this._getTableName() === `${STAGE}-expenses` && !this._isAdmin(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
-          console.warn(
-            moment().format(),
-            'crudRoutes _read',
-            `from table ${this._getTableName()} for employee ${req.employee.id}`
+          console.warn(`[${moment().format()}]`,
+            `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
+            '| Processing handled by function crudRoutes.read'
           );
           res.status(200).send(_.first(expense));
         } else {
@@ -229,11 +228,10 @@ class Crud {
         .readFromDB(req.params.id)
         .then(output => {
           if (_.first(output)) {
-            console.warn(
-              moment().format(),
-              'crudRoutes _read',
-              `from table ${this._getTableName()} for employee ${req.employee.id}`
-            );
+              console.warn(`[${moment().format()}]`,
+                `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
+                '| Processing handled by function crudRoutes.read'
+              );
             res.status(200).send(_.first(output));
           } else {
             let err = NOT_FOUND;
@@ -259,6 +257,10 @@ class Crud {
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
+        console.warn(`[${moment().format()}]`,
+          `>>> Successfully updated ${newObject.id} from database`,
+          '| Processing handled by function crudRoutes._updateDatabase'
+        );
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
@@ -324,7 +326,7 @@ class Crud {
           .removeFromDB(req.params.id)
           .then(data => {
             console.warn(`[${moment().format()}]`,
-              `Successfully deleted ${req.params.id} from database`,
+              `>>> Successfully deleted ${req.params.id} from database`,
               '| Processing handled by function crudRoutes.onDelete'
             );
             res.status(200).send(data);
@@ -341,13 +343,14 @@ class Crud {
       this._handleError(res, err);
     }
   }
+
   _onDeleteHelper(id, res) {
     //console.warn('CRUD routes _onDeleteHelper');
 
     return this._delete(id)
       .then(value => {
         console.warn(`[${moment().format()}]`,
-          `Successfully deleted ${id} from database`,
+          `>>> Successfully deleted ${id} from database`,
           '| Processing handled by function crudRoutes.onDelete'
         );
         res.status(200).send(value);

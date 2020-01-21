@@ -18,7 +18,10 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(moment().format(), 'Expense Type _delete', `for expenseType ${id}`);
+    console.warn(`[${moment().format()}]`,
+      `Attempting to delete expense type ${id}`,
+      '| Processing handled by function expenseTypeRoutes._delete'
+    );
 
     let expenseType, typeExpenses;
 
@@ -43,7 +46,11 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _add(id, data) {
-    console.warn(moment().format(), 'Expense Type _add', `for expenseType ${id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `Attempting to add expense type ${id}`,
+      '| Processing handled by function expenseTypeRoutes._add'
+    );
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -57,7 +64,11 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _update(id, data) {
-    console.warn(moment().format(), 'Expense Type _update', `for expenseType ${id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `Updating expense type ${id}`,
+      '| Processing handled by function expenseTypeRoutes._update'
+    );
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -71,7 +82,12 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkFields(expenseType) {
-    console.warn('Expense Type Routes _checkFields');
+    console.warn(
+      `[${moment().format()}]`,
+      `Validate expense type ${expenseType.id}`,
+      '| Processing handled by function expenseTypeRoutes._checkFields'
+    );
+
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
     let budgetCheck = expenseType.budget > 0;
@@ -85,7 +101,12 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkDates(startDate, endDate, recurringFlag) {
-    console.warn('Expense Type Routes _checkDates');
+    console.warn(
+      `[${moment().format()}]`,
+      'Validate expense type dates',
+      '| Processing handled by function expenseTypeRoutes._checkDates'
+    );
+
     let valid = recurringFlag;
     if (!valid && !!startDate && !!endDate) {
       valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
