@@ -78,7 +78,7 @@ class Crud {
    */
   _validateInputs(res, newObject) {
     console.warn(`[${moment().format()}]`,
-      `Validating input checker`,
+      'Validating input checker',
       '| Processing handled by function crduRoutes._validateInputs'
     );
 
