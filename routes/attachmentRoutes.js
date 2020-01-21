@@ -62,10 +62,21 @@ class Attachment {
    * Post-processing after file upload
    */
   onUpload(req, res) {
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Uploading attachment ${req.file.originalname} with file key ${req.file.key} to S3 bucket ${req.file.bucket}`,
+      '| Processing handled by function attachmentRoutes.onUpload'
+    );
+
     res.send('Successfully uploaded file:' + req.file.key);
   }
+
   async getAttachmentFromS3(req, res) {
-    console.warn(moment().format(), 'Attachment _getAttachmentFromS3', `for attachment ${req.params.expenseId}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Getting attachment for expense ${req.params.expenseId}`,
+      '| Processing handled by function attachmentRoutes.getAttachmentFromS3'
+    );
 
     let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
     let fileExt = expense.receipt;

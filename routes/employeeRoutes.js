@@ -18,7 +18,11 @@ class EmployeeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(moment().format(), 'Employee _delete', `for employee ${id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to delete employee ${id}`,
+      '| Processing handled by function employeeRoutes._delete'
+    );
 
     let employee, userExpenses, userBudgets;
 
@@ -47,7 +51,11 @@ class EmployeeRoutes extends Crud {
   }
 
   async _add(id, data) {
-    console.warn(moment().format(), 'Employee _add', `for employee ${id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to add employee ${id}`,
+      '| Processing handled by function employeeRoutes._add'
+    );
 
     let employee = new Employee(data);
     employee.id = id;
@@ -72,7 +80,11 @@ class EmployeeRoutes extends Crud {
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */
   async _isDuplicateEmployee(employee) {
-    console.warn('Employee Routes _isDuplicateEmployee');
+    console.warn(
+      `[${moment().format()}]`,
+      `Checking if user ${employee.id} is a duplicate employee`,
+      '| Processing handled by function employeeRoutes._isDuplicateEmployee'
+    );
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
     if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
       let err = {
@@ -93,7 +105,11 @@ class EmployeeRoutes extends Crud {
   }
 
   _update(id, data) {
-    console.warn(moment().format(), 'Employee _update', `for employee ${id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to update user ${id}`,
+      '| Processing handled by function employeeRoutes._update'
+    );
 
     let employee = new Employee(data);
     employee.id = id;
@@ -109,10 +125,15 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
-    console.warn('Employee Routes _createRecurringExpenses');
-    console.log('hire date', hireDate);
+    console.warn(
+      `[${moment().format()}]`,
+      `Creating recurring expenses for user ${userId} starting on ${hireDate}`,
+      '| Processing handled by function employeeRoutes._createRecurringExpenses'
+    );
+
+    //console.log('hire date', hireDate);
     let dates = this._getBudgetDates(hireDate);
-    console.log('budget date', dates);
+    //console.log('budget date', dates);
     let expenseTypeList;
     //get all recurring expenseTypes
     try {
@@ -143,7 +164,12 @@ class EmployeeRoutes extends Crud {
   }
 
   _getBudgetDates(hireDate) {
-    console.warn('Employee Routes _getBudgetDates');
+    console.warn(
+      `[${moment().format()}]`,
+      `Getting budget dates for ${hireDate}`,
+      '| Processing handled by function employeeRoutes._getBudgetDates'
+    );
+
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
     let anniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
