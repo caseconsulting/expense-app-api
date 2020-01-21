@@ -60,6 +60,11 @@ class Special {
    * Handles any errors in crud operations
    */
   _handleError(res, err) {
+    console.warn(`[${moment().format()}]`,
+      'Handling errors',
+      '| Processing handled by function specialRoutes._handleError'
+    );
+
     const logColor = '\x1b[31m';
     const resetColor = '\x1b[0m';
     console.error(logColor, 'Error Code: ' + err.code);
@@ -69,7 +74,11 @@ class Special {
   }
 
   getEmployeeName(expense) {
-    console.warn(moment().format(), 'Special routes getEmployeeName');
+    console.warn(`[${moment().format()}]`,
+      `Getting employee name of expense ${expense.id}`,
+      '| Processing handled by function specialRoutes.getEmployeeName'
+    );
+
     return this.employeeData.readFromDB(expense.userId).then(employee => {
       let emp = employee[0];
       expense.employeeName = this._fullName(emp);
@@ -78,7 +87,11 @@ class Special {
   }
 
   getExpenseTypeName(expense) {
-    console.warn(moment().format(), 'Special routes getExpenseTypeName');
+    console.warn(`[${moment().format()}]`,
+      `Getting expense type name of expense ${expense.id}`,
+      '| Processing handled by function specialRoutes.getExpenseTypeName'
+    );
+
     return this.expenseTypeData.readFromDB(expense.expenseTypeId).then(expenseType => {
       let type = expenseType[0];
       expense.budgetName = type.budgetName;
@@ -87,7 +100,11 @@ class Special {
   }
 
   showList(req, res) {
-    console.warn(moment().format(), 'Special routes showList');
+    console.warn(`[${moment().format()}]`,
+      'Getting all entries in database',
+      '| Processing handled by function specialRoutes.showList'
+    );
+
     return this.expenseData
       .getAllEntriesInDB()
       .then(values => this._processExpenses(values))
@@ -97,7 +114,11 @@ class Special {
   }
 
   async empExpenses(req, res) {
-    console.warn(moment().format(), 'Special routes empExpenses');
+    console.warn(`[${moment().format()}]`,
+      `Getting expenses for user ${req.params.id}`,
+      '| Processing handled by function specialRoutes.empExpenses'
+    );
+
     try {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
@@ -124,7 +145,11 @@ class Special {
   }
 
   getAllEmployeeExpenses(req, res) {
-    console.warn(moment().format(), 'Special routes getAllEmployeeExpenses');
+    console.warn(`[${moment().format()}]`,
+      'Getting all employee expenses',
+      '| Processing handled by function specialRoutes.getAllEmployeeExpenses'
+    );
+
     const userID = req.params.id;
     this.expenseData
       .querySecondaryIndexInDB('userId-index', 'userId', userID)
@@ -138,7 +163,11 @@ class Special {
   }
 
   getAllExpenseTypeExpenses(req, res) {
-    console.warn(moment().format(), 'Special routes getAllExpenseTypeExpenses');
+    console.warn(`[${moment().format()}]`,
+      'Getting all expense types',
+      '| Processing handled by function specialRoutes.getAllExpenseTypeExpenses'
+    );
+
     const userID = req.params.id;
     this.expenseData
       .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', userID)
@@ -153,11 +182,15 @@ class Special {
 
   //function created to see if employee has any expenses
   async empExpenseHistory(req, res) {
-    console.warn(moment().format(), 'Special routes empExpenseHistory');
+    console.warn(`[${moment().format()}]`,
+      'Checking if employee has any expenses',
+      '| Processing handled by function specialRoutes.empExpenseHistory'
+    );
+
     try {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
-      console.warn('emp Expense History', userBudgets);
+      console.warn(userBudgets);
 
       const returnObject = null;
       res.status(200).send(returnObject);
@@ -167,7 +200,11 @@ class Special {
   }
 
   async showAll(req, res) {
-    console.warn(moment().format(), 'Special routes showAll');
+    console.warn(`[${moment().format()}]`,
+      'Showing all expenses, users, and expense types',
+      '| Processing handled by function specialRoutes.showAll'
+    );
+
     try {
       let expenses = await this.expenseData.getAllEntriesInDB();
       let users = await this.employeeData.getAllEntriesInDB();
@@ -179,7 +216,11 @@ class Special {
   }
 
   _findEmployee(expenses, user, expensesTypes) {
-    console.warn('Special routes _findEmployee');
+    console.warn(`[${moment().format()}]`,
+      `Finding user ${user.id}`,
+      'specialRoutes._findEmployee'
+    );
+
     let filteredExpenses = _.filter(expenses, expense => expense.userId === user.id);
     let temp = null;
     let returnObject = {
@@ -201,11 +242,20 @@ class Special {
   }
 
   _findExpenseTypes(expenses, employees, expenseTypes) {
-    console.warn('Special routes _findExpenseTypes');
+    console.warn(`[${moment().format()}]`,
+      'Finding expense types',
+      'specialRoutes._findExpenseTypes'
+    );
+
     return _.forEach(employees, employee => this._expenseTypeMapping(expenses, employee, expenseTypes));
   }
+
   _expenseTypeMapping(expenses, employee, expenseTypes) {
-    console.warn('Special routes _expenseTypeMapping');
+    // console.warn(`[${moment().format()}]`,
+    //   `Mapping expense types for user ${empoyee.id}`,
+    //   'specialRoutes._expenseTypeMapping'
+    // );
+
     return _.map(employee.expenseTypes, employeeExpenseType => {
       let returnedExpenseType = _.find(expenseTypes, et => et.id === employeeExpenseType.id);
       let toBeMerged = this._expenseMapping(expenses, employee, employeeExpenseType);
@@ -217,7 +267,11 @@ class Special {
   }
 
   async getAllExpenses(req, res) {
-    console.warn(moment().format(), 'Special routes getAllExpenses');
+    // console.warn(`[${moment().format()}]`,
+    //   'Getting all expenses',
+    //   '| Processing handled by function specialRoutes.getAllExpenses'
+    // );
+
     try {
       if (this._isAdmin(req)) {
         let expenses = await this.expenseData.getAllEntriesInDB();
@@ -240,13 +294,21 @@ class Special {
   }
 
   _fullName(employee) {
-    console.warn('Special routes _fullName');
+    // console.warn(`[${moment().format()}]`,
+    //   `Getting full name for employee ${employee.id}`,
+    //   '| Processing handled by function specialRoutes._fullName'
+    // );
+
     const middleName = employee.middleName ? employee.middleName.trim() : '';
     return `${employee.firstName} ${middleName ? middleName + ' ' : ''}${employee.lastName}`;
   }
 
   _getEmployeeName(expenses, users, expenseTypes) {
-    console.warn('Special routes _getEmployeeName');
+    console.warn(`[${moment().format()}]`,
+      'Setting employee name for all expenses',
+      '| Processing handled by function specialRoutes._getEmployeeName'
+    );
+
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
       let employee = _.find(users, emp => emp.id === expense.userId);
@@ -265,7 +327,11 @@ class Special {
   async getURLInfo(req, res) {
     var atob = require('atob');
     var decoded = atob(req.params.id);
-    console.warn(moment().format(), 'Training URL route getURLINFO', `with URL ${decoded}`);
+    console.warn(`[${moment().format()}]`,
+      `Training URL route getURLINFO with URL ${decoded}`,
+      '| Processing handled by function specialRoutes.getURLInfo'
+    );
+
     const NOT_FOUND = {
       code: 404,
       message: 'entry not found in database'
@@ -306,12 +372,19 @@ class Special {
   }
 
   _expenseMapping(expenses, employee, expenseType) {
-    console.warn('Special routes _expenseMapping');
+    console.warn(`[${moment().format()}]`,
+      `Filtering expenses with expense type ${expenseType.id} for user ${employee.id}`,
+      'specialRoutes._expenseMapping'
+    );
+
     return _.filter(expenses, expense => expense.userId === employee.id && expense.expenseTypeId === expenseType.id);
   }
 
   _processExpenses(expenseData) {
-    console.warn('Special routes _processExpenses');
+    console.warn(`[${moment().format()}]`,
+      'specialRoutes._processExpenses'
+    );
+
     let processedExpenses = [];
     return new Promise(resolve => {
       processedExpenses = _.map(expenseData, expense => {
@@ -327,6 +400,7 @@ class Special {
       );
     });
   }
+
   _isAdmin(req) {
     return req.employee.employeeRole === 'admin';
   }
