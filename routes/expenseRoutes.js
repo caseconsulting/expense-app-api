@@ -24,7 +24,11 @@ class ExpenseRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(moment().format(), 'Expense _delete', `for expense ${id}`);
+    console.warn(`[${moment().format()}]`,
+      `Attempting to delete expense ${id}`,
+      '| Processing handled by function expenseRoutes._delete'
+    );
+
     let expense, budget, expenseType, rawBudgets, budgets;
 
     try {
@@ -55,11 +59,23 @@ class ExpenseRoutes extends Crud {
     expense = new Expense(data);
     expense.id = id;
 
-    console.warn(
-      moment().format(),
-      'Expense _add',
-      `for expense type id ${expense.expenseTypeId} for user ${expense.userId}`
-    );
+    if (!this._isReimbursed(expense)) {
+      console.warn(
+        `[${moment().format()}]`,
+        `Attempting to add pending expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `for user ${expense.userId}`,
+        '| Processing handled by function expenseRoutes._add'
+      );
+    }
+    else {
+      console.warn(
+        `[${moment().format()}]`,
+        `Attempting to add reimbursed expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `for user ${expense.userId}`,
+        '| Processing handled by function expenseRoutes._add'
+      );
+    }
+
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
@@ -89,7 +105,10 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getBudgetData(budgets, expenseType, employee, expense) {
-    console.warn(moment().format(), 'Expense Routes _getBudgetData');
+    console.warn(`[${moment().format()}]`,
+      `Getting budget data for expense ${expense.id} with expense type ${expenseType.id} for user ${employee.id}`,
+      '| Processing handled by function expenseRoutes._getCurrentBudgetData'
+    );
 
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
@@ -99,7 +118,10 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getCurrentBudgetData(budgets, expenseType, employee) {
-    console.warn(moment().format(), 'Expense Routes _getCurrentBudgetData');
+    console.warn(`[${moment().format()}]`,
+      `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`,
+      '| Processing handled by function expenseRoutes._getCurrentBudgetData'
+    );
 
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this.getUUID());
@@ -113,7 +135,10 @@ class ExpenseRoutes extends Crud {
   }
 
   async _update(id, data) {
-    console.warn(moment().format(), 'Expense _update', `for expense ${id}`);
+    console.warn(`[${moment().format()}]`,
+      `Updating expense ${id}`,
+      '| Processing handled by function expenseRoutes._update'
+    );
 
     let expenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
@@ -149,8 +174,8 @@ class ExpenseRoutes extends Crud {
       throw err;
     }
 
-    console.warn('the old expense that is reimbursed is', oldExpense.id);
-    console.warn('the new expense that is reimbursed is', newExpense.id);
+    // console.warn('the old expense that is reimbursed is', oldExpense.id);
+    // console.warn('the new expense that is reimbursed is', newExpense.id);
 
     return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
       .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
@@ -161,7 +186,10 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    console.warn('Expense Routes checkValidity');
+    console.warn(`[${moment().format()}]`,
+      `Validating expense ${expense.id}`,
+      '| Processing handled by function expenseRoutes.checkValidity'
+    );
 
     let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
 
@@ -194,7 +222,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _areExpenseTypesEqual(expense, oldExpense) {
-    console.warn('Expense Routes _areExpenseTypesEqual');
+    console.warn(`[${moment().format()}]`,
+      `Checking new and old expense types are equal for expense ${expense.id}`,
+      '| Processing handled by function expenseRoutes._areExpenseTypesEqual'
+    );
+
     if (expense && oldExpense) {
       return expense.expenseTypeId === oldExpense.expenseTypeId;
     } else {
@@ -203,7 +235,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
-    console.warn('Expense Routes _checkBalance');
+    console.warn(`[${moment().format()}]`,
+      `Validating budget for expense ${expense.id}`,
+      '| Processing handled by function expenseRoutes._checkBalance'
+    );
+
     expense.cost = Number(expense.cost);
     let oldCost = oldExpense ? oldExpense.cost : 0;
     if (!budget && expense.cost <= expenseType.budget) {
@@ -229,7 +265,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-    console.warn('Expense Routes _checkExpenseDate');
+    console.warn(`[${moment().format()}]`,
+      `Checking purchase date ${purchaseDate} is between ${stringStartDate} - ${stringEndDate}`,
+      '| Processing handled by function expenseRoutes._checkExpenseDate'
+    );
+
     let startDate, endDate, date, range;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
@@ -240,7 +280,11 @@ class ExpenseRoutes extends Crud {
 
   // TBD - duplicated from employee routes
   _getBudgetDates(hireDate) {
-    console.warn('Expense Routes _getBudgetDates');
+    console.warn(`[${moment().format()}]`,
+      `Getting budget dates from hire date ${hireDate}`,
+      '| Processing handled by function expenseRoutes._getBudgetDates'
+    );
+
     let currentYear = moment().year();
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
@@ -256,7 +300,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _createNewBudget(expenseType, employee, newId) {
-    console.warn('Expense Routes _createNewBudget');
+    console.warn(`[${moment().format()}]`,
+      `Creating a new budget ${newId} for expense type ${expenseType.id} for user ${employee.id}`,
+      '| Processing handled by function expenseRoutes._createNewBudget'
+    );
+
     const newBudget = {
       id: newId,
       expenseTypeId: expenseType.id,
@@ -277,7 +325,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
-    console.warn('Expense Routes _decideIfBudgetExists');
+    console.warn(`[${moment().format()}]`,
+      'Determining if budget exists',
+      '| Processing handled by function expenseRoutes._decideIfBudgetExists'
+    );
+
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
       budget = this._addExpenseToBudget(expense, budget);
@@ -298,10 +350,19 @@ class ExpenseRoutes extends Crud {
   }
 
   _addExpenseToBudget(expense, budget) {
-    console.warn('Expense Routes _addExpenseToBudget');
     if (!this._isReimbursed(expense)) {
+      console.warn(`[${moment().format()}]`,
+        `Adding pending expense ${expense.id} to budget ${budget.id}`,
+        '| Processing handled by function expenseRoutes._addExpenseToBudget'
+      );
+
       budget.pendingAmount += expense.cost;
     } else {
+      console.warn(`[${moment().format()}]`,
+        `Adding reimbursed expense ${expense.id} to budget ${budget.id}`,
+        '| Processing handled by function expenseRoutes._addExpenseToBudget'
+      );
+
       budget.reimbursedAmount += expense.cost;
     }
     return budget;
@@ -312,7 +373,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursedPromise(expense) {
-    console.warn('Expense Routes _isReimbursed');
+    console.warn(`[${moment().format()}]`,
+      `Checking if expense ${expense.id} is reimbursed`,
+      '| Processing handled by function expenseRoutes._isReimbursedPromise'
+    );
+
     let err = {
       code: 403,
       message: 'expense cannot perform action because it has already been reimbursed'
@@ -325,7 +390,10 @@ class ExpenseRoutes extends Crud {
   }
 
   _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
-    console.warn('Expense Routes _unimbursedExpenseChange');
+    console.warn(`[${moment().format()}]`,
+      `Changing pending expense ${oldExpense.id}`,
+      '| Processing handled by function expenseRoutes._unimbursedExpenseChange'
+    );
 
     budget.pendingAmount -= oldExpense.cost; // remove old cost from old budget pending amount
     // get new expense budget
@@ -341,9 +409,12 @@ class ExpenseRoutes extends Crud {
   }
 
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn('Expense Routes _reimburseExpense');
+    console.warn(`[${moment().format()}]`,
+      `Attempting to reimburse expense ${oldExpense.id}`,
+      '| Processing handled by function expenseRoutes._reimburseExpense'
+    );
 
-    budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost);// remove pending from old budget
+    budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost); // remove pending from old budget
 
     // get new expense budget
     let prevBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
@@ -353,9 +424,9 @@ class ExpenseRoutes extends Crud {
     } else {
       await this.budgetDynamo.updateEntryInDB(budget);
     }
-    
+
     //add reimburse cost to new budget
-    prevBudget.reimbursedAmount = this._addCost(prevBudget.reimbursedAmount, newExpense.cost); 
+    prevBudget.reimbursedAmount = this._addCost(prevBudget.reimbursedAmount, newExpense.cost);
 
     let dbPromise = await this.budgetDynamo.updateEntryInDB(prevBudget);
     let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years'); // increase year by one
@@ -369,9 +440,9 @@ class ExpenseRoutes extends Crud {
         // transfer overage to next year if both exist
         while (nextYearsBudget && overage > 0) {
           // top off overdrafted budget
-          prevBudget.reimbursedAmount = this._subtractCost(prevBudget.reimbursedAmount, overage); 
+          prevBudget.reimbursedAmount = this._subtractCost(prevBudget.reimbursedAmount, overage);
           // move overage to next years budget
-          nextYearsBudget.reimbursedAmount = this._addCost(nextYearsBudget.reimbursedAmount, overage); 
+          nextYearsBudget.reimbursedAmount = this._addCost(nextYearsBudget.reimbursedAmount, overage);
 
           // update budgets on dynamodb
           dbPromise = await this.budgetDynamo
@@ -384,6 +455,11 @@ class ExpenseRoutes extends Crud {
           nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
           overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
         }
+        console.warn(`[${moment().format()}]`,
+          `Successfully reimbursed expense ${oldExpense.id}`,
+          '| Processing handled by function expenseRoutes._reimburseExpense'
+        );
+
         return dbPromise;
       } catch (e) {
         return dbPromise;
@@ -402,13 +478,16 @@ class ExpenseRoutes extends Crud {
   _subtractCost(subtractFrom, subtractWith) {
     let newValue = subtractFrom - subtractWith;
     newValue = Number(newValue);
-    return Number(newValue.toFixed(2)); 
+    return Number(newValue.toFixed(2));
   }
   /*
    * Return an array of sorted budgets by fiscal start date
    */
   _sortBudgets(budgets) {
-    console.warn('Expense Routes _sortBudgets');
+    console.warn(`[${moment().format()}]`,
+      'Sorting budgets',
+      '| Processing handled by function expenseRoutes._sortBudgets'
+    );
 
     return _.sortBy(budgets, [
       budget => {
@@ -421,7 +500,11 @@ class ExpenseRoutes extends Crud {
    * return true if expense matches expense type, is reimbursed, and within budget range
    */
   _isValidExpense(expense, budget, expenseType) {
-    console.warn('Expense Routes _isValidExpense');
+    console.warn(`[${moment().format()}]`,
+      `Validating if expense ${expense} matches expenseType ${expenseType.id}, is reimbursed,`,
+      `and within budget ${budget.id} range`,
+      '| Processing handled by function expenseRoutes._isValidExpense'
+    );
 
     return (
       expense.expenseTypeId === expenseType.id &&
@@ -434,7 +517,11 @@ class ExpenseRoutes extends Crud {
    * Return the total cost of reimbursed expenses for an employee within a budget range
    */
   async _getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType) {
-    console.warn('Expense Routes _getEmployeeExpensesTotalInBudget');
+    console.warn(`[${moment().format()}]`,
+      `Calculating total cost of reimbursed expenses for user ${employeeId} within budget`,
+      `${budget.id} for expense type ${expenseType}`,
+      '| Processing handled by function expenseRoutes._getEmployeeExpensesTotalInBudget'
+    );
 
     let expenses = await this.expenseDynamo.querySecondaryIndexInDB('userId-index', 'userId', employeeId);
 
@@ -451,18 +538,40 @@ class ExpenseRoutes extends Crud {
    * calculate the overdraft for a particular employee budget
    */
   async _calcOverdraft(budget, employeeId, expenseType) {
-    console.warn('Expense Routes _calcOverdraft');
+    console.warn(`[${moment().format()}]`,
+      `Calculating overdraft for user ${employeeId} for budget ${budget.id} for expense type ${expenseType}`,
+      '| Processing handled by function expenseRoutes._calcOverdraft'
+    );
+
     let totalExp = await this._getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType);
     let overdraft = totalExp - Number(expenseType.budget);
 
     return overdraft;
   }
 
+  _calculateOverdraft(budget, expenseType) {
+    console.warn(`[${moment().format()}]`,
+      `Calculating overdraft of budget ${budget.id} for expense type ${expenseType}`,
+      '| Processing handled by function expenseRoutes._calcOverdraft'
+    );
+
+    let sum = budget.reimbursedAmount + budget.pendingAmount;
+    if (expenseType.odFlag && sum > expenseType.budget) {
+      let difference = sum - expenseType.budget;
+      return difference;
+    } else {
+      return 0;
+    }
+  }
+
   /*
    * Return a mapped array of overdrafts for the employee budgets
    */
   async _getEmployeeBudgetOverdrafts(budgets, employeeId, expenseType) {
-    console.warn('Expense Routes _getEmployeeBudgetOverdrafts');
+    console.warn(`[${moment().format()}]`,
+      `Getting overdrafts for user ${employeeId} for expense type ${expenseType}`,
+      '| Processing handled by function expenseRoutes._getEmployeeBudgetOverdrafts'
+    );
 
     let overdrafts = [];
     for (let x = 0; x < budgets.length; x++) {
@@ -477,7 +586,11 @@ class ExpenseRoutes extends Crud {
    * Unreimburse an expense
    */
   async _unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn('Expense Routes _unreimburseExpense');
+    console.warn(`[${moment().format()}]`,
+      `Unreimbursing expense ${oldExpense.id}`,
+      '| Processing handled by function expenseRoutes._unreimburseExpense'
+    );
+
     // sort the budgets
     let sortedBudgets = this._sortBudgets(budgets);
 
@@ -540,7 +653,10 @@ class ExpenseRoutes extends Crud {
 
   //TODO: refactor into testable function
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn('Expense Routes _preformBudgetUpdate');
+    console.warn(`[${moment().format()}]`,
+      `Updating budget ${budget.id}`,
+      '| Processing handled by function expenseRoutes._performBudgetUpdate'
+    );
 
     if (!this._isReimbursed(oldExpense) && this._isReimbursed(newExpense)) {
       //if reimbursing an expense
@@ -556,7 +672,11 @@ class ExpenseRoutes extends Crud {
   }
 
   _removeFromBudget(budget, expense, expenseType) {
-    console.warn('Expense Routes _removeFromBudget');
+    console.warn(`[${moment().format()}]`,
+      `Removing expense ${expense.id} from budget ${budget.id}`,
+      '| Processing handled by function expenseRoutes._removeFromBudget'
+    );
+
     budget.pendingAmount -= expense.cost;
     if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
       return this.budgetDynamo.removeFromDB(budget.id);
@@ -566,7 +686,10 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPurchaseWithinRange(expenseType, purchaseDate) {
-    console.warn('Expense Routes _isPurchaseWithinRange');
+    console.warn(`[${moment().format()}]`,
+      `Checking purchase date ${purchaseDate} is within range of expense type ${expenseType.id}`,
+      '| Processing handled by function expenseRoutes._isPurchaseWithinRange'
+    );
     if (expenseType.recurringFlag) {
       return true;
     } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
@@ -589,7 +712,10 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    console.warn('Expense Routes _findBudgetWithMatchingRange');
+    console.warn(`[${moment().format()}]`,
+      `Finding budget for purchase date ${purchaseDate}`,
+      '| Processing handled by function expenseRoutes._findBudgetWithMatchingRange'
+    );
 
     let validBudgets = _.find(budgets, budget =>
       this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
@@ -604,17 +730,6 @@ class ExpenseRoutes extends Crud {
         message: 'Purchase Date is out of your anniversary budget range'
       };
       throw err;
-    }
-  }
-
-  _calculateOverdraft(budget, expenseType) {
-    console.warn('Expense Routes _calculateOverdraft');
-    let sum = budget.reimbursedAmount + budget.pendingAmount;
-    if (expenseType.odFlag && sum > expenseType.budget) {
-      let difference = sum - expenseType.budget;
-      return difference;
-    } else {
-      return 0;
     }
   }
 }
