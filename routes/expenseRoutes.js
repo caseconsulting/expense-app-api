@@ -24,7 +24,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Attempting to delete expense ${id}`,
       '| Processing handled by function expenseRoutes._delete'
     );
@@ -105,7 +106,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getBudgetData(budgets, expenseType, employee, expense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting budget data for expense ${expense.id} with expense type ${expenseType.id} for user ${employee.id}`,
       '| Processing handled by function expenseRoutes._getCurrentBudgetData'
     );
@@ -118,7 +120,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getCurrentBudgetData(budgets, expenseType, employee) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`,
       '| Processing handled by function expenseRoutes._getCurrentBudgetData'
     );
@@ -135,7 +138,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _update(id, data) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Attempting to update expense ${id}`,
       '| Processing handled by function expenseRoutes._update'
     );
@@ -186,7 +190,8 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Validating expense ${expense.id}`,
       '| Processing handled by function expenseRoutes.checkValidity'
     );
@@ -222,7 +227,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _areExpenseTypesEqual(expense, oldExpense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Checking new and old expense types are equal for expense ${expense.id}`,
       '| Processing handled by function expenseRoutes._areExpenseTypesEqual'
     );
@@ -235,7 +241,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Validating budget for expense ${expense.id}`,
       '| Processing handled by function expenseRoutes._checkBalance'
     );
@@ -265,7 +272,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Checking purchase date ${purchaseDate} is between ${stringStartDate} - ${stringEndDate}`,
       '| Processing handled by function expenseRoutes._checkExpenseDate'
     );
@@ -280,7 +288,8 @@ class ExpenseRoutes extends Crud {
 
   // TBD - duplicated from employee routes
   _getBudgetDates(hireDate) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting budget dates from hire date ${hireDate}`,
       '| Processing handled by function expenseRoutes._getBudgetDates'
     );
@@ -300,7 +309,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _createNewBudget(expenseType, employee, newId) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Creating a new budget ${newId} for expense type ${expenseType.id} for user ${employee.id}`,
       '| Processing handled by function expenseRoutes._createNewBudget'
     );
@@ -325,7 +335,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Determining if budget exists',
       '| Processing handled by function expenseRoutes._decideIfBudgetExists'
     );
@@ -351,14 +362,16 @@ class ExpenseRoutes extends Crud {
 
   _addExpenseToBudget(expense, budget) {
     if (!this._isReimbursed(expense)) {
-      console.warn(`[${moment().format()}]`,
+      console.warn(
+        `[${moment().format()}]`,
         `>>> Adding pending expense ${expense.id} to budget ${budget.id}`,
         '| Processing handled by function expenseRoutes._addExpenseToBudget'
       );
 
       budget.pendingAmount += expense.cost;
     } else {
-      console.warn(`[${moment().format()}]`,
+      console.warn(
+        `[${moment().format()}]`,
         `>>> Adding reimbursed expense ${expense.id} to budget ${budget.id}`,
         '| Processing handled by function expenseRoutes._addExpenseToBudget'
       );
@@ -373,7 +386,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursedPromise(expense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Checking if expense ${expense.id} is reimbursed`,
       '| Processing handled by function expenseRoutes._isReimbursedPromise'
     );
@@ -390,7 +404,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Changing pending expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unimbursedExpenseChange'
     );
@@ -409,7 +424,8 @@ class ExpenseRoutes extends Crud {
   }
 
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Attempting to reimburse expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._reimburseExpense'
     );
@@ -455,7 +471,8 @@ class ExpenseRoutes extends Crud {
           nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
           overage = this._calculateBudgetOverage(prevBudget, expenseType); // calculate overdraft overage
         }
-        console.warn(`[${moment().format()}]`,
+        console.warn(
+          `[${moment().format()}]`,
           `>>> Successfully reimbursed expense ${oldExpense.id}`,
           '| Processing handled by function expenseRoutes._reimburseExpense'
         );
@@ -465,7 +482,8 @@ class ExpenseRoutes extends Crud {
         return dbPromise;
       }
     }
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Successfully reimbursed expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._reimburseExpense'
     );
@@ -488,7 +506,8 @@ class ExpenseRoutes extends Crud {
    * Return an array of sorted budgets by fiscal start date
    */
   _sortBudgets(budgets) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Sorting budgets',
       '| Processing handled by function expenseRoutes._sortBudgets'
     );
@@ -504,7 +523,8 @@ class ExpenseRoutes extends Crud {
    * return true if expense matches expense type, is reimbursed, and within budget range
    */
   _isValidExpense(expense, budget, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Validating if expense ${expense} matches expenseType ${expenseType.id}, is reimbursed,`,
       `and within budget ${budget.id} range`,
       '| Processing handled by function expenseRoutes._isValidExpense'
@@ -521,7 +541,8 @@ class ExpenseRoutes extends Crud {
    * Return the total cost of reimbursed expenses for an employee within a budget range
    */
   async _getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Calculating total cost of reimbursed expenses for user ${employeeId} within budget`,
       `${budget.id} for expense type ${expenseType}`,
       '| Processing handled by function expenseRoutes._getEmployeeExpensesTotalInBudget'
@@ -542,7 +563,8 @@ class ExpenseRoutes extends Crud {
    * calculate the overdraft for a particular employee budget
    */
   async _calcOverdraft(budget, employeeId, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Calculating overdraft for user ${employeeId} for budget ${budget.id} for expense type ${expenseType}`,
       '| Processing handled by function expenseRoutes._calcOverdraft'
     );
@@ -554,7 +576,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _calculateOverdraft(budget, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Calculating overdraft of budget ${budget.id} for expense type ${expenseType}`,
       '| Processing handled by function expenseRoutes._calcOverdraft'
     );
@@ -572,7 +595,8 @@ class ExpenseRoutes extends Crud {
    * Return a mapped array of overdrafts for the employee budgets
    */
   async _getEmployeeBudgetOverdrafts(budgets, employeeId, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting overdrafts for user ${employeeId} for expense type ${expenseType}`,
       '| Processing handled by function expenseRoutes._getEmployeeBudgetOverdrafts'
     );
@@ -590,7 +614,8 @@ class ExpenseRoutes extends Crud {
    * Unreimburse an expense
    */
   async _unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Unreimbursing expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unreimburseExpense'
     );
@@ -653,7 +678,8 @@ class ExpenseRoutes extends Crud {
       }
       currBudgetIndex++; // continue to next budget
     } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Successfully unreimbursed expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unreimburseExpense'
     );
@@ -661,7 +687,8 @@ class ExpenseRoutes extends Crud {
 
   //TODO: refactor into testable function
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Updating budget ${budget.id}`,
       '| Processing handled by function expenseRoutes._performBudgetUpdate'
     );
@@ -680,7 +707,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _removeFromBudget(budget, expense, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `>>> Removing expense ${expense.id} from budget ${budget.id}`,
       '| Processing handled by function expenseRoutes._removeFromBudget'
     );
@@ -694,7 +722,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPurchaseWithinRange(expenseType, purchaseDate) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Checking purchase date ${purchaseDate} is within range of expense type ${expenseType.id}`,
       '| Processing handled by function expenseRoutes._isPurchaseWithinRange'
     );
@@ -720,7 +749,8 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Finding budget for purchase date ${purchaseDate}`,
       '| Processing handled by function expenseRoutes._findBudgetWithMatchingRange'
     );

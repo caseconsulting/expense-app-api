@@ -59,7 +59,8 @@ class Crud {
    * Handles any errors in crud operations
    */
   _handleError(res, err) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Handling errors',
       '| Processing handled by function crudRoutes._handleError'
     );
@@ -77,7 +78,8 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Validating input checker',
       '| Processing handled by function crudRoutes._validateInputs'
     );
@@ -106,7 +108,8 @@ class Crud {
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
-        console.warn(`[${moment().format()}]`,
+        console.warn(
+          `[${moment().format()}]`,
           `>>> Successfully added ${newObject.id} to database`,
           '| Processing handled by function crudRoutes._createInDatabase'
         );
@@ -213,7 +216,8 @@ class Crud {
     } else if (this._getTableName() === `${STAGE}-expenses` && !this._isAdmin(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
-          console.warn(`[${moment().format()}]`,
+          console.warn(
+            `[${moment().format()}]`,
             `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
             '| Processing handled by function crudRoutes.read'
           );
@@ -228,10 +232,11 @@ class Crud {
         .readFromDB(req.params.id)
         .then(output => {
           if (_.first(output)) {
-              console.warn(`[${moment().format()}]`,
-                `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
-                '| Processing handled by function crudRoutes.read'
-              );
+            console.warn(
+              `[${moment().format()}]`,
+              `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
+              '| Processing handled by function crudRoutes.read'
+            );
             res.status(200).send(_.first(output));
           } else {
             let err = NOT_FOUND;
@@ -257,7 +262,8 @@ class Crud {
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
-        console.warn(`[${moment().format()}]`,
+        console.warn(
+          `[${moment().format()}]`,
           `>>> Successfully updated ${newObject.id} from database`,
           '| Processing handled by function crudRoutes._updateDatabase'
         );
@@ -325,7 +331,8 @@ class Crud {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
-            console.warn(`[${moment().format()}]`,
+            console.warn(
+              `[${moment().format()}]`,
               `>>> Successfully deleted ${req.params.id} from database`,
               '| Processing handled by function crudRoutes.onDelete'
             );
@@ -349,7 +356,8 @@ class Crud {
 
     return this._delete(id)
       .then(value => {
-        console.warn(`[${moment().format()}]`,
+        console.warn(
+          `[${moment().format()}]`,
           `>>> Successfully deleted ${id} from database`,
           '| Processing handled by function crudRoutes.onDelete'
         );

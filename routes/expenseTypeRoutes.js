@@ -18,8 +18,9 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(`[${moment().format()}]`,
-      `Attempting to delete expense type ${id}`,
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to delete expense type ${id}`,
       '| Processing handled by function expenseTypeRoutes._delete'
     );
 
@@ -48,7 +49,7 @@ class ExpenseTypeRoutes extends Crud {
   _add(id, data) {
     console.warn(
       `[${moment().format()}]`,
-      `Attempting to add expense type ${id}`,
+      `>>> Attempting to add expense type ${id}`,
       '| Processing handled by function expenseTypeRoutes._add'
     );
 
@@ -66,7 +67,7 @@ class ExpenseTypeRoutes extends Crud {
   _update(id, data) {
     console.warn(
       `[${moment().format()}]`,
-      `Updating expense type ${id}`,
+      `>>> Attempting to update expense type ${id}`,
       '| Processing handled by function expenseTypeRoutes._update'
     );
 
@@ -84,7 +85,7 @@ class ExpenseTypeRoutes extends Crud {
   _checkFields(expenseType) {
     console.warn(
       `[${moment().format()}]`,
-      `Validate expense type ${expenseType.id}`,
+      `Validating expense type ${expenseType.id}`,
       '| Processing handled by function expenseTypeRoutes._checkFields'
     );
 
@@ -103,7 +104,7 @@ class ExpenseTypeRoutes extends Crud {
   _checkDates(startDate, endDate, recurringFlag) {
     console.warn(
       `[${moment().format()}]`,
-      'Validate expense type dates',
+      'Validating expense type dates',
       '| Processing handled by function expenseTypeRoutes._checkDates'
     );
 

@@ -37,7 +37,8 @@ class Roles {
   }
 
   getUserRole(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting user role for user ${req.employee.id}`,
       '| Processing handled by function Roles.getUserRole'
     );
@@ -49,7 +50,8 @@ class Roles {
   }
 
   getUser(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting employee info for user ${req.employee.id}`,
       '| Processing handled by function roles.getUser'
     );

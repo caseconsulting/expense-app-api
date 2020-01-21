@@ -60,7 +60,8 @@ class Special {
    * Handles any errors in crud operations
    */
   _handleError(res, err) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Handling errors',
       '| Processing handled by function specialRoutes._handleError'
     );
@@ -74,7 +75,8 @@ class Special {
   }
 
   getEmployeeName(expense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting employee name of expense ${expense.id}`,
       '| Processing handled by function specialRoutes.getEmployeeName'
     );
@@ -87,7 +89,8 @@ class Special {
   }
 
   getExpenseTypeName(expense) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting expense type name of expense ${expense.id}`,
       '| Processing handled by function specialRoutes.getExpenseTypeName'
     );
@@ -100,7 +103,8 @@ class Special {
   }
 
   showList(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Getting all entries in database',
       '| Processing handled by function specialRoutes.showList'
     );
@@ -114,7 +118,8 @@ class Special {
   }
 
   async empExpenses(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Getting expenses for user ${req.params.id}`,
       '| Processing handled by function specialRoutes.empExpenses'
     );
@@ -145,7 +150,8 @@ class Special {
   }
 
   getAllEmployeeExpenses(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Getting all employee expenses',
       '| Processing handled by function specialRoutes.getAllEmployeeExpenses'
     );
@@ -163,7 +169,8 @@ class Special {
   }
 
   getAllExpenseTypeExpenses(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Getting all expense types',
       '| Processing handled by function specialRoutes.getAllExpenseTypeExpenses'
     );
@@ -182,7 +189,8 @@ class Special {
 
   //function created to see if employee has any expenses
   async empExpenseHistory(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Checking if employee has any expenses',
       '| Processing handled by function specialRoutes.empExpenseHistory'
     );
@@ -200,7 +208,8 @@ class Special {
   }
 
   async showAll(req, res) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Showing all expenses, users, and expense types',
       '| Processing handled by function specialRoutes.showAll'
     );
@@ -216,7 +225,8 @@ class Special {
   }
 
   _findEmployee(expenses, user, expensesTypes) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Finding user ${user.id}`,
       'specialRoutes._findEmployee'
     );
@@ -242,7 +252,8 @@ class Special {
   }
 
   _findExpenseTypes(expenses, employees, expenseTypes) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Finding expense types',
       'specialRoutes._findExpenseTypes'
     );
@@ -304,7 +315,8 @@ class Special {
   }
 
   _getEmployeeName(expenses, users, expenseTypes) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'Setting employee name for all expenses',
       '| Processing handled by function specialRoutes._getEmployeeName'
     );
@@ -327,7 +339,8 @@ class Special {
   async getURLInfo(req, res) {
     var atob = require('atob');
     var decoded = atob(req.params.id);
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Training URL route getURLINFO with URL ${decoded}`,
       '| Processing handled by function specialRoutes.getURLInfo'
     );
@@ -372,7 +385,8 @@ class Special {
   }
 
   _expenseMapping(expenses, employee, expenseType) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       `Filtering expenses with expense type ${expenseType.id} for user ${employee.id}`,
       'specialRoutes._expenseMapping'
     );
@@ -381,7 +395,8 @@ class Special {
   }
 
   _processExpenses(expenseData) {
-    console.warn(`[${moment().format()}]`,
+    console.warn(
+      `[${moment().format()}]`,
       'specialRoutes._processExpenses'
     );
 
