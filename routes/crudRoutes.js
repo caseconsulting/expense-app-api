@@ -59,6 +59,11 @@ class Crud {
    * Handles any errors in crud operations
    */
   _handleError(res, err) {
+    console.warn(`[${moment().format()}]`,
+      'Handling errors',
+      '| Processing handled by function crudRoutes._handleError'
+    );
+
     const logColor = '\x1b[31m';
     const resetColor = '\x1b[0m';
     console.error(logColor, 'Error Code: ' + err.code);
@@ -68,11 +73,15 @@ class Crud {
   }
 
   /**
-   * Validates the inputCheker
+   * Validates the inputChecker
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    console.warn('CRUD routes _validateInputs');
+    console.warn(`[${moment().format()}]`,
+      `Validating input checker`,
+      '| Processing handled by function crduRoutes._validateInputs'
+    );
+
     if (newObject.id) {
       let inputCheckerCurried = _.curry(this._inputChecker);
       return new Promise(function(resolve, reject) {
@@ -94,10 +103,13 @@ class Crud {
   }
 
   _createInDatabase(res, newObject) {
-    console.warn('CRUD routes _createInDatabase');
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
+        console.warn(`[${moment().format()}]`,
+          `Successfully added ${newObject.id} to database`,
+          '| Processing handled by function crudRoutes._createInDatabase'
+        );
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
@@ -107,7 +119,10 @@ class Crud {
    * Creates the object in the database
    */
   create(req, res) {
-    console.warn(moment().format(), 'CRUD routes create');
+    // console.warn(`[${moment().format()}]`,
+    //   'Creating object',
+    //   '| Processing handled by function crudRoutes.create'
+    // );
 
     //added for creating a new training-urls entry
     if (this._getTableName() === `${STAGE}-training-urls`) {
@@ -157,7 +172,11 @@ class Crud {
   /* eslint-enable no-unused-vars */
 
   read(req, res) {
-    console.warn(moment().format(), 'CRUD routes read');
+    // console.warn(`[${moment().format()}]`,
+    //   'Reading object',
+    //   '| Processing handled by function crudRoutes.read'
+    // );
+
     const FORBIDDEN = {
       code: 403,
       message: 'Unable to get objects from database due to insuffieicient user permissions'
@@ -232,7 +251,11 @@ class Crud {
    * Updates the object
    */
   _updateDatabase(res, newObject) {
-    console.warn('CRUD routes _updateDatabase');
+    // console.warn(`[${moment().format()}]`,
+    //   'Updating database',
+    //   '| Processing handled by function crudRoutes._updateDatabase'
+    // );
+
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
@@ -245,12 +268,14 @@ class Crud {
    * update a specified entry
    */
   update(req, res) {
-    console.warn(moment().format(), 'CRUD routes update');
+    // console.warn(`[${moment().format()}]`,
+    //   'Updating object',
+    //   '| Processing handled by function crudRoutes.update'
+    // );
 
     //added if statement for training-url table
     if (this._getTableName() === `${STAGE}-training-urls`) {
-      console.log('here');
-      console.log('id', req.body.id);
+      console.warn('id', req.body.id);
       return this._update(req.body.id, req.body.category, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._updateDatabase(res, validated))
@@ -288,7 +313,7 @@ class Crud {
    * delete the specified entry
    */
   onDelete(req, res) {
-    console.warn(moment().format(), 'CRUD routes onDelete');
+    //console.warn(moment().format(), 'CRUD routes onDelete');
 
     if (this._isAdmin(req)) {
       if (this._checkTableName(['expenses', 'expense-types', 'employees'])) {
@@ -298,6 +323,10 @@ class Crud {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
+            console.warn(`[${moment().format()}]`,
+              `Successfully deleted ${req.params.id} from database`,
+              '| Processing handled by function crudRoutes.onDelete'
+            );
             res.status(200).send(data);
           })
           .catch(err => this._handleError(res, err));
@@ -313,9 +342,16 @@ class Crud {
     }
   }
   _onDeleteHelper(id, res) {
-    console.warn('CRUD routes _onDeleteHelper');
+    //console.warn('CRUD routes _onDeleteHelper');
+
     return this._delete(id)
-      .then(value => res.status(200).send(value))
+      .then(value => {
+        console.warn(`[${moment().format()}]`,
+          `Successfully deleted ${id} from database`,
+          '| Processing handled by function crudRoutes.onDelete'
+        );
+        res.status(200).send(value);
+      })
       .catch(error => this._handleError(res, error));
   }
   // checks to see if the current table name is in the list of vaild table names
@@ -332,7 +368,10 @@ class Crud {
    * Retrieve all items in a given list specified by request
    */
   showList(req, res) {
-    console.warn(moment().format(), 'CRUD routes showList');
+    // console.warn(`[${moment().format()}]`,
+    //   'Displaying expense type list',
+    //   '| Processing handled by function crudRoutes.showList'
+    // );
 
     let hasPermission = this._checkPermissionForShowList(req);
     if (hasPermission) {
