@@ -3,6 +3,8 @@ var express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
+const moment = require('moment');
+
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
 // the Auth0 JSON Web Key Set
@@ -33,19 +35,31 @@ class Roles {
   get router() {
     return this._router;
   }
+
   getUserRole(req, res) {
+    console.warn(`[${moment().format()}]`,
+      `Getting user role for user ${req.employee.id}`,
+      '| Processing handled by function Roles.getUserRole'
+    );
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee.employeeRole);
     } else {
       res.status(404).send('entry not found in database');
     }
   }
+
   getUser(req, res) {
+    console.warn(`[${moment().format()}]`,
+      `Getting employee info for user ${req.employee.id}`,
+      '| Processing handled by function roles.getUser'
+    );
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee);
     } else {
       res.status(404).send('entry not found in database');
     }
   }
+
 }
+
 module.exports = Roles;
