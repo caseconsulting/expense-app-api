@@ -242,7 +242,6 @@ Resources:
             WriteCapacityUnits: '1'
   expenseTypeTable:
     Type: 'AWS::DynamoDB::Table'
-    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -260,7 +259,6 @@ Resources:
           KeyType: HASH
   expenseTable:
     Type: 'AWS::DynamoDB::Table'
-    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -307,7 +305,6 @@ Resources:
             WriteCapacityUnits: '1'
   budgetsTable:
     Type: 'AWS::DynamoDB::Table'
-    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
