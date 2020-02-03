@@ -237,9 +237,6 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
   expenseTypeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -289,9 +286,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
         - IndexName: expenseTypeId-index
           KeySchema:
             - AttributeName: expenseTypeId
@@ -300,9 +294,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
   budgetsTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -333,9 +324,6 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
         - IndexName: userId-expenseTypeId-index
           KeySchema:
             - AttributeName: userId
@@ -344,18 +332,12 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
         - IndexName: fiscalEndDate-index
           KeySchema:
             - AttributeName: fiscalEndDate
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '1'
   ApplicationLoadBalancer:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
