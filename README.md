@@ -1,28 +1,26 @@
 ## Setup
 
-The **Expense App API** is written in **Node.js** v8.x+.
+The **Expense App API** is written in **Node.js** v12.x+.
 
-Download and install Node.js v8.x from: https://nodejs.org/dist/latest-v8.x/
+Download and install Node.js v12.x from: https://nodejs.org/en/ or https://nodejs.org/dist/latest-v12.x/
 
 Install required Node.js modules:
 
 ```
-npm install --no-optional
-npm prune
-npm dedupe
+npm ci
 ```
 
 ## Environment variables
 
 In order to use **Auth0** authentication, you will need to define some environment variables:
 
-* **VUE_APP_AUTH0_AUDIENCE**
-* **VUE_APP_AUTH0_DOMAIN**
+- **VUE_APP_AUTH0_AUDIENCE**
+- **VUE_APP_AUTH0_DOMAIN**
 
 The following environment variables are required to support multiple environments:
 
-* **EXPRESS_PORT**
-* **STAGE**
+- **EXPRESS_PORT**
+- **STAGE**
 
 The **dotenv** Node.js module is used to pick up environment variables from a `.env` file in the project root directory.
 The `.env` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run locally.
@@ -99,7 +97,7 @@ Keep all prior parameter values when prompted.
 
 ## Deployment (test & prod) - EC2 Instances
 
-Application deployment occurs when an EC2 instance is built.  To update an existing server, ssh to that server using the appropriate key pair.  For example:
+Application deployment occurs when an EC2 instance is built. To update an existing server, ssh to that server using the appropriate key pair. For example:
 
 ```
 ssh -i ~/projects/expense-app-dev.pem centos@ec2-12-345-67-89.compute-1.amazonaws.com
@@ -108,6 +106,7 @@ ssh -i ~/projects/expense-app-dev.pem centos@ec2-12-345-67-89.compute-1.amazonaw
 Run the following commands to update and restart the server, making sure to substitute the proper environment for "<env>" in the bucket name:
 
 test
+
 ```
 cd app
 git checkout -- package-lock.json
@@ -120,6 +119,7 @@ npm run restart
 ```
 
 prod
+
 ```
 cd app
 git checkout -- package-lock.json
@@ -133,6 +133,6 @@ npm run restart
 
 ## Deployment (test & prod) - CloudFormation
 
-To update future instances, you need to update the Launch Configuration defined in the CloudFormation stack.  Comment out the *ChronosFunction* resource at the bottom of the `CloudFormation.yaml` file, since this is only needed for a serverless environment (i.e., dev).
+To update future instances, you need to update the Launch Configuration defined in the CloudFormation stack. Comment out the _ChronosFunction_ resource at the bottom of the `CloudFormation.yaml` file, since this is only needed for a serverless environment (i.e., dev).
 
-From AWS Console, manually update **expense-app-test** and **expense-app-prod** CloudFormation stacks using the modified `CloudFormation.yaml` file.  Keep all prior parameter values when prompted.
+From AWS Console, manually update **expense-app-test** and **expense-app-prod** CloudFormation stacks using the modified `CloudFormation.yaml` file. Keep all prior parameter values when prompted.
