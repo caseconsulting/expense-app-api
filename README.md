@@ -84,44 +84,45 @@ To download dev .env and claudia.json then deploy to the dev environment using C
 npm run deploy:dev
 ```
 
-## Deployment (test & prod) - EC2 Instances
+## Deployment (test)
 
-Application deployment occurs when an EC2 instance is built. To update an existing server, ssh to that server using the appropriate key pair. For example:
-
-```
-ssh -i ~/projects/expense-app-dev.pem centos@ec2-12-345-67-89.compute-1.amazonaws.com
-```
-
-Run the following commands to update and restart the server, making sure to substitute the proper environment for "<env>" in the bucket name:
-
-test
+To download test .env and claudia.json then deploy to the test environment using Claudia.js and SAM/CloudFormation:
 
 ```
-cd app
-git checkout -- package-lock.json
-git pull
-npm install --no-optional
-npm prune
-npm dedupe
-aws s3 cp s3://case-consulting-expense-app-resources-test/.env .env
-npm run restart
+npm run deploy:test
 ```
 
-prod
+## Deployment (prod)
+
+NOTE: Need to switch AWS credentials to production account.
+
+To download prod .env and claudia.json then deploy to the prod environment using Claudia.js and SAM/CloudFormation:
 
 ```
-cd app
-git checkout -- package-lock.json
-git pull
-npm install --no-optional
-npm prune
-npm dedupe
-aws s3 cp s3://case-consulting-expense-app-resources-prod/.env .env
-npm run restart
+npm run deploy:prod
 ```
 
-## Deployment (test & prod) - CloudFormation
+## One time deployment for new environment
 
-To update future instances, you need to update the Launch Configuration defined in the CloudFormation stack. Comment out the _ChronosFunction_ resource at the bottom of the `CloudFormation.yaml` file, since this is only needed for a serverless environment (i.e., dev).
+Claudia.js requires a one time initialization. For example, run the following steps for the test environment:
 
-From AWS Console, manually update **expense-app-test** and **expense-app-prod** CloudFormation stacks using the modified `CloudFormation.yaml` file. Keep all prior parameter values when prompted.
+```
+npm run create:claudia:test
+```
+
+In the API Gateway console
+1) Select the API
+2) Settings
+3) Change Endpoint type to Regional
+4) Save Changes
+
+```
+npm run deploy:claudia
+npm run upload:test:claudia
+```
+
+Run the normal deployment
+
+```
+npm run deploy:test
+```
