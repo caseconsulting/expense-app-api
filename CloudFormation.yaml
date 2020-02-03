@@ -213,6 +213,7 @@ Resources:
             Status: Enabled
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
+    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -229,9 +230,6 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: email-index
           KeySchema:
@@ -244,6 +242,7 @@ Resources:
             WriteCapacityUnits: '1'
   expenseTypeTable:
     Type: 'AWS::DynamoDB::Table'
+    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -258,11 +257,9 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '1'
   expenseTable:
     Type: 'AWS::DynamoDB::Table'
+    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -283,9 +280,6 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: userId-index
           KeySchema:
@@ -311,6 +305,7 @@ Resources:
             WriteCapacityUnits: '1'
   budgetsTable:
     Type: 'AWS::DynamoDB::Table'
+    BillingMode: PAY_PER_REQUEST
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
@@ -331,9 +326,6 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: expenseTypeId-index
           KeySchema:
