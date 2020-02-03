@@ -126,3 +126,9 @@ Run the normal deployment
 ```
 npm run deploy:test
 ```
+
+To reset for local development, after a deployment:
+
+```
+npm run download:local:env
+```
