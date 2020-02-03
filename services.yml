@@ -1,7 +1,6 @@
 apps:
   - script     : ./bin/www
     name       : 'services'
-    instances  : max
     exec_mode  : cluster
     error_file : ./logs/services.log
     out_file   : ./logs/services.log
