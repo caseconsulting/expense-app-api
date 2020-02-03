@@ -13,7 +13,7 @@
     "download:test:env": "aws s3 cp s3://case-consulting-expense-app-resources-test/.env .env",
     "download:test:claudia": "aws s3 cp s3://case-consulting-expense-app-resources-test/claudia.json claudia.json",
     "debug": "nodemon --trace-warnings --inspect bin/www",
-    "deploy:dev": "claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs8.10 --set-env VUE_APP_AUTH0_DOMAIN=consultwithcase.auth0.com,VUE_APP_AUTH0_AUDIENCE=https://consultwithcase.auth0.com/api/v2/,STAGE=dev --role expense-api-lambda-dev",
+    "deploy:dev": "claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs12.x --set-env VUE_APP_AUTH0_DOMAIN=consultwithcase.auth0.com,VUE_APP_AUTH0_AUDIENCE=https://consultwithcase.auth0.com/api/v2/,STAGE=dev --role expense-api-lambda-dev",
     "destroy": "claudia destroy",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
     "lint": "npm run eslint",
