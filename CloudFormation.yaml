@@ -219,7 +219,6 @@ Resources:
         - '-'
         - - !Ref Stage
           - employees
-      BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -230,6 +229,9 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: email-index
           KeySchema:
@@ -237,6 +239,9 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
   expenseTypeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -245,7 +250,6 @@ Resources:
         - '-'
         - - !Ref Stage
           - expense-types
-      BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -254,6 +258,9 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
   expenseTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -262,7 +269,6 @@ Resources:
         - '-'
         - - !Ref Stage
           - expenses
-      BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -277,6 +283,9 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: userId-index
           KeySchema:
@@ -286,6 +295,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
         - IndexName: expenseTypeId-index
           KeySchema:
             - AttributeName: expenseTypeId
@@ -294,6 +306,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
   budgetsTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -302,7 +317,6 @@ Resources:
         - '-'
         - - !Ref Stage
           - budgets
-      BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -317,6 +331,9 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '1'
       GlobalSecondaryIndexes:
         - IndexName: expenseTypeId-index
           KeySchema:
@@ -324,6 +341,9 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
         - IndexName: userId-expenseTypeId-index
           KeySchema:
             - AttributeName: userId
@@ -332,12 +352,18 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
         - IndexName: fiscalEndDate-index
           KeySchema:
             - AttributeName: fiscalEndDate
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '1'
   ApplicationLoadBalancer:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
