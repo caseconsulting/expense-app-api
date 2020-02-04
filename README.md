@@ -104,16 +104,48 @@ npm run deploy:prod
 
 ## One time deployment for new environment
 
-Claudia.js requires a one time initialization. For example, run the following steps for the test environment:
+Temporarily comment out the entire 'ChronosFunction' configuration from CloudFormation.yaml
+
+Create a .env set up for the new environment
+
+Using the AWS CloudFormation Console:
+1) Create stack with new resources
+2) Upload a template file (CloudFormation.yaml)
+3) Next
+4) Enter stack name (expense-app-test)
+5) Parameters:
+    a) ApiCertificate: <ARN of test.api.consultwithcase.com certificate from Amazon Certificate Manager (ACM)>
+    b) AppCertificate: <ARN of test.app.consultwithcase.com certificate from Amazon Certificate Manager (ACM)>
+    c) AppDomain: test.app.consultwithcase.com
+    d) Stage: test
+6) Next
+7) Next
+8) Acknowledge all three Capabilities and transforms
+9) Create stack
+10) Wait for stack creation to complete
+
+Uncomment the 'ChronosFunction' configuration from CloudFormation.yaml
+
+Upload .env to S3 bucket:
 
 ```
+npm run upload:test:env
+```
+
+Claudia.js requires a one time initialization after the CloudFormation stack has been created. For example, run the following steps for the test environment:
+
+Make sure you do not have a claudia.json file and that you do have a .env set up for the environment.
+
+```
+npm run package:chronos:test
+npm run deploy:chronos:test
 npm run create:claudia:test
 ```
 
 In the API Gateway console
 1) Select the API
 2) Settings
-3) Change Endpoint type to Regional
+3) Change Endpoint Type to Regional
 4) Save Changes
 
 ```
@@ -126,6 +158,27 @@ Run the normal deployment
 ```
 npm run deploy:test
 ```
+
+Create a custom domain name to link to Netlify
+
+Using the Amazon API Gateway Console:
+1) Custom Domain Names
+2) + Create Custom Domain Name
+3) Parameters:
+    a) Select REST
+    b) Domain Name: test.api.consultwithcase.com
+    c) Security Policy: TLS 1.2
+    d) Endpoint Configuration: Regional
+    e) ACM Certificate: test.api.consultwithcase.com (2bc96db7)
+4) Save
+5) Edit
+6) Add mapping
+    a) Path: /
+    b) Destination: expense-app-api-test(479pj08bg7 - REST)
+    c) Stage: latest
+7) Save
+
+Add the CNAME record in the Netlify DNS for test.api.consultwithcase.com
 
 To reset for local development, after a deployment:
 
