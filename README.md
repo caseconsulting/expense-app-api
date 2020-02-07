@@ -104,6 +104,13 @@ npm run deploy:prod
 
 ## One time deployment for new environment
 
+For Prod: configure .aws/credentials and .aws/config for prod profile
+(e.g. .aws/config
+  [prod]
+  output = json
+  region = us-east-1
+)
+
 Temporarily comment out the entire 'ChronosFunction' configuration from CloudFormation.yaml
 
 Create a .env set up for the new environment
@@ -116,7 +123,7 @@ Using the AWS CloudFormation Console:
 5) Parameters:
     a) ApiCertificate: <ARN of test.api.consultwithcase.com certificate from Amazon Certificate Manager (ACM)>
     b) AppCertificate: <ARN of test.app.consultwithcase.com certificate from Amazon Certificate Manager (ACM)>
-    c) AppDomain: test.app.consultwithcase.com
+    c) AppDomain: test.app.consultwithcase.com (FOR PROD: app.consultwithcase.com)
     d) Stage: test
 6) Next
 7) Next
@@ -148,8 +155,8 @@ In the API Gateway console
 3) Change Endpoint Type to Regional
 4) Save Changes
 
-```
-npm run deploy:claudia
+```bash
+npm run deploy:claudia #(FOR PROD: npm run deploy:claudia:prod)
 npm run upload:test:claudia
 ```
 
@@ -166,15 +173,15 @@ Using the Amazon API Gateway Console:
 2) + Create Custom Domain Name
 3) Parameters:
     a) Select REST
-    b) Domain Name: test.api.consultwithcase.com
+    b) Domain Name: test.api.consultwithcase.com (FOR PROD: api.consultwithcase.com)
     c) Security Policy: TLS 1.2
     d) Endpoint Configuration: Regional
-    e) ACM Certificate: test.api.consultwithcase.com (2bc96db7)
+    e) ACM Certificate: test.api.consultwithcase.com
 4) Save
 5) Edit
 6) Add mapping
     a) Path: /
-    b) Destination: expense-app-api-test(479pj08bg7 - REST)
+    b) Destination: expense-app-api-test
     c) Stage: latest
 7) Save
 

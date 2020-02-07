@@ -4,23 +4,27 @@ Description: CloudFormation for expense app
 Parameters:
   Stage:
     Type: String
-    Description: 'Deployment environment (e.g., dev, test, or prod)'
+    Description: Deployment environment (e.g., dev, test, or prod)
     AllowedValues:
       - dev
       - test
       - prod
   AppCertificate:
     Description: The ARN for the app certificate saved in ACM
-    Type: 'String'
+    Type: String
     ConstraintDescription: must be the name of an existing certificate.
   ApiCertificate:
     Description: The ARN for the api certificate saved in ACM
-    Type: 'String'
+    Type: String
     ConstraintDescription: must be the name of an existing certificate.
   AppDomain:
     Description: The domain name for the front end app
-    Type: 'String'
-    ConstraintDescription: Should match app certificate name.
+    Type: String
+    ConstraintDescription: Must match app certificate name
+    AllowedValues:
+      - dev.app.consultwithcase.com
+      - test.app.consultwithcase.com
+      - app.consultwithcase.com
 Resources:
   cloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
