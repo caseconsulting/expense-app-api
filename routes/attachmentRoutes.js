@@ -2,6 +2,7 @@ const express = require('express');
 const databaseModify = require('../js/databaseModify');
 const expenseDynamo = new databaseModify('expenses');
 const moment = require('moment');
+const _ = require('lodash');
 
 const multer = require('multer');
 const multerS3 = require('multer-s3');
@@ -33,24 +34,78 @@ const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
 
-var upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: BUCKET,
-    acl: 'bucket-owner-full-control',
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    serverSideEncryption: 'AES256',
-    key: function(req, file, cb) {
-      cb(null, `${req.params.userId}/${req.params.expenseId}/${file.originalname}`);
-    }
-  })
+var storage = multerS3({
+  s3: s3,
+  bucket: BUCKET,
+  acl: 'bucket-owner-full-control',
+  contentType: multerS3.AUTO_CONTENT_TYPE,
+  serverSideEncryption: 'AES256',
+  key: function(req, file, cb) {
+    cb(null, `${req.params.userId}/${req.params.expenseId}/${file.originalname}`);
+  }
 });
+
+var limits = {
+  files: 1, // allow only 1 file per request
+  fileSize: 6 * 1024 * 1024 // 6 MB (max file size)
+};
+
+/**
+ * Filter valid mimetypes
+ */
+var fileFilter = function(req, file, cb) {
+  console.warn(
+    `[${moment().format()}]`,
+    `>>> Attempting to upload attachment ${file.originalname}`,
+    '| Processing handled by function attachmentRoutes.fileFilter'
+  );
+
+  // Content types that are allowed to be uploaded
+  const ALLOWED_CONTENT_TYPES = [
+    '.application/pdf', //.pdf
+    'image/gif', //.gif
+    'image/jpeg', //.jpeg
+    'image/png', //.png
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //xlsx
+    'application/vnd.ms-excel', //.xls, .xlt, xla
+    'application/xml', //.xml
+    'application/msword', //.doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' //.docx
+  ];
+
+  if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
+    // allow supported image files
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Mimetype ${file.mimetype} accepted`,
+      '| Processing handled by function attachmentRoutes.fileFilter'
+    );
+
+    cb(null, true);
+  } else {
+    // throw error for invalid files
+
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Mimetype ${file.mimetype} rejected`,
+      '| Processing handled by function attachmentRoutes.fileFilter'
+    );
+
+    cb(new Error(`Invalid file type ${file.mimetype}. View help menu for list of valid file types.`));
+  }
+};
+
+var upload = multer({
+  storage: storage,
+  limits: limits,
+  fileFilter: fileFilter
+}).single('receipt');
 
 class Attachment {
   constructor() {
     this.expenseData = expenseDynamo;
     this._router = express.Router();
-    this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, upload.single('receipt'), this.onUpload.bind(this));
+    this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, this.afterUpload.bind(this));
     this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
   }
 
@@ -61,14 +116,37 @@ class Attachment {
   /**
    * Post-processing after file upload
    */
-  onUpload(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Uploading attachment ${req.file.originalname} with file key ${req.file.key} to S3 bucket ${req.file.bucket}`,
-      '| Processing handled by function attachmentRoutes.onUpload'
-    );
+  afterUpload(req, res) {
 
-    res.send('Successfully uploaded file:' + req.file.key);
+    upload(req, res, (err) => {
+      if (err) {
+        // if there is an error from validating the file
+        console.warn(
+          `[${moment().format()}]`,
+          '>>> Failed to upload file',
+          '| Processing handled by function attachmentRoutes.afterUpload'
+        );
+
+        let error = {
+          code: 403,
+          message:
+            `${err}`
+        };
+
+        return res.send(error);
+
+      } else {
+        // successfully validated file
+        console.warn(
+          `[${moment().format()}]`,
+          `>>> Successfully uploaded attachment ${req.file.originalname}`,
+          `with file key ${req.file.key} to S3 bucket ${req.file.bucket}`,
+          '| Processing handled by function attachmentRoutes.afterUpload'
+        );
+
+        res.send('Successfully uploaded file:' + req.file.key);
+      }
+    });
   }
 
   async getAttachmentFromS3(req, res) {
