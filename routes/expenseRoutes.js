@@ -58,12 +58,12 @@ class ExpenseRoutes extends Crud {
     var budgets = [];
 
     expense = new Expense(data);
-    expense.id = id;
+    //expense.id = id; // ignore the api generated uuid
 
     if (!this._isReimbursed(expense)) {
       console.warn(
         `[${moment().format()}]`,
-        `>>> Attempting to add pending expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `>>> Attempting to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`,
         '| Processing handled by function expenseRoutes._add'
       );
@@ -71,7 +71,7 @@ class ExpenseRoutes extends Crud {
     else {
       console.warn(
         `[${moment().format()}]`,
-        `>>> Attempting to add reimbursed expense ${id} for expense type id ${expense.expenseTypeId}`,
+        `>>> Attempting to add reimbursed expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`,
         '| Processing handled by function expenseRoutes._add'
       );
