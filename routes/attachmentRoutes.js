@@ -62,7 +62,7 @@ var fileFilter = function(req, file, cb) {
 
   // Content types that are allowed to be uploaded
   const ALLOWED_CONTENT_TYPES = [
-    '.application/pdf', //.pdf
+    'application/pdf', //.pdf
     'image/gif', //.gif
     'image/jpeg', //.jpeg
     'image/png', //.png
@@ -91,7 +91,7 @@ var fileFilter = function(req, file, cb) {
       '| Processing handled by function attachmentRoutes.fileFilter'
     );
 
-    cb(new Error(`Invalid file type ${file.mimetype}. View help menu for list of valid file types.`));
+    cb(new Error(`Invalid file type ${file.mimetype}. View help menu for a list of valid file types.`));
   }
 };
 
