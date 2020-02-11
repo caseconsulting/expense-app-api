@@ -214,6 +214,27 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+  trainingURLTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - training-urls
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: category
+          KeyType: RANGE
   expenseTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
