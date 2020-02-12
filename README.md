@@ -76,6 +76,8 @@ To upgrade to the latest version of a specific Node.js module, which is a develo
 npm update --save-dev <module-name>@latest
 ```
 
+NOTE: When deleting a table and it is not recreated when deploying, you must change the table name in CloudFormation.yaml, deploy, delete the new temporary table, change the table name back, and deploy again
+
 ## Deployment (dev)
 
 To download dev .env and claudia.json then deploy to the dev environment using Claudia.js and SAM/CloudFormation:
