@@ -59,7 +59,7 @@ class TrainingURLRoutes extends Crud {
   _checkFields(trainingURL) {
     console.warn(
       `[${moment().format()}]`,
-      `Validating if the training url id exists and if the url has any hits`,
+      'Validating if the training url id exists and if the url has any hits',
       '| Processing handled by function trainingURLRoutes.checkFields'
     );
 
