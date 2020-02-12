@@ -152,7 +152,7 @@ class Crud {
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
-    } else if (!this._isAdmin(req) && this._getTableName() === `${STAGE}-expenses`) {
+    } else if (this._isUser(req) && this._getTableName() === `${STAGE}-expenses`) {
       return this._add(uuid(), req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
