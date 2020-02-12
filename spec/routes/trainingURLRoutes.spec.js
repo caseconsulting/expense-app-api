@@ -36,20 +36,20 @@ describe('trainingURLRoutes', () => {
       });
     }); // when DynamoDB is successful
 
-    xdescribe('when addToDB fails', () => {
-      let expectedErr;
-      beforeEach(() => {
-        expectedErr = 'error from DynamoDB';
-        trainingURLDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
-      });
-
-      it('should throw the error', done => {
-        return trainingURLRoutes._add(id, data).catch(err => {
-          expect(err).toEqual(expectedErr);
-          done();
-        });
-      });
-    }); // when DynamoDB throws an error
+    // xdescribe('when addToDB fails', () => {
+    //   let expectedErr;
+    //   beforeEach(() => {
+    //     expectedErr = 'error from DynamoDB';
+    //     trainingURLDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
+    //   });
+    //
+    //   it('should throw the error', done => {
+    //     return trainingURLRoutes._add(id, data).catch(err => {
+    //       expect(err).toEqual(expectedErr);
+    //       done();
+    //     });
+    //   });
+    // }); // when DynamoDB throws an error
   }); // _add
 
   //   describe('_update', () => {

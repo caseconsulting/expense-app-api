@@ -75,43 +75,43 @@ describe('databaseModify', () => {
     }); // when there are undefined values
   }); // buildExpressionAttributeValues
 
-  xdescribe('findObjectInDB', () => {
-    //
-    let primaryKey;
-    beforeEach(() => (primaryKey = '{primaryKey}'));
-
-    describe('when entry is found in the database', () => {
-      //Create a spy that returns
-      beforeEach(() => {
-        jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
-          // return new Promise(function(resolve, reject) { need to test the reject
-          return new Promise(function(resolve) {
-            resolve('Successfully found object in database');
-          });
-        });
-      });
-      it('should return a resolved promise and the found object', () => {
-        databaseModify.findObjectInDB(primaryKey).then(function(data) {
-          expect(data).toEqual('Successfully found object in database');
-        });
-      });
-    }); //when entry is found in the database
-
-    describe('when entry is not in the database', () => {
-      beforeEach(() => {
-        jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
-          return new Promise(function(resolve, reject) {
-            reject('object not found in database');
-          });
-        });
-      });
-      it('should return a rejected promise with a reason', () => {
-        databaseModify.findObjectInDB(primaryKey).then(function(err) {
-          expect(err).toEqual('object not found in database');
-        });
-      });
-    }); //when entry is not in the database
-  }); //findObjectInDB
+  // xdescribe('findObjectInDB', () => {
+  //   //
+  //   let primaryKey;
+  //   beforeEach(() => (primaryKey = '{primaryKey}'));
+  //
+  //   describe('when entry is found in the database', () => {
+  //     //Create a spy that returns
+  //     beforeEach(() => {
+  //       jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
+  //         // return new Promise(function(resolve, reject) { need to test the reject
+  //         return new Promise(function(resolve) {
+  //           resolve('Successfully found object in database');
+  //         });
+  //       });
+  //     });
+  //     it('should return a resolved promise and the found object', () => {
+  //       databaseModify.findObjectInDB(primaryKey).then(function(data) {
+  //         expect(data).toEqual('Successfully found object in database');
+  //       });
+  //     });
+  //   }); //when entry is found in the database
+  //
+  //   describe('when entry is not in the database', () => {
+  //     beforeEach(() => {
+  //       jasmine.createSpy(databaseModify, 'readFromDB').and.returnValue(function() {
+  //         return new Promise(function(resolve, reject) {
+  //           reject('object not found in database');
+  //         });
+  //       });
+  //     });
+  //     it('should return a rejected promise with a reason', () => {
+  //       databaseModify.findObjectInDB(primaryKey).then(function(err) {
+  //         expect(err).toEqual('object not found in database');
+  //       });
+  //     });
+  //   }); //when entry is not in the database
+  // }); //findObjectInDB
 
   describe('addToDB', () => {
     let newJsonObj;

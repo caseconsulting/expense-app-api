@@ -2,6 +2,7 @@ const Crud = require('../../routes/crudRoutes');
 const _ = require('lodash');
 
 describe('crudRoutes', () => {
+  let stage = 'dev';
   //Create spies for all calls to databaseModify
   let crudRoutes, databaseModify;
   beforeEach(() => {
@@ -40,21 +41,32 @@ describe('crudRoutes', () => {
     }); //if there are no empty strings
   }); // _inputChecker
 
-  xdescribe('create', () => {
+  describe('create', () => {
     let req, res, err;
     beforeEach(() => {
-      res = 'res';
+
+      // req = { body: 'body',params:{id:'{id}'} };
+      // err = '{err}';
+      // data = '{data}';
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+<<<<<<< Updated upstream
+      crudRoutes.databaseModify.tableName = `${stage}-expenses`;
+=======
+>>>>>>> Stashed changes
+
       spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
       spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
       spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
-      spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
     });
+
     describe('if the user role is admin', () => {
       beforeEach(() => {
         req = {
           body: 'body',
           employee: {
-            role: 'admin'
+            employeeRole: 'admin'
           }
         };
       });
@@ -73,7 +85,7 @@ describe('crudRoutes', () => {
         req = {
           body: 'body',
           employee: {
-            role: 'user'
+            employeeRole: 'user'
           }
         };
       });
@@ -96,7 +108,7 @@ describe('crudRoutes', () => {
         req = {
           body: 'body',
           employee: {
-            role: 'NO_PERMISSION'
+            employeeRole: 'NO_PERMISSION'
           }
         };
         spyOn(crudRoutes, '_handleError').and.returnValue({
@@ -104,18 +116,30 @@ describe('crudRoutes', () => {
           message: 'Unable to create object in database due to insufficient user permissions'
         });
       });
-      it('should error out', () => {
+      it('should error out', done => {
         crudRoutes.create(req, res);
         expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        done();
       });
     }); //if user doesnt have permissions
   }); //create
 
-  xdescribe('read', () => {
+  describe('read', () => {
     let res, req, err;
     beforeEach(() => {
-      req = { body: 'body', params: { id: 'id' } };
-      err = { code: 404, message: 'entry not found in database' };
+      req = {
+        body: 'body',
+        employee: {
+          employeeRole: 'admin'
+        },
+        params: {
+          id: 'id'
+        }
+      };
+      err = {
+        code: 404,
+        message: 'entry not found in database'
+      };
     });
 
     describe('When promise is resolved', () => {
@@ -149,7 +173,7 @@ describe('crudRoutes', () => {
 
           // fail('Cant test error handling');
         }); //should respond with the output and a 200 code
-      }); //when readFromDB returns at least one element
+      }); //when readFromDB does not return an element
     }); //When promise is resolved
     describe('when promise does not resolve', () => {
       beforeEach(() => {
@@ -166,14 +190,21 @@ describe('crudRoutes', () => {
     }); //when promise does not resolve
   }); // read
 
-  xdescribe('update', () => {
+  describe('update', () => {
     let req, res, err;
     beforeEach(() => {
-      res = 'res';
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+<<<<<<< Updated upstream
+      crudRoutes.databaseModify.tableName = `${stage}-expenses`;
+=======
+>>>>>>> Stashed changes
+
       spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
       spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
       spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
-      spyOn(crudRoutes, '_getTableName').and.returnValue('Expense');
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
+
     });
 
     describe('if the user role is admin', () => {
@@ -182,7 +213,7 @@ describe('crudRoutes', () => {
           body: 'body',
           params: { id: 'id' },
           employee: {
-            role: 'admin'
+            employeeRole: 'admin'
           }
         };
       });
@@ -196,13 +227,13 @@ describe('crudRoutes', () => {
       });
     }); //if the user role is admin
 
-    describe('if a user role is user and submitting an expense', () => {
+    describe('if a user role is user and updating an expense', () => {
       beforeEach(() => {
         req = {
           body: 'body',
           params: { id: 'id' },
           employee: {
-            role: 'user'
+            employeeRole: 'user'
           }
         };
       });
@@ -214,7 +245,7 @@ describe('crudRoutes', () => {
           done();
         });
       });
-    }); //if a user role is user and submitting an expense
+    }); //if a user role is user and updating an expense
 
     describe('if user doesnt have permissions', () => {
       beforeEach(() => {
