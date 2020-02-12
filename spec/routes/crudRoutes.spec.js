@@ -50,10 +50,7 @@ describe('crudRoutes', () => {
       // data = '{data}';
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
-<<<<<<< Updated upstream
       crudRoutes.databaseModify.tableName = `${stage}-expenses`;
-=======
->>>>>>> Stashed changes
 
       spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
       spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
@@ -195,10 +192,7 @@ describe('crudRoutes', () => {
     beforeEach(() => {
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
-<<<<<<< Updated upstream
       crudRoutes.databaseModify.tableName = `${stage}-expenses`;
-=======
->>>>>>> Stashed changes
 
       spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
       spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
