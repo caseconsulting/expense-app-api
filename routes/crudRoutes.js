@@ -4,6 +4,7 @@ const uuid = require('uuid/v4');
 const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
+const TrainingUrls = require('../models/trainingUrls');
 const STAGE = process.env.STAGE;
 // const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
@@ -80,7 +81,7 @@ class Crud {
   _validateInputs(res, newObject) {
     console.warn(
       `[${moment().format()}]`,
-      'Validating input checker',
+      'Validating input for database fields',
       '| Processing handled by function crudRoutes._validateInputs'
     );
 
@@ -108,11 +109,19 @@ class Crud {
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Successfully added ${newObject.id} to database`,
-          '| Processing handled by function crudRoutes._createInDatabase'
-        );
+        if (newObject instanceof TrainingUrls) {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully added ${newObject.id} with category ${newObject.category} to database`,
+            '| Processing handled by function crudRoutes._createInDatabase'
+          );
+        } else {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully added ${newObject.id} to database`,
+            '| Processing handled by function crudRoutes._createInDatabase'
+          );
+        }
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));
@@ -262,11 +271,19 @@ class Crud {
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Successfully updated ${newObject.id} from database`,
-          '| Processing handled by function crudRoutes._updateDatabase'
-        );
+        if (newObject instanceof TrainingUrls) {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully updated ${newObject.id} with category ${newObject.category} to database`,
+            '| Processing handled by function crudRoutes._updateDatabase'
+          );
+        } else {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully updated ${newObject.id} from database`,
+            '| Processing handled by function crudRoutes._updateDatabase'
+          );
+        }
         res.status(200).send(data);
       })
       .catch(err => this._handleError(res, err));

@@ -4,6 +4,7 @@ require('dotenv').config({
   silent: true
 });
 
+const moment = require('moment');
 const STAGE = process.env.STAGE;
 
 class databaseModify {
@@ -100,7 +101,12 @@ class databaseModify {
   }
 
   readFromDBURL(passedID, category) {
-    console.log('readfromDURL');
+    console.warn(
+      `[${moment().format()}]`,
+      `Reading from training-urls database with id ${passedID} and category ${category}`,
+      '| Processing handled by function databaseModify.readFromDBURL'
+    );
+
     const params = {
       TableName: this.tableName,
       ExpressionAttributeValues: {
@@ -110,18 +116,14 @@ class databaseModify {
       KeyConditionExpression: 'id = :id AND category = :category'
     };
 
-    console.log('before look up');
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .query(params)
       .promise()
       .then(function(data) {
-        console.log('completed query');
         if (!_.isEmpty(data.Items)) {
-          console.log('found something');
           return data.Items;
         } else {
-          console.log('found nothing');
           return null;
         }
       })
@@ -260,14 +262,15 @@ class databaseModify {
     let ExpressionAttributeValues = {};
     let UpdateExpression = 'set ';
     let ExpressionAttributeNames = {};
-    const attributes = _.keys(_.omit(data, ['id']));
+    const attributes = _.keys(_.omit(data, ['id', 'category']));
+
     _.each(attributes, (attribute, index) => {
       const value = _.get(data, attribute);
       if (value || value === 0) {
         let expressionAttribute = `:${alpha[index]}`;
         ExpressionAttributeValues[expressionAttribute] = value;
 
-        if (attribute === 'url') {
+        if (attribute === 'url') { // what is this case for? - austin
           UpdateExpression += `#url = ${expressionAttribute},`;
           _.assign(ExpressionAttributeNames, { '#url': 'url' });
         } else {

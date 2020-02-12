@@ -15,7 +15,11 @@ class TrainingURLRoutes extends Crud {
   }
 
   async _add(url, data) {
-    console.warn(moment().format(), 'TrainingURL _add', `with URL ${url}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to add training url ${url} with category ${data.category}`,
+      '| Processing handled by function trainingURLRoutes._add'
+    );
 
     let trainingURL = new TrainingUrls(data);
     trainingURL.id = url;
@@ -28,14 +32,19 @@ class TrainingURLRoutes extends Crud {
   }
 
   _update(id, category, data) {
-    console.log('url', id);
+
     var atob = require('atob');
     var decodedURL = atob(id);
-    console.warn(moment().format(), 'Training URL _update', `for url ${decodedURL}`, `and category ${category}`);
 
     let trainingURL = new TrainingUrls(data);
     trainingURL.id = decodedURL;
     trainingURL.category = category;
+
+    console.warn(
+      `[${moment().format()}]`,
+      `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
+      '| Processing handled by function trainingURLRoutes._update'
+    );
 
     return this.databaseModify
       .readFromDBURL(decodedURL, category)
@@ -48,7 +57,12 @@ class TrainingURLRoutes extends Crud {
   }
 
   _checkFields(trainingURL) {
-    console.warn('Training URL Routes _checkFields');
+    console.warn(
+      `[${moment().format()}]`,
+      `Validating if the training url id exists and if the url has any hits`,
+      '| Processing handled by function trainingURLRoutes.checkFields'
+    );
+
     let idCheck = !!trainingURL.id;
     let hitsCheck = trainingURL.hits > 0;
     let valid = idCheck && hitsCheck;
@@ -61,7 +75,12 @@ class TrainingURLRoutes extends Crud {
 
   //unused?
   getURLInfo(req, res) {
-    console.warn(moment().format(), 'Training URL route getURLINFO', `with URL ${req.params.id}`);
+    console.warn(
+      `[${moment().format()}]`,
+      `Getting info for url ${req.params.id}`,
+      '| Processing handled by function trainingURLRoutes.getURLInfo'
+    );
+
     const NOT_FOUND = {
       code: 404,
       message: 'entry not found in database'
@@ -70,15 +89,11 @@ class TrainingURLRoutes extends Crud {
     return this.databaseModify
       .readFromDBURL(req.params.id)
       .then(output => {
-        console.log('made it here');
         if (output) {
-          console.log('made it here1');
           res.status(200).send(_.first(output));
         } else if (output === null) {
-          console.log('made it here2');
           res.status(200).send(null);
         } else {
-          console.log('made it here3');
           let err = NOT_FOUND;
           throw err;
         }

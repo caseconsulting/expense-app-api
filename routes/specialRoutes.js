@@ -341,7 +341,7 @@ class Special {
     var decoded = atob(req.params.id);
     console.warn(
       `[${moment().format()}]`,
-      `Training URL route getURLINFO with URL ${decoded}`,
+      `Getting information for URL ${decoded}`,
       '| Processing handled by function specialRoutes.getURLInfo'
     );
 
@@ -350,22 +350,15 @@ class Special {
       message: 'entry not found in database'
     };
 
-    console.log('category', req.params.category);
-
     return (
       this.trainingURLData
         .readFromDBURL(decoded, req.params.category)
         .then(output => {
-          console.log('made it here');
           if (output) {
-            console.log('made it here1');
-            console.log('output', output);
             res.status(200).send(output);
           } else if (output === null) {
-            console.log('made it here2');
             res.status(200).send(null);
           } else {
-            console.log('made it here3');
             let err = NOT_FOUND;
             throw err;
           }
