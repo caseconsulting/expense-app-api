@@ -135,25 +135,9 @@ class Crud {
     //   'Creating object',
     //   '| Processing handled by function crudRoutes.create'
     // );
-
-    //added for creating a new training-urls entry
-    if (this._getTableName() === `${STAGE}-training-urls`) {
-      return this._add(req.body.id, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._createInDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (req.employee.employeeRole === 'admin' && this._getTableName() === '') {
-      return this._add(uuid(), req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._createInDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (this._isAdmin(req) && this._getTableName() !== '') {
-      return this._add(uuid(), req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._createInDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (this._isUser(req) && this._getTableName() === `${STAGE}-expenses`) {
-      return this._add(uuid(), req.body)
+    if (this._validPermissions(req)) {
+      let id = this._getTableName() === `${STAGE}-training-urls` ? req.body.id : uuid();
+      return this._add(id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
         .catch(err => this._handleError(res, err));
@@ -191,7 +175,7 @@ class Crud {
 
     const FORBIDDEN = {
       code: 403,
-      message: 'Unable to get objects from database due to insuffieicient user permissions'
+      message: 'Unable to get objects from database due to insufficient user permissions'
     };
     const NOT_FOUND = {
       code: 404,
@@ -199,30 +183,26 @@ class Crud {
     };
     //added for the training-urls table (not sure if works will have to be tested)
     if (this._getTableName() === `${STAGE}-training-urls`) {
-      return this.databaseModify
-        .readFromDBURL(req.params.id)
-        .then(output => {
-          if (_.first(output)) {
-            res.status(200).send(_.first(output));
-          } else {
-            let err = NOT_FOUND;
-            throw err;
-          }
-        })
+      return this.databaseModify.readFromDBURL(req.params.id).then(output => {
+        if (_.first(output)) {
+          res.status(200).send(_.first(output));
+        } else {
+          let err = NOT_FOUND;
+          throw err;
+        }
+      })
         .catch(err => this._handleError(res, err));
     } else if (this._isAdmin(req)) {
-      return this.databaseModify
-        .readFromDB(req.params.id)
-        .then(output => {
-          if (_.first(output)) {
-            res.status(200).send(_.first(output));
-          } else {
-            let err = NOT_FOUND;
-            throw err;
-          }
-        })
+      return this.databaseModify.readFromDB(req.params.id).then(output => {
+        if (_.first(output)) {
+          res.status(200).send(_.first(output));
+        } else {
+          let err = NOT_FOUND;
+          throw err;
+        }
+      })
         .catch(err => this._handleError(res, err));
-    } else if (this._getTableName() === `${STAGE}-expenses` && !this._isAdmin(req)) {
+    } else if (this._getTableName() === `${STAGE}-expenses` && this._isUser(req)) {
       this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
           console.warn(
@@ -236,23 +216,20 @@ class Crud {
           this._handleError(res, err);
         }
       });
-    } else if (this._getTableName() === `${STAGE}-expense-types` && !this._isAdmin(req)) {
-      this.databaseModify
-        .readFromDB(req.params.id)
-        .then(output => {
-          if (_.first(output)) {
-            console.warn(
-              `[${moment().format()}]`,
-              `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
-              '| Processing handled by function crudRoutes.read'
-            );
-            res.status(200).send(_.first(output));
-          } else {
-            let err = NOT_FOUND;
-            throw err;
-          }
-        })
-        .catch(err => this._handleError(res, err));
+    } else if (this._getTableName() === `${STAGE}-expense-types` && this._isUser(req)) {
+      this.databaseModify.readFromDB(req.params.id).then(output => {
+        if (_.first(output)) {
+          console.warn(
+            `[${moment().format()}]`,
+            `Read from table ${this._getTableName()} for employee ${req.employee.id}`,
+            '| Processing handled by function crudRoutes.read'
+          );
+          res.status(200).send(_.first(output));
+        } else {
+          let err = NOT_FOUND;
+          throw err;
+        }
+      }).catch(err => this._handleError(res, err));
     } else {
       let err = FORBIDDEN;
       this._handleError(res, err);
@@ -298,28 +275,18 @@ class Crud {
     //   '| Processing handled by function crudRoutes.update'
     // );
 
-    //added if statement for training-url table
-    if (this._getTableName() === `${STAGE}-training-urls`) {
-      console.warn('id', req.body.id);
-      return this._update(req.body.id, req.body.category, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._updateDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (req.employee.employeeRole === 'admin' && this._getTableName() === `${STAGE}-employees`) {
-      return this._update(req.params.id, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._updateDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (this._isAdmin(req) && this._getTableName() !== `${STAGE}-employees`) {
-      return this._update(req.params.id, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._updateDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
-    } else if (this._isUser(req) && this._getTableName() === `${STAGE}-expenses`) {
-      return this._update(req.params.id, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._updateDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
+    if (this._validPermissions(req)) {
+      if (this._getTableName() === `${STAGE}-training-urls`) {
+        return this._update(req.body.id, req.body.category, req.body)
+          .then(newObject => this._validateInputs(res, newObject))
+          .then(validated => this._updateDatabase(res, validated))
+          .catch(err => this._handleError(res, err));
+      } else {
+        return this._update(req.params.id, req.body)
+          .then(newObject => this._validateInputs(res, newObject))
+          .then(validated => this._updateDatabase(res, validated))
+          .catch(err => this._handleError(res, err));
+      }
     } else {
       let err = {
         code: 403,
@@ -357,7 +324,7 @@ class Crud {
     } else {
       let err = {
         code: 403,
-        message: 'Unable to delete object in database due to insuffieicient user permissions'
+        message: 'Unable to delete object in database due to insufficient user permissions'
       };
       this._handleError(res, err);
     }
@@ -405,7 +372,7 @@ class Crud {
     } else {
       let err = {
         code: 403,
-        message: 'Unable to get objects from database due to insuffieicient user permissions'
+        message: 'Unable to get objects from database due to insufficient user permissions'
       };
       this._handleError(res, err);
     }
@@ -413,6 +380,11 @@ class Crud {
 
   _checkPermissionForShowList(req) {
     return this._isAdmin(req) || this._checkTableName(['expense-types', 'employees']);
+  }
+
+  _validPermissions(req) {
+    return (this._isAdmin(req) && this._checkTableName(['expense-types', 'employees', 'expenses', 'training-urls']))
+    || (this._isUser(req) && this._checkTableName(['expenses', 'training-urls'])) ;
   }
 
   _getTableName() {

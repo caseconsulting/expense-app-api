@@ -91,7 +91,7 @@ describe('crudRoutes', () => {
       beforeEach(() => {
         err = {
           code: 403,
-          message: 'Unable to create object in database due to insuffieicient user permissions'
+          message: 'Unable to create object in database due to insufficient user permissions'
         };
         req = {
           body: 'body',
@@ -101,7 +101,7 @@ describe('crudRoutes', () => {
         };
         spyOn(crudRoutes, '_handleError').and.returnValue({
           code: 403,
-          message: 'Unable to create object in database due to insuffieicient user permissions'
+          message: 'Unable to create object in database due to insufficient user permissions'
         });
       });
       it('should error out', () => {
@@ -220,7 +220,7 @@ describe('crudRoutes', () => {
       beforeEach(() => {
         err = {
           code: 403,
-          message: 'Unable to update object in database due to insuffieicient user permissions'
+          message: 'Unable to update object in database due to insufficient user permissions'
         };
         req = {
           body: 'body',
@@ -248,7 +248,7 @@ describe('crudRoutes', () => {
       spyOn(crudRoutes, '_handleError');
       spyOn(crudRoutes,'_onDeleteHelper');
     });
-    
+
     describe('when a user is an admin', () => {
       beforeEach(() => {
         spyOn(crudRoutes,'_isAdmin').and.returnValue(true);
@@ -287,7 +287,7 @@ describe('crudRoutes', () => {
               done();
             });
           }); // should respond to caller with deleted object
-          
+
         }); // when removeFromDB promise resolves
 
         describe('when removeFromDB promise rejects', () => {
@@ -316,13 +316,13 @@ describe('crudRoutes', () => {
         expect(crudRoutes._onDeleteHelper).toHaveBeenCalledWith(req.params.id, res);
         done();
       }); // should call _onDeleteHelper
-    }); // when a user is not an admin 
+    }); // when a user is not an admin
 
     describe('if the user has no permissions', () => {
       beforeEach(() => {
         err = {
           code: 403,
-          message: 'Unable to delete object in database due to insuffieicient user permissions'
+          message: 'Unable to delete object in database due to insufficient user permissions'
         };
         spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
         spyOn(crudRoutes, '_checkPermissionForOnDelete').and.returnValue(false);
@@ -384,12 +384,12 @@ describe('crudRoutes', () => {
         crudRoutes._checkPermissionForShowList.and.returnValue(false);
         err = {
           code: 403,
-          message: 'Unable to get objects from database due to insuffieicient user permissions'
+          message: 'Unable to get objects from database due to insufficient user permissions'
         };
       });
       it('should pass the error to _handleError ', () => {
         crudRoutes.showList(req, res);
-        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);  
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
       });
     });
   }); // showList
@@ -550,11 +550,11 @@ describe('crudRoutes', () => {
       data = '{data}';
       error = '{error}';
     });
-    
+
     afterEach(()=>{
       expect(crudRoutes._delete).toHaveBeenCalledWith(id);
     });
-    
+
     describe('when _delete promise resolves', () => {
       beforeEach(() => {
         spyOn(crudRoutes,'_delete').and.returnValue(Promise.resolve(data));
@@ -591,7 +591,7 @@ describe('crudRoutes', () => {
         listOfValidTables = ['valid-table-name'];
         crudRoutes.databaseModify.tableName = `${stage}-valid-table-name`;
       });
-      
+
       it('should return true', done => {
         let result = crudRoutes._checkTableName(listOfValidTables);
         expect(result).toBe(true);

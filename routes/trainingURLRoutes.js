@@ -42,7 +42,7 @@ class TrainingURLRoutes extends Crud {
 
     console.warn(
       `[${moment().format()}]`,
-      `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
+      `>>> Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
       '| Processing handled by function trainingURLRoutes._update'
     );
 
