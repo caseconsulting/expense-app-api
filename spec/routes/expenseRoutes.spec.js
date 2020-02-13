@@ -1113,92 +1113,26 @@ describe('expenseRoutes', () => {
     }); // when the expenseType is not overdraftable or the sum is less than the budget for the expenseType
   }); // _calculateOverdraft
 
-  describe('_reimburseExpense', () => {
-    let oldExpense, newExpense, budget, budgets;
-    beforeEach(() => {
-      oldExpense = {
-        id: 'id',
-        purchaseDate: '2000-01-01',
-        reimbursedDate: undefined,
-        cost: 10,
-        userId: 'userId',
-        expenseTypeId: 'typeId'
-      };
-      newExpense = {
-        id: 'id',
-        purchaseDate: '2000-01-01',
-        reimbursedDate: '2000-01-02',
-        cost: 10,
-        userId: 'userId',
-        expenseTypeId: 'typeId'
-      };
-      budget = {
-        id: 'id',
-        expenseTypeId: 'typeId',
-        userId: 'userId',
-        reimbursedAmount: 50,
-        pendingAmount: 10,
-        fiscalStartDate: '2000-01-01',
-        fiscalEndDate: '2000-12-31'
-      };
-      budgets = [budget];
-      expenseType.odFlag = false;
-    });
-
-    describe('when expense is in the same budget and overdraft flag is false', () => {
-      beforeEach(() => {
-        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
-      });
-
-      it('should return the updated budget and call updateEntryInDB', done => {
-        expenseRoutes
-          ._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
-          .then(returnedBudget => {
-            expect(returnedBudget).toEqual(budget);
-            done();
-          });
-      }); // should call updateEntryInDB
-
-      afterEach(() => {
-        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
-      });
-
-    }); // when expense is in the same budget and overdraft flag is false
-  }); // _reimburseExpense
-
   describe('_performBudgetUpdate', () => {
     let oldExpense, newExpense, budget, expectedBudget, budgets;
     beforeEach(() => {
       oldExpense = {
-        id: 'id',
         purchaseDate: '2000-01-01',
         reimbursedDate: undefined,
         cost: 1,
-        userId: 'userId',
-        expenseTypeId: 'typeId'
       };
       newExpense = {
-        id: 'id',
         purchaseDate: '2000-01-01',
         reimbursedDate: '2000-01-02',
         cost: 1,
-        userId: 'userId',
-        expenseTypeId: 'typeId'
       };
       budget = {
-        id: 'id',
-        expenseTypeId: 'typeId',
-        userId: 'userId',
         reimbursedAmount: 0,
         pendingAmount: 1,
         fiscalStartDate: '2000-01-01',
         fiscalEndDate: '2000-12-31'
       };
       expectedBudget = {
-        id: 'id',
-        expenseTypeId: 'typeId',
-        userId: 'userId',
         reimbursedAmount: 1,
         pendingAmount: 0,
         fiscalStartDate: '2000-01-01',
@@ -1259,7 +1193,7 @@ describe('expenseRoutes', () => {
       });
     }); // when the old expense is not reimbursed and the new expense is reimbursed and costs are different
 
-    xdescribe('when both new and old expenses are not reimbursed and both costs are different', () => {
+    describe('when both new and old expenses are not reimbursed and both costs are different', () => {
       beforeEach(() => {
         oldExpense.reimbursedDate = undefined;
         newExpense.reimbursedDate = undefined;
@@ -1281,140 +1215,118 @@ describe('expenseRoutes', () => {
     }); // when both new and old expenses are reimbursed and both costs are different
   }); // _performBudgetUpdate
 
-  // xdescribe('_budgetUpdateForReimbursedExpense', () => {
-  //   let oldExpense, newExpense, budgets, budget;
-  //   beforeEach(() => {
-  //     spyOn(expenseRoutes, '_calculateOverdraft');
-  //     budgets = ['budget'];
-  //     oldExpense = 'oldExpense';
-  //     newExpense = 'newExpense';
-  //   });
-  //   describe('when overdraft amount is greater than zero', () => {
-  //     beforeEach(() => {
-  //       budget = 'moved-purchase-to-next-year';
-  //       expenseRoutes._calculateOverdraft.and.returnValue(1);
-  //       spyOn(expenseRoutes, '_movePurchaseToNextBudgetYear').and.returnValue(budget);
-  //     });
-  //
-  //     afterEach(() => {
-  //       expect(expenseRoutes._movePurchaseToNextBudgetYear).toHaveBeenCalledWith(
-  //         oldExpense,
-  //         newExpense,
-  //         budget,
-  //         budgets,
-  //         expenseType
-  //       );
-  //       expect(expenseRoutes._calculateOverdraft).toHaveBeenCalledWith(budget, expenseType);
-  //     });
-  //     it('should call _movePurchaseToNextYear', done => {
-  //       let result = expenseRoutes._budgetUpdateForReimbursedExpense(
-  //         oldExpense,
-  //         newExpense,
-  //         budget,
-  //         budgets,
-  //         expenseType
-  //       );
-  //       expect(result).toEqual(budget);
-  //       done();
-  //     }); // should call _movePurchaseToNextYear
-  //   }); // when overdraft amount is greater than zero
-  //   describe('when the overdraft amount is zero or less', () => {
-  //     let expectedBudget;
-  //     beforeEach(() => {
-  //       budget = {
-  //         pendingAmount: 1,
-  //         reimbursedAmount: 0
-  //       };
-  //       expectedBudget = {
-  //         pendingAmount: 0,
-  //         reimbursedAmount: 1
-  //       };
-  //       oldExpense = {
-  //         cost: 1
-  //       };
-  //       newExpense = {
-  //         cost: 1
-  //       };
-  //       expenseRoutes._calculateOverdraft.and.returnValue(-1);
-  //     });
-  //     it('should preform a normal budget operation', done => {
-  //       let result = expenseRoutes._budgetUpdateForReimbursedExpense(
-  //         oldExpense,
-  //         newExpense,
-  //         budget,
-  //         budgets,
-  //         expenseType
-  //       );
-  //       expect(result).toEqual(expectedBudget);
-  //       done();
-  //     }); // should preform a normal budget operation
-  //   }); // when the overdraft amount is zero or less
-  // }); // _budgetUpdateForReimbursedExpense
+  describe('_reimbursedExpense', () => {
+    let oldExpense, newExpense, budget, nextBudget, expectedBudget, budgets;
+    beforeEach(() => {
+      oldExpense = {
+        purchaseDate: '2000-01-01',
+        reimbursedDate: undefined,
+        cost: 1,
+      };
+      newExpense = {
+        purchaseDate: '2000-01-01',
+        reimbursedDate: '2000-01-02',
+        cost: 1,
+      };
+      budget = {
+        reimbursedAmount: 1,
+        pendingAmount: 1,
+        fiscalStartDate: '2000-01-01',
+        fiscalEndDate: '2000-12-31'
+      };
+      nextBudget = {
+        reimbursedAmount:0,
+        pendingAmount: 0,
+        fiscalStartDate: '2001-01-01',
+        fiscalEndDate: '2002-12-31'
+      };
+      budgets = [budget, nextBudget];
+      expenseType.odFlag = true;
+      expenseType.budget = 1;
+      spyOn(expenseRoutes, '_calculateOverdraft');
+    });
 
-  // xdescribe('_movePurchaseToNextBudgetYear', () => {
-  //   let budget, budgets, newExpense, oldExpense;
-  //   beforeEach(() => {
-  //     spyOn(expenseRoutes, '_findBudgetWithMatchingRange');
-  //     budget = {
-  //       pendingAmount: 1,
-  //       reimbursedAmount: 1
-  //     };
-  //     budgets = ['budget'];
-  //     oldExpense = {
-  //       cost: 1
-  //     };
-  //     newExpense = {
-  //       cost: 1,
-  //       purchaseDate: '1970-12-01'
-  //     };
-  //   });
-  //
-  //   describe('if budget for next year exists', () => {
-  //     beforeEach(() => {
-  //       expenseRoutes._findBudgetWithMatchingRange.and.returnValue(budget);
-  //     });
-  //
-  //     describe('if the reimbursed amount is greater than the expenseType budget limit', () => {
-  //       let expenseType;
-  //       beforeEach(() => {
-  //         expenseType = {
-  //           budget: 2
-  //         };
-  //         budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-  //       });
-  //
-  //       it('should return the updated budget', done => {
-  //         let result = expenseRoutes._movePurchaseToNextBudgetYear(
-  //           oldExpense,
-  //           newExpense,
-  //           budget,
-  //           budgets,
-  //           expenseType
-  //         );
-  //         expect(result).toEqual(budget);
-  //         done();
-  //       }); // should return the updated budget
-  //     }); // if the reimbursed amount is greater than the expenseType budget limit
-  //     describe('if the reimbursed amount is less than the expenseType budget limit', () => {
-  //       let expectedBudget;
-  //       beforeEach(() => {
-  //         expectedBudget = {
-  //           pendingAmount: 0,
-  //           reimbursedAmount: 2
-  //         };
-  //       });
-  //       it('should preform a normal budget operation', done => {
-  //         let result = expenseRoutes._movePurchaseToNextBudgetYear(
-  //           oldExpense,
-  //           newExpense,
-  //           budget,
-  //           budgets,
-  //           expenseType
-  //         );
-  //         expect(result).toEqual(expectedBudget);
-  //         done();
-  //       }); // should preform a normal budget operation
-  //     }); // if the reimbursed amount is less than the expenseType budget limit
-  //   }); // if budget for next year exists
-  // }); // _movePurchaseToNextBudgetYear
+    describe('when expense is in the same budget and overdraft flag is false', () => {
+      beforeEach(() => {
+        expenseType.odFlag = false;
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      });
+
+      it('should return the updated budget and call updateEntryInDB', done => {
+        expenseRoutes
+          ._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(budget);
+            done();
+          });
+      }); // should return the updated budget and call updateEntryInDB
+
+      afterEach(() => {
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
+      });
+
+    }); // when expense is in the same budget and overdraft flag is false
+
+    describe('when overdraft, od amount is greater than zero, and next year budget exists', () => {
+      beforeEach(() => {
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+        expectedBudget = {
+          reimbursedAmount: 1,
+          pendingAmount: 0,
+          fiscalStartDate: '2000-01-01',
+          fiscalEndDate: '2000-12-31'
+        };
+      });
+
+      it('should call updateEntryInDB', done => {
+        expenseRoutes._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should call updateEntryInDB
+    }); // when overdraft, od amount is greater than zero, and next year budget exist
+
+    describe('when overdraft, od amount is greater than zero, and no future budget exists', () => {
+      beforeEach(() => {
+        expectedBudget = {
+          reimbursedAmount: 1,
+          pendingAmount: 0,
+          fiscalStartDate: '2000-01-01',
+          fiscalEndDate: '2000-12-31'
+        };
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(expectedBudget));
+      });
+
+      it('should call updateEntryInDB', done => {
+        expenseRoutes._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should call updateEntryInDB
+    }); // when overdraft, od amount is greater than zero, and no future budget exists
+
+    describe('when the overdraft amount is zero or less and od flag is true', () => {
+      let expectedBudget;
+      beforeEach(() => {
+        expectedBudget = {
+          reimbursedAmount: 2,
+          pendingAmount: 0,
+          fiscalStartDate: '2000-01-01',
+          fiscalEndDate: '2000-12-31'
+        };
+        expenseRoutes._calculateOverdraft.and.returnValue(0);
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(expectedBudget));
+      });
+      it('should preform a normal budget operation', done => {
+        expenseRoutes._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should preform a normal budget operation
+    }); // when the overdraft amount is zero or less and od flag is true
+  }); // _reimburseExpense
 }); //expenseRoutes
