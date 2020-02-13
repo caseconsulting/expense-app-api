@@ -4,6 +4,7 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
 const Budget = require('../../models/budget');
+const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 
 describe('expenseRoutes', () => {
@@ -823,50 +824,36 @@ describe('expenseRoutes', () => {
     }); // when there is a reimbursedDate
   }); // _addExpenseToBudget
 
-  // xdescribe('_isReimbursed', () => {
-  //   // old isreimbursed method
-  //   let expense, keptItsPromise, expectedError;
-  //   describe('when there is no reimbursedDate', () => {
-  //     beforeEach(() => {
-  //       expense = {
-  //         reimbursedDate: undefined
-  //       };
-  //     });
-  //
-  //     it('should return a resolved promise', done => {
-  //       expenseRoutes
-  //         ._isReimbursed(expense)
-  //         .then(() => {
-  //           keptItsPromise = true;
-  //           expect(keptItsPromise).toBe(true);
-  //           done();
-  //         })
-  //         .catch(() => done(new Error('Promise should resolve')));
-  //     }); // should return a resolved promise
-  //   }); // when there is no reimbursedDate
-  //
-  //   describe('when there is a reimbursedDate', () => {
-  //     beforeEach(() => {
-  //       expense = {
-  //         reimbursedDate: 'is exist'
-  //       };
-  //       expectedError = {
-  //         code: 403,
-  //         message: 'expense cannot perform action because it has already been reimbursed'
-  //       };
-  //     });
-  //
-  //     it('should return an error', done => {
-  //       expenseRoutes
-  //         ._isReimbursed(expense)
-  //         .then(() => done(new Error('Promise should reject')))
-  //         .catch(err => {
-  //           expect(err).toEqual(expectedError);
-  //           done();
-  //         });
-  //     }); // should return an error
-  //   }); // when there is a reimbursedDate
-  // }); // _isReimbursed
+  describe('_isReimbursed', () => {
+    let expense;
+    describe('when there is no reimbursedDate', () => {
+      beforeEach(() => {
+        expense = {
+          reimbursedDate: undefined
+        };
+      });
+
+      it('should return false', done => {
+        let result = expenseRoutes._isReimbursed(expense);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // when there is no reimbursedDate
+
+    describe('when there is a reimbursedDate', () => {
+      beforeEach(() => {
+        expense = {
+          reimbursedDate: '01/01/2000'
+        };
+      });
+
+      it('should return false', done => {
+        let result = expenseRoutes._isReimbursed(expense);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // when there is a reimbursedDate
+  }); // _isReimbursed
 
   describe('_isReimbursed', () => {
     // new _isReimbursed method
@@ -1126,100 +1113,173 @@ describe('expenseRoutes', () => {
     }); // when the expenseType is not overdraftable or the sum is less than the budget for the expenseType
   }); // _calculateOverdraft
 
-  // xdescribe('_performBudgetUpdate', () => {
-  //   let oldExpense, newExpense, budget, budgets;
-  //   beforeEach(() => {
-  //     oldExpense = {
-  //       reimbursedDate: reimbursedDate,
-  //       cost: 0
-  //     };
-  //     newExpense = {
-  //       reimbursedDate: reimbursedDate,
-  //       cost: 0
-  //     };
-  //     budget = {
-  //       pendingAmount: 1,
-  //       reimbursedAmount: 0
-  //     };
-  //   });
-  //
-  //   afterEach(() => {
-  //     expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
-  //   });
-  //
-  //   describe('when the old expense is unreimbursed and the new expense is reimbursed but cost is the same', () => {
-  //     beforeEach(() => {
-  //       oldExpense.reimbursedDate = undefined;
-  //       budget = 'returned-budget-from-_budgetUpdateForReimbursedExpense';
-  //       budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-  //       spyOn(expenseRoutes, '_budgetUpdateForReimbursedExpense').and.returnValue(budget);
-  //     });
-  //
-  //     afterEach(() => {
-  //       expect(expenseRoutes._budgetUpdateForReimbursedExpense).toHaveBeenCalledWith(
-  //         oldExpense,
-  //         newExpense,
-  //         budget,
-  //         budgets,
-  //         expenseType
-  //       );
-  //     });
-  //     it('should return the updated budget and call updateEntryInDB', done => {
-  //       expenseRoutes
-  //         ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
-  //         .then(returnedBudget => {
-  //           expect(returnedBudget).toEqual(budget);
-  //           done();
-  //         });
-  //     }); // should call _budgetUpdateForReimbursedExpense and updateEntryInDB
-  //   }); // when the old expense is unreimbursed and the new expense is reimbursed but cost is the same
-  //
-  //describe('when the old expense is unreimbursed and the new expense is reimbursed and costs are different', () => {
-  //     let expectedBudget;
-  //     beforeEach(() => {
-  //       oldExpense.reimbursedDate = undefined;
-  //       oldExpense.cost = 1;
-  //       newExpense.cost = 1;
-  //       expectedBudget = {
-  //         pendingAmount: 0,
-  //         reimbursedAmount: 1
-  //       };
-  //       budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-  //     });
-  //     it('should return a budget with updated budget amounts', done => {
-  //       expenseRoutes
-  //         ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
-  //         .then(returnedBudget => {
-  //           expect(returnedBudget).toEqual(expectedBudget);
-  //           done();
-  //         });
-  //     }); // should return a budget with updated budget amounts
-  //   }); // when the old expense is unreimbursed and the new expense is reimbursed and costs are differen
-  //
-  //   describe('when both new and old expenses are reimbursed and both costs are different', () => {
-  //     let expectedBudget;
-  //     beforeEach(() => {
-  //       oldExpense.reimbursedDate = undefined;
-  //       newExpense.reimbursedDate = undefined;
-  //       oldExpense.cost = 1;
-  //       newExpense.cost = 2;
-  //       expectedBudget = {
-  //         pendingAmount: 2,
-  //         reimbursedAmount: 0
-  //       };
-  //       budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-  //     });
-  //
-  //     it('should return a budget with an updated pendingAmount', done => {
-  //       expenseRoutes
-  //         ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
-  //         .then(returnedBudget => {
-  //           expect(returnedBudget).toEqual(expectedBudget);
-  //           done();
-  //         });
-  //     }); // should return a budget with an updated pendingAmount
-  //   }); // when both new and old expenses are reimbursed and both costs are different
-  // }); // _performBudgetUpdate
+  describe('_reimburseExpense', () => {
+    let oldExpense, newExpense, budget, budgets;
+    beforeEach(() => {
+      oldExpense = {
+        id: 'id',
+        purchaseDate: '2000-01-01',
+        reimbursedDate: undefined,
+        cost: 10,
+        userId: 'userId',
+        expenseTypeId: 'typeId'
+      };
+      newExpense = {
+        id: 'id',
+        purchaseDate: '2000-01-01',
+        reimbursedDate: '2000-01-02',
+        cost: 10,
+        userId: 'userId',
+        expenseTypeId: 'typeId'
+      };
+      budget = {
+        id: 'id',
+        expenseTypeId: 'typeId',
+        userId: 'userId',
+        reimbursedAmount: 50,
+        pendingAmount: 10,
+        fiscalStartDate: '2000-01-01',
+        fiscalEndDate: '2000-12-31'
+      };
+      budgets = [budget];
+      expenseType.odFlag = false;
+    });
+
+    describe('when expense is in the same budget and overdraft flag is false', () => {
+      beforeEach(() => {
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      });
+
+      it('should return the updated budget and call updateEntryInDB', done => {
+        expenseRoutes
+          ._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(budget);
+            done();
+          });
+      }); // should call updateEntryInDB
+
+      afterEach(() => {
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
+      });
+
+    }); // when expense is in the same budget and overdraft flag is false
+  }); // _reimburseExpense
+
+  describe('_performBudgetUpdate', () => {
+    let oldExpense, newExpense, budget, expectedBudget, budgets;
+    beforeEach(() => {
+      oldExpense = {
+        id: 'id',
+        purchaseDate: '2000-01-01',
+        reimbursedDate: undefined,
+        cost: 1,
+        userId: 'userId',
+        expenseTypeId: 'typeId'
+      };
+      newExpense = {
+        id: 'id',
+        purchaseDate: '2000-01-01',
+        reimbursedDate: '2000-01-02',
+        cost: 1,
+        userId: 'userId',
+        expenseTypeId: 'typeId'
+      };
+      budget = {
+        id: 'id',
+        expenseTypeId: 'typeId',
+        userId: 'userId',
+        reimbursedAmount: 0,
+        pendingAmount: 1,
+        fiscalStartDate: '2000-01-01',
+        fiscalEndDate: '2000-12-31'
+      };
+      expectedBudget = {
+        id: 'id',
+        expenseTypeId: 'typeId',
+        userId: 'userId',
+        reimbursedAmount: 1,
+        pendingAmount: 0,
+        fiscalStartDate: '2000-01-01',
+        fiscalEndDate: '2000-12-31'
+      };
+      budgets = [budget];
+      expenseType.odFlag = false;
+    });
+
+    describe('when the old expense is not reimbursed and the new expense is reimbursed but costs are the same', () => {
+      beforeEach(() => {
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+        spyOn(expenseRoutes, '_reimburseExpense').and.returnValue(Promise.resolve(expectedBudget));
+      });
+
+      it('should return the updated budget and call _reimburseExpense', done => {
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should call _budgetUpdateForReimbursedExpense and updateEntryInDB
+      afterEach(() => {
+        expect(expenseRoutes._reimburseExpense).toHaveBeenCalledWith(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          expenseType
+        );
+      });
+    }); // when the old expense is not reimbursed and the new expense is reimbursed but cost is the same
+
+  describe('when the old expense is not reimbursed and the new expense is reimbursed and costs are different', () => {
+      beforeEach(() => {
+        newExpense.cost = 2;
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+        spyOn(expenseRoutes, '_reimburseExpense').and.returnValue(Promise.resolve(expectedBudget));
+        expectedBudget.reimbursedAmount = 2;
+      });
+      it('should return a budget with updated budget amounts', done => {
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should return a budget with updated budget amounts
+      afterEach(() => {
+        expect(expenseRoutes._reimburseExpense).toHaveBeenCalledWith(
+          oldExpense,
+          newExpense,
+          budget,
+          budgets,
+          expenseType
+        );
+      });
+    }); // when the old expense is not reimbursed and the new expense is reimbursed and costs are different
+
+    describe('when both new and old expenses are not reimbursed and both costs are different', () => {
+      beforeEach(() => {
+        oldExpense.reimbursedDate = undefined;
+        newExpense.reimbursedDate = undefined;
+        newExpense.cost = 2;
+        expectedBudget.pendingAmount = 2,
+        expectedBudget.reimbursedAmount = 0;
+
+        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
+      });
+
+      it('should return a budget with an updated pendingAmount', done => {
+        expenseRoutes
+          ._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType)
+          .then(returnedBudget => {
+            expect(returnedBudget).toEqual(expectedBudget);
+            done();
+          });
+      }); // should return a budget with an updated pendingAmount
+    }); // when both new and old expenses are reimbursed and both costs are different
+  }); // _performBudgetUpdate
 
   // xdescribe('_budgetUpdateForReimbursedExpense', () => {
   //   let oldExpense, newExpense, budgets, budget;
