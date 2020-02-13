@@ -420,7 +420,7 @@ class ExpenseRoutes extends Crud {
     } else {
       budget.pendingAmount += newExpense.cost; // add new cost from same budget pending amount
     }
-    this.budgetDynamo.updateEntryInDB(budget); // update dynamo budget
+    return this.budgetDynamo.updateEntryInDB(budget); // update dynamo budget
   }
 
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
