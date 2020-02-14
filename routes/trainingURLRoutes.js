@@ -68,9 +68,10 @@ class TrainingURLRoutes extends Crud {
     let valid = idCheck && hitsCheck;
     let err = {
       code: 403,
-      message: 'One of the required fields is empty.'
+      message: 'One of the required fields is invalid'
     };
-    return valid ? Promise.resolve() : Promise.reject(err);
+
+    return valid ? Promise.resolve(trainingURL) : Promise.reject(err);
   }
 
   //unused?
