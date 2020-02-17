@@ -540,12 +540,12 @@ class ExpenseRoutes extends Crud {
   /*
    * Return the total cost of reimbursed expenses for an employee within a budget range
    */
-  async _getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType) {
+  async _getEmployeeExpensesTotalReimbursedInBudget(employeeId, budget, expenseType) {
     console.warn(
       `[${moment().format()}]`,
       `Calculating total cost of reimbursed expenses for user ${employeeId} within budget`,
       `${budget.id} for expense type ${expenseType}`,
-      '| Processing handled by function expenseRoutes._getEmployeeExpensesTotalInBudget'
+      '| Processing handled by function expenseRoutes._getEmployeeExpensesTotalReimbursedInBudget'
     );
 
     let expenses = await this.expenseDynamo.querySecondaryIndexInDB('userId-index', 'userId', employeeId);
@@ -569,26 +569,10 @@ class ExpenseRoutes extends Crud {
       '| Processing handled by function expenseRoutes._calcOverdraft'
     );
 
-    let totalExp = await this._getEmployeeExpensesTotalInBudget(employeeId, budget, expenseType);
+    let totalExp = await this._getEmployeeExpensesTotalReimbursedInBudget(employeeId, budget, expenseType);
     let overdraft = totalExp - Number(expenseType.budget);
 
     return overdraft;
-  }
-
-  _calculateOverdraft(budget, expenseType) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Calculating overdraft of budget ${budget.id} for expense type ${expenseType}`,
-      '| Processing handled by function expenseRoutes._calcOverdraft'
-    );
-
-    let sum = budget.reimbursedAmount + budget.pendingAmount;
-    if (expenseType.odFlag && sum > expenseType.budget) {
-      let difference = sum - expenseType.budget;
-      return difference;
-    } else {
-      return 0;
-    }
   }
 
   /*
@@ -613,7 +597,7 @@ class ExpenseRoutes extends Crud {
   /*
    * Unreimburse an expense
    */
-  async _unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
+  async _unreimburseExpense(oldExpense, newExpense, budgets, expenseType) {
     console.warn(
       `[${moment().format()}]`,
       `>>> Unreimbursing expense ${oldExpense.id}`,
@@ -640,12 +624,8 @@ class ExpenseRoutes extends Crud {
     let remaining = unimburse;
     let refund = 0;
     do {
-      // accumulate the overdrafts
-      if (budgetOverdrafts[currBudgetIndex] === 0) {
-        acquiredOverdraft = 0;
-      } else {
-        acquiredOverdraft += budgetOverdrafts[currBudgetIndex];
-      }
+      // calculate the accumulated overdraft
+      acquiredOverdraft = Math.max(acquiredOverdraft += budgetOverdrafts[currBudgetIndex], 0);
 
       if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
         // if reaching the unreimburse expense budget
@@ -656,18 +636,18 @@ class ExpenseRoutes extends Crud {
         // if should performing budget updates
         // get the reimbursed amount for the current budget
         let reimbursedAmnt = sortedBudgets[currBudgetIndex].reimbursedAmount;
-        let totalInBudget = await this._getEmployeeExpensesTotalInBudget(
+        let totalReimbursedInBudget = await this._getEmployeeExpensesTotalReimbursedInBudget(
           newExpense.userId,
           sortedBudgets[currBudgetIndex],
           expenseType
         ); // get the total expenses in the budget
-
         // calculate how much to refund for current budget
         if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
           refund =
-            Math.max(reimbursedAmnt - (totalInBudget - unimburse), 0) + remaining - (acquiredOverdraft + unimburse);
+            Math.max(reimbursedAmnt - (totalReimbursedInBudget - unimburse), 0) + remaining
+              - (Math.max(acquiredOverdraft, 0) + unimburse);
         } else {
-          refund = Math.max(reimbursedAmnt - totalInBudget, 0) + remaining - acquiredOverdraft;
+          refund = Math.max(reimbursedAmnt - totalReimbursedInBudget, 0) + remaining - Math.max(acquiredOverdraft, 0);
         }
 
         remaining -= refund; // subtract current refund from remaining refund
@@ -683,6 +663,7 @@ class ExpenseRoutes extends Crud {
       `>>> Successfully unreimbursed expense ${oldExpense.id}`,
       '| Processing handled by function expenseRoutes._unreimburseExpense'
     );
+    return sortedBudgets;
   }
 
   //TODO: refactor into testable function
@@ -701,7 +682,7 @@ class ExpenseRoutes extends Crud {
       return this._unimbursedExpenseChange(oldExpense, newExpense, budget, budgets, expenseType);
     } else if (this._isReimbursed(oldExpense) && !this._isReimbursed(newExpense)) {
       // if unreimbursing an expense
-      return this._unreimburseExpense(oldExpense, newExpense, budget, budgets, expenseType);
+      return this._unreimburseExpense(oldExpense, newExpense, budgets, expenseType);
     }
     return false;
   }

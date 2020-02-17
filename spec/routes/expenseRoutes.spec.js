@@ -77,7 +77,8 @@ describe('expenseRoutes', () => {
       'addToDB',
       'findObjectInDB',
       'removeFromDB',
-      'updateEntryInDB'
+      'updateEntryInDB',
+      'querySecondaryIndexInDB'
     ]);
     expenseRoutes = new ExpenseRoutes();
     expenseRoutes.budgetDynamo = budgetDynamo;
@@ -1072,47 +1073,6 @@ describe('expenseRoutes', () => {
     }); // when no valid budgets are found
   }); // _findBudgetWithMatchingRange
 
-  describe('_calculateOverdraft', () => {
-    let budget, expenseType;
-    describe('when expenseType can be overdrafted and sum is less than the expenseTypes budget', () => {
-      beforeEach(() => {
-        budget = {
-          reimbursedAmount: 0,
-          pendingAmount: 2
-        };
-        expenseType = {
-          odFlag: true,
-          budget: 1
-        };
-      });
-
-      it('should return the difference of sum and the expenseType budget', done => {
-        let result = expenseRoutes._calculateOverdraft(budget, expenseType);
-        expect(result).toEqual(1);
-        done();
-      }); // should return the difference of sum and the expenseType budget
-    }); // when expenseType can be overdrafted and sum is less than the expenseTypes budget
-
-    describe('when the expenseType is not overdraftable or the sum is less than the budget for the expenseType', () => {
-      beforeEach(() => {
-        budget = {
-          reimbursedAmount: 0,
-          pendingAmount: 1
-        };
-        expenseType = {
-          odFlag: true,
-          budget: 1
-        };
-      });
-
-      it('should return zero', done => {
-        let result = expenseRoutes._calculateOverdraft(budget, expenseType);
-        expect(result).toEqual(0);
-        done();
-      }); // should return zero
-    }); // when the expenseType is not overdraftable or the sum is less than the budget for the expenseType
-  }); // _calculateOverdraft
-
   describe('_performBudgetUpdate', () => {
     let oldExpense, newExpense, budget, expectedBudget, budgets;
     beforeEach(() => {
@@ -1243,7 +1203,6 @@ describe('expenseRoutes', () => {
       budgets = [budget, nextBudget];
       expenseType.odFlag = true;
       expenseType.budget = 1;
-      spyOn(expenseRoutes, '_calculateOverdraft');
     });
 
     describe('when expense is in the same budget and overdraft flag is false', () => {
@@ -1317,7 +1276,6 @@ describe('expenseRoutes', () => {
           fiscalStartDate: '2000-01-01',
           fiscalEndDate: '2000-12-31'
         };
-        expenseRoutes._calculateOverdraft.and.returnValue(0);
         budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(expectedBudget));
       });
       it('should preform a normal budget operation', done => {
@@ -1329,4 +1287,401 @@ describe('expenseRoutes', () => {
       }); // should preform a normal budget operation
     }); // when the overdraft amount is zero or less and od flag is true
   }); // _reimburseExpense
+
+  describe('_sortBudgets', () => {
+
+    let budget2000, budget2001, budget2002, budgets;
+
+    beforeEach(() => {
+      budget2000 = { fiscalStartDate: '2000-01-01' };
+      budget2001 = { fiscalStartDate: '2001-01-01' };
+      budget2002 = { fiscalStartDate: '2002-01-01' };
+      budgets = [budget2000, budget2001, budget2002];
+    });
+
+    describe('when budgets are in chronological order', () => {
+
+      it('should be in chronological order', () => {
+        expect(expenseRoutes._sortBudgets(budgets)).toEqual(budgets);
+      }); // should be in chronological order
+    }); // when budgets are in chronological order
+
+    describe('when budgets are out of chronological order', () => {
+
+      let mixBudgets;
+
+      beforeEach(() => {
+        mixBudgets = [budget2002, budget2000, budget2001];
+      });
+
+      it('should be in chronological order', () => {
+        expect(expenseRoutes._sortBudgets(mixBudgets)).toEqual(budgets);
+      }); // should be in chronological order
+    }); // when budgets are out of chronological order
+  }); // _sortBudgets
+
+  describe('_isValidExpense', () => {
+
+    let expense, expenseType, budget;
+
+    beforeEach(() => {
+      expense = { expenseTypeId: 'expenseTypeID', purchaseDate: '2000-01-02', reimbursedDate: '2000-01-02' };
+      expenseType = { id: 'expenseTypeID' };
+      budget = { fiscalStartDate: '2000-01-01', fiscalEndDate: '2000-12-31' };
+    });
+
+    describe('when expense matches expense type, is reimbursed, and within budget range', () => {
+
+      it('should return true', () => {
+        expect(expenseRoutes._isValidExpense(expense, budget, expenseType)).toBe(true);
+      }); // should return true
+    }); // when expense matches expense type, is reimbursed, and within budget range
+
+    describe('when expense does not match expense type', () => {
+
+      beforeEach(() => { expenseType = { id: 'expenseTypeIDDifferent' }; });
+
+      it('should return false', () => {
+        expect(expenseRoutes._isValidExpense(expense, budget, expenseType)).toBe(false);
+      }); // should return false
+    }); // when expense does not match expense type
+
+    describe('when expense is not reimbursed', () => {
+
+      beforeEach(() => { expense.reimbursedDate = undefined; });
+
+      it('should return false', () => {
+        expect(expenseRoutes._isValidExpense(expense, budget, expenseType)).toBe(false);
+      }); // should return false
+    }); // when expense is not reimbursed
+
+    describe('when expense is not within budget range', () => {
+
+      beforeEach(() => { expense.purchaseDate = '2001-01-01'; });
+
+      it('should return false', () => {
+        expect(expenseRoutes._isValidExpense(expense, budget, expenseType)).toBe(false);
+      }); // should return false
+    }); // when expense is not within budget range
+  }); // _isValidExpense
+
+  describe('_getEmployeeExpensesTotalReimbursedInBudget', () => {
+
+    let budget, expenseType, expense1, expense2, expense3, expense4, expense5, expenses;
+
+    beforeEach(() => {
+      budget = { fiscalStartDate: '2000-01-01', fiscalEndDate: '2000-12-31' };
+      expenseType = { id: 'expenseTypeID' };
+      expense1 = { expenseTypeId: 'expenseTypeID', purchaseDate: '2000-01-02', reimbursedDate: '2000-01-02', cost: 1 };
+      expense2 = { expenseTypeId: 'expenseTypeID', purchaseDate: '2000-01-02', reimbursedDate: '2000-01-02', cost: 2 };
+      expense3 = {
+        expenseTypeId: 'expenseTypeIDDifferent',
+        purchaseDate: '2000-01-02',
+        reimbursedDate: '2000-01-02',
+        cost: 3
+      };
+      expense4 = { expenseTypeId: 'expenseTypeID', purchaseDate: '2000-01-02', reimbursedDate: undefined, cost: 4 };
+      expense5 = { expenseTypeId: 'expenseTypeID', purchaseDate: '2001-01-02', reimbursedDate: '2000-01-02', cost: 5 };
+      expenses = [expense1, expense2, expense3, expense4, expense5];
+      expenseDynamo.querySecondaryIndexInDB.and.returnValue(expenses);
+    });
+
+    describe('when mix of valid and invalid expenses', () => {
+
+      it('should return the total cost of all valid expenses', done => {
+        expenseRoutes._getEmployeeExpensesTotalReimbursedInBudget(undefined, budget, expenseType).then( cost => {
+          expect(cost).toEqual(3);
+          done();
+        });
+      }); // should return the total cost of all valid expenses
+    }); // when mix of valid and invalid expensess
+  }); // _getEmployeeExpensesTotalReimbursedInBudget
+
+  describe('_calcOverdraft', () => {
+
+    let budget, expenseType;
+
+    beforeEach(() => {
+      budget = { fiscalStartDate: '2000-01-01', fiscalEndDate: '2000-12-31' };
+      expenseType = { id: 'expenseTypeID', budget: 100 };
+    });
+
+    describe('when there is overdraft', () => {
+
+      beforeEach(() => { spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget').and.returnValue(150); });
+
+      it('should return the overdraft amount', done => {
+        expenseRoutes._calcOverdraft(budget, undefined, expenseType).then(odAmount => {
+          expect(odAmount).toEqual(50);
+          done();
+        });
+      }); // should return the overdraft amount
+    }); // when there is overdraft
+
+    describe('when there is no overdraft', () => {
+
+      beforeEach(() => { spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget').and.returnValue(70); });
+
+      it('should return a negative amount', done => {
+        expenseRoutes._calcOverdraft(budget, undefined, expenseType).then(odAmount => {
+          expect(odAmount).toBeLessThan(1);
+          done();
+        });
+      }); // should return a negative amount
+    }); // when there is no overdraft
+  }); // _calcOverdraft
+
+  describe('_getEmployeeBudgetOverdrafts', () => {
+
+    let budget2000, budget2001, budget2002, budgets, expenseType;
+
+    beforeEach(() => {
+      budget2000 = { fiscalStartDate: '2000-01-01' };
+      budget2001 = { fiscalStartDate: '2001-01-01' };
+      budget2002 = { fiscalStartDate: '2002-01-01' };
+      budgets = [budget2000, budget2001, budget2002];
+    });
+
+    describe('when budgets are overdrafted', () => {
+
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_calcOverdraft').and.returnValue(10);
+      });
+
+      it('should return an array of overdrafted amounts', done => {
+        expenseRoutes._getEmployeeBudgetOverdrafts(budgets, undefined, expenseType).then(overdrafts => {
+          expect(overdrafts).toEqual([10, 10, 10]);
+          done();
+        });
+      }); // should return an array of overdraft amounts
+    }); // when budgets are overdrafted
+
+    describe('when no budgets are overdrafted', () => {
+
+      beforeEach(() => {
+        spyOn(expenseRoutes, '_calcOverdraft').and.returnValue(0);
+      });
+
+      it('should return an array of overdrafted amounts', done => {
+        expenseRoutes._getEmployeeBudgetOverdrafts(budgets, undefined, expenseType).then(overdrafts => {
+          expect(overdrafts).toEqual([0, 0, 0]);
+          done();
+        });
+      }); // should return an array of empty overdraft amounts
+    }); // when no budgets are overdrafted
+  }); // _getEmployeeBudgetOverdrafts
+
+  describe('_unreimburseExpense', () => {
+
+    let oldExpense, newExpense, expenseType, budgets, budget2000, budget2001, budget2002;
+
+    beforeEach(() => {
+      oldExpense = {
+        userId: 'userId',
+        purchaseDate: '2001-01-02',
+        reimbursedDate: '2001-01-02',
+        cost: 5,
+      };
+      newExpense = {
+        userId: 'userId',
+        purchaseDate: '2001-01-02',
+        reimbursedDate: undefined,
+        cost: 5,
+      };
+      expenseType = {
+        id: 'expenseTypeId',
+        budget: 10,
+        odFlag: true,
+      };
+      budget2000 = {
+        id: 'budget2000Id',
+        reimbursedAmount: 10,
+        pendingAmount: 9,
+        fiscalStartDate: '2000-01-01',
+        fiscalEndDate: '2000-12-31'
+      };
+      budget2001 = {
+        id: 'budget2001Id',
+        reimbursedAmount:8,
+        pendingAmount: 2,
+        fiscalStartDate: '2001-01-01',
+        fiscalEndDate: '2001-12-31'
+      };
+      budget2002 = {
+        id: 'budget2002Id',
+        reimbursedAmount:0,
+        pendingAmount: 0,
+        fiscalStartDate: '2002-01-01',
+        fiscalEndDate: '2002-12-31'
+      };
+    });
+
+    describe('when full expense is within a single budget', () => {
+
+      let expectedBudget2001;
+
+      beforeEach(() => {
+        budgets = [budget2000, budget2001, budget2002];
+        expectedBudget2001 = {
+          id: 'budget2001Id',
+          reimbursedAmount:3,
+          pendingAmount: 7,
+          fiscalStartDate: '2001-01-01',
+          fiscalEndDate: '2001-12-31'
+        };
+        budget2001.reimbursedAmount = 8;
+        spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([0, 3, 0]);
+        spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
+          .withArgs('userId', budget2001, expenseType).and.returnValue(8);
+      });
+
+      it('should update a single budget', done => {
+        expenseRoutes._unreimburseExpense(oldExpense, newExpense, budgets, expenseType).then( () => {
+          expect(budgets[1]).toEqual(expectedBudget2001);
+          done();
+        });
+      }); // should update a single budget
+    }); // when full expense is within a single budget
+
+    describe('when expense is rolled back a budget', () => {
+
+      let expectedBudget2001, expectedBudget2002;
+
+      beforeEach(() => {
+        budget2001.reimbursedAmount = 10;
+        budget2002.reimbursedAmount = 3;
+        budgets = [budget2000, budget2001, budget2002];
+        expectedBudget2001 = {
+          id: 'budget2001Id',
+          reimbursedAmount:8,
+          pendingAmount: 7,
+          fiscalStartDate: '2001-01-01',
+          fiscalEndDate: '2001-12-31'
+        };
+        expectedBudget2002 = {
+          id: 'budget2002Id',
+          reimbursedAmount:0,
+          pendingAmount: 0,
+          fiscalStartDate: '2002-01-01',
+          fiscalEndDate: '2002-12-31'
+        };
+        //budget2001.reimbursedAmount = 13;
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2001);
+        spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([0, 3, 0]);
+        spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
+          .withArgs('userId', budget2001, expenseType).and.returnValue(13)
+          .withArgs('userId', budget2002, expenseType).and.returnValue(0);
+      });
+
+      it('should update the expense budget and the carry over budget', done => {
+        expenseRoutes._unreimburseExpense(oldExpense, newExpense, budgets, expenseType).then( () => {
+          expect(budgets[1]).toEqual(expectedBudget2001);
+          expect(budgets[2]).toEqual(expectedBudget2002);
+          done();
+        });
+      }); // should update the expense budget and the carry over budget
+    }); // when expense is rolled back a budget
+
+    describe('when expense is rolled back two budgets both overdrafted', () => {
+
+      let expectedBudget2000, expectedBudget2001, expectedBudget2002;
+
+      beforeEach(() => {
+        budget2001.reimbursedAmount = 10;
+        budget2002.reimbursedAmount = 6;
+        oldExpense.purchaseDate = '2000-01-02';
+        newExpense.purchaseDate = '2000-01-02';
+        budgets = [budget2000, budget2001, budget2002];
+        expectedBudget2000 = {
+          id: 'budget2000Id',
+          reimbursedAmount:8,
+          pendingAmount: 14,
+          fiscalStartDate: '2000-01-01',
+          fiscalEndDate: '2000-12-31'
+        };
+        expectedBudget2001 = {
+          id: 'budget2001Id',
+          reimbursedAmount:10,
+          pendingAmount: 2,
+          fiscalStartDate: '2001-01-01',
+          fiscalEndDate: '2001-12-31'
+        };
+        expectedBudget2002 = {
+          id: 'budget2002Id',
+          reimbursedAmount:3,
+          pendingAmount: 0,
+          fiscalStartDate: '2002-01-01',
+          fiscalEndDate: '2002-12-31'
+        };
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2000);
+        spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([3, 1, 0]);
+        spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
+          .withArgs('userId', budget2000, expenseType).and.returnValue(13)
+          .withArgs('userId', budget2001, expenseType).and.returnValue(11)
+          .withArgs('userId', budget2002, expenseType).and.returnValue(2);
+
+      });
+
+      it('should update the expense budgets and the carry over budgets', done => {
+        expenseRoutes._unreimburseExpense(oldExpense, newExpense, budgets, expenseType).then( () => {
+          expect(budgets[0]).toEqual(expectedBudget2000);
+          expect(budgets[1]).toEqual(expectedBudget2001);
+          expect(budgets[2]).toEqual(expectedBudget2002);
+          done();
+        });
+      }); // should update the expense budgets and the carry over budgets
+    }); // when expense is rolled back two budgets both overdrafted
+
+    describe('when expense is rolled back two budgets with no middle overdraft', () => {
+
+      let expectedBudget2000, expectedBudget2001, expectedBudget2002;
+
+      beforeEach(() => {
+        budget2000.pendingAmount = 0;
+        budget2001.reimbursedAmount = 10;
+        budget2002.reimbursedAmount = 5;
+        oldExpense.cost= 12;
+        oldExpense.purchaseDate = '2000-01-02';
+        newExpense.cost= 12;
+        newExpense.purchaseDate = '2000-01-02';
+        budgets = [budget2000, budget2001, budget2002];
+        expectedBudget2000 = {
+          id: 'budget2000Id',
+          reimbursedAmount:0,
+          pendingAmount: 12,
+          fiscalStartDate: '2000-01-01',
+          fiscalEndDate: '2000-12-31'
+        };
+        expectedBudget2001 = {
+          id: 'budget2001Id',
+          reimbursedAmount:10,
+          pendingAmount: 2,
+          fiscalStartDate: '2001-01-01',
+          fiscalEndDate: '2001-12-31'
+        };
+        expectedBudget2002 = {
+          id: 'budget2002Id',
+          reimbursedAmount: 0,
+          pendingAmount: 0,
+          fiscalStartDate: '2002-01-01',
+          fiscalEndDate: '2002-12-31'
+        };
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2000);
+        spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([2, 0, -10]);
+        spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
+          .withArgs('userId', budget2000, expenseType).and.returnValue(12)
+          .withArgs('userId', budget2001, expenseType).and.returnValue(10)
+          .withArgs('userId', budget2002, expenseType).and.returnValue(0);
+      });
+
+      it('should update the expense budgets and the carry over budgets', done => {
+        expenseRoutes._unreimburseExpense(oldExpense, newExpense, budgets, expenseType).then( () => {
+          expect(budgets[0]).toEqual(expectedBudget2000);
+          expect(budgets[1]).toEqual(expectedBudget2001);
+          expect(budgets[2]).toEqual(expectedBudget2002);
+          done();
+        });
+      }); // should update the expense budgets and the carry over budgets
+    }); // when expense is rolled back two budgets with no middle overdraft
+  }); // _unreimburseExpense
 }); //expenseRoutes
