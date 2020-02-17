@@ -95,7 +95,7 @@ describe('databaseModify', () => {
 
     describe('when entry is not in the database', () => {
       beforeEach(() => {
-       spyOn(databaseModify, 'readFromDB').and.returnValue(Promise.reject('object not found in database'));
+        spyOn(databaseModify, 'readFromDB').and.returnValue(Promise.reject('object not found in database'));
       });
 
       it('should return a rejected promise with a reason', done => {
