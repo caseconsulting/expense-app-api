@@ -75,8 +75,22 @@ To upgrade to the latest version of a specific Node.js module, which is a develo
 ```
 npm update --save-dev <module-name>@latest
 ```
+## READ NOTES BEFORE DEPLOYMENT
 
 NOTE: When deleting a table and it is not recreated when deploying, you must change the table name in CloudFormation.yaml, deploy, delete the new temporary table, change the table name back, and deploy again
+
+NOTE: After first time deployment of S3 'Remove Deleted Expense Attachments' lifecycle rule, need to enable clean up expired object delete markers from S3 console.
+
+In the S3 Console:
+1) Navigate to case-consulting-expense-app-attachment-{dev/test/prod} bucket
+2) Click the Management tab
+3) Select the 'Remove Deleted Expense Attachments' lifecycle rule
+4) Click Edit
+5) Next
+6) Next
+7) Check the box for 'Clean up expired object delete markers'
+8) Next
+9) Save
 
 ## Deployment (dev)
 
