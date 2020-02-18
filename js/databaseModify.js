@@ -80,7 +80,8 @@ class databaseModify {
 
     _.each(attributes, (attribute, index) => {
       const value = _.get(data, attribute);
-      if (value || value === 0) {
+      if (value) {
+        
         let expressionAttribute = `:${alpha[index]}`;
         ExpressionAttributeValues[expressionAttribute] = value;
 
@@ -331,8 +332,6 @@ class databaseModify {
         throw err;
       });
   }
-
-
 
   /**
    * Removes the object from the database according to its index key
