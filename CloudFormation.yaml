@@ -153,11 +153,16 @@ Resources:
         - ''
         - - case-consulting-expense-app-attachments-
           - !Ref Stage
-      VersioningConfiguration:
-        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove Deleted Expense Attachments
+            NoncurrentVersionExpirationInDays: 30
+            Status: Enabled
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
         LogFilePrefix: s3-logs/attachments/
+      VersioningConfiguration:
+        Status: Enabled
   s3Logs:
     Type: 'AWS::S3::Bucket'
     Properties:
