@@ -100,12 +100,12 @@ describe('databaseModify', () => {
     describe('when data has an id attribute', () => {
 
       beforeEach(() =>
-          (data = {
-            id: 'id',
-            something: 'something',
-            somethingElse: 'something else',
-            lastThing: 'last thing'
-          })
+        (data = {
+          id: 'id',
+          something: 'something',
+          somethingElse: 'something else',
+          lastThing: 'last thing'
+        })
       );
 
       it('should ignore the id attribute', () => {
@@ -123,13 +123,13 @@ describe('databaseModify', () => {
     describe('when data has a url attribute', () => {
 
       beforeEach(() =>
-          (data = {
-            id: 'id',
-            something: 'something',
-            somethingElse: 'something else',
-            lastThing: 'last thing',
-            url: 'url'
-          })
+        (data = {
+          id: 'id',
+          something: 'something',
+          somethingElse: 'something else',
+          lastThing: 'last thing',
+          url: 'url'
+        })
       );
 
       it('should ignore handle the special case with the url', () => {
@@ -149,10 +149,10 @@ describe('databaseModify', () => {
     describe('when data does not have an id or url attribute', () => {
 
       beforeEach(() =>
-          (data = {
-            id: 'id',
-            something: null
-          })
+        (data = {
+          id: 'id',
+          something: null
+        })
       );
 
       it('should not build attribute values or names', () => {
@@ -561,7 +561,7 @@ describe('databaseModify', () => {
           done();
         });
       }); // should return the error given by AWS
-    }) // when AWS returns an error
+    }); // when AWS returns an error
 
     afterEach(() => {
       AWS.restore();
@@ -629,12 +629,12 @@ describe('databaseModify', () => {
           done();
         });
       }); // should return the error given by AWS
-    }) // when AWS returns an error
+    }); // when AWS returns an error
 
     afterEach(() => {
       AWS.restore();
     });
-  }) // queryWithTwoIndexesInDB
+  }); // queryWithTwoIndexesInDB
 
   describe('readFromDB', () => {
 
@@ -708,52 +708,52 @@ describe('databaseModify', () => {
 
   describe('readFromDBURL', () => {
 
-        let passedID, category;
+    let passedID, category;
 
-        beforeEach(() => {
-          passedID = 'https://google.com';
-          category = 'alpha';
-        });
+    beforeEach(() => {
+      passedID = 'https://google.com';
+      category = 'alpha';
+    });
 
-        describe('when AWS returns a query with items', () => {
+    describe('when AWS returns a query with items', () => {
 
-          beforeEach(() => {
-            AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
-              callback(null, {
-                Items: ['data']
-              });
-            });
+      beforeEach(() => {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
+          callback(null, {
+            Items: ['data']
           });
-
-          it('should return a resolved promise of queried item', done => {
-            databaseModify.readFromDBURL(passedID, category).then( data => {
-              expect(data).toEqual(['data']);
-              done();
-            });
-          }); // should return a resolved promise of queried item
-        }); // when AWS returns a query with items
-
-        describe('when AWS returns an error', () => {
-
-          beforeEach(() => {
-            AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
-              callback({
-                message: 'AWS error'
-              });
-            });
-          });
-
-          it('should return the error given by AWS', done => {
-            databaseModify.readFromDBURL(passedID, category).catch(function(err) {
-              expect(err).toEqual({ message: 'AWS error' });
-              done();
-            });
-          }); // should return the error given by AWS
-        }) // when AWS returns an error
-
-        afterEach(() => {
-          AWS.restore();
         });
+      });
+
+      it('should return a resolved promise of queried item', done => {
+        databaseModify.readFromDBURL(passedID, category).then( data => {
+          expect(data).toEqual(['data']);
+          done();
+        });
+      }); // should return a resolved promise of queried item
+    }); // when AWS returns a query with items
+
+    describe('when AWS returns an error', () => {
+
+      beforeEach(() => {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
+          callback({
+            message: 'AWS error'
+          });
+        });
+      });
+
+      it('should return the error given by AWS', done => {
+        databaseModify.readFromDBURL(passedID, category).catch(function(err) {
+          expect(err).toEqual({ message: 'AWS error' });
+          done();
+        });
+      }); // should return the error given by AWS
+    }); // when AWS returns an error
+
+    afterEach(() => {
+      AWS.restore();
+    });
   }); // readFromDBURL
 
   describe('removeFromDB', () => {
