@@ -31,31 +31,6 @@ class TrainingURLRoutes extends Crud {
       });
   }
 
-  _update(id, category, data) {
-
-    var atob = require('atob');
-    var decodedURL = atob(id);
-
-    let trainingURL = new TrainingUrls(data);
-    trainingURL.id = decodedURL;
-    trainingURL.category = category;
-
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
-      '| Processing handled by function trainingURLRoutes._update'
-    );
-
-    return this.databaseModify
-      .readFromDBURL(decodedURL, category)
-      .then(() => {
-        return trainingURL;
-      })
-      .catch(err => {
-        throw err;
-      });
-  }
-
   _checkFields(trainingURL) {
     console.warn(
       `[${moment().format()}]`,
@@ -75,11 +50,11 @@ class TrainingURLRoutes extends Crud {
   }
 
   //unused?
-  getURLInfo(req, res) {
+  _getURLInfo(req, res) {
     console.warn(
       `[${moment().format()}]`,
       `Getting info for url ${req.params.id}`,
-      '| Processing handled by function trainingURLRoutes.getURLInfo'
+      '| Processing handled by function trainingURLRoutes._getURLInfo'
     );
 
     const NOT_FOUND = {
@@ -108,6 +83,30 @@ class TrainingURLRoutes extends Crud {
         // }
       })
       .catch(err => this._handleError(res, err));
+  }
+
+  _update(id, category, data) {
+    var atob = require('atob');
+    var decodedURL = atob(id);
+
+    let trainingURL = new TrainingUrls(data);
+    trainingURL.id = decodedURL;
+    trainingURL.category = category;
+
+    console.warn(
+      `[${moment().format()}]`,
+      `>>> Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
+      '| Processing handled by function trainingURLRoutes._update'
+    );
+
+    return this.databaseModify
+      .readFromDBURL(decodedURL, category)
+      .then(() => {
+        return trainingURL;
+      })
+      .catch(err => {
+        throw err;
+      });
   }
 }
 module.exports = TrainingURLRoutes;

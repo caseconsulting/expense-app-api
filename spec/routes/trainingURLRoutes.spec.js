@@ -1,5 +1,6 @@
 const TrainingURLRoutes = require('../../routes/trainingURLRoutes');
 const TrainingURL = require('../../models/trainingUrls');
+const _ = require('lodash');
 
 describe('trainingURLRoutes', () => {
   const id = 'https://testing.com';
@@ -8,15 +9,59 @@ describe('trainingURLRoutes', () => {
   const BAD_FIELDS = {
     code: 403, message: 'One of the required fields is invalid'
   };
-  let trainingURLDynamo, trainingURLRoutes, trainingURL, data;
+  let databaseModify, trainingURLRoutes, trainingURL, data;
 
   beforeEach(() => {
     trainingURLRoutes = new TrainingURLRoutes();
-    trainingURLDynamo = jasmine.createSpyObj('trainingURLDynamo', ['addToDB', 'readFromDBURL']);
-    trainingURLRoutes.trainingURLDynamo = trainingURLDynamo;
+    databaseModify = jasmine.createSpyObj('databaseModify', [
+      'addToDB',
+      'readFromDBURL'
+    ]);
     data = { id, category, hits };
     trainingURL = new TrainingURL(data);
+    trainingURLRoutes.databaseModify = databaseModify;
+
   });
+
+  describe('_add', () => {
+
+    describe('when addToDB is successful', () => {
+
+      beforeEach(() => {
+        spyOn(trainingURLRoutes, '_checkFields').and.returnValue(Promise.resolve());
+        databaseModify.addToDB.and.returnValue(Promise.resolve(trainingURL));
+      });
+
+      it('should return added object', done => {
+        trainingURLRoutes._add(id, data).then(result => {
+          expect(result).toEqual(trainingURL);
+          done();
+        });
+      });
+
+      afterEach(() => {
+        expect(trainingURLRoutes._checkFields).toHaveBeenCalledWith(trainingURL);
+      });
+    }); // when addToDB is successful
+
+    describe('when addToDB fails', () => {
+      beforeEach(() => {
+        spyOn(trainingURLRoutes, '_checkFields').and.returnValue(Promise.reject(BAD_FIELDS));
+      });
+
+      it('should throw an error', done => {
+        return trainingURLRoutes
+          ._add(id, data)
+          .then(() => {
+            done(new Error('but succeeded - error expected'));
+          })
+          .catch(err => {
+            expect(err).toEqual(BAD_FIELDS);
+            done();
+          });
+      }); // should throw an error
+    }); // when addToDB fails
+  }); // _add
 
   describe('_checkFields', () => {
     describe('when trainingURL is valid', () => {
@@ -57,50 +102,72 @@ describe('trainingURLRoutes', () => {
     }); // when hits is 0
   }); // _checkFields
 
-  describe('_add', () => {
+  describe('_getURLInfo', () => {
 
-    describe('when addToDB is successful', () => {
+    let req, res;
+
+    beforeEach(() => {
+      req = {
+        params: { id: 'id' }
+      };
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+    });
+
+    describe('output url is recieved', () => {
 
       beforeEach(() => {
-        spyOn(trainingURLRoutes, '_checkFields').and.returnValue(Promise.resolve());
-        trainingURLDynamo.addToDB.and.returnValue(Promise.resolve(trainingURL));
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve(['url info found']));
+        spyOn(_, 'first').and.returnValue('elementFromServer');
       });
 
-      it('should return added object', done => {
-        trainingURLRoutes._add(id, data).then(result => {
-          expect(result).toEqual(trainingURL);
+      it('should respond with the output and a 200 code', done => {
+        trainingURLRoutes._getURLInfo(req, res).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith('elementFromServer');
           done();
         });
-      });
+      }); //should respond with the output and a 200 code
+    }); // url info received
 
-      afterEach(() => {
-        expect(trainingURLRoutes._checkFields).toHaveBeenCalledWith(trainingURL);
-      });
-    }); // when DynamoDB is successful
+    describe('output is null', () => {
 
-    describe('when addToDB fails', () => {
       beforeEach(() => {
-        spyOn(trainingURLRoutes, '_checkFields').and.returnValue(Promise.reject(BAD_FIELDS));
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve(null));
       });
 
-      it('should throw an error', done => {
-        return trainingURLRoutes
-          ._add(id, data)
-          .then(() => {
-            done(new Error('but succeeded - error expected'));
-          })
-          .catch(err => {
-            expect(err).toEqual(BAD_FIELDS);
-            done();
-          });
-      }); // should throw an error
-    }); // when addToDB fails
-  }); // _add
+      it('should respond with the output and a 200 code', done => {
+        trainingURLRoutes._getURLInfo(req, res).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(null);
+          done();
+        });
+      }); //should respond with the output and a 200 code
+    }); // output is null
+
+    describe('output is undefined', () => {
+
+      beforeEach(() => {
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve(undefined));
+        spyOn(trainingURLRoutes, '_handleError');
+      });
+
+      it('should throw an error', () => {
+        trainingURLRoutes._getURLInfo(req, res).catch(() => {
+          expect(trainingURLRoutes._handleError)
+            .toHaveBeenCalledWith(res, {
+              code: 404,
+              message: 'entry not found in database'
+            });
+        });
+      }); //should respond with the output and a 200 code
+    }); // output is null
+  }); // _getURLInfo
 
   describe('_update', () => {
     describe('when readFromDBURL is a success', () => {
       beforeEach(() => {
-        trainingURLDynamo.readFromDBURL.and.returnValue(Promise.resolve(trainingURL));
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve(trainingURL));
       });
 
       it('should return an updated object', done => {
@@ -110,5 +177,18 @@ describe('trainingURLRoutes', () => {
         });
       }); //should return an updated object
     }); // when readFromDBURL is a success
+
+    describe('when readFromDBURL fails', () => {
+
+      beforeEach(() => {
+        databaseModify.readFromDBURL.and.returnValue(Promise.reject('there was an error'));
+      });
+
+      it('should throw an error', () => {
+        trainingURLRoutes._update(id, category, data).catch( err => {
+          expect(err).toEqual('there was an error');
+        });
+      });
+    }); // when readFromDBURL fails
   }); // _update
 }); // employeeRoutes
