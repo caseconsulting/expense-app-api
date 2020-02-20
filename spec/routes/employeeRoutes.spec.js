@@ -219,44 +219,86 @@ describe('employeeRoutes', () => {
       expectedStartDate,
       expectedEndDate,
       expectedAnniversaryYear,
-      today,
-      anniversaryComparisonDate;
+      today;
 
-    beforeEach(() => {
-      hireDate = '1970-12-31';
-      expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-      expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-      expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
-      anniversaryComparisonDate = moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      let startYear;
-      today = moment();
+    describe('when hired in the past and today is before the anniversary date', () => {
 
-      if (anniversaryComparisonDate.isBefore(today)) {
-        startYear = today.isBefore(moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay]))
-          ? today.year() - 1
-          : today.year();
-      } else {
-        startYear = today.isBefore(moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]))
-          ? expectedAnniversaryYear
-          : expectedAnniversaryYear - 1;
-      }
+      beforeEach(() => {
+        hireDate = moment().subtract(10, 'years').add(1, 'days');
+        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
 
-      expectedStartDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-      expectedEndDate = moment([startYear, expectedAnniversaryMonth, expectedAnniversaryDay])
-        .add('1', 'years')
-        .subtract('1', 'days');
+        today = moment();
 
-      expectedObj = {
-        startDate: expectedStartDate,
-        endDate: expectedEndDate
-      };
-    });
+        expectedStartDate = moment([today.year() - 1, expectedAnniversaryMonth, expectedAnniversaryDay]);
+        expectedEndDate = moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay])
+          .subtract('1', 'days');
 
-    it('should return an object with a start and end date', done => {
-      let returnedObj = employeeRoutes._getBudgetDates(hireDate);
-      expect(returnedObj).toEqual(expectedObj);
-      done();
-    }); // should return an object with a start and end date
+        expectedObj = {
+          startDate: expectedStartDate,
+          endDate: expectedEndDate
+        };
+      });
+
+      it('should return an object with a start and end date', done => {
+        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
+        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
+        done();
+      }); // should return an object with a start and end date
+    }); // when hired in the past and today is before the anniversary date
+
+    describe('when hired in the past and today is after the anniversary date', () => {
+
+      beforeEach(() => {
+        hireDate = moment().subtract(10, 'years');
+        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+
+        today = moment();
+
+        expectedStartDate = moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay]);
+        expectedEndDate = moment([today.year() + 1, expectedAnniversaryMonth, expectedAnniversaryDay])
+          .subtract('1', 'days');
+
+        expectedObj = {
+          startDate: expectedStartDate,
+          endDate: expectedEndDate
+        };
+      });
+
+      it('should return an object with a start and end date', done => {
+        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
+        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
+        done();
+      }); // should return an object with a start and end date
+    }); // when hired in the past and today is after the anniversary date
+
+    describe('when hire date is in the future', () => {
+
+      beforeEach(() => {
+        hireDate = moment().add(10, 'years');
+        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+        expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
+
+        today = moment();
+
+        expectedStartDate = moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
+        expectedEndDate = moment([expectedAnniversaryYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay])
+          .subtract('1', 'days');
+
+        expectedObj = {
+          startDate: expectedStartDate,
+          endDate: expectedEndDate
+        };
+      });
+
+      it('should return an object with a start and end date', done => {
+        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
+        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
+        done();
+      }); // should return an object with a start and end date
+    }); // when hire date is in the future
   }); // _getBudgetDates
 
   describe('_getUUID', () => {

@@ -132,6 +132,10 @@ class EmployeeRoutes extends Crud {
       startYear = today.isBefore(moment([today.year(), anniversaryMonth, anniversaryDay]))
         ? today.year() - 1
         : today.year();
+      console.log('\n\n\n-----------------');
+      console.log(startYear);
+      console.log('-----------------\n\n\n');
+
     } else {
       startYear = anniversaryYear;
     }
@@ -141,6 +145,7 @@ class EmployeeRoutes extends Crud {
       .add('1', 'years')
       .subtract('1', 'days');
 
+    console.log('\n\n\n\n' + today.get('month') + '\n\n\n');
     return {
       startDate,
       endDate
