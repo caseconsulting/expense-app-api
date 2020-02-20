@@ -751,6 +751,23 @@ describe('databaseModify', () => {
       }); // should return the error given by AWS
     }); // when AWS returns an error
 
+    describe('when DocumentClient has no items', () => {
+
+      beforeEach(() => {
+        AWS.mock('DynamoDB.DocumentClient', 'query', function(params, callback) {
+          callback(null, {
+            Items: []
+          });
+        });
+      });
+
+      it('should return null', () => {
+        databaseModify.readFromDBURL(passedID, category).catch( err => {
+          expect(err).toEqual(null);
+        });
+      }); // should return null
+    }); // when DocumentClient has no items
+
     afterEach(() => {
       AWS.restore();
     });
