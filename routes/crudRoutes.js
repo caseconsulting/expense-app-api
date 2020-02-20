@@ -43,65 +43,53 @@ class Crud {
     return this._router;
   }
 
-  /**
-   * Checks to see if objectToCheck has any blank fields
-   * @param objectToCheck the object to validate
-   * @return true if the object contains empty strings,
-   *   false if objectToCheck was valid
-   */
-  _inputChecker(objectToCheck) {
-    //Check if there are any strings
-    const checkResult = _.includes(objectToCheck, '');
-    //Check result is true only if there is an error
-    return checkResult;
+  /* eslint-disable no-unused-vars */
+  _add(uuid, body) {
+    //This function must be overwritten
+    //soley for supa secret testing purposes
+    //because inheritance is tricky to test
+    //https://gph.is/1H1lkH0
+  }
+  /* eslint-enable no-unused-vars */
+
+  _checkPermissionForOnDelete(req) {
+    return this._isUser(req) && this._checkTableName(['expenses']);
+  }
+
+  _checkPermissionForShowList(req) {
+    return this._isAdmin(req) || this._checkTableName(['expense-types', 'employees']);
   }
 
   /**
-   * Handles any errors in crud operations
-   */
-  _handleError(res, err) {
-    console.warn(
-      `[${moment().format()}]`,
-      'Handling errors',
-      '| Processing handled by function crudRoutes._handleError'
-    );
-
-    const logColor = '\x1b[31m';
-    const resetColor = '\x1b[0m';
-    console.error(logColor, 'Error Code: ' + err.code);
-    console.error(logColor, 'Error Message: ' + err.message);
-    console.error(resetColor);
-    return res.status(err.code).send(err);
+  * checks to see if the current table name is in the list of vaild table names
+  *
+  * @return true if found and false if the current table name is not in the list
+  */
+  _checkTableName(listOfValidTables) {
+    let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
+    return foundItem != undefined;
   }
 
   /**
-   * Validates the inputChecker
-   * seperates cases based on newObject
-   */
-  _validateInputs(res, newObject) {
-    console.warn(
-      `[${moment().format()}]`,
-      'Validating input for database fields',
-      '| Processing handled by function crudRoutes._validateInputs'
-    );
-
-    if (newObject.id) {
-      let inputCheckerCurried = _.curry(this._inputChecker);
-      return new Promise(function(resolve, reject) {
-        if (inputCheckerCurried.bind(this)(newObject)) {
-          let err = {
-            code: 406, //Not Acceptable
-            message: 'All fields are needed'
-          };
-          reject(err);
-        }
-        resolve(newObject);
-      });
+  * Creates the object in the database
+  */
+  create(req, res) {
+    // console.warn(`[${moment().format()}]`,
+    //   'Creating object',
+    //   '| Processing handled by function crudRoutes.create'
+    // );
+    if (this._validPermissions(req)) {
+      let id = this._getTableName() === `${STAGE}-training-urls` ? req.body.id : uuid();
+      return this._add(id, req.body)
+        .then(newObject => this._validateInputs(res, newObject))
+        .then(validated => this._createInDatabase(res, validated))
+        .catch(err => this._handleError(res, err));
     } else {
-      throw {
-        code: 400, //Bad Request
-        message: 'input validation error'
+      let err = {
+        code: 403,
+        message: 'Unable to create object in database due to insufficient user permissions'
       };
+      this._handleError(res, err);
     }
   }
 
@@ -127,45 +115,103 @@ class Crud {
       .catch(err => this._handleError(res, err));
   }
 
+  /* eslint-disable no-unused-vars */
+  _delete(uuid) {
+    //This function must be overwritten
+  }
+  /* eslint-enable no-unused-vars */
+
+  _getTableName() {
+    return this.databaseModify.tableName;
+  }
+
   /**
-   * Creates the object in the database
+  * Handles any errors in crud operations
+  */
+  _handleError(res, err) {
+    console.warn(
+      `[${moment().format()}]`,
+      'Handling errors',
+      '| Processing handled by function crudRoutes._handleError'
+    );
+
+    const logColor = '\x1b[31m';
+    const resetColor = '\x1b[0m';
+    console.error(logColor, 'Error Code: ' + err.code);
+    console.error(logColor, 'Error Message: ' + err.message);
+    console.error(resetColor);
+    return res.status(err.code).send(err);
+  }
+
+  /**
+   * Checks to see if objectToCheck has any blank fields
+   * @param objectToCheck the object to validate
+   * @return true if the object contains empty strings,
+   *   false if objectToCheck was valid
    */
-  create(req, res) {
-    // console.warn(`[${moment().format()}]`,
-    //   'Creating object',
-    //   '| Processing handled by function crudRoutes.create'
-    // );
-    if (this._validPermissions(req)) {
-      let id = this._getTableName() === `${STAGE}-training-urls` ? req.body.id : uuid();
-      return this._add(id, req.body)
-        .then(newObject => this._validateInputs(res, newObject))
-        .then(validated => this._createInDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
+  _inputChecker(objectToCheck) {
+    //Check if there are any strings
+    const checkResult = _.includes(objectToCheck, '');
+    //Check result is true only if there is an error
+    return checkResult;
+  }
+
+  _isAdmin(req) {
+    return req.employee.employeeRole === 'admin';
+  }
+
+  _isUser(req) {
+    return req.employee.employeeRole === 'user';
+  }
+
+  /**
+  * delete the specified entry
+  */
+  onDelete(req, res) {
+    //console.warn(moment().format(), 'CRUD routes onDelete');
+
+    if (this._isAdmin(req)) {
+      if (this._checkTableName(['expenses', 'expense-types', 'employees'])) {
+        //TODO: should this promise be returned? Did not return before
+        this._onDeleteHelper(req.params.id, res);
+      } else {
+        return this.databaseModify
+          .removeFromDB(req.params.id)
+          .then(data => {
+            console.warn(
+              `[${moment().format()}]`,
+              `>>> Successfully deleted ${req.params.id} from database`,
+              '| Processing handled by function crudRoutes.onDelete'
+            );
+            res.status(200).send(data);
+          })
+          .catch(err => this._handleError(res, err));
+      }
+    } else if (this._checkPermissionForOnDelete(req)) {
+      this._onDeleteHelper(req.params.id, res);
     } else {
       let err = {
         code: 403,
-        message: 'Unable to create object in database due to insufficient user permissions'
+        message: 'Unable to delete object in database due to insufficient user permissions'
       };
       this._handleError(res, err);
     }
   }
 
-  /* eslint-disable no-unused-vars */
-  _add(uuid, body) {
-    //This function must be overwritten
-    //soley for supa secret testing purposes
-    //because inheritance is tricky to test
-    //https://gph.is/1H1lkH0
-  }
+  _onDeleteHelper(id, res) {
+    //console.warn('CRUD routes _onDeleteHelper');
 
-  _update(uuid, body) {
-    //This function must be overwritten
+    return this._delete(id)
+      .then(value => {
+        console.warn(
+          `[${moment().format()}]`,
+          `>>> Successfully deleted ${id} from database`,
+          '| Processing handled by function crudRoutes.onDelete'
+        );
+        res.status(200).send(value);
+      })
+      .catch(error => this._handleError(res, error));
   }
-
-  _delete(uuid) {
-    //This function must be overwritten
-  }
-  /* eslint-enable no-unused-vars */
 
   read(req, res) {
     // console.warn(`[${moment().format()}]`,
@@ -237,38 +283,38 @@ class Crud {
   }
 
   /**
-   * Updates the object
-   */
-  _updateDatabase(res, newObject) {
+  * Retrieve all items in a given list specified by request
+  */
+  showList(req, res) {
     // console.warn(`[${moment().format()}]`,
-    //   'Updating database',
-    //   '| Processing handled by function crudRoutes._updateDatabase'
+    //   'Displaying expense type list',
+    //   '| Processing handled by function crudRoutes.showList'
     // );
 
-    return this.databaseModify
-      .updateEntryInDB(newObject)
-      .then(data => {
-        if (newObject instanceof TrainingUrls) {
-          console.warn(
-            `[${moment().format()}]`,
-            `>>> Successfully updated ${newObject.id} with category ${newObject.category} to database`,
-            '| Processing handled by function crudRoutes._updateDatabase'
-          );
-        } else {
-          console.warn(
-            `[${moment().format()}]`,
-            `>>> Successfully updated ${newObject.id} from database`,
-            '| Processing handled by function crudRoutes._updateDatabase'
-          );
-        }
-        res.status(200).send(data);
-      })
-      .catch(err => this._handleError(res, err));
+    let hasPermission = this._checkPermissionForShowList(req);
+    if (hasPermission) {
+      return this.databaseModify
+        .getAllEntriesInDB()
+        .then(data => res.status(200).send(data))
+        .catch(err => this._handleError(res, err));
+    } else {
+      let err = {
+        code: 403,
+        message: 'Unable to get objects from database due to insufficient user permissions'
+      };
+      this._handleError(res, err);
+    }
   }
 
+  /* eslint-disable no-unused-vars */
+  _update(uuid, body) {
+    //This function must be overwritten
+  }
+  /* eslint-enable no-unused-vars */
+
   /**
-   * update a specified entry
-   */
+  * update a specified entry
+  */
   update(req, res) {
     // console.warn(`[${moment().format()}]`,
     //   'Updating object',
@@ -297,104 +343,69 @@ class Crud {
   }
 
   /**
-   * delete the specified entry
-   */
-  onDelete(req, res) {
-    //console.warn(moment().format(), 'CRUD routes onDelete');
-
-    if (this._isAdmin(req)) {
-      if (this._checkTableName(['expenses', 'expense-types', 'employees'])) {
-        //TODO: should this promise be returned? Did not return before
-        this._onDeleteHelper(req.params.id, res);
-      } else {
-        return this.databaseModify
-          .removeFromDB(req.params.id)
-          .then(data => {
-            console.warn(
-              `[${moment().format()}]`,
-              `>>> Successfully deleted ${req.params.id} from database`,
-              '| Processing handled by function crudRoutes.onDelete'
-            );
-            res.status(200).send(data);
-          })
-          .catch(err => this._handleError(res, err));
-      }
-    } else if (this._checkPermissionForOnDelete(req)) {
-      this._onDeleteHelper(req.params.id, res);
-    } else {
-      let err = {
-        code: 403,
-        message: 'Unable to delete object in database due to insufficient user permissions'
-      };
-      this._handleError(res, err);
-    }
-  }
-
-  _onDeleteHelper(id, res) {
-    //console.warn('CRUD routes _onDeleteHelper');
-
-    return this._delete(id)
-      .then(value => {
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Successfully deleted ${id} from database`,
-          '| Processing handled by function crudRoutes.onDelete'
-        );
-        res.status(200).send(value);
-      })
-      .catch(error => this._handleError(res, error));
-  }
-  // checks to see if the current table name is in the list of vaild table names
-  // returns true if found and false if the current table name is not in the list
-  _checkTableName(listOfValidTables) {
-    let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
-    return foundItem != undefined;
-  }
-
-  _checkPermissionForOnDelete(req) {
-    return this._isUser(req) && this._checkTableName(['expenses']);
-  }
-  /**
-   * Retrieve all items in a given list specified by request
-   */
-  showList(req, res) {
+  * Updates the object
+  */
+  _updateDatabase(res, newObject) {
     // console.warn(`[${moment().format()}]`,
-    //   'Displaying expense type list',
-    //   '| Processing handled by function crudRoutes.showList'
+    //   'Updating database',
+    //   '| Processing handled by function crudRoutes._updateDatabase'
     // );
 
-    let hasPermission = this._checkPermissionForShowList(req);
-    if (hasPermission) {
-      return this.databaseModify
-        .getAllEntriesInDB()
-        .then(data => res.status(200).send(data))
-        .catch(err => this._handleError(res, err));
-    } else {
-      let err = {
-        code: 403,
-        message: 'Unable to get objects from database due to insufficient user permissions'
-      };
-      this._handleError(res, err);
-    }
+    return this.databaseModify
+      .updateEntryInDB(newObject)
+      .then(data => {
+        if (newObject instanceof TrainingUrls) {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully updated ${newObject.id} with category ${newObject.category} to database`,
+            '| Processing handled by function crudRoutes._updateDatabase'
+          );
+        } else {
+          console.warn(
+            `[${moment().format()}]`,
+            `>>> Successfully updated ${newObject.id} from database`,
+            '| Processing handled by function crudRoutes._updateDatabase'
+          );
+        }
+        res.status(200).send(data);
+      })
+      .catch(err => this._handleError(res, err));
   }
 
-  _checkPermissionForShowList(req) {
-    return this._isAdmin(req) || this._checkTableName(['expense-types', 'employees']);
+  /**
+   * Validates the inputChecker
+   * seperates cases based on newObject
+   */
+  _validateInputs(res, newObject) {
+    console.warn(
+      `[${moment().format()}]`,
+      'Validating input for database fields',
+      '| Processing handled by function crudRoutes._validateInputs'
+    );
+
+    if (newObject.id) {
+      let inputCheckerCurried = _.curry(this._inputChecker);
+      return new Promise(function(resolve, reject) {
+        if (inputCheckerCurried.bind(this)(newObject)) {
+          let err = {
+            code: 406, //Not Acceptable
+            message: 'All fields are needed'
+          };
+          reject(err);
+        }
+        resolve(newObject);
+      });
+    } else {
+      throw {
+        code: 400, //Bad Request
+        message: 'input validation error'
+      };
+    }
   }
 
   _validPermissions(req) {
     return (this._isAdmin(req) && this._checkTableName(['expense-types', 'employees', 'expenses', 'training-urls']))
     || (this._isUser(req) && this._checkTableName(['expenses', 'training-urls'])) ;
-  }
-
-  _getTableName() {
-    return this.databaseModify.tableName;
-  }
-  _isAdmin(req) {
-    return req.employee.employeeRole === 'admin';
-  }
-  _isUser(req) {
-    return req.employee.employeeRole === 'user';
   }
 }
 

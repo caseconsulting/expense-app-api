@@ -18,28 +18,36 @@ describe('crudRoutes', () => {
     crudRoutes.databaseModify = databaseModify;
   });
 
-  describe('_inputChecker', () => {
-    let objectToCheck;
+  describe('_checkTableName', () => {
+    let listOfValidTables, stage;
     beforeEach(() => {
-      objectToCheck = '{objectToCheck}';
-      spyOn(_, 'includes');
+      stage = process.env.STAGE;
     });
-    afterEach(() => {
-      expect(_.includes).toHaveBeenCalledWith(objectToCheck, '');
-    });
-    describe('if an empty string is found', () => {
-      beforeEach(() => _.includes.and.returnValue(true));
-      it('should return true', () => {
-        expect(crudRoutes._inputChecker(objectToCheck)).toBe(true);
+    describe('if the current table is in the list of valid tables', () => {
+      beforeEach(() => {
+        listOfValidTables = ['valid-table-name'];
+        crudRoutes.databaseModify.tableName = `${stage}-valid-table-name`;
       });
-    }); // if an empty space is found
-    describe('if there are no empty strings', () => {
-      beforeEach(() => _.includes.and.returnValue(false));
-      it('should return false', () => {
-        expect(crudRoutes._inputChecker(objectToCheck)).toBe(false);
+
+      it('should return true', done => {
+        let result = crudRoutes._checkTableName(listOfValidTables);
+        expect(result).toBe(true);
+        done();
+      }); // should return true
+    }); // if the current table is in the list of valid tables
+
+    describe('if the current table is not in the list of valid tables', () => {
+      beforeEach(() => {
+        listOfValidTables = ['valid-table-name'];
+        crudRoutes.databaseModify.tableName = `${stage}-not-valid-table-name`;
       });
-    }); //if there are no empty strings
-  }); // _inputChecker
+      it('should return false', done => {
+        let result = crudRoutes._checkTableName(listOfValidTables);
+        expect(result).toBe(false);
+        done();
+      }); // should return false
+    }); // if the current table is not in the list of valid tables
+  }); // _checkTableName
 
   describe('create', () => {
     let req, res, err;
@@ -121,146 +129,80 @@ describe('crudRoutes', () => {
     }); //if user doesnt have permissions
   }); //create
 
-  describe('read', () => {
-    let res, req, err;
+  describe('_createInDatabase', () => {
+    let res, newObject, data, err;
     beforeEach(() => {
-      req = {
-        body: 'body',
-        employee: {
-          employeeRole: 'admin'
-        },
-        params: {
-          id: 'id'
-        }
-      };
-      err = {
-        code: 404,
-        message: 'entry not found in database'
-      };
+      data = '{data}';
+      newObject = '{newObject}';
+      err = '{err}';
     });
-
-    describe('When promise is resolved', () => {
+    describe('when _createInDatabase is called without error', () => {
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
-        databaseModify.readFromDB.and.returnValue(Promise.resolve({}));
+        databaseModify.addToDB.and.returnValue(Promise.resolve(data));
       });
-      describe('when readFromDB returns at least one element', () => {
-        beforeEach(() => {
-          spyOn(_, 'first').and.returnValue('elementFromServer');
+      it('should respond with a 200 and data', done => {
+        return crudRoutes._createInDatabase(res, newObject).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
         });
-        it('should respond with the output and a 200 code', done => {
-          crudRoutes.read(req, res).then(() => {
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith('elementFromServer');
-            done();
-          });
-        }); //should respond with the output and a 200 code
-      }); //when readFromDB returns at least one element
-      describe('when readFromDB does not return an element', () => {
-        beforeEach(() => {
-          spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-          spyOn(_, 'first').and.returnValue(undefined);
-        });
-        it('should throw an error', done => {
-          return crudRoutes.read(req, res).then(() => {
-            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-            done();
-          });
-
-          // fail('Cant test error handling');
-        }); //should respond with the output and a 200 code
-      }); //when readFromDB does not return an element
-    }); //When promise is resolved
-    describe('when promise does not resolve', () => {
+      });
+    });
+    describe('when there is an error', () => {
       beforeEach(() => {
-        res = {};
-        err = {};
-        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
-        databaseModify.readFromDB.and.returnValue(Promise.reject({}));
+        spyOn(crudRoutes, '_handleError');
+        databaseModify.addToDB.and.returnValue(Promise.reject(err));
       });
       it('should pass the error to _handleError ', () => {
-        return crudRoutes.read(req, res).then(() => {
+        return crudRoutes._createInDatabase(res, newObject).then(() => {
           expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         });
       });
-    }); //when promise does not resolve
-  }); // read
+    });
+  }); // _createInDatabase
 
-  describe('update', () => {
-    let req, res, err;
+  describe('_handleError', () => {
+    let res, err;
     beforeEach(() => {
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
-      crudRoutes.databaseModify.tableName = `${stage}-expenses`;
-
-      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-      spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
-      spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
-      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
-
+      err = {
+        code: 'error code',
+        message: 'error message'
+      };
     });
 
-    describe('if the user role is admin', () => {
-      beforeEach(() => {
-        req = {
-          body: 'body',
-          params: { id: 'id' },
-          employee: {
-            employeeRole: 'admin'
-          }
-        };
-      });
-      it('should add req.body', done => {
-        return crudRoutes.update(req, res).then(() => {
-          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
-          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
-          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
-          done();
-        });
-      });
-    }); //if the user role is admin
+    it('should send the error code and message', () => {
+      crudRoutes._handleError(res, err);
+      expect(res.status).toHaveBeenCalledWith(err.code);
+      expect(res.send).toHaveBeenCalledWith(err);
+    });
+  }); // _handleError
 
-    describe('if a user role is user and updating an expense', () => {
-      beforeEach(() => {
-        req = {
-          body: 'body',
-          params: { id: 'id' },
-          employee: {
-            employeeRole: 'user'
-          }
-        };
+  describe('_inputChecker', () => {
+    let objectToCheck;
+    beforeEach(() => {
+      objectToCheck = '{objectToCheck}';
+      spyOn(_, 'includes');
+    });
+    afterEach(() => {
+      expect(_.includes).toHaveBeenCalledWith(objectToCheck, '');
+    });
+    describe('if an empty string is found', () => {
+      beforeEach(() => _.includes.and.returnValue(true));
+      it('should return true', () => {
+        expect(crudRoutes._inputChecker(objectToCheck)).toBe(true);
       });
-      it('should add req.body', done => {
-        return crudRoutes.update(req, res).then(() => {
-          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
-          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
-          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
-          done();
-        });
+    }); // if an empty space is found
+    describe('if there are no empty strings', () => {
+      beforeEach(() => _.includes.and.returnValue(false));
+      it('should return false', () => {
+        expect(crudRoutes._inputChecker(objectToCheck)).toBe(false);
       });
-    }); //if a user role is user and updating an expense
-
-    describe('if user doesnt have permissions', () => {
-      beforeEach(() => {
-        err = {
-          code: 403,
-          message: 'Unable to update object in database due to insufficient user permissions'
-        };
-        req = {
-          body: 'body',
-          employee: {
-            role: 'NO_PERMISSION'
-          }
-        };
-        spyOn(crudRoutes, '_handleError').and.returnValue(err);
-      });
-      it('should error out', () => {
-        crudRoutes.update(req, res);
-        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
-      });
-    }); //if user doesnt have permissions
-  }); //update
+    }); //if there are no empty strings
+  }); // _inputChecker
 
   describe('onDelete', () => {
     let res, req, err, data;
@@ -361,6 +303,114 @@ describe('crudRoutes', () => {
     }); // if the user has no permissions
   }); // onDelete
 
+  describe('_onDeleteHelper', () => {
+    let res, id, data, error;
+    beforeEach(() => {
+      res = jasmine.createSpyObj('res', ['status', 'send']);
+      res.status.and.returnValue(res);
+      spyOn(crudRoutes, '_handleError');
+      id = 'id';
+      data = '{data}';
+      error = '{error}';
+    });
+
+    afterEach(()=>{
+      expect(crudRoutes._delete).toHaveBeenCalledWith(id);
+    });
+
+    describe('when _delete promise resolves', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes,'_delete').and.returnValue(Promise.resolve(data));
+      });
+      it('should respond to caller with deleted object', done => {
+        crudRoutes._onDeleteHelper(id, res).then(()=>{
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(data);
+          done();
+        });
+      }); // should respond to caller with deleted object
+    }); // when _delete promise resolves
+
+    describe('when _delete promise rejects', () => {
+      beforeEach(() => {
+        spyOn(crudRoutes, '_delete').and.returnValue(Promise.reject(error));
+      });
+      it('should call _handleError with error message', done => {
+        crudRoutes._onDeleteHelper(id, res).then(()=>{
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, error);
+          done();
+        });
+      }); // should call _handleError with error message
+
+    }); // when _delete promise rejects
+  }); // _onDeleteHelper
+
+  describe('read', () => {
+    let res, req, err;
+    beforeEach(() => {
+      req = {
+        body: 'body',
+        employee: {
+          employeeRole: 'admin'
+        },
+        params: {
+          id: 'id'
+        }
+      };
+      err = {
+        code: 404,
+        message: 'entry not found in database'
+      };
+    });
+
+    describe('When promise is resolved', () => {
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.readFromDB.and.returnValue(Promise.resolve({}));
+      });
+      describe('when readFromDB returns at least one element', () => {
+        beforeEach(() => {
+          spyOn(_, 'first').and.returnValue('elementFromServer');
+        });
+        it('should respond with the output and a 200 code', done => {
+          crudRoutes.read(req, res).then(() => {
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith('elementFromServer');
+            done();
+          });
+        }); //should respond with the output and a 200 code
+      }); //when readFromDB returns at least one element
+      describe('when readFromDB does not return an element', () => {
+        beforeEach(() => {
+          spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
+          spyOn(_, 'first').and.returnValue(undefined);
+        });
+        it('should throw an error', done => {
+          return crudRoutes.read(req, res).then(() => {
+            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+            done();
+          });
+
+          // fail('Cant test error handling');
+        }); //should respond with the output and a 200 code
+      }); //when readFromDB does not return an element
+    }); //When promise is resolved
+    describe('when promise does not resolve', () => {
+      beforeEach(() => {
+        res = {};
+        err = {};
+        spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
+        databaseModify.readFromDB.and.returnValue(Promise.reject({}));
+      });
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.read(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      });
+    }); //when promise does not resolve
+  }); // read
+
   describe('showList', () => {
     let res, req, err, data;
     beforeEach(() => {
@@ -419,57 +469,80 @@ describe('crudRoutes', () => {
     });
   }); // showList
 
-  describe('_handleError', () => {
-    let res, err;
+  describe('update', () => {
+    let req, res, err;
     beforeEach(() => {
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
-      err = {
-        code: 'error code',
-        message: 'error message'
-      };
+      crudRoutes.databaseModify.tableName = `${stage}-expenses`;
+
+      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+      spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+      spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
+
     });
 
-    it('should send the error code and message', () => {
-      crudRoutes._handleError(res, err);
-      expect(res.status).toHaveBeenCalledWith(err.code);
-      expect(res.send).toHaveBeenCalledWith(err);
-    });
-  }); // _handleError
-
-  describe('_createInDatabase', () => {
-    let res, newObject, data, err;
-    beforeEach(() => {
-      data = '{data}';
-      newObject = '{newObject}';
-      err = '{err}';
-    });
-    describe('when _createInDatabase is called without error', () => {
+    describe('if the user role is admin', () => {
       beforeEach(() => {
-        res = jasmine.createSpyObj('res', ['status', 'send']);
-        res.status.and.returnValue(res);
-        databaseModify.addToDB.and.returnValue(Promise.resolve(data));
+        req = {
+          body: 'body',
+          params: { id: 'id' },
+          employee: {
+            employeeRole: 'admin'
+          }
+        };
       });
-      it('should respond with a 200 and data', done => {
-        return crudRoutes._createInDatabase(res, newObject).then(() => {
-          expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(data);
+      it('should add req.body', done => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
           done();
         });
       });
-    });
-    describe('when there is an error', () => {
+    }); //if the user role is admin
+
+    describe('if a user role is user and updating an expense', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, '_handleError');
-        databaseModify.addToDB.and.returnValue(Promise.reject(err));
+        req = {
+          body: 'body',
+          params: { id: 'id' },
+          employee: {
+            employeeRole: 'user'
+          }
+        };
       });
-      it('should pass the error to _handleError ', () => {
-        return crudRoutes._createInDatabase(res, newObject).then(() => {
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      it('should add req.body', done => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._update).toHaveBeenCalledWith(jasmine.anything(), req.body);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(res, {});
+          expect(crudRoutes._updateDatabase).toHaveBeenCalledWith(res, true);
+          done();
         });
       });
-    });
-  }); // _createInDatabase
+    }); //if a user role is user and updating an expense
+
+    describe('if user doesnt have permissions', () => {
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unable to update object in database due to insufficient user permissions'
+        };
+        req = {
+          body: 'body',
+          employee: {
+            role: 'NO_PERMISSION'
+          }
+        };
+        spyOn(crudRoutes, '_handleError').and.returnValue(err);
+      });
+      it('should error out', () => {
+        crudRoutes.update(req, res);
+        expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+      });
+    }); //if user doesnt have permissions
+  }); //update
 
   describe('_updateDatabase', () => {
     let res, newObject, data, err;
@@ -564,76 +637,4 @@ describe('crudRoutes', () => {
       });
     }); //if newObject does not have an id
   }); //_validateInputs
-
-  describe('_onDeleteHelper', () => {
-    let res, id, data, error;
-    beforeEach(() => {
-      res = jasmine.createSpyObj('res', ['status', 'send']);
-      res.status.and.returnValue(res);
-      spyOn(crudRoutes, '_handleError');
-      id = 'id';
-      data = '{data}';
-      error = '{error}';
-    });
-
-    afterEach(()=>{
-      expect(crudRoutes._delete).toHaveBeenCalledWith(id);
-    });
-
-    describe('when _delete promise resolves', () => {
-      beforeEach(() => {
-        spyOn(crudRoutes,'_delete').and.returnValue(Promise.resolve(data));
-      });
-      it('should respond to caller with deleted object', done => {
-        crudRoutes._onDeleteHelper(id, res).then(()=>{
-          expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(data);
-          done();
-        });
-      }); // should respond to caller with deleted object
-    }); // when _delete promise resolves
-
-    describe('when _delete promise rejects', () => {
-      beforeEach(() => {
-        spyOn(crudRoutes, '_delete').and.returnValue(Promise.reject(error));
-      });
-      it('should call _handleError with error message', done => {
-        crudRoutes._onDeleteHelper(id, res).then(()=>{
-          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, error);
-          done();
-        });
-      }); // should call _handleError with error message
-
-    }); // when _delete promise rejects
-  }); // _onDeleteHelper
-  describe('_checkTableName', () => {
-    let listOfValidTables, stage;
-    beforeEach(() => {
-      stage = process.env.STAGE;
-    });
-    describe('if the current table is in the list of valid tables', () => {
-      beforeEach(() => {
-        listOfValidTables = ['valid-table-name'];
-        crudRoutes.databaseModify.tableName = `${stage}-valid-table-name`;
-      });
-
-      it('should return true', done => {
-        let result = crudRoutes._checkTableName(listOfValidTables);
-        expect(result).toBe(true);
-        done();
-      }); // should return true
-    }); // if the current table is in the list of valid tables
-
-    describe('if the current table is not in the list of valid tables', () => {
-      beforeEach(() => {
-        listOfValidTables = ['valid-table-name'];
-        crudRoutes.databaseModify.tableName = `${stage}-not-valid-table-name`;
-      });
-      it('should return false', done => {
-        let result = crudRoutes._checkTableName(listOfValidTables);
-        expect(result).toBe(false);
-        done();
-      }); // should return false
-    }); // if the current table is not in the list of valid tables
-  }); // _checkTableName
 }); // crudRoutes
