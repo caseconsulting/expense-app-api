@@ -61,10 +61,10 @@ class Crud {
   }
 
   /**
-  * checks to see if the current table name is in the list of vaild table names
-  *
-  * @return true if found and false if the current table name is not in the list
-  */
+   * checks to see if the current table name is in the list of vaild table names
+   *
+   * @return true if found and false if the current table name is not in the list
+   */
   _checkTableName(listOfValidTables) {
     let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
     return foundItem != undefined;
@@ -83,7 +83,7 @@ class Crud {
       return this._add(id, req.body)
         .then(newObject => this._validateInputs(res, newObject))
         .then(validated => this._createInDatabase(res, validated))
-        .catch(err => this._handleError(res, err));
+        .catch(err => {this._handleError(res, err);});
     } else {
       let err = {
         code: 403,
@@ -249,7 +249,7 @@ class Crud {
       })
         .catch(err => this._handleError(res, err));
     } else if (this._getTableName() === `${STAGE}-expenses` && this._isUser(req)) {
-      this.databaseModify.readFromDB(req.params.id).then(expense => {
+      return this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
           console.warn(
             `[${moment().format()}]`,
@@ -263,7 +263,7 @@ class Crud {
         }
       });
     } else if (this._getTableName() === `${STAGE}-expense-types` && this._isUser(req)) {
-      this.databaseModify.readFromDB(req.params.id).then(output => {
+      return this.databaseModify.readFromDB(req.params.id).then(output => {
         if (_.first(output)) {
           console.warn(
             `[${moment().format()}]`,
@@ -278,7 +278,7 @@ class Crud {
       }).catch(err => this._handleError(res, err));
     } else {
       let err = FORBIDDEN;
-      this._handleError(res, err);
+      return this._handleError(res, err);
     }
   }
 

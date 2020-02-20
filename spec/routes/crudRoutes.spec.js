@@ -9,6 +9,7 @@ describe('crudRoutes', () => {
     databaseModify = jasmine.createSpyObj('databaseModify', [
       'addToDB',
       'readFromDB',
+      'readFromDBURL',
       'removeFromDB',
       'updateEntryInDB',
       'getAllEntriesInDB',
@@ -17,6 +18,99 @@ describe('crudRoutes', () => {
     crudRoutes = new Crud();
     crudRoutes.databaseModify = databaseModify;
   });
+
+  describe('_checkPermissionForOnDelete', () => {
+
+    let req;
+
+    describe('when a user is accessing the expenses table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._checkPermissionForOnDelete(req)).toBe(true);
+      }); // should return true
+    }); // when a user is accessing expense
+
+    describe('when someone other than a user is accessing the expenses table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isUser').and.returnValue(false);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._checkPermissionForOnDelete(req)).toBe(false);
+      }); // should return false
+    }); // when someone other than a user is accessing the expenses table
+
+    describe('when a user is accessing a different table than expenses', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._checkPermissionForOnDelete(req)).toBe(false);
+      }); // should return false
+    }); // when a user is accessing a different table than expenses
+
+    describe('when someone other than a user is accessing a differnt table than expenses', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isUser').and.returnValue(false);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._checkPermissionForOnDelete(req)).toBe(false);
+      }); // should return false
+    }); // when someone other than a user is accessing a differnt table than expenses
+  }); // _checkPermissionForOnDelete
+
+  describe('_checkPermissionForShowList', () => {
+
+    let req;
+
+    describe('when an admin is accessing any table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(true);
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._checkPermissionForShowList(req)).toBe(true);
+      }); // should return true
+    }); // when an admin is accessing any table
+
+    describe('when someone other than a user is accessing the expense-type or employees table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._checkPermissionForShowList(req)).toBe(true);
+      }); // should return true
+    }); // when someone other than a user is accessing the expense-type or employees table
+
+    describe('when someone other than a user is accessing a table other than expense-type or employees', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._checkPermissionForShowList(req)).toBe(false);
+      }); // should return false
+    }); // when someone other than a user is accessing a table other than expense-type or employees
+  }); // _checkPermissionForShowList
 
   describe('_checkTableName', () => {
     let listOfValidTables, stage;
@@ -59,14 +153,10 @@ describe('crudRoutes', () => {
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
       crudRoutes.databaseModify.tableName = `${stage}-expenses`;
-
-      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-      spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
-      spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
-      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
     });
 
     describe('if the user role is admin', () => {
+
       beforeEach(() => {
         req = {
           body: 'body',
@@ -74,7 +164,12 @@ describe('crudRoutes', () => {
             employeeRole: 'admin'
           }
         };
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
       });
+
       it('should add req.body', done => {
         return crudRoutes.create(req, res).then(() => {
           expect(crudRoutes._add).toHaveBeenCalledWith(jasmine.anything(), req.body);
@@ -86,6 +181,7 @@ describe('crudRoutes', () => {
     }); //if the user role is admin
 
     describe('if a user role is user and submitting an expense', () => {
+
       beforeEach(() => {
         req = {
           body: 'body',
@@ -93,7 +189,13 @@ describe('crudRoutes', () => {
             employeeRole: 'user'
           }
         };
+
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
       });
+
       it('should add req.body', done => {
         return crudRoutes.create(req, res).then(() => {
           expect(crudRoutes._add).toHaveBeenCalledWith(jasmine.anything(), req.body);
@@ -105,6 +207,7 @@ describe('crudRoutes', () => {
     }); //if a user role is user and submitting an expense
 
     describe('if user doesnt have permissions', () => {
+
       beforeEach(() => {
         err = {
           code: 403,
@@ -116,32 +219,66 @@ describe('crudRoutes', () => {
             employeeRole: 'NO_PERMISSION'
           }
         };
+
         spyOn(crudRoutes, '_handleError').and.returnValue({
           code: 403,
           message: 'Unable to create object in database due to insufficient user permissions'
         });
+
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.resolve('_createInDatabase'));
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
       });
+
       it('should error out', done => {
         crudRoutes.create(req, res);
         expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         done();
       });
     }); //if user doesnt have permissions
+
+    describe('when create in database fails', () => {
+
+      let req, res;
+
+      beforeEach(() => {
+        req = {  body: {id: 'req-body-id'} };
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        spyOn(crudRoutes, '_handleError');
+        spyOn(crudRoutes, '_validPermissions').and.returnValue(true);
+        spyOn(crudRoutes, '_add').and.returnValue(Promise.resolve());
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(true);
+        spyOn(crudRoutes, '_createInDatabase').and.returnValue(Promise.reject('there was an error'));
+      });
+
+      it('should pass the error to _handleError', () => {
+        return crudRoutes.create(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, 'there was an error');
+        });
+      }); // should pass the error to _handleError
+    }); // when create in database fails
   }); //create
 
   describe('_createInDatabase', () => {
+
     let res, newObject, data, err;
+
     beforeEach(() => {
       data = '{data}';
       newObject = '{newObject}';
       err = '{err}';
     });
+
     describe('when _createInDatabase is called without error', () => {
+
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
         databaseModify.addToDB.and.returnValue(Promise.resolve(data));
       });
+
       it('should respond with a 200 and data', done => {
         return crudRoutes._createInDatabase(res, newObject).then(() => {
           expect(res.status).toHaveBeenCalledWith(200);
@@ -150,18 +287,26 @@ describe('crudRoutes', () => {
         });
       });
     });
+
     describe('when there is an error', () => {
       beforeEach(() => {
         spyOn(crudRoutes, '_handleError');
         databaseModify.addToDB.and.returnValue(Promise.reject(err));
       });
-      it('should pass the error to _handleError ', () => {
+
+      it('should pass the error to _handleError', () => {
         return crudRoutes._createInDatabase(res, newObject).then(() => {
           expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         });
       });
     });
   }); // _createInDatabase
+
+  describe('_getTableName', () => {
+    it('should return the table name', () => {
+      expect(crudRoutes._getTableName()).toEqual(databaseModify.tableName);
+    }); // should return the table name
+  }); // _getTableName
 
   describe('_handleError', () => {
     let res, err;
@@ -203,6 +348,60 @@ describe('crudRoutes', () => {
       });
     }); //if there are no empty strings
   }); // _inputChecker
+
+  describe('_isAdmin', () => {
+
+    let req;
+
+    describe('when employee is admin', () => {
+
+      beforeEach(() => {
+        req = { employee: { employeeRole: 'admin' } };
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._isAdmin(req)).toBe(true);
+      }); // should return true
+    }); // when employee is admin
+
+    describe('when employee is not an admin', () => {
+
+      beforeEach(() => {
+        req = { employee: { employeeRole: 'user' } };
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._isAdmin(req)).toBe(false);
+      }); // should return false
+    }); // when employee is not an admin
+  }); // _isAdmin
+
+  describe('_isUser', () => {
+
+    let req;
+
+    describe('when employee is user', () => {
+
+      beforeEach(() => {
+        req = { employee: { employeeRole: 'user' } };
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._isUser(req)).toBe(true);
+      }); // should return true
+    }); // when employee is _isUser
+
+    describe('when employee is not a user', () => {
+
+      beforeEach(() => {
+        req = { employee: { employeeRole: 'admin' } };
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._isUser(req)).toBe(false);
+      }); // should return false
+    }); // when employee is not a user
+  }); // _isUser
 
   describe('onDelete', () => {
     let res, req, err, data;
@@ -351,6 +550,7 @@ describe('crudRoutes', () => {
       req = {
         body: 'body',
         employee: {
+          id: 'id',
           employeeRole: 'admin'
         },
         params: {
@@ -364,15 +564,19 @@ describe('crudRoutes', () => {
     });
 
     describe('When promise is resolved', () => {
+
       beforeEach(() => {
         res = jasmine.createSpyObj('res', ['status', 'send']);
         res.status.and.returnValue(res);
         databaseModify.readFromDB.and.returnValue(Promise.resolve({}));
       });
+
       describe('when readFromDB returns at least one element', () => {
+
         beforeEach(() => {
           spyOn(_, 'first').and.returnValue('elementFromServer');
         });
+
         it('should respond with the output and a 200 code', done => {
           crudRoutes.read(req, res).then(() => {
             expect(res.status).toHaveBeenCalledWith(200);
@@ -381,11 +585,14 @@ describe('crudRoutes', () => {
           });
         }); //should respond with the output and a 200 code
       }); //when readFromDB returns at least one element
+
       describe('when readFromDB does not return an element', () => {
+
         beforeEach(() => {
           spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
           spyOn(_, 'first').and.returnValue(undefined);
         });
+
         it('should throw an error', done => {
           return crudRoutes.read(req, res).then(() => {
             expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
@@ -397,18 +604,175 @@ describe('crudRoutes', () => {
       }); //when readFromDB does not return an element
     }); //When promise is resolved
     describe('when promise does not resolve', () => {
+
       beforeEach(() => {
         res = {};
         err = {};
         spyOn(crudRoutes, '_handleError').and.returnValue('ERROR MSG');
         databaseModify.readFromDB.and.returnValue(Promise.reject({}));
       });
+
       it('should pass the error to _handleError ', () => {
         return crudRoutes.read(req, res).then(() => {
           expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
         });
-      });
+      }); // should pass the error to _handleError
     }); //when promise does not resolve
+
+    describe('when successfully reading from training-urls and receiving output', () => {
+
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-training-urls`);
+        spyOn(_, 'first').and.returnValue('elementFromServer');
+      });
+
+      it('should respond with a 200 and data', done => {
+        return crudRoutes.read(req, res).then(() => {
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith('elementFromServer');
+          done();
+        });
+      }); // should respond with a 200 and data
+    }); // when successfully reading from training-urls and receiving output
+
+    describe('when successfully reading from training-urls but with no output', () => {
+
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+        databaseModify.readFromDBURL.and.returnValue(Promise.resolve([]));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-training-urls`);
+      });
+
+      it('should throw an error', () => {
+        crudRoutes.read(req, res).catch(err => {
+          expect(err).toEqual({ code: 404, message: 'entry not found in database' });
+        });
+      }); // should throw an error
+    }); // when successfully reading from training-urls but no output
+
+    describe('when user is accessing expenses table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+      });
+
+      describe('and expense id matches user id', () => {
+
+        beforeEach(() => {
+          databaseModify.readFromDB.and.returnValue(Promise.resolve([{userId: 'id'}]));
+        });
+
+        it('should respond with a 200 and data', done => {
+          crudRoutes.read(req, res).then(() => {
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith({userId: 'id'});
+            done();
+          });
+        }); // should respond with a 200 and data
+      }); // and expense id matches user id
+
+      describe('and expense id does not matche user id', () => {
+
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 403,
+            message: 'Unable to get objects from database due to insufficient user permissions'
+          };
+          databaseModify.readFromDB.and.returnValue(Promise.resolve([{userId: 'differentId'}]));
+          spyOn(crudRoutes, '_handleError');
+        });
+
+        it('should pass the error to _handleError', () => {
+          return crudRoutes.read(req, res).then(() => {
+            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+          });
+        }); // should pass the error to _handleError
+      }); // and expense id does not match user id
+    }); // when user is accessing expenses table
+
+    describe('when user is accessing expense-types table', () => {
+
+      beforeEach(() => {
+        res = jasmine.createSpyObj('res', ['status', 'send']);
+        res.status.and.returnValue(res);
+
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expense-types`);
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+      });
+
+      describe('and readFromDB is successful with output', () => {
+
+        beforeEach(() => {
+          databaseModify.readFromDB.and.returnValue(Promise.resolve(['output']));
+        });
+
+        it('should respond with a 200 and data', done => {
+          crudRoutes.read(req, res).then(() => {
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith('output');
+            done();
+          });
+        }); // should respond with a 200 and data
+      }); // and readFromDB is successful with output
+
+      describe('and readFromDB is successful with no outputs', () => {
+
+        beforeEach(() => {
+          databaseModify.readFromDB.and.returnValue(Promise.resolve([]));
+        });
+
+        it('should throw an error', () => {
+          crudRoutes.read(req, res).catch(err => {
+            expect(err).toEqual({ code: 404, message: 'entry not found in database' });
+          });
+        }); // should throw an error
+      }); // and readFromDB is successful with no outputs
+
+      describe('and readFromDB fails', () => {
+
+        beforeEach(() => {
+          res = jasmine.createSpyObj('res', ['status', 'send']);
+          res.status.and.returnValue(res);
+          databaseModify.readFromDB.and.returnValue(Promise.reject('there was an error'));
+          spyOn(crudRoutes, '_handleError');
+        });
+
+        it('should pass the error to _handleError', () => {
+          return crudRoutes.read(req, res).then(() => {
+            expect(crudRoutes._handleError).toHaveBeenCalledWith(res, 'there was an error');
+          });
+        }); // should pass the error to _handleError
+      }); // and readFromDB fails
+    }); // when user is accessing expense-types table
+
+    describe('when user and table are invalid', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unable to get objects from database due to insufficient user permissions'
+        };
+        spyOn(crudRoutes, '_getTableName').and.returnValue('invalidTable');
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_isUser').and.returnValue(false);
+        spyOn(crudRoutes, '_handleError');
+      });
+
+      it('should pass the error to _handleError', () => {
+        expect(crudRoutes.read(req, res)).toEqual(res.status(err.code).send(err));
+      }); // should pass the error to _handleError
+    }); // when user and table are invalid
   }); // read
 
   describe('showList', () => {
@@ -475,12 +839,6 @@ describe('crudRoutes', () => {
       res = jasmine.createSpyObj('res', ['status', 'send']);
       res.status.and.returnValue(res);
       crudRoutes.databaseModify.tableName = `${stage}-expenses`;
-
-      spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
-      spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
-      spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
-      spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
-
     });
 
     describe('if the user role is admin', () => {
@@ -492,6 +850,11 @@ describe('crudRoutes', () => {
             employeeRole: 'admin'
           }
         };
+
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
       });
       it('should add req.body', done => {
         return crudRoutes.update(req, res).then(() => {
@@ -512,6 +875,11 @@ describe('crudRoutes', () => {
             employeeRole: 'user'
           }
         };
+
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
       });
       it('should add req.body', done => {
         return crudRoutes.update(req, res).then(() => {
@@ -535,6 +903,11 @@ describe('crudRoutes', () => {
             role: 'NO_PERMISSION'
           }
         };
+
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(true));
+        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('_updateDatabase'));
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve({}));
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-expenses`);
         spyOn(crudRoutes, '_handleError').and.returnValue(err);
       });
       it('should error out', () => {
@@ -542,6 +915,65 @@ describe('crudRoutes', () => {
         expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
       });
     }); //if user doesnt have permissions
+
+    describe('when valid permissions and successfully updates training urls table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_validPermissions').and.returnValue(true);
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-training-urls`);
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve('success'));
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve('success'));
+        spyOn(crudRoutes, '_updateDatabase').and.returnValue(Promise.resolve('success'));
+      });
+
+      it('should add req.body', done => {
+        crudRoutes.update(req, res).then( data => {
+          expect(data).toEqual('success');
+          done();
+        });
+      }); // should add req.body
+    }); // when valid permissions and updating training urls table
+
+    describe('when valid permissions and failing to update training urls table', () => {
+
+      beforeEach(() => {
+        err = 'there was an error';
+        spyOn(crudRoutes, '_validPermissions').and.returnValue(true);
+        spyOn(crudRoutes, '_getTableName').and.returnValue(`${stage}-training-urls`);
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.reject(err));
+        spyOn(crudRoutes, '_handleError');
+      });
+
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      }); // should pass the error to _handleError
+    }); // when valid permissions and failing to update training urls table
+
+    describe('when valid permissions but failing to update a tablet that is not training-urls', () => {
+
+      beforeEach(() => {
+        req = {
+          body: 'body',
+          params: { id: 'id' },
+          employee: {
+            employeeRole: 'user'
+          }
+        };
+        err = 'there was an error';
+        spyOn(crudRoutes, '_validPermissions').and.returnValue(true);
+        spyOn(crudRoutes, '_getTableName').and.returnValue('not-training-urls');
+        spyOn(crudRoutes, '_update').and.returnValue(Promise.reject(err));
+        spyOn(crudRoutes, '_handleError');
+      });
+
+      it('should pass the error to _handleError ', () => {
+        return crudRoutes.update(req, res).then(() => {
+          expect(crudRoutes._handleError).toHaveBeenCalledWith(res, err);
+        });
+      }); // should pass the error to _handleError
+    }); // when valid permissions but failing to update a table that is not training-urls
   }); //update
 
   describe('_updateDatabase', () => {
@@ -637,4 +1069,74 @@ describe('crudRoutes', () => {
       });
     }); //if newObject does not have an id
   }); //_validateInputs
+
+  describe('_validPermissions', () => {
+
+    let req;
+
+    describe('when an admin is checking expense-type, employees, expenses, or training-url table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._validPermissions(req)).toBe(true);
+      }); // should return true
+
+    }); // when an admin is checking expense-type, employees, expenses, or training-url table
+
+    describe('when admin is checking a table other than expense-type, employees, expenses, or trainging-url', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(true);
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._validPermissions(req)).toBe(false);
+      }); // should return false
+    }); // when admin is checking a table other than expense-type, employees, expenses, or trainging-url
+
+    describe('when a user is checking expenses or training-urls table', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return true', () => {
+        expect(crudRoutes._validPermissions(req)).toBe(true);
+      }); // should return true
+    }); // when a user is checking expenses or training-urls table
+
+    describe('when a user is checking a table other than expenses or training-url', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_isUser').and.returnValue(true);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._validPermissions(req)).toBe(false);
+      }); // should return false
+    }); // when a user is checking a table other than expenses or training-url
+
+    describe('when someone other than an admnin or user is trying to access tables', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, '_isAdmin').and.returnValue(false);
+        spyOn(crudRoutes, '_isUser').and.returnValue(false);
+        spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+      });
+
+      it('should return false', () => {
+        expect(crudRoutes._validPermissions(req)).toBe(false);
+      }); // should return false
+    }); // when someone other than an admnin or user is trying to access tables
+  }); // _validPermissions
 }); // crudRoutes
