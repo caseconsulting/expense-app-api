@@ -352,7 +352,7 @@ class ExpenseRoutes extends Crud {
     const anniversaryComparisonDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay - 1]);
+    let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay ]).subtract(1, 'days');
 
     return {
       startDate,

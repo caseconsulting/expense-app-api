@@ -1017,7 +1017,8 @@ describe('expenseRoutes', () => {
         anniversaryComparisonDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
         spyOn(anniversaryComparisonDate, 'isSameOrBefore').and.returnValue(true);
         expectedStartDate = moment([currentYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-        expectedEndDate = moment([currentYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay - 1]);
+        expectedEndDate = moment([currentYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay])
+          .subtract(1, 'days');
         expectedObj = {
           startDate: expectedStartDate,
           endDate: expectedEndDate
@@ -1050,7 +1051,9 @@ describe('expenseRoutes', () => {
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj).toEqual(expectedObj);
+        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
+        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+
         done();
       }); // should return an object with a start and end date
     }); // when anniversary date is after today

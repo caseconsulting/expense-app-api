@@ -7,6 +7,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 
 const Employee = require('./../models/employee');
+const IsoFormat = 'YYYY-MM-DD';
 
 class EmployeeRoutes extends Crud {
   constructor() {
@@ -40,6 +41,54 @@ class EmployeeRoutes extends Crud {
       console.error('Error Code: ' + err.code);
       throw err;
     }
+  }
+
+  /**
+   * Change budgets when hiring date changes
+   */
+  async _changeBudgetDates(oldEmployeePromise, newEmployee) {
+    let oldEmployee = await oldEmployeePromise;
+    console.warn(
+      `[${moment().format()}]`,
+      `Attempting to Change Hire Date for user ${oldEmployee.id}`,
+      `from ${oldEmployee.hireDate} to ${newEmployee.hireDate}`,
+      '| Processing handled by function employeeRoutes._changeBudgetDates'
+    );
+    // if hire date is not changed, resolve promise
+    if (oldEmployee.hireDate === newEmployee.hireDate) {
+      return Promise.resolve(newEmployee);
+    }
+    try {
+      // get all expense types
+      this.getExpenseTypes().then( expenseTypes => {
+        // filter out non recurring expense types
+        let recurringExpenseTypes = _.filter(expenseTypes, ['recurringFlag', true]);
+        // for each expense type
+        recurringExpenseTypes.forEach( expenseType => {
+          // get all budgets
+          this.getBudgets(oldEmployee.id, expenseType.id).then( budgets => {
+            // sort budgets
+            let sortedBudgets = this._sortBudgets(budgets);
+            // loop through sorted budgets and update fiscal start and end date
+            for (let i = 0; i < sortedBudgets.length; i++)
+            {
+              let newBudget = sortedBudgets[i];
+              newBudget.fiscalStartDate = moment(newEmployee.hireDate)
+                .add(i, 'years')
+                .format(IsoFormat);
+              newBudget.fiscalEndDate = moment(newEmployee.hireDate)
+                .add(i + 1, 'years')
+                .subtract(1, 'days')
+                .format(IsoFormat);
+              this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
+            }
+          });
+        });
+      });
+    } catch (err) {
+      throw Promise.reject(err);
+    }
+    return Promise.resolve(newEmployee);
   }
 
   async _createRecurringExpenses(userId, hireDate) {
@@ -146,6 +195,20 @@ class EmployeeRoutes extends Crud {
     };
   }
 
+  /**
+   * Get all budgets for an employee with a specific expense type.
+   */
+  async getBudgets(employeeID, expenseTypeID) {
+    return await this.budgetDynamo.queryWithTwoIndexesInDB(employeeID, expenseTypeID);
+  }
+
+  /**
+   * Get all expense types.
+   */
+  async getExpenseTypes() {
+    return await this.expenseTypeDynamo.getAllEntriesInDB();
+  }
+
   _getUUID() {
     return uuid();
   }
@@ -180,6 +243,23 @@ class EmployeeRoutes extends Crud {
     return false;
   }
 
+  /*
+   * Return an array of sorted budgets by fiscal start date
+   */
+  _sortBudgets(budgets) {
+    // console.warn(
+    //   `[${moment().format()}]`,
+    //   'Sorting budgets',
+    //   '| Processing handled by function employeeRoutes._sortBudgets'
+    // );
+
+    return _.sortBy(budgets, [
+      budget => {
+        return moment(budget.fiscalStartDate, IsoFormat);
+      }
+    ]);
+  }
+
   _update(id, data) {
     console.warn(
       `[${moment().format()}]`,
@@ -190,8 +270,9 @@ class EmployeeRoutes extends Crud {
     let employee = new Employee(data);
     employee.id = id;
 
-    return this.databaseModify
-      .findObjectInDB(id)
+    let oldEmployee = this.databaseModify.findObjectInDB(id);
+
+    return this._changeBudgetDates(oldEmployee, employee)
       .then(() => {
         return employee;
       })

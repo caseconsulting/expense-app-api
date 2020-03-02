@@ -160,7 +160,6 @@ class Special {
     this.expenseData
       .querySecondaryIndexInDB('userId-index', 'userId', userID)
       .then(data => {
-        console.warn(data);
         res.status(200).send(data);
       })
       .catch(err => {
