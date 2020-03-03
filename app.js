@@ -4,6 +4,8 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
+const moment = require('moment');
+
 require('dotenv').config({
   silent: true
 });
@@ -45,8 +47,10 @@ let corsConfig = {
   allowedHeaders: ['Authorization', 'Content-Type']
 };
 
+logger.token('timestamp', () => { return `[${moment().format()}]`; });
+
+app.use(logger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));
 app.use(cors(corsConfig));
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
