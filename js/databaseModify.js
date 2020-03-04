@@ -80,8 +80,7 @@ class databaseModify {
 
     _.each(attributes, (attribute, index) => {
       const value = _.get(data, attribute);
-      if (value) {
-        
+      if (value != null) {
         let expressionAttribute = `:${alpha[index]}`;
         ExpressionAttributeValues[expressionAttribute] = value;
 

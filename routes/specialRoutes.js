@@ -46,6 +46,7 @@ class Special {
     this._router.get('/getAllExpenses', checkJwt, getUserInfo, this.getAllExpenses.bind(this)); //Admin
 
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
+    this._router.get('/:id/:date', checkJwt, this.empExpenses.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
 
@@ -128,7 +129,11 @@ class Special {
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
       const openBudgets = _.filter(userBudgets, budget => {
-        return moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
+        if (req.params.date == 'undefined' || req.params.date == null) {
+          return moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
+        } else {
+          return moment(req.params.date).isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
+        }
       });
       const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
       const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
