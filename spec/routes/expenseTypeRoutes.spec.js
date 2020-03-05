@@ -38,7 +38,7 @@ describe('expenseTypeRoutes', () => {
     });
     afterEach(() => {
       expect(expenseTypeRoutes._checkFields).toHaveBeenCalledWith(expectedExpenseType);
-      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
+      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag, id);
     });
     describe('when addToDB is successful', () => {
       it('should return added object', done => {
@@ -268,7 +268,7 @@ describe('expenseTypeRoutes', () => {
 
     afterEach(() => {
       expect(expenseTypeRoutes._checkFields).toHaveBeenCalledWith(expectedExpenseType);
-      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag);
+      expect(expenseTypeRoutes._checkDates).toHaveBeenCalledWith(startDate, endDate, recurringFlag, id);
     });
 
     describe('when updateEntryInDB is successful', () => {
@@ -289,6 +289,7 @@ describe('expenseTypeRoutes', () => {
 
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
+        spyOn(expenseTypeRoutes, '_updateBudgets').and.returnValue(Promise.resolve());
         expenseTypeDynamo.updateEntryInDB.and.returnValue(Promise.reject(expectedErr));
       });
 

@@ -4,6 +4,7 @@ const Moment = require('moment');
 const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
+const _ = require('lodash');
 
 const ExpenseType = require('./../models/expenseType');
 const expenseDynamo = new databaseModify('expenses');
@@ -12,7 +13,7 @@ class ExpenseTypeRoutes extends Crud {
   constructor() {
     super();
     this.expenseTypeDynamo = new databaseModify('expense-types');
-
+    this.budgetDynamo = new databaseModify('budgets');
     this.databaseModify = this.expenseTypeDynamo;
     this.expenseData = expenseDynamo;
   }
@@ -28,28 +29,60 @@ class ExpenseTypeRoutes extends Crud {
     expenseType.id = id;
 
     return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
+      .then(() => this._checkDates(expenseType.startDate,
+        expenseType.endDate,
+        expenseType.recurringFlag,
+        expenseType.id)
+      )
       .then(() => this.expenseTypeDynamo.addToDB(expenseType))
       .catch(err => {
         throw err;
       });
   }
 
-  _checkDates(startDate, endDate, recurringFlag) {
+  async _checkDates(startDate, endDate, recurringFlag, id) {
     console.warn(
       `[${moment().format()}]`,
       'Validating expense type dates',
       '| Processing handled by function expenseTypeRoutes._checkDates'
     );
 
-    let valid = recurringFlag;
-    if (!valid && !!startDate && !!endDate) {
-      valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
-    }
     let err = {
       code: 403,
       message: 'The dates are invalid.'
     };
+
+    let valid;
+
+    let typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
+    let allPurchaseDates = _.map(typeExpenses, 'purchaseDate');
+    let firstExpenseDate = _.first(allPurchaseDates);
+    let lastExpenseDate = _.first(allPurchaseDates);
+
+    _.each(allPurchaseDates, current => {
+      if (current < firstExpenseDate) {
+        firstExpenseDate = current;
+      }
+      if (current > lastExpenseDate) {
+        lastExpenseDate = current;
+      }
+    });
+
+    if (startDate > firstExpenseDate && endDate < lastExpenseDate)
+    {
+      err.message = `Expenses exist. Start date must be before ${firstExpenseDate}`
+        + ` and end date must be after ${lastExpenseDate}.`;
+    } else if (startDate > firstExpenseDate) {
+      err.message = `Expenses exist. Start date must be before ${firstExpenseDate}.`;
+    } else if (endDate < lastExpenseDate) {
+      err.message = `Expenses exist. End date must be after ${lastExpenseDate}.`;
+    } else {
+      valid = recurringFlag;
+      if (!valid && !!startDate && !!endDate) {
+        valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
+      }
+    }
+
     return valid ? Promise.resolve() : Promise.reject(err);
   }
 
@@ -101,6 +134,26 @@ class ExpenseTypeRoutes extends Crud {
     }
   }
 
+  async _updateBudgets(startDate, endDate, expenseTypeID) {
+    console.warn(
+      `[${moment().format()}]`,
+      `Updating budgets for expense type ${expenseTypeID}`,
+      '| Processing handled by function expenseTypeRoutes._updateBudgets'
+    );
+
+    let updatePromise;
+    let budgets =
+      await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseTypeID);
+
+    budgets.forEach(budget => {
+      budget.fiscalStartDate = startDate;
+      budget.fiscalEndDate = endDate;
+      updatePromise = this.budgetDynamo.updateEntryInDB(budget).catch(err => { return Promise.reject(err); });
+    });
+
+    return updatePromise;
+  }
+
   _update(id, data) {
     console.warn(
       `[${moment().format()}]`,
@@ -112,9 +165,19 @@ class ExpenseTypeRoutes extends Crud {
     expenseType.id = id;
 
     return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType.startDate, expenseType.endDate, expenseType.recurringFlag))
+      .then(() => this._checkDates(expenseType.startDate,
+        expenseType.endDate,
+        expenseType.recurringFlag,
+        expenseType.id)
+      )
+      .then(() => this._updateBudgets(expenseType.startDate, expenseType.endDate, expenseType.id))
       .then(() => this.expenseTypeDynamo.updateEntryInDB(expenseType))
       .catch(err => {
+        console.warn(
+          `[${moment().format()}]`,
+          `>>> Failed to update expense type ${id}`,
+          '| Processing handled by function expenseTypeRoutes._update'
+        );
         throw err;
       });
   }

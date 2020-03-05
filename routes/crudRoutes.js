@@ -134,12 +134,16 @@ class Crud {
       'Handling errors',
       '| Processing handled by function crudRoutes._handleError'
     );
-
-    const logColor = '\x1b[31m';
-    const resetColor = '\x1b[0m';
-    console.error(logColor, 'Error Code: ' + err.code);
-    console.error(logColor, 'Error Message: ' + err.message);
-    console.error(resetColor);
+    console.error(
+      `[${moment().format()}]`,
+      `Error Code: ${err.code}`,
+      '| Processing handled by function crudRoutes._handleError'
+    );
+    console.error(
+      `[${moment().format()}]`,
+      `Error Message: ${err.message}`,
+      '| Processing handled by function crudRoutes._handleError'
+    );
     return res.status(err.code).send(err);
   }
 
