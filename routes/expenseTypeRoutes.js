@@ -40,7 +40,7 @@ class ExpenseTypeRoutes extends Crud {
       });
   }
 
-  async _checkDates(startDate, endDate, recurringFlag, id) {
+  async _checkDates(start, end, recurringFlag, id) {
     console.warn(
       `[${moment().format()}]`,
       'Validating expense type dates',
@@ -56,29 +56,32 @@ class ExpenseTypeRoutes extends Crud {
 
     let typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
     let allPurchaseDates = _.map(typeExpenses, 'purchaseDate');
-    let firstExpenseDate = _.first(allPurchaseDates);
-    let lastExpenseDate = _.first(allPurchaseDates);
+    let firstExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
+    let lastExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
 
     _.each(allPurchaseDates, current => {
-      if (current < firstExpenseDate) {
-        firstExpenseDate = current;
+      let currentDate = moment(current, IsoFormat);
+      if (currentDate.isBefore(firstExpenseDate)) {
+        firstExpenseDate = currentDate;
       }
-      if (current > lastExpenseDate) {
-        lastExpenseDate = current;
+      if (currentDate.isAfter(lastExpenseDate)) {
+        lastExpenseDate = currentDate;
       }
     });
 
-    if (!valid && !!startDate && !!endDate) {
-      if (moment(startDate, IsoFormat).isBefore(endDate, IsoFormat))
+    if (!valid && !!start && !!end) {
+      let startDate = moment(start, IsoFormat);
+      let endDate = moment(end, IsoFormat);
+      if (startDate.isBefore(endDate))
       {
-        if (startDate > firstExpenseDate && endDate < lastExpenseDate)
+        if (startDate.isAfter(firstExpenseDate) && endDate.isBefore(lastExpenseDate))
         {
-          err.message = `Expenses exist. Start date must be before ${firstExpenseDate}`
-            + ` and end date must be after ${lastExpenseDate}.`;
-        } else if (startDate > firstExpenseDate) {
-          err.message = `Expenses exist. Start date must be before ${firstExpenseDate}.`;
-        } else if (endDate < lastExpenseDate) {
-          err.message = `Expenses exist. End date must be after ${lastExpenseDate}.`;
+          err.message = `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}`
+            + ` and end date must be after ${lastExpenseDate.format(IsoFormat)}.`;
+        } else if (startDate.isAfter(firstExpenseDate)) {
+          err.message = `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}.`;
+        } else if (endDate.isBefore(lastExpenseDate)) {
+          err.message = `Expenses exist. End date must be after ${lastExpenseDate.format(IsoFormat)}.`;
         } else {
           valid = true;
         }
