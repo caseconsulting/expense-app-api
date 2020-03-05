@@ -52,7 +52,7 @@ class ExpenseTypeRoutes extends Crud {
       message: 'The dates are invalid.'
     };
 
-    let valid;
+    let valid = recurringFlag;
 
     let typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
     let allPurchaseDates = _.map(typeExpenses, 'purchaseDate');
@@ -68,18 +68,20 @@ class ExpenseTypeRoutes extends Crud {
       }
     });
 
-    if (startDate > firstExpenseDate && endDate < lastExpenseDate)
-    {
-      err.message = `Expenses exist. Start date must be before ${firstExpenseDate}`
-        + ` and end date must be after ${lastExpenseDate}.`;
-    } else if (startDate > firstExpenseDate) {
-      err.message = `Expenses exist. Start date must be before ${firstExpenseDate}.`;
-    } else if (endDate < lastExpenseDate) {
-      err.message = `Expenses exist. End date must be after ${lastExpenseDate}.`;
-    } else {
-      valid = recurringFlag;
-      if (!valid && !!startDate && !!endDate) {
-        valid = moment(startDate, IsoFormat).isBefore(endDate, IsoFormat);
+    if (!valid && !!startDate && !!endDate) {
+      if (moment(startDate, IsoFormat).isBefore(endDate, IsoFormat))
+      {
+        if (startDate > firstExpenseDate && endDate < lastExpenseDate)
+        {
+          err.message = `Expenses exist. Start date must be before ${firstExpenseDate}`
+            + ` and end date must be after ${lastExpenseDate}.`;
+        } else if (startDate > firstExpenseDate) {
+          err.message = `Expenses exist. Start date must be before ${firstExpenseDate}.`;
+        } else if (endDate < lastExpenseDate) {
+          err.message = `Expenses exist. End date must be after ${lastExpenseDate}.`;
+        } else {
+          valid = true;
+        }
       }
     }
 
