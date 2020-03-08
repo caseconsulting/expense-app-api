@@ -1027,7 +1027,8 @@ describe('expenseRoutes', () => {
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj).toEqual(expectedObj);
+        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
+        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
         done();
       }); // should return an object with a start and end date
     }); // when anniversary date is the same day or before today

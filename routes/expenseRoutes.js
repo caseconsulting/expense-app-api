@@ -441,14 +441,14 @@ class ExpenseRoutes extends Crud {
     );
     if (expenseType.recurringFlag) {
       return true;
-    } else if (expenseType.startDate && purchaseDate < expenseType.startDate) {
+    } else if (expenseType.startDate && moment(purchaseDate).isBefore(moment(expenseType.startDate))) {
       throw {
         code: 403,
         message:
           `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
           'Select a later purchase date'
       };
-    } else if (expenseType.endDate && expenseType.endDate < purchaseDate) {
+    } else if (expenseType.endDate && moment(expenseType.endDate).isBefore(moment(purchaseDate))) {
       throw {
         code: 403,
         message:
