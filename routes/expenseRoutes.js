@@ -59,6 +59,14 @@ class ExpenseRoutes extends Crud {
         };
         throw err;
       }
+      if (expenseType.requiredFlag && this._isEmpty(data.receipt)) {
+        let err = {
+          code: 403,
+          message:
+            `The Expense Type ${expenseType.budgetName} requires a receipt.`
+        };
+        throw err;
+      }
       this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
       budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
       // budget = await this._getBudgetData(budgets, expenseType, employee, expense);
@@ -294,8 +302,7 @@ class ExpenseRoutes extends Crud {
       console.error('Error Code: ' + err.code);
       throw err;
     }
-    return this._isNotReimbursedPromise(expense)
-      .then(() => this._removeFromBudget(budget, expense, expenseType))
+    return this._removeFromBudget(budget, expense, expenseType)
       .then(() => this.expenseDynamo.removeFromDB(id))
       .catch(err => {
         throw err;
@@ -328,7 +335,7 @@ class ExpenseRoutes extends Crud {
     console.warn(
       `[${moment().format()}]`,
       `Getting budget data for expense ${expense.id} with expense type ${expenseType.id} for user ${employee.id}`,
-      '| Processing handled by function expenseRoutes._getCurrentBudgetData'
+      '| Processing handled by function expenseRoutes._getBudgetData'
     );
 
     if (_.isEmpty(budgets)) {
@@ -366,11 +373,14 @@ class ExpenseRoutes extends Crud {
       `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`,
       '| Processing handled by function expenseRoutes._getCurrentBudgetData'
     );
-
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this._getUUID());
     } else {
-      return await this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
+      if (expenseType.recurringFlag) {
+        return await this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
+      } else {
+        return budgets[0];
+      }
     }
   }
 
@@ -417,6 +427,10 @@ class ExpenseRoutes extends Crud {
 
   _getUUID() {
     return uuid();
+  }
+
+  _isEmpty(field) {
+    return field == null || field.trim().length <= 0;
   }
 
   _isNotReimbursedPromise(expense) {
@@ -470,7 +484,7 @@ class ExpenseRoutes extends Crud {
   _isValidExpense(expense, budget, expenseType) {
     console.warn(
       `[${moment().format()}]`,
-      `Validating if expense ${expense} matches expenseType ${expenseType.id}, is reimbursed,`,
+      `Validating if expense ${expense.id} matches expenseType ${expenseType.id}, is reimbursed,`,
       `and within budget ${budget.id} range`,
       '| Processing handled by function expenseRoutes._isValidExpense'
     );
@@ -707,49 +721,102 @@ class ExpenseRoutes extends Crud {
       '| Processing handled by function expenseRoutes._update'
     );
 
-    let expenseType, budget, newExpense, employee, oldExpense, rawBudgets;
+    let expenseType, oldExpenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
     newExpense = new Expense(data);
     newExpense.id = id;
-
-    try {
-      oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
-      employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
-      if (expenseType.isInactive && employee.employeeRole === 'user') {
-        let err = {
-          code: 403,
-          message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
-        };
-        throw err;
-      }
-      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
-      rawBudgets.forEach(function(e) {
-        budgets.push(new Budget(e));
-      });
-      budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
-    } catch (err) {
-      console.error('Error Code: ' + err.code);
-      throw err;
-    }
+    oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+    employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
+    expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
 
     if (expenseType.id !== oldExpense.expenseTypeId) {
-      let err = {
-        code: 403,
-        message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
-      };
-      throw err;
-    }
+      let unreimburseExpense = _.cloneDeep(oldExpense);
+      unreimburseExpense.reimbursedDate = ' ';
+      newExpense.id = uuid();
 
-    // console.warn('the old expense that is reimbursed is', oldExpense.id);
-    // console.warn('the new expense that is reimbursed is', newExpense.id);
+      console.warn(
+        `[${moment().format()}]`,
+        `>>> Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId} to ${expenseType.id}`,
+        `with new id ${newExpense.id}`,
+        '| Processing handled by function expenseRoutes._update'
+      );
 
-    return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
-      .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
-      .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
-      .catch(err => {
+      try {
+        oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(oldExpense.expenseTypeId));
+        if (oldExpenseType.isInactive && employee.employeeRole === 'user') {
+          let err = {
+            code: 403,
+            message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
+          };
+          throw err;
+        }
+        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(oldExpense.userId, oldExpense.expenseTypeId);
+        rawBudgets.forEach(function(e) {
+          budgets.push(new Budget(e));
+        });
+      } catch (err) {
+        console.error('Error Code: ' + err.code);
         throw err;
-      });
+      }
+
+      if (!expenseType.requiredFlag) {
+        newExpense.receipt = ' ';
+      }
+      if (expenseType.categories.length <= 0) {
+        newExpense.categories = ' ';
+      }
+
+      if (!this._isEmpty(oldExpense.reimbursedDate)) {
+        return this._add(null, newExpense)
+          .then(async (addedObject) =>  {
+            await this._unreimburseExpense(oldExpense, unreimburseExpense, budgets, oldExpenseType);
+            return addedObject;
+          })
+          .then(async (addedObject) => {
+            await this._delete(oldExpense.id);
+            return addedObject;
+          })
+          .catch(err => {
+            throw err;
+          });
+      } else {
+        return this._add(null, newExpense)
+          .then(async (addedObject) => {
+            await this._delete(oldExpense.id);
+            return addedObject;
+          })
+          .catch(err => {
+            throw err;
+          });
+      }
+
+    } else {
+      try {
+
+        if (expenseType.isInactive && employee.employeeRole === 'user') {
+          let err = {
+            code: 403,
+            message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
+          };
+          throw err;
+        }
+        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
+        rawBudgets.forEach(function(e) {
+          budgets.push(new Budget(e));
+        });
+        budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
+      } catch (err) {
+        console.error('Error Code: ' + err.code);
+        throw err;
+      }
+
+      return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
+        .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
+        .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
+        .catch(err => {
+          throw err;
+        });
+    }
   }
 }
 module.exports = ExpenseRoutes;

@@ -858,7 +858,6 @@ describe('expenseRoutes', () => {
       }); // should return deleted object
 
       afterEach(() => {
-        expect(expenseRoutes._isNotReimbursedPromise).toHaveBeenCalledWith(expense);
         expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, new ExpenseType(expenseType));
         expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
       });
@@ -877,30 +876,6 @@ describe('expenseRoutes', () => {
         });
       }); // should throw an error
     }); // when cannot find budget to delete
-
-    describe('when expense is reimbursed', () => {
-
-      let budgets;
-
-      beforeEach(() => {
-        budget.fiscalStartDate = '2000-01-01';
-        budget.fiscalEndDate = '2000-12-31';
-        budgets = [budget];
-        expense.purchaseDate = '2000-01-01';
-        budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(budgets);
-        expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expense));
-        spyOn(expenseRoutes, '_isNotReimbursedPromise').and.returnValue(Promise.resolve());
-      });
-
-      it('should throw an error', () => {
-        expenseRoutes._delete(id).catch( err => {
-          expect(err).toEqual({
-            code: 403,
-            message: 'expense cannot perform action because it has already been reimbursed'
-          });
-        });
-      }); // should throw an error
-    }); // when expense is reimbursed
   }); // _delete
 
   describe('_findBudgetWithMatchingRange', () => {
@@ -1080,7 +1055,7 @@ describe('expenseRoutes', () => {
       }); // find budget with matching range
     }); // when budgets is empty
 
-    describe('when budgets is not empty', () => {
+    describe('when budgets is not empty and expense type is not recurring', () => {
 
       beforeEach(() => {
         budgets = ['budget'];
@@ -1091,11 +1066,28 @@ describe('expenseRoutes', () => {
 
       it('create a new budget', done => {
         expenseRoutes._getCurrentBudgetData(budgets, expenseType, employee).then(data => {
+          expect(data).toEqual('budget');
+          done();
+        });
+      }); // find budget with matching range
+    }); // when budgets is not empty and expense type is not recurring
+
+    describe('when budgets is not empty and expense type is recurring', () => {
+
+      beforeEach(() => {
+        budgets = ['budget', 'budget2'];
+        expenseType = {id: 'expenseTypeId', recurringFlag: true};
+        employee = {id: 'employeeId'};
+        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(Promise.resolve('success'));
+      });
+
+      it('create a new budget', done => {
+        expenseRoutes._getCurrentBudgetData(budgets, expenseType, employee).then(data => {
           expect(data).toEqual('success');
           done();
         });
       }); // find budget with matching range
-    }); // when budgets is not empty
+    }); // when budgets is not empty and expense type is recurring
   }); // _getCurrentBudgetData
 
   describe('_getEmployeeBudgetOverdrafts', () => {
@@ -2126,31 +2118,6 @@ describe('expenseRoutes', () => {
           });
       });
     }); // when expenseTypes match
-
-    describe('when expenseTypes do not match', () => {
-      let expectedError;
-      beforeEach(() => {
-        expectedError = {
-          code: 403,
-          message: 'Submitted Expense\'s expenseTypeId doesn\'t match with one in the database.'
-        };
-        expenseType.id = '{notTheSameexpenseTypeId}';
-        localExpenseType = new ExpenseType(expenseType);
-        expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-      });
-
-      it('should throw an error', done => {
-        return expenseRoutes
-          ._update(id, expenseData)
-          .then(() => {
-            done(new Error('object recived - error expected'));
-          })
-          .catch(err => {
-            expect(err).toEqual(expectedError);
-            done();
-          });
-      });
-    }); // when expenseTypes do not match
 
     describe('when expense type is inactive and employee is user', () => {
 
