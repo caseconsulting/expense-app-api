@@ -1,8 +1,9 @@
 const express = require('express');
 const databaseModify = require('../js/databaseModify');
 const expenseDynamo = new databaseModify('expenses');
-const moment = require('moment');
 const _ = require('lodash');
+const Util = require('../js/Util');
+const util = new Util('attachmentRoutes');
 
 const multer = require('multer');
 const multerS3 = require('multer-s3');
@@ -54,11 +55,7 @@ var limits = {
  * Filter valid mimetypes
  */
 var fileFilter = function(req, file, cb) {
-  console.warn(
-    `[${moment().format()}]`,
-    `>>> Attempting to upload attachment ${file.originalname}`,
-    '| Processing handled by function attachmentRoutes.fileFilter'
-  );
+  util.log(1, 'fileFilter', `Attempting to upload attachment ${file.originalname}`);
 
   // Content types that are allowed to be uploaded
   const ALLOWED_CONTENT_TYPES = [
@@ -75,21 +72,12 @@ var fileFilter = function(req, file, cb) {
 
   if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
     // allow supported image files
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Mimetype ${file.mimetype} accepted`,
-      '| Processing handled by function attachmentRoutes.fileFilter'
-    );
+    util.log(2, 'fileFilter', `Mimetype ${file.mimetype} accepted`);
 
     cb(null, true);
   } else {
     // throw error for invalid files
-
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Mimetype ${file.mimetype} rejected`,
-      '| Processing handled by function attachmentRoutes.fileFilter'
-    );
+    util.log(1, 'fileFilter', `Mimetype ${file.mimetype} rejected`);
 
     cb(new Error(`Invalid file type ${file.mimetype}. View help menu for a list of valid file types.`));
   }
@@ -118,14 +106,12 @@ class Attachment {
    * Uploads an object to S3.
    */
   uploadAttachmentToS3(req, res) {
+
     upload(req, res, (err) => {
       if (err) {
         // if there is an error from validating the file
-        console.warn(
-          `[${moment().format()}]`,
-          '>>> Failed to upload file',
-          '| Processing handled by function attachmentRoutes.uploadAttachmentToS3'
-        );
+        util.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
+
         let error = {
           code: 403,
           message:
@@ -134,12 +120,11 @@ class Attachment {
         return res.send(error);
       } else {
         // successfully validated file
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Successfully uploaded attachment ${req.file.originalname}`,
-          `with file key ${req.file.key} to S3 bucket ${req.file.bucket}`,
-          '| Processing handled by function attachmentRoutes.uploadAttachmentToS3'
+        util.log(1, 'uploadAttachmentToS3',
+          `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
+          `to S3 bucket ${req.file.bucket}`
         );
+
         res.send('Successfully uploaded file:' + req.file.key);
       }
     });
@@ -149,11 +134,8 @@ class Attachment {
    * Gets an object from S3.
    */
   async getAttachmentFromS3(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Getting attachment for expense ${req.params.expenseId}`,
-      '| Processing handled by function attachmentRoutes.getAttachmentFromS3'
-    );
+    util.log(1, 'getAttachmentFromS3', `Getting attachment for expense ${req.params.expenseId}`);
+
     let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
     let fileExt = expense.receipt;
     let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
@@ -168,11 +150,8 @@ class Attachment {
    * Deletes an object from S3.
    */
   async deleteAttachmentFromS3(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to delete attachment for expense ${req.params.expenseId}`,
-      '| Processing handled by function attachmentRoutes.deleteAttachmentFromS3'
-    );
+    util.log(1, 'deleteAttachmentFromS3', `Attempting to delete attachment for expense ${req.params.expenseId}`);
+
     // set up params
     let fileExt = req.params.receipt;
     let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
@@ -181,11 +160,10 @@ class Attachment {
     s3.deleteObject(params, (err, data) => {
       if (err) {
         // if there is an error deleting the file
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`,
-          '| Processing handled by function attachmentRoutes.deleteAttachmentFromS3'
+        util.log(1, 'deleteAttachmentFromS3',
+          `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
+
         let error = {
           code: 403,
           message:
@@ -194,11 +172,10 @@ class Attachment {
         return res.send(error);
       } else {
         // successfully deleted the file
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`,
-          '| Processing handled by function attachmentRoutes.deleteAttachmentFromS3'
+        util.log(1, 'deleteAttachmentFromS3',
+          `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
+
         res.status(200).send(data);
       }
     });

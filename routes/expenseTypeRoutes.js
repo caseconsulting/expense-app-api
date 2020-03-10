@@ -5,6 +5,8 @@ const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 const _ = require('lodash');
+const Util = require('../js/Util');
+const util = new Util('expenseTypeRoutes');
 
 const ExpenseType = require('./../models/expenseType');
 const expenseDynamo = new databaseModify('expenses');
@@ -19,11 +21,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _add(id, data) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to add expense type ${id}`,
-      '| Processing handled by function expenseTypeRoutes._add'
-    );
+    util.log(1, '_add', `Attempting to add expense type ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -36,16 +34,14 @@ class ExpenseTypeRoutes extends Crud {
       )
       .then(() => this.expenseTypeDynamo.addToDB(expenseType))
       .catch(err => {
+        util.log(1, '_add', `Failed to add expense type ${id}`);
+        util.error('_add', `Error code: ${err.code}`);
         throw err;
       });
   }
 
   async _checkDates(start, end, recurringFlag, id) {
-    console.warn(
-      `[${moment().format()}]`,
-      'Validating expense type dates',
-      '| Processing handled by function expenseTypeRoutes._checkDates'
-    );
+    util.log(2, '_checkDates', 'Validating expense type dates');
 
     let err = {
       code: 403,
@@ -92,11 +88,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkFields(expenseType) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Validating expense type ${expenseType.id}`,
-      '| Processing handled by function expenseTypeRoutes._checkFields'
-    );
+    util.log(2, '_checkFields', `Validating expense type ${expenseType.id}`);
 
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
@@ -111,11 +103,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to delete expense type ${id}`,
-      '| Processing handled by function expenseTypeRoutes._delete'
-    );
+    util.log(1, '_delete', `Attempting to delete expense type ${id}`);
 
     let expenseType, typeExpenses;
 
@@ -134,17 +122,14 @@ class ExpenseTypeRoutes extends Crud {
         throw err;
       }
     } catch (err) {
-      console.error('Error Code: ' + err.code);
+      util.log(1, '_delete', `Failed to delete expense type ${id}`);
+
       throw err;
     }
   }
 
   async _updateBudgets(startDate, endDate, expenseTypeID) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Updating budgets for expense type ${expenseTypeID}`,
-      '| Processing handled by function expenseTypeRoutes._updateBudgets'
-    );
+    util.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseTypeID}`);
 
     let updatePromise;
     let budgets =
@@ -160,11 +145,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _update(id, data) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to update expense type ${id}`,
-      '| Processing handled by function expenseTypeRoutes._update'
-    );
+    util.log(1, '_update', `Attempting to update expense type ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -178,11 +159,8 @@ class ExpenseTypeRoutes extends Crud {
       .then(() => this._updateBudgets(expenseType.startDate, expenseType.endDate, expenseType.id))
       .then(() => this.expenseTypeDynamo.updateEntryInDB(expenseType))
       .catch(err => {
-        console.warn(
-          `[${moment().format()}]`,
-          `>>> Failed to update expense type ${id}`,
-          '| Processing handled by function expenseTypeRoutes._update'
-        );
+        util.log(1, '_update', `Failed to update expense type ${id}`);
+
         throw err;
       });
   }

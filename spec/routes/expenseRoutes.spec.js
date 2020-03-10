@@ -1099,6 +1099,7 @@ describe('expenseRoutes', () => {
       budget2001 = { fiscalStartDate: '2001-01-01' };
       budget2002 = { fiscalStartDate: '2002-01-01' };
       budgets = [budget2000, budget2001, budget2002];
+      expenseType = { id: 'expenseTypeID' };
     });
 
     describe('when budgets are overdrafted', () => {

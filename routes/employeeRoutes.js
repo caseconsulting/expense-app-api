@@ -1,11 +1,10 @@
 const Crud = require('./crudRoutes');
-
 const databaseModify = require('../js/databaseModify');
-
 const moment = require('moment');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
-
+const Util = require('../js/Util');
+const util = new Util('employeeRoutes');
 const Employee = require('./../models/employee');
 const IsoFormat = 'YYYY-MM-DD';
 
@@ -19,11 +18,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _add(id, data) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to add employee ${id}`,
-      '| Processing handled by function employeeRoutes._add'
-    );
+    util.log(1, '_add', `Attempting to add employee ${id}`);
 
     let employee = new Employee(data);
     employee.id = id;
@@ -38,7 +33,8 @@ class EmployeeRoutes extends Crud {
         return employee;
       });
     } catch (err) {
-      console.error('Error Code: ' + err.code);
+      util.log(1, '_add', `Failed to add employee ${id}`);
+      util.error('_add', `Error code: ${err.code}`);
       throw err;
     }
   }
@@ -48,12 +44,12 @@ class EmployeeRoutes extends Crud {
    */
   async _changeBudgetDates(oldEmployeePromise, newEmployee) {
     let oldEmployee = await oldEmployeePromise;
-    console.warn(
-      `[${moment().format()}]`,
-      `Attempting to Change Hire Date for user ${oldEmployee.id}`,
-      `from ${oldEmployee.hireDate} to ${newEmployee.hireDate}`,
-      '| Processing handled by function employeeRoutes._changeBudgetDates'
+
+    util.log(2, '_changeBudgetDates',
+      `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
+      `to ${newEmployee.hireDate}`
     );
+
     // if hire date is not changed, resolve promise
     if (oldEmployee.hireDate === newEmployee.hireDate) {
       return Promise.resolve(newEmployee);
@@ -92,10 +88,8 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Creating recurring expenses for user ${userId} starting on ${hireDate}`,
-      '| Processing handled by function employeeRoutes._createRecurringExpenses'
+    util.log(2, '_createRecurringExpenses',
+      `Creating recurring expenses for user ${userId} starting on ${hireDate}`
     );
 
     let dates = this._getBudgetDates(hireDate);
@@ -104,7 +98,8 @@ class EmployeeRoutes extends Crud {
     try {
       expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
-      console.error('Error Code: ' + err.code);
+      util.error('_createRecurringExpenses', `Error code: ${err.code}`);
+
       throw err;
     }
     expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
@@ -129,11 +124,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _delete(id) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to delete employee ${id}`,
-      '| Processing handled by function employeeRoutes._delete'
-    );
+    util.log(1, '_delete', `Attempting to delete employee ${id}`);
 
     let employee, userExpenses, userBudgets;
 
@@ -156,17 +147,14 @@ class EmployeeRoutes extends Crud {
         throw err;
       }
     } catch (err) {
-      console.error('Error Code: ' + err.code);
+      util.error('_delete', `Error code: ${err.code}`);
+
       throw err;
     }
   }
 
   _getBudgetDates(hireDate) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Getting budget dates for ${hireDate}`,
-      '| Processing handled by function employeeRoutes._getBudgetDates'
-    );
+    util.log(2, '_getBudgetDates', `Getting budget dates for ${hireDate}`);
 
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
@@ -199,6 +187,8 @@ class EmployeeRoutes extends Crud {
    * Get all budgets for an employee with a specific expense type.
    */
   async getBudgets(employeeID, expenseTypeID) {
+    util.log(3, 'getBudgets', `Getting budgets for employee ${employeeID} with expense type ${expenseTypeID}`);
+
     return await this.budgetDynamo.queryWithTwoIndexesInDB(employeeID, expenseTypeID);
   }
 
@@ -206,10 +196,14 @@ class EmployeeRoutes extends Crud {
    * Get all expense types.
    */
   async getExpenseTypes() {
+    util.log(2, 'getExpenseTypes', 'Getting all expense types');
+
     return await this.expenseTypeDynamo.getAllEntriesInDB();
   }
 
   _getUUID() {
+    util.log(4, '_getUUID', 'Getting random uuid');
+
     return uuid();
   }
 
@@ -218,11 +212,8 @@ class EmployeeRoutes extends Crud {
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */
   async _isDuplicateEmployee(employee) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Checking if user ${employee.id} is a duplicate employee`,
-      '| Processing handled by function employeeRoutes._isDuplicateEmployee'
-    );
+    util.log(2, '_isDuplicateEmployee', `Checking if user ${employee.id} is a duplicate employee`);
+
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
 
     if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
@@ -247,11 +238,7 @@ class EmployeeRoutes extends Crud {
    * Return an array of sorted budgets by fiscal start date
    */
   _sortBudgets(budgets) {
-    // console.warn(
-    //   `[${moment().format()}]`,
-    //   'Sorting budgets',
-    //   '| Processing handled by function employeeRoutes._sortBudgets'
-    // );
+    util.log(3, '_sortBudgets', 'Sorting budgets');
 
     return _.sortBy(budgets, [
       budget => {
@@ -261,11 +248,7 @@ class EmployeeRoutes extends Crud {
   }
 
   _update(id, data) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to update user ${id}`,
-      '| Processing handled by function employeeRoutes._update'
-    );
+    util.log(1, '_update', `Attempting to update user ${id}`);
 
     let employee = new Employee(data);
     employee.id = id;

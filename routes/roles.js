@@ -3,7 +3,9 @@ var express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const moment = require('moment');
+const Util = require('../js/Util');
+const util = new Util('roles');
+
 
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
@@ -37,11 +39,8 @@ class Roles {
   }
 
   getUserRole(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Getting user role for user ${req.employee.id}`,
-      '| Processing handled by function Roles.getUserRole'
-    );
+    util.log(3, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
+
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee.employeeRole);
     } else {
@@ -50,11 +49,8 @@ class Roles {
   }
 
   getUser(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Getting employee info for user ${req.employee.id}`,
-      '| Processing handled by function roles.getUser'
-    );
+    util.log(3, 'getUser', `Getting employee info for user ${req.employee.id}`);
+
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee);
     } else {

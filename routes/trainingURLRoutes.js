@@ -3,10 +3,12 @@ const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
 const trainingDynamo = new databaseModify('training-urls');
 
-const moment = require('moment');
 const _ = require('lodash');
 
 const TrainingUrls = require('../models/trainingUrls');
+const Util = require('../js/Util');
+const util = new Util('trainingURLRoutes');
+
 
 class TrainingURLRoutes extends Crud {
   constructor() {
@@ -15,11 +17,7 @@ class TrainingURLRoutes extends Crud {
   }
 
   async _add(url, data) {
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to add training url ${url} with category ${data.category}`,
-      '| Processing handled by function trainingURLRoutes._add'
-    );
+    util.log(1, '_add', `Attempting to add training url ${url} with category ${data.category}`);
 
     let trainingURL = new TrainingUrls(data);
     trainingURL.id = url;
@@ -32,11 +30,7 @@ class TrainingURLRoutes extends Crud {
   }
 
   _checkFields(trainingURL) {
-    console.warn(
-      `[${moment().format()}]`,
-      'Validating if the training url id exists and if the url has any hits',
-      '| Processing handled by function trainingURLRoutes.checkFields'
-    );
+    util.log(2, '_checkFields', 'Validating if the training url id exists and if the url has any hits');
 
     let idCheck = !!trainingURL.id;
     let hitsCheck = trainingURL.hits > 0;
@@ -51,11 +45,7 @@ class TrainingURLRoutes extends Crud {
 
   //unused?
   _getURLInfo(req, res) {
-    console.warn(
-      `[${moment().format()}]`,
-      `Getting info for url ${req.params.id}`,
-      '| Processing handled by function trainingURLRoutes._getURLInfo'
-    );
+    util.log(2, '_getURLInfo', `Getting info for url ${req.params.id}`);
 
     const NOT_FOUND = {
       code: 404,
@@ -93,11 +83,7 @@ class TrainingURLRoutes extends Crud {
     trainingURL.id = decodedURL;
     trainingURL.category = category;
 
-    console.warn(
-      `[${moment().format()}]`,
-      `>>> Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`,
-      '| Processing handled by function trainingURLRoutes._update'
-    );
+    util.log(1, '_update', `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`);
 
     return this.databaseModify
       .readFromDBURL(decodedURL, category)
