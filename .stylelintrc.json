@@ -1,0 +1,24 @@
+{
+  "extends": "stylelint-config-standard",
+  "ignoreFiles": ["**/*.js"],
+  "plugins": ["stylelint-scss"],
+  "processors": ["stylelint-processor-html"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["include"]
+      }
+    ],
+    "max-empty-lines": 2,
+    "no-empty-source": null,
+    "scss/at-extend-no-missing-placeholder": true,
+    "scss/at-function-pattern": null,
+    "scss/at-import-no-partial-leading-underscore": true,
+    "scss/at-import-partial-extension-whitelist": ["scss"],
+    "scss/at-mixin-pattern": null,
+    "scss/dollar-variable-no-missing-interpolation": null,
+    "scss/dollar-variable-pattern": null,
+    "scss/selector-no-redundant-nesting-selector": true
+  }
+}
