@@ -106,7 +106,7 @@ Resources:
           - !Ref AppDomain
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   s3FrontEnd:
@@ -123,7 +123,7 @@ Resources:
         LogFilePrefix: s3-logs/app/
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   s3FrontEndBucketPolicy:
@@ -166,7 +166,7 @@ Resources:
         LogFilePrefix: s3-logs/resources/
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   s3Attachments:
@@ -190,7 +190,7 @@ Resources:
         Status: Enabled
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   s3Logs:
@@ -208,7 +208,7 @@ Resources:
             Status: Enabled
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   employeeTable:
@@ -239,7 +239,7 @@ Resources:
             ProjectionType: ALL
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   expenseTypeTable:
@@ -261,7 +261,7 @@ Resources:
           KeyType: HASH
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   trainingURLTable:
@@ -287,7 +287,7 @@ Resources:
           KeyType: RANGE
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   expenseTable:
@@ -332,7 +332,7 @@ Resources:
             ProjectionType: ALL
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   budgetsTable:
@@ -381,7 +381,7 @@ Resources:
             ProjectionType: ALL
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   ExpenseAppApiLambdaRole:
@@ -425,7 +425,7 @@ Resources:
                 Resource: '*'
       Tags:
         - Key: Application
-          Value: ExpenseApp
+          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
   ChronosFunction:
