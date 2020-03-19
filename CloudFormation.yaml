@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: CloudFormation for expense app
+
 Parameters:
   Stage:
     Type: String
@@ -25,6 +26,15 @@ Parameters:
       - dev.app.consultwithcase.com
       - test.app.consultwithcase.com
       - app.consultwithcase.com
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Tags:
+      Application: expense-app
+      Stage: !Ref Stage
+
 Resources:
   cloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -94,6 +104,11 @@ Resources:
           SslSupportMethod: sni-only
         Aliases:
           - !Ref AppDomain
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   s3FrontEnd:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'
@@ -106,6 +121,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
         LogFilePrefix: s3-logs/app/
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   s3FrontEndBucketPolicy:
     DependsOn:
       - s3FrontEnd
@@ -144,6 +164,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
         LogFilePrefix: s3-logs/resources/
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   s3Attachments:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'
@@ -163,6 +188,11 @@ Resources:
         LogFilePrefix: s3-logs/attachments/
       VersioningConfiguration:
         Status: Enabled
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   s3Logs:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -176,6 +206,11 @@ Resources:
           - Id: Purge old log files
             ExpirationInDays: 30
             Status: Enabled
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -202,6 +237,11 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   expenseTypeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -219,6 +259,11 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   trainingURLTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -240,6 +285,11 @@ Resources:
           KeyType: HASH
         - AttributeName: category
           KeyType: RANGE
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   expenseTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -280,6 +330,11 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   budgetsTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -324,6 +379,11 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -363,11 +423,15 @@ Resources:
               - Effect: Allow
                 Action: 'logs:*'
                 Resource: '*'
+      Tags:
+        - Key: Application
+          Value: ExpenseApp
+        - Key: Stage
+          Value: !Ref Stage
   ChronosFunction:
     Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Provides the nightly update to employee budgets.
-      Runtime: nodejs12.x
       Handler: chronos.handler
       Timeout: 900
       CodeUri: ./
