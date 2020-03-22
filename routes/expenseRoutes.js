@@ -177,12 +177,10 @@ class ExpenseRoutes extends Crud {
       `Checking purchase date ${purchaseDate} is between ${stringStartDate} - ${stringEndDate}`
     );
 
-    let startDate, endDate, date, range;
+    let startDate, endDate;
     startDate = moment(stringStartDate, IsoFormat);
     endDate = moment(stringEndDate, IsoFormat);
-    date = moment(purchaseDate);
-    range = moment().range(startDate, endDate);
-    return range.contains(date);
+    return moment(purchaseDate).isBetween(startDate, endDate, 'day', '[]');
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
@@ -292,9 +290,9 @@ class ExpenseRoutes extends Crud {
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
     util.log(3, '_findBudgetWithMatchingRange', `Finding budget for purchase date ${purchaseDate}`);
 
-    let validBudgets = _.find(budgets, budget =>
-      this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
-    );
+    let validBudgets = _.find(budgets, budget => {
+      return this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate);
+    });
 
     if (validBudgets) {
       return validBudgets;

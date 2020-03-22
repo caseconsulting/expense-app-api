@@ -128,6 +128,11 @@ class ExpenseTypeRoutes extends Crud {
     }
   }
 
+  _isEmpty(field) {
+    util.log(4, '_isEmpty', 'Checking if field exists');
+    return field == null || field.trim().length <= 0;
+  }
+
   async _updateBudgets(startDate, endDate, expenseTypeID) {
     util.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseTypeID}`);
 
@@ -136,8 +141,10 @@ class ExpenseTypeRoutes extends Crud {
       await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseTypeID);
 
     budgets.forEach(budget => {
-      budget.fiscalStartDate = startDate;
-      budget.fiscalEndDate = endDate;
+      if (!this._isEmpty(startDate) && !this._isEmpty(endDate)) {
+        budget.fiscalStartDate = startDate;
+        budget.fiscalEndDate = endDate;
+      }
       updatePromise = this.budgetDynamo.updateEntryInDB(budget).catch(err => { return Promise.reject(err); });
     });
 
