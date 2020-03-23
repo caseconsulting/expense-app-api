@@ -75,6 +75,13 @@ To upgrade to the latest version of a specific Node.js module, which is a develo
 ```
 npm update --save-dev <module-name>@latest
 ```
+
+To sync expense receipt names with S3 bucket file names:
+```
+npm run receiptSync:dev
+npm run receiptSync:test
+npm run receiptSync:prod
+```
 ## READ NOTES BEFORE DEPLOYMENT
 
 NOTE: When deleting a table and it is not recreated when deploying, you must change the table name in CloudFormation.yaml, deploy, delete the new temporary table, change the table name back, and deploy again
