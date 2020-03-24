@@ -81,10 +81,11 @@ function _makeNewBudget(oldBudget, expenseType) {
   return newBudget;
 }
 
-async function handler(event) { 
+async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
 
   return start();
 }
 
-module.exports = { start, handler };
+// module.exports = { start, handler };
+module.exports = { start, handler, asyncForEach, _getExpenseType, _makeNewBudget}; // included other methods for testing
