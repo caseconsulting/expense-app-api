@@ -14,6 +14,11 @@ const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Budget = require('./../models/budget');
 
+const AWS = require('aws-sdk');
+const STAGE = process.env.STAGE;
+const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
+const s3 = new AWS.S3({params: {Bucket: BUCKET}, region: 'us-east-1', apiVersion: '2006-03-01'});
+
 class ExpenseRoutes extends Crud {
   constructor() {
     super();
@@ -143,6 +148,40 @@ class ExpenseRoutes extends Crud {
     );
 
     return budget.reimbursedAmount - expenseType.budget;
+  }
+
+  /*
+   * Change the path name for objects in an a s3 bucket
+   */
+  async _changeBucket(userId, oldId, newId) {
+    util.log(2, '_changeBucket', `Attempting to change S3 files from ${oldId} to ${newId}`);
+
+    var oldPrefix = `${oldId}`;
+    var newPrefix = `${newId}`;
+
+    let listParams = {
+      Bucket: BUCKET,
+      Prefix: `${userId}/${oldPrefix}`
+    };
+    s3.listObjectsV2(listParams, function(err, data) {
+      if (data.Contents.length) {
+        _.forEach(data.Contents, async file => {
+          var params = {
+            Bucket: BUCKET,
+            CopySource: BUCKET + '/' + file.Key,
+            Key: file.Key.replace(oldPrefix, newPrefix)
+          };
+          s3.copyObject(params, function(copyErr){
+            if (copyErr) {
+              util.error('_changeBucket', copyErr);
+            }
+            else {
+              util.log(2, '_changeBucket', `Copied S3 ${file.Key} to ${params.Key}`);
+            }
+          });
+        });
+      }
+    });
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
@@ -658,6 +697,9 @@ class ExpenseRoutes extends Crud {
       let unreimburseExpense = _.cloneDeep(oldExpense);
       unreimburseExpense.reimbursedDate = ' ';
       newExpense.id = uuid();
+      if (!this._isEmpty(oldExpense.receipt)){
+        this._changeBucket(oldExpense.userId, oldExpense.id, newExpense.id);
+      }
 
       util.log(1, '_update', `Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId}`,
         `to ${expenseType.id} with new id ${newExpense.id}`
