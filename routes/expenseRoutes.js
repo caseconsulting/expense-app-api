@@ -154,7 +154,7 @@ class ExpenseRoutes extends Crud {
    * Change the path name for objects in an a s3 bucket
    */
   async _changeBucket(userId, oldId, newId) {
-    util.log(2, '_changeBucket', `Attempting to change S3 files from ${oldId} to ${newId}`);
+    util.log(2, '_changeBucket', `Attempting to change S3 file from ${oldId} to ${newId}`);
 
     var oldPrefix = `${oldId}`;
     var newPrefix = `${newId}`;
@@ -165,6 +165,28 @@ class ExpenseRoutes extends Crud {
     };
     s3.listObjectsV2(listParams, function(err, data) {
       if (data.Contents.length) {
+        let mostRecentFile;
+        _.forEach(data.Contents, file => {
+          if (!mostRecentFile || file.LastModified > mostRecentFile.LastModified) {
+            mostRecentFile = file;
+          }
+        });
+
+        var params = {
+          Bucket: BUCKET,
+          CopySource: BUCKET + '/' + mostRecentFile.Key,
+          Key: mostRecentFile.Key.replace(oldPrefix, newPrefix)
+        };
+
+        s3.copyObject(params, function(copyErr) {
+          if (copyErr) {
+            util.error('_changeBucket', copyErr);
+          } else {
+            util.log(2, '_changeBucket', `Copied S3 ${mostRecentFile.Key} to ${params.Key}`);
+          }
+        });
+
+        /* // code below copies all files but last modified is same making the receipt sync out of order
         _.forEach(data.Contents, async file => {
           var params = {
             Bucket: BUCKET,
@@ -179,7 +201,7 @@ class ExpenseRoutes extends Crud {
               util.log(2, '_changeBucket', `Copied S3 ${file.Key} to ${params.Key}`);
             }
           });
-        });
+         }); */
       }
     });
   }
