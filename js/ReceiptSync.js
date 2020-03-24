@@ -62,10 +62,28 @@ async function updateReceiptFields() {
       // create a mapping of userId/expense to receipt name
       _.forEach(keys, key => {
         var splitIndex = key.Key.indexOf('/', key.Key.indexOf('/') + 1);
-        map.push({
-          path: key.Key.substring(0, splitIndex),
-          name: key.Key.substring(splitIndex + 1)
-        });
+        let mapKey = key.Key.substring(0, splitIndex);
+        let mapValue = key.Key.substring(splitIndex + 1);
+        let find = _.find(map, {'path': mapKey});
+        if (find) {
+          if (key.LastModified > find.lastModified)
+          {
+            _.remove(map, current => {
+              return current == find;
+            });
+            map.push({
+              path: mapKey,
+              name: mapValue,
+              lastModified: key.LastModified
+            });
+          }
+        } else {
+          map.push({
+            path: mapKey,
+            name: mapValue,
+            lastModified: key.LastModified
+          });
+        }
       });
 
       // get all the expenses
