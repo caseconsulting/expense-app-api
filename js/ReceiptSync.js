@@ -25,21 +25,24 @@ const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
 const table = `${STAGE}-expenses`;
 
+// get all the entries in dynamo the given table
+const getAllEntries = (params, out = []) => new Promise((resolve, reject) => {
+  ddb.scan(params).promise()
+    .then(({Items, LastEvaluatedKey}) => {
+      out.push(...Items);
+      !LastEvaluatedKey ? resolve(out)
+        : resolve(getAllEntries(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
+    })
+    .catch(reject);
+});
+
 // get all expenses in the expense table
 function getAllEntriesInDB() {
-  var params = {
+  console.log('Getting all entries in dynamodb expense table');
+  let params = {
     TableName: table,
   };
-  return ddb
-    .scan(params)
-    .promise()
-    .then(function(data) {
-      return data;
-    })
-    .catch(function(err) {
-      console.error(err);
-      throw err;
-    });
+  return getAllEntries(params);
 }
 
 // get all the keys in S3
@@ -53,52 +56,59 @@ const listAllKeys = (params, out = []) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
+// create a mapping of userId/expense to receipt name
+function s3PathMap(keys) {
+  console.log('Creating s3 map for userId/expense to receipt name');
+  let map = [];
+  _.forEach(keys, key => {
+    let splitIndex = key.Key.indexOf('/', key.Key.indexOf('/') + 1);
+    let mapKey = key.Key.substring(0, splitIndex);
+    let mapValue = key.Key.substring(splitIndex + 1);
+    let find = _.find(map, {'path': mapKey});
+    if (find) {
+      if (key.LastModified > find.lastModified)
+      {
+        _.remove(map, current => {
+          return current == find;
+        });
+        map.push({
+          path: mapKey,
+          name: mapValue,
+          lastModified: key.LastModified
+        });
+      }
+    } else {
+      map.push({
+        path: mapKey,
+        name: mapValue,
+        lastModified: key.LastModified
+      });
+    }
+  });
+  return map;
+}
+
 // update the receipt fields of each expense
 async function updateReceiptFields() {
+  console.log('Getting all attachment keys in s3');
   // get all the keys
   listAllKeys({Bucket: BUCKET})
     .then( async keys => {
-      let map = [];
-      // create a mapping of userId/expense to receipt name
-      _.forEach(keys, key => {
-        var splitIndex = key.Key.indexOf('/', key.Key.indexOf('/') + 1);
-        let mapKey = key.Key.substring(0, splitIndex);
-        let mapValue = key.Key.substring(splitIndex + 1);
-        let find = _.find(map, {'path': mapKey});
-        if (find) {
-          if (key.LastModified > find.lastModified)
-          {
-            _.remove(map, current => {
-              return current == find;
-            });
-            map.push({
-              path: mapKey,
-              name: mapValue,
-              lastModified: key.LastModified
-            });
-          }
-        } else {
-          map.push({
-            path: mapKey,
-            name: mapValue,
-            lastModified: key.LastModified
-          });
-        }
-      });
+      let map = s3PathMap(keys);
 
       // get all the expenses
       let expenses = await getAllEntriesInDB();
-      _.forEach(expenses.Items, expense => {
+      _.forEach(expenses, expense => {
         // find the S3 key that matches this expense
         let mapping = _.find(map, {'path': `${expense.userId}/${expense.id}`});
         // if the there is a match
         let params = {
           TableName: table,
-          Key:{
+          Key: {
             'id': expense.id
           },
           UpdateExpression: 'set receipt = :r',
-          ExpressionAttributeValues:{
+          ExpressionAttributeValues: {
             ':r': ' '
           },
           ReturnValues: 'UPDATED_NEW'

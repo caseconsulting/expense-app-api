@@ -7,6 +7,26 @@ require('dotenv').config({
 const moment = require('moment');
 const STAGE = process.env.STAGE;
 
+const scanDB = (params, documentClient, out = []) => new Promise((resolve, reject) => {
+  documentClient.scan(params).promise()
+    .then(({Items, LastEvaluatedKey}) => {
+      out.push(...Items);
+      !LastEvaluatedKey ? resolve(out)
+        : resolve(scanDB(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), documentClient, out));
+    })
+    .catch(reject);
+});
+
+const queryDB = (params, documentClient, out = []) => new Promise((resolve, reject) => {
+  documentClient.query(params).promise()
+    .then(({Items, LastEvaluatedKey}) => {
+      out.push(...Items);
+      !LastEvaluatedKey ? resolve(out)
+        : resolve(queryDB(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), documentClient, out));
+    })
+    .catch(reject);
+});
+
 class databaseModify {
   constructor(name) {
     this.tableName = `${STAGE}-${name}`;
@@ -202,15 +222,15 @@ class databaseModify {
   }
 
   getAllEntriesInDB() {
-    var params = {
+    let params = {
       TableName: this.tableName
     };
+
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient
-      .scan(params)
-      .promise()
-      .then(function(data) {
-        return _.sortBy(data.Items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
+
+    return scanDB(params, documentClient)
+      .then(function(items) {
+        return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
       .catch(function(err) {
         console.error(err);
@@ -229,11 +249,9 @@ class databaseModify {
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient
-      .query(params)
-      .promise()
-      .then(data => {
-        return data.Items;
+    return queryDB(params, documentClient)
+      .then(items => {
+        return items;
       })
       .catch(err => {
         console.error(err);
@@ -253,12 +271,10 @@ class databaseModify {
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient
-      .query(params)
-      .promise()
-      .then(data => {
-        if (!_.isEmpty(data.Items)) {
-          return data.Items;
+    return queryDB(params, documentClient)
+      .then(items => {
+        if (!_.isEmpty(items)) {
+          return items;
         } else {
           return null;
         }
@@ -279,12 +295,10 @@ class databaseModify {
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient
-      .query(params)
-      .promise()
-      .then(function(data) {
-        if (!_.isEmpty(data.Items)) {
-          return data.Items;
+    return queryDB(params, documentClient)
+      .then(function(items) {
+        if (!_.isEmpty(items)) {
+          return items;
         } else {
           let err = {
             code: 404,
@@ -316,12 +330,10 @@ class databaseModify {
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
-    return documentClient
-      .query(params)
-      .promise()
-      .then(function(data) {
-        if (!_.isEmpty(data.Items)) {
-          return data.Items;
+    return queryDB(params, documentClient)
+      .then(function(items) {
+        if (!_.isEmpty(items)) {
+          return items;
         } else {
           return null;
         }
