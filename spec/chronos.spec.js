@@ -1,22 +1,22 @@
 const chronos = require('../chronos');
-const _ = require('lodash');
-const uuid = require('uuid/v4');
+// const _ = require('lodash');
+// const uuid = require('uuid/v4');
 
 // const AWS = require('aws-sdk-mock');
 
 describe('chronos', () => {
 
-  let budgetDynamo, expenseTypeDynamo;
+  // let budgetDynamo, expenseTypeDynamo;
 
-  beforeEach(() => {
-    budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
-      'addToDB',
-      'querySecondaryIndexInDB'
-    ]);
-    expenseTypeDynamo = jasmine.createSpyObj('budgetDynamo', [
-      'getAllEntriesInDB'
-    ]);
-  });
+  // beforeEach(() => {
+  //   budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
+  //     'addToDB',
+  //     'querySecondaryIndexInDB'
+  //   ]);
+  //   expenseTypeDynamo = jasmine.createSpyObj('budgetDynamo', [
+  //     'getAllEntriesInDB'
+  //   ]);
+  // });
 
 
   describe('_makeNewBudget', () => {
@@ -64,7 +64,7 @@ describe('chronos', () => {
       beforeEach(() => {
         oldBudget.reimbursedAmount = 15;
         expectedBudget.reimbursedAmount = 5;
-      })
+      });
 
       it('should return a new budget with a reimbursed amount of 5', () => {
         let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
@@ -81,11 +81,11 @@ describe('chronos', () => {
 
   describe('_getExpenseType', () => {
 
-    let expenseTypes, expenseTypeId, expectedExpenseType;
+    let expenseTypes, expectedExpenseType;
 
     beforeEach(() => {
-      expenseTypes = [ { id: "id" }, { id: "id-2"} ];
-      expectedExpenseType = { id: "id-2" };
+      expenseTypes = [ { id: 'id' }, { id: 'id-2'} ];
+      expectedExpenseType = { id: 'id-2' };
     });
 
     describe('expense type id exists in expense types', () => {
@@ -120,7 +120,7 @@ describe('chronos', () => {
         }
       };
       spyOn(foo, 'callback');
-    })
+    });
 
     it('should call the callback function on the array', () => {
       chronos.asyncForEach(array, foo.callback);
