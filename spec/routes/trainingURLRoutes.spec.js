@@ -3,13 +3,19 @@ const TrainingURL = require('../../models/trainingUrls');
 const _ = require('lodash');
 
 describe('trainingURLRoutes', () => {
-  const id = 'https://testing.com';
+  const id = 'https://invalidSite.notASite';
   const category = 'test';
   const hits = 1;
+  const title = ' ';
+  const description = ' ';
+  const image = ' ';
+  const logo = ' ';
+  const publisher = ' ';
+
   const BAD_FIELDS = {
     code: 403, message: 'One of the required fields is invalid'
   };
-  let databaseModify, trainingURLRoutes, trainingURL, data;
+  let databaseModify, trainingURLRoutes, trainingURL, data, metadata;
 
   beforeEach(() => {
     trainingURLRoutes = new TrainingURLRoutes();
@@ -18,9 +24,10 @@ describe('trainingURLRoutes', () => {
       'readFromDBURL'
     ]);
     data = { id, category, hits };
-    trainingURL = new TrainingURL(data);
+    metadata = { id, category, hits, title, description, image, logo, publisher };
+    trainingURL = new TrainingURL(metadata);
     trainingURLRoutes.databaseModify = databaseModify;
-
+    spyOn(trainingURLRoutes, '_getMetaData').and.returnValue({});
   });
 
   describe('_add', () => {

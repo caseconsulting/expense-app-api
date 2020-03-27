@@ -280,7 +280,8 @@ class Special {
   //created to get the url information from the dynamo table
   async getURLInfo(req, res) {
     var atob = require('atob');
-    var decoded = atob(req.params.id);
+    let encoded = req.params.id.replace(/%2F/g, '/');
+    var decoded = atob(encoded);
     util.log(2, 'getURLInfo', `Getting information for URL ${decoded}`);
 
     const NOT_FOUND = {

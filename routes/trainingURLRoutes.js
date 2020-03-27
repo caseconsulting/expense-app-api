@@ -9,6 +9,17 @@ const TrainingUrls = require('../models/trainingUrls');
 const Util = require('../js/Util');
 const util = new Util('trainingURLRoutes');
 
+const metascraper = require('metascraper')([
+  require('metascraper-description')(),
+  require('metascraper-image')(),
+  require('metascraper-logo')(),
+  require('metascraper-clearbit')(),
+  require('metascraper-publisher')(),
+  require('metascraper-title')(),
+  require('metascraper-url')()
+]);
+
+const got = require('got');
 
 class TrainingURLRoutes extends Crud {
   constructor() {
@@ -16,11 +27,26 @@ class TrainingURLRoutes extends Crud {
     this.databaseModify = trainingDynamo;
   }
 
-  async _add(url, data) {
-    util.log(1, '_add', `Attempting to add training url ${url} with category ${data.category}`);
+  async _getMetaData(id) {
+    let metadata = {};
+    try {
+      const { body: html, url } = await got(id);
+      metadata = await metascraper({ html, url });
+    } catch (err) {
+      util.error('_add', `>>> Failed to get metadata for ${id}`);
+    }
+    return metadata;
+  }
 
-    let trainingURL = new TrainingUrls(data);
-    trainingURL.id = url;
+  async _add(id, data) {
+    util.log(1, '_add', `Attempting to add training url ${id} with category ${data.category}`);
+    let metadata = this._getMetaData(id);
+    metadata.id = data.id;
+    metadata.category = data.category;
+    metadata.hits = data.hits;
+
+    let trainingURL = new TrainingUrls(metadata);
+    //trainingURL.id = url;
 
     return this._checkFields(trainingURL)
       .then(() => this.databaseModify.addToDB(trainingURL))
@@ -76,17 +102,12 @@ class TrainingURLRoutes extends Crud {
   }
 
   _update(id, category, data) {
-    var atob = require('atob');
-    var decodedURL = atob(id);
-
     let trainingURL = new TrainingUrls(data);
-    trainingURL.id = decodedURL;
-    trainingURL.category = category;
 
     util.log(1, '_update', `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`);
 
     return this.databaseModify
-      .readFromDBURL(decodedURL, category)
+      .readFromDBURL(trainingURL.id, category)
       .then(() => {
         return trainingURL;
       })
