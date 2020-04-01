@@ -382,13 +382,20 @@ class ExpenseRoutes extends Crud {
   _getBudgetDates(hireDate) {
     util.log(3, '_getBudgetDates', `Getting budget dates from hire date ${hireDate}`);
 
+    if (hireDate.isSameOrAfter(moment())) {
+      return {
+        startDate: hireDate,
+        endDate: hireDate.add(1, 'years').subtract(1, 'days')
+      };
+    }
+
     let currentYear = moment().year();
-    let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+    let anniversaryMonth = hireDate.month(); // form 0-11
+    let anniversaryDay = hireDate.date(); // from 1 to 31
     const anniversaryComparisonDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
     let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
     let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([startYear + 1, anniversaryMonth, anniversaryDay ]).subtract(1, 'days');
+    let endDate = moment([startYear, anniversaryMonth, anniversaryDay]).add(1, 'years').subtract(1, 'days');
 
     return {
       startDate,
