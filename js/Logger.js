@@ -2,7 +2,7 @@ const moment = require('moment');
 
 const LOG_LEVEL = 2; // 1 for highest priority (most important)
 
-class Util {
+class Logger {
   constructor(name) {
     this.className = name;
   }
@@ -53,4 +53,4 @@ class Util {
   }
 }
 
-module.exports = Util;
+module.exports = Logger;

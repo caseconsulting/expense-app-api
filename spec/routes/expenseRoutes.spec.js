@@ -4,7 +4,7 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
 const Budget = require('../../models/budget');
-//const IsoFormat = 'YYYY-MM-DD';
+const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 
 describe('expenseRoutes', () => {
@@ -1000,8 +1000,8 @@ describe('expenseRoutes', () => {
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format('YYYY-MM-DD')).toEqual(expectedObj.startDate.format('YYYY-MM-DD'));
-        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+        expect(returnedObj.startDate.format(IsoFormat)).toEqual(expectedObj.startDate.format(IsoFormat));
+        expect(returnedObj.endDate.format(IsoFormat)).toEqual(expectedObj.endDate.format(IsoFormat));
         done();
       }); // should return an object with a start and end date
     }); // when hire date is before today and anniversary date is before today
@@ -1025,8 +1025,8 @@ describe('expenseRoutes', () => {
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format('YYYY-MM-DD')).toEqual(expectedObj.startDate.format('YYYY-MM-DD'));
-        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+        expect(returnedObj.startDate.format(IsoFormat)).toEqual(expectedObj.startDate.format(IsoFormat));
+        expect(returnedObj.endDate.format(IsoFormat)).toEqual(expectedObj.endDate.format(IsoFormat));
         done();
       }); // should return an object with a start and end date
     }); // when hire date is before today and anniversary date is same as today
@@ -1049,8 +1049,8 @@ describe('expenseRoutes', () => {
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format('YYYY-MM-DD')).toEqual(expectedObj.startDate.format('YYYY-MM-DD'));
-        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+        expect(returnedObj.startDate.format(IsoFormat)).toEqual(expectedObj.startDate.format(IsoFormat));
+        expect(returnedObj.endDate.format(IsoFormat)).toEqual(expectedObj.endDate.format(IsoFormat));
         done();
       }); // should return an object with a start and end date
     }); // when hire date is before today and anniversary date is after today
@@ -1058,17 +1058,16 @@ describe('expenseRoutes', () => {
     describe('when hire date is today', () => {
 
       beforeEach(() => {
-        hireDate = moment();
         expectedObj = {
-          startDate: hireDate,
-          endDate: hireDate.add(1, 'years').subtract(1, 'days')
+          startDate: moment(),
+          endDate: moment().add(1, 'years').subtract(1, 'days')
         };
       });
 
       it('should return an object with a start and end date', done => {
-        let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
-        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+        let returnedObj = expenseRoutes._getBudgetDates(moment());
+        expect(returnedObj.startDate.format(IsoFormat)).toEqual(expectedObj.startDate.format(IsoFormat));
+        expect(returnedObj.endDate.format(IsoFormat)).toEqual(expectedObj.endDate.format(IsoFormat));
 
         done();
       }); // should return an object with a start and end date
@@ -1079,15 +1078,15 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         hireDate = moment().add(1, 'd');
         expectedObj = {
-          startDate: hireDate,
-          endDate: hireDate.add(1, 'years').subtract(1, 'days')
+          startDate: moment().add(1, 'd'),
+          endDate: moment().add(1, 'years')
         };
       });
 
       it('should return an object with a start and end date', done => {
         let returnedObj = expenseRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
-        expect(returnedObj.endDate.format()).toEqual(expectedObj.endDate.format());
+        expect(returnedObj.startDate.format(IsoFormat)).toEqual(expectedObj.startDate.format(IsoFormat));
+        expect(returnedObj.endDate.format(IsoFormat)).toEqual(expectedObj.endDate.format(IsoFormat));
 
         done();
       }); // should return an object with a start and end date

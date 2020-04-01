@@ -6,8 +6,8 @@ const Moment = require('moment');
 const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
-const Util = require('../js/Util');
-const util = new Util('expenseRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('expenseRoutes');
 
 const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
@@ -39,13 +39,13 @@ class ExpenseRoutes extends Crud {
     //expense.id = id; // ignore the api generated uuid
 
     if (!this._isReimbursed(expense)) {
-      util.log(1, '_add',
+      logger.log(1, '_add',
         `Attempting to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`
       );
     }
     else {
-      util.log(1, '_add',
+      logger.log(1, '_add',
         `Attempting to add reimbursed expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`
       );
@@ -75,11 +75,11 @@ class ExpenseRoutes extends Crud {
       // budget = await this._getBudgetData(budgets, expenseType, employee, expense);
       budget = await this._getCurrentBudgetData(budgets, expenseType, employee);
     } catch (err) {
-      util.log(1, '_add',
+      logger.log(1, '_add',
         `Failed to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`
       );
-      util.error('_add', `Error code: ${err.code}`);
+      logger.error('_add', `Error code: ${err.code}`);
       throw err;
     }
 
@@ -96,7 +96,7 @@ class ExpenseRoutes extends Crud {
 
   //returns number fixed at 2 decimal places after addtion operation
   _addCost(addTo, addWith) {
-    util.log(4, '_addCost', 'Adding two costs together');
+    logger.log(4, '_addCost', 'Adding two costs together');
 
     let newValue = addTo + addWith;
     newValue = Number(newValue);
@@ -105,11 +105,11 @@ class ExpenseRoutes extends Crud {
 
   _addExpenseToBudget(expense, budget) {
     if (!this._isReimbursed(expense)) {
-      util.log(1, '_addExpenseToBudget', `Adding pending expense ${expense.id} to budget ${budget.id}`);
+      logger.log(1, '_addExpenseToBudget', `Adding pending expense ${expense.id} to budget ${budget.id}`);
 
       budget.pendingAmount += expense.cost;
     } else {
-      util.log(1, '_addExpenseToBudget', `Adding reimbursed expense ${expense.id} to budget ${budget.id}`);
+      logger.log(1, '_addExpenseToBudget', `Adding reimbursed expense ${expense.id} to budget ${budget.id}`);
 
       budget.reimbursedAmount += expense.cost;
     }
@@ -117,7 +117,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _areExpenseTypesEqual(expense, oldExpense) {
-    util.log(3, '_areExpenseTypesEqual',
+    logger.log(3, '_areExpenseTypesEqual',
       `Checking new and old expense types are equal for expense ${expense.id}`
     );
 
@@ -132,7 +132,7 @@ class ExpenseRoutes extends Crud {
    * calculate the overdraft for a particular employee budget
    */
   async _calcOverdraft(budget, employeeId, expenseType) {
-    util.log(3, '_calcOverdraft',
+    logger.log(3, '_calcOverdraft',
       `Calculating overdraft for user ${employeeId} for budget ${budget.id} for expense type ${expenseType}`
     );
 
@@ -143,7 +143,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _calculateBudgetOverage(budget, expenseType) {
-    util.log(3, '_calculateBudgetOverage',
+    logger.log(3, '_calculateBudgetOverage',
       `Calculating reimbursed overage for budget ${budget.id} and expense type ${expenseType.id}`
     );
 
@@ -154,7 +154,7 @@ class ExpenseRoutes extends Crud {
    * Change the path name for objects in an a s3 bucket
    */
   async _changeBucket(userId, oldId, newId) {
-    util.log(2, '_changeBucket', `Attempting to change S3 file from ${oldId} to ${newId}`);
+    logger.log(2, '_changeBucket', `Attempting to change S3 file from ${oldId} to ${newId}`);
 
     var oldPrefix = `${oldId}`;
     var newPrefix = `${newId}`;
@@ -180,9 +180,9 @@ class ExpenseRoutes extends Crud {
 
         s3.copyObject(params, function(copyErr) {
           if (copyErr) {
-            util.error('_changeBucket', copyErr);
+            logger.error('_changeBucket', copyErr);
           } else {
-            util.log(2, '_changeBucket', `Copied S3 ${mostRecentFile.Key} to ${params.Key}`);
+            logger.log(2, '_changeBucket', `Copied S3 ${mostRecentFile.Key} to ${params.Key}`);
           }
         });
 
@@ -195,10 +195,10 @@ class ExpenseRoutes extends Crud {
           };
           s3.copyObject(params, function(copyErr){
             if (copyErr) {
-              util.error('_changeBucket', copyErr);
+              logger.error('_changeBucket', copyErr);
             }
             else {
-              util.log(2, '_changeBucket', `Copied S3 ${file.Key} to ${params.Key}`);
+              logger.log(2, '_changeBucket', `Copied S3 ${file.Key} to ${params.Key}`);
             }
           });
          }); */
@@ -207,7 +207,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkBalance(expense, expenseType, budget, oldExpense) {
-    util.log(2, '_checkBalance', `Validating budget for expense ${expense.id}`);
+    logger.log(2, '_checkBalance', `Validating budget for expense ${expense.id}`);
 
     expense.cost = Number(expense.cost);
     let oldCost = oldExpense ? oldExpense.cost : 0;
@@ -234,7 +234,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-    util.log(3, '_checkExpenseDate',
+    logger.log(3, '_checkExpenseDate',
       `Checking purchase date ${purchaseDate} is between ${stringStartDate} - ${stringEndDate}`
     );
 
@@ -245,7 +245,7 @@ class ExpenseRoutes extends Crud {
   }
 
   checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    util.log(2, 'checkValidity', `Validating expense ${expense.id}`);
+    logger.log(2, 'checkValidity', `Validating expense ${expense.id}`);
 
     let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
 
@@ -278,7 +278,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _createNewBudget(expenseType, employee, newId) {
-    util.log(2, '_createNewBudget',
+    logger.log(2, '_createNewBudget',
       `Creating a new budget ${newId} for expense type ${expenseType.id} for user ${employee.id}`
     );
 
@@ -302,7 +302,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _decideIfBudgetExists(budget, expense, expenseType) {
-    util.log(3, '_decideIfBudgetExists', 'Determining if budget exists');
+    logger.log(3, '_decideIfBudgetExists', 'Determining if budget exists');
 
     //if the budget does exist, add the cost of this expense to the pending balance of that budget
     if (budget) {
@@ -324,7 +324,7 @@ class ExpenseRoutes extends Crud {
   }
 
   async _delete(id) {
-    util.log(1, '_delete', `Attempting to delete expense ${id}`);
+    logger.log(1, '_delete', `Attempting to delete expense ${id}`);
 
     let expense, budget, expenseType, rawBudgets, budgets;
 
@@ -337,7 +337,7 @@ class ExpenseRoutes extends Crud {
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
     } catch (err) {
-      util.error('_delete', `Error code: ${err.code}`);
+      logger.error('_delete', `Error code: ${err.code}`);
 
       throw err;
     }
@@ -349,7 +349,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    util.log(3, '_findBudgetWithMatchingRange', `Finding budget for purchase date ${purchaseDate}`);
+    logger.log(3, '_findBudgetWithMatchingRange', `Finding budget for purchase date ${purchaseDate}`);
 
     let validBudgets = _.find(budgets, budget => {
       return this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate);
@@ -367,7 +367,7 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getBudgetData(budgets, expenseType, employee, expense) {
-    util.log(2, '_getBudgetData',
+    logger.log(2, '_getBudgetData',
       `Getting budget data for expense ${expense.id} with expense type ${expenseType.id} for user ${employee.id}`
     );
 
@@ -379,13 +379,15 @@ class ExpenseRoutes extends Crud {
   }
 
   // TBD - duplicated from employee routes
-  _getBudgetDates(hireDate) {
-    util.log(3, '_getBudgetDates', `Getting budget dates from hire date ${hireDate}`);
+  _getBudgetDates(hireDateParam) {
+    let hireDate = moment(hireDateParam);
+    logger.log(3, '_getBudgetDates', `Getting budget dates from hire date ${hireDate.format('YYYY-MM-DD')}`);
 
     if (hireDate.isSameOrAfter(moment())) {
+
       return {
         startDate: hireDate,
-        endDate: hireDate.add(1, 'years').subtract(1, 'days')
+        endDate: moment(hireDate).add(1, 'years').subtract(1, 'days')
       };
     }
 
@@ -404,7 +406,7 @@ class ExpenseRoutes extends Crud {
   }
 
   async _getCurrentBudgetData(budgets, expenseType, employee) {
-    util.log(3, '_getCurrentBudgetData',
+    logger.log(3, '_getCurrentBudgetData',
       `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`
     );
 
@@ -423,7 +425,7 @@ class ExpenseRoutes extends Crud {
    * Return a mapped array of overdrafts for the employee budgets
    */
   async _getEmployeeBudgetOverdrafts(budgets, employeeId, expenseType) {
-    util.log(3, '_getEmployeeBudgetOverdrafts',
+    logger.log(3, '_getEmployeeBudgetOverdrafts',
       `Getting overdrafts for user ${employeeId} for expense type ${expenseType.id}`
     );
 
@@ -440,7 +442,7 @@ class ExpenseRoutes extends Crud {
    * Return the total cost of reimbursed expenses for an employee within a budget range
    */
   async _getEmployeeExpensesTotalReimbursedInBudget(employeeId, budget, expenseType) {
-    util.log(3, '_getEmployeeExpensesTotalReimbursedInBudget',
+    logger.log(3, '_getEmployeeExpensesTotalReimbursedInBudget',
       `Calculating total cost of reimbursed expenses for user ${employeeId} within budget ${budget.id}`,
       `for expense type ${expenseType}`
     );
@@ -457,18 +459,18 @@ class ExpenseRoutes extends Crud {
   }
 
   _getUUID() {
-    util.log(4, '_getUUID', 'Getting random uuid');
+    logger.log(4, '_getUUID', 'Getting random uuid');
 
     return uuid();
   }
 
   _isEmpty(field) {
-    util.log(4, '_isEmpty', 'Checking if field exists');
+    logger.log(4, '_isEmpty', 'Checking if field exists');
     return field == null || field.trim().length <= 0;
   }
 
   _isNotReimbursedPromise(expense) {
-    util.log(3, '_isNotReimbursedPromise', `Checking if expense ${expense.id} is reimbursed`);
+    logger.log(3, '_isNotReimbursedPromise', `Checking if expense ${expense.id} is reimbursed`);
 
     let err = {
       code: 403,
@@ -478,7 +480,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _isPurchaseWithinRange(expenseType, purchaseDate) {
-    util.log(3, '_isPurchaseWithinRange',
+    logger.log(3, '_isPurchaseWithinRange',
       `Checking purchase date ${purchaseDate} is within range of expense type ${expenseType.id}`
     );
 
@@ -504,7 +506,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _isReimbursed(expense) {
-    util.log(3, '_isReimbursed', `Checking if expense ${expense.id} is reimbursed`);
+    logger.log(3, '_isReimbursed', `Checking if expense ${expense.id} is reimbursed`);
 
     return !!expense.reimbursedDate && expense.reimbursedDate.trim().length > 0;
   }
@@ -513,7 +515,7 @@ class ExpenseRoutes extends Crud {
    * return true if expense matches expense type, is reimbursed, and within budget range
    */
   _isValidExpense(expense, budget, expenseType) {
-    util.log(4, '_isValidExpense',
+    logger.log(4, '_isValidExpense',
       `Validating if expense ${expense.id} matches expenseType ${expenseType.id}, is reimbursed,`,
       `and within budget ${budget.id} range`
     );
@@ -526,7 +528,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
-    util.log(2, '_performBudgetUpdate', `Updating budget ${budget.id}`);
+    logger.log(2, '_performBudgetUpdate', `Updating budget ${budget.id}`);
 
     if (!this._isReimbursed(oldExpense) && this._isReimbursed(newExpense)) {
       //if reimbursing an expense
@@ -542,7 +544,7 @@ class ExpenseRoutes extends Crud {
   }
 
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    util.log(1, '_reimburseExpense', `Attempting to reimburse expense ${oldExpense.id}`);
+    logger.log(1, '_reimburseExpense', `Attempting to reimburse expense ${oldExpense.id}`);
 
     budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost); // remove pending from old budget
 
@@ -585,20 +587,20 @@ class ExpenseRoutes extends Crud {
           nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
           overage = this._calculateBudgetOverage(newBudget, expenseType); // calculate overdraft overage
         }
-        util.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
+        logger.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
 
         return dbPromise;
       } catch (e) {
         return dbPromise;
       }
     }
-    util.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
+    logger.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
 
     return dbPromise;
   }
 
   _removeFromBudget(budget, expense, expenseType) {
-    util.log(1, '_removeFromBudget', `Removing expense ${expense.id} from budget ${budget.id}`);
+    logger.log(1, '_removeFromBudget', `Removing expense ${expense.id} from budget ${budget.id}`);
 
     budget.pendingAmount -= expense.cost;
     if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
@@ -612,7 +614,7 @@ class ExpenseRoutes extends Crud {
    * Return an array of sorted budgets by fiscal start date
    */
   _sortBudgets(budgets) {
-    util.log(3, '_sortBudgets', 'Sorting budgets');
+    logger.log(3, '_sortBudgets', 'Sorting budgets');
 
     return _.sortBy(budgets, [
       budget => {
@@ -623,7 +625,7 @@ class ExpenseRoutes extends Crud {
 
   //returns number fixed at 2 decimal places after subtraction operation
   _subtractCost(subtractFrom, subtractWith) {
-    util.log(4, '_subtractCost', 'subtracting two costs');
+    logger.log(4, '_subtractCost', 'subtracting two costs');
 
     let newValue = subtractFrom - subtractWith;
     newValue = Number(newValue);
@@ -631,7 +633,7 @@ class ExpenseRoutes extends Crud {
   }
 
   _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
-    util.log(1, '_unimbursedExpenseChange', `Changing pending expense ${oldExpense.id}`);
+    logger.log(1, '_unimbursedExpenseChange', `Changing pending expense ${oldExpense.id}`);
 
     budget.pendingAmount -= oldExpense.cost; // remove old cost from old budget pending amount
     // get new expense budget
@@ -650,7 +652,7 @@ class ExpenseRoutes extends Crud {
    * Unreimburse an expense
    */
   async _unreimburseExpense(oldExpense, newExpense, budgets, expenseType) {
-    util.log(1, '_unreimburseExpense', `Unreimbursing expense ${oldExpense.id}`);
+    logger.log(1, '_unreimburseExpense', `Unreimbursing expense ${oldExpense.id}`);
 
     // sort the budgets
     let sortedBudgets = this._sortBudgets(budgets);
@@ -706,13 +708,13 @@ class ExpenseRoutes extends Crud {
       }
       currBudgetIndex++; // continue to next budget
     } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
-    util.log(1, '_unreimburseExpense', `Successfully unreimbursed expense ${oldExpense.id}`);
+    logger.log(1, '_unreimburseExpense', `Successfully unreimbursed expense ${oldExpense.id}`);
 
     return sortedBudgets;
   }
 
   async _update(id, data) {
-    util.log(1, '_update', `Attempting to update expense ${id}`);
+    logger.log(1, '_update', `Attempting to update expense ${id}`);
 
     let expenseType, oldExpenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
@@ -730,7 +732,7 @@ class ExpenseRoutes extends Crud {
         this._changeBucket(oldExpense.userId, oldExpense.id, newExpense.id);
       }
 
-      util.log(1, '_update', `Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId}`,
+      logger.log(1, '_update', `Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId}`,
         `to ${expenseType.id} with new id ${newExpense.id}`
       );
 
@@ -748,7 +750,7 @@ class ExpenseRoutes extends Crud {
           budgets.push(new Budget(e));
         });
       } catch (err) {
-        util.error('_update', `Error code: ${err.code}`);
+        logger.error('_update', `Error code: ${err.code}`);
 
         throw err;
       }
@@ -800,7 +802,7 @@ class ExpenseRoutes extends Crud {
         });
         budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
       } catch (err) {
-        util.error('_update', `Error code: ${err.code}`);
+        logger.error('_update', `Error code: ${err.code}`);
 
         throw err;
       }

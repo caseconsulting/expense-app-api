@@ -4,8 +4,8 @@ const expenseDynamo = new databaseModify('expenses');
 const expenseTypeDynamo = new databaseModify('expense-types');
 const budgetDynamo = new databaseModify('budgets');
 const trainingDynamo = new databaseModify('training-urls');
-const Util = require('../js/Util');
-const util = new Util('specialRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('loggerityRoutes');
 
 const express = require('express');
 const _ = require('lodash');
@@ -33,7 +33,7 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
-class Special {
+class Utility {
   constructor() {
     this.expenseData = expenseDynamo;
     this.employeeData = employeeDynamo;
@@ -63,13 +63,13 @@ class Special {
    * Handles any errors in crud operations
    */
   _handleError(res, err) {
-    util.error('_handleError', `Error code: ${err.code}. ${err.message}`);
+    logger.error('_handleError', `Error code: ${err.code}. ${err.message}`);
 
     return res.status(err.code).send(err.message);
   }
 
   getEmployeeName(expense) {
-    util.log(3, 'getEmployeeName', `Getting employee name of expense ${expense.id}`);
+    logger.log(3, 'getEmployeeName', `Getting employee name of expense ${expense.id}`);
 
     return this.employeeData.readFromDB(expense.userId).then(employee => {
       let emp = employee[0];
@@ -79,7 +79,7 @@ class Special {
   }
 
   getExpenseTypeName(expense) {
-    util.log(3, 'getExpenseTypeName', `Getting expense type name of expense ${expense.id}`);
+    logger.log(3, 'getExpenseTypeName', `Getting expense type name of expense ${expense.id}`);
 
     return this.expenseTypeData.readFromDB(expense.expenseTypeId).then(expenseType => {
       let type = expenseType[0];
@@ -89,7 +89,7 @@ class Special {
   }
 
   showList(req, res) {
-    util.log(3, 'showList', 'Getting all entries in database');
+    logger.log(3, 'showList', 'Getting all entries in database');
 
     return this.expenseData
       .getAllEntriesInDB()
@@ -100,7 +100,7 @@ class Special {
   }
 
   async empExpenses(req, res) {
-    util.log(2, 'empExpenses', `Getting expenses for user ${req.params.id}`);
+    logger.log(2, 'empExpenses', `Getting expenses for user ${req.params.id}`);
 
     try {
       const userID = req.params.id;
@@ -132,7 +132,7 @@ class Special {
   }
 
   getAllEmployeeExpenses(req, res) {
-    util.log(2, 'getAllEmployeeExpenses', 'Getting all employee expenses');
+    logger.log(2, 'getAllEmployeeExpenses', 'Getting all employee expenses');
 
     const userID = req.params.id;
     this.expenseData
@@ -146,7 +146,7 @@ class Special {
   }
 
   getAllExpenseTypeExpenses(req, res) {
-    util.log(2, 'getAllExpenseTypeExpenses', 'Getting all expense types');
+    logger.log(2, 'getAllExpenseTypeExpenses', 'Getting all expense types');
 
     const userID = req.params.id;
     this.expenseData
@@ -161,7 +161,7 @@ class Special {
 
   //function created to see if employee has any expenses
   // async empExpenseHistory(req, res) {
-  //   util.log(2, 'empExpenseHistory', `Checking if employee ${req.params.id} has any expenses`);
+  //   logger.log(2, 'empExpenseHistory', `Checking if employee ${req.params.id} has any expenses`);
   //
   //   try {
   //     const userID = req.params.id;
@@ -175,7 +175,7 @@ class Special {
   // }
 
   async showAll(req, res) {
-    util.log(3, 'showAll', 'Showing all expenses, users, and expense types');
+    logger.log(3, 'showAll', 'Showing all expenses, users, and expense types');
 
     try {
       let expenses = await this.expenseData.getAllEntriesInDB();
@@ -188,7 +188,7 @@ class Special {
   }
 
   _findEmployee(expenses, user, expensesTypes) {
-    util.log(3, '_findEmployee', `Finding user ${user.id}`);
+    logger.log(3, '_findEmployee', `Finding user ${user.id}`);
 
     let filteredExpenses = _.filter(expenses, expense => expense.userId === user.id);
     let temp = null;
@@ -211,13 +211,13 @@ class Special {
   }
 
   _findExpenseTypes(expenses, employees, expenseTypes) {
-    util.log(3, '_findExpenseTypes', 'Finding expense types');
+    logger.log(3, '_findExpenseTypes', 'Finding expense types');
 
     return _.forEach(employees, employee => this._expenseTypeMapping(expenses, employee, expenseTypes));
   }
 
   _expenseTypeMapping(expenses, employee, expenseTypes) {
-    util.log(3, '_expenseTypeMapping', `Mapping expense types for user ${employee.id}`);
+    logger.log(3, '_expenseTypeMapping', `Mapping expense types for user ${employee.id}`);
 
     return _.map(employee.expenseTypes, employeeExpenseType => {
       let returnedExpenseType = _.find(expenseTypes, et => et.id === employeeExpenseType.id);
@@ -230,7 +230,7 @@ class Special {
   }
 
   async getAllExpenses(req, res) {
-    util.log(2, 'getAllExpenses', 'Getting all expenses');
+    logger.log(2, 'getAllExpenses', 'Getting all expenses');
 
     try {
       if (this._isAdmin(req)) {
@@ -254,14 +254,14 @@ class Special {
   }
 
   _fullName(employee) {
-    util.log(4, '_fullName', `Getting full name for employee ${employee.id}`);
+    logger.log(4, '_fullName', `Getting full name for employee ${employee.id}`);
 
     const middleName = employee.middleName ? employee.middleName.trim() : '';
     return `${employee.firstName} ${middleName ? middleName + ' ' : ''}${employee.lastName}`;
   }
 
   _getEmployeeName(expenses, users, expenseTypes) {
-    util.log(3, '_getEmployeeName', 'Setting employee name for all expenses');
+    logger.log(3, '_getEmployeeName', 'Setting employee name for all expenses');
 
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
@@ -282,7 +282,7 @@ class Special {
     var atob = require('atob');
     let encoded = req.params.id.replace(/%2F/g, '/');
     var decoded = atob(encoded);
-    util.log(2, 'getURLInfo', `Getting information for URL ${decoded}`);
+    logger.log(2, 'getURLInfo', `Getting information for URL ${decoded}`);
 
     const NOT_FOUND = {
       code: 404,
@@ -317,7 +317,7 @@ class Special {
   }
 
   _expenseMapping(expenses, employee, expenseType) {
-    util.log(3, '_expenseMapping',
+    logger.log(3, '_expenseMapping',
       `Filtering expenses with expense type ${expenseType.id} for user ${employee.id}`
     );
 
@@ -325,7 +325,7 @@ class Special {
   }
 
   _processExpenses(expenseData) {
-    util.log(2, '_processExpenses', 'Processing expenses');
+    logger.log(2, '_processExpenses', 'Processing expenses');
 
     let processedExpenses = [];
     return new Promise(resolve => {
@@ -344,15 +344,15 @@ class Special {
   }
 
   _isAdmin(req) {
-    util.log(3, '_isAdmin', 'Checking if user role is admin');
+    logger.log(3, '_isAdmin', 'Checking if user role is admin');
 
     return req.employee.employeeRole === 'admin';
   }
   _isUser(req) {
-    util.log(3, '_isAdmin', 'Checking if user role is user');
+    logger.log(3, '_isAdmin', 'Checking if user role is user');
 
     return req.employee.employeeRole === 'user';
   }
 }
 
-module.exports = Special;
+module.exports = Utility;

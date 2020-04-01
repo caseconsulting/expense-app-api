@@ -1,6 +1,6 @@
 var express = require('express');
 var path = require('path');
-var logger = require('morgan');
+var morganLogger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
@@ -31,8 +31,8 @@ const employeeRoutes = new EmployeeRoutes();
 const TrainingURLRoutes = require('./routes/trainingURLRoutes');
 const trainingURLRoutes = new TrainingURLRoutes();
 
-const SpecialRoutes = require('./routes/specialRoutes');
-const specialRoutes = new SpecialRoutes();
+const UtilityRoutes = require('./routes/utilityRoutes');
+const utilityRoutes = new UtilityRoutes();
 
 const AttachmentRoutes = require('./routes/attachmentRoutes');
 const attachmentRoutes = new AttachmentRoutes();
@@ -47,9 +47,9 @@ let corsConfig = {
   allowedHeaders: ['Authorization', 'Content-Type']
 };
 
-logger.token('timestamp', () => { return `[${moment().format()}]`; });
+morganLogger.token('timestamp', () => { return `[${moment().format()}]`; });
 
-app.use(logger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));
+app.use(morganLogger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));
 app.use(cors(corsConfig));
 app.use(bodyParser.json());
 app.use(
@@ -64,7 +64,7 @@ app.use('/info', roles.router);
 app.use('/expense-types', expenseTypeRoutes.router);
 app.use('/employees', employeeRoutes.router);
 app.use('/expenses', expenseRoutes.router);
-app.use('/special', specialRoutes.router);
+app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
 app.use('/training-urls', trainingURLRoutes.router);

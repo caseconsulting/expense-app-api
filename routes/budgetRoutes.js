@@ -1,8 +1,8 @@
 const express = require('express');
 const databaseModify = require('../js/databaseModify');
 const budgetDynamo = new databaseModify('budgets');
-const Util = require('../js/Util');
-const util = new Util('budgetRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('budgetRoutes');
 
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
@@ -39,7 +39,7 @@ class Budgets {
   }
 
   getBudgetByUser(req, res) {
-    util.log(2, 'getBudgetByUser', `Getting budgets for user ${req.params.id} if admin`);
+    logger.log(2, 'getBudgetByUser', `Getting budgets for user ${req.params.id} if admin`);
 
     if (this._isAdmin(req)) {
       return this.budgetDynamo
@@ -54,7 +54,7 @@ class Budgets {
   }
 
   getCaller(req, res) {
-    util.log(2, 'getCaller', `Getting budgets for user ${req.params.id}`);
+    logger.log(2, 'getCaller', `Getting budgets for user ${req.params.id}`);
 
     return this.budgetDynamo
       .querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.employee.id)
@@ -67,7 +67,7 @@ class Budgets {
   }
 
   _isAdmin(req) {
-    util.log(3, '_isAdmin', 'Checking if user role is admin');
+    logger.log(3, '_isAdmin', 'Checking if user role is admin');
 
     return req.employee.employeeRole === 'admin';
   }

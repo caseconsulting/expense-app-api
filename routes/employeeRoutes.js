@@ -3,8 +3,8 @@ const databaseModify = require('../js/databaseModify');
 const moment = require('moment');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
-const Util = require('../js/Util');
-const util = new Util('employeeRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('employeeRoutes');
 const Employee = require('./../models/employee');
 const IsoFormat = 'YYYY-MM-DD';
 
@@ -18,7 +18,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _add(id, data) {
-    util.log(1, '_add', `Attempting to add employee ${id}`);
+    logger.log(1, '_add', `Attempting to add employee ${id}`);
 
     let employee = new Employee(data);
     employee.id = id;
@@ -33,8 +33,8 @@ class EmployeeRoutes extends Crud {
         return employee;
       });
     } catch (err) {
-      util.log(1, '_add', `Failed to add employee ${id}`);
-      util.error('_add', `Error code: ${err.code}`);
+      logger.log(1, '_add', `Failed to add employee ${id}`);
+      logger.error('_add', `Error code: ${err.code}`);
       throw err;
     }
   }
@@ -45,7 +45,7 @@ class EmployeeRoutes extends Crud {
   async _changeBudgetDates(oldEmployeePromise, newEmployee) {
     let oldEmployee = await oldEmployeePromise;
 
-    util.log(2, '_changeBudgetDates',
+    logger.log(2, '_changeBudgetDates',
       `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
       `to ${newEmployee.hireDate}`
     );
@@ -88,7 +88,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _createRecurringExpenses(userId, hireDate) {
-    util.log(2, '_createRecurringExpenses',
+    logger.log(2, '_createRecurringExpenses',
       `Creating recurring expenses for user ${userId} starting on ${hireDate}`
     );
 
@@ -98,7 +98,7 @@ class EmployeeRoutes extends Crud {
     try {
       expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
-      util.error('_createRecurringExpenses', `Error code: ${err.code}`);
+      logger.error('_createRecurringExpenses', `Error code: ${err.code}`);
 
       throw err;
     }
@@ -124,7 +124,7 @@ class EmployeeRoutes extends Crud {
   }
 
   async _delete(id) {
-    util.log(1, '_delete', `Attempting to delete employee ${id}`);
+    logger.log(1, '_delete', `Attempting to delete employee ${id}`);
 
     let employee, userExpenses, userBudgets;
 
@@ -147,14 +147,14 @@ class EmployeeRoutes extends Crud {
         throw err;
       }
     } catch (err) {
-      util.error('_delete', `Error code: ${err.code}`);
+      logger.error('_delete', `Error code: ${err.code}`);
 
       throw err;
     }
   }
 
   _getBudgetDates(hireDate) {
-    util.log(2, '_getBudgetDates', `Getting budget dates for ${hireDate}`);
+    logger.log(2, '_getBudgetDates', `Getting budget dates for ${hireDate}`);
 
     let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
     let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
@@ -187,7 +187,7 @@ class EmployeeRoutes extends Crud {
    * Get all budgets for an employee with a specific expense type.
    */
   async getBudgets(employeeID, expenseTypeID) {
-    util.log(3, 'getBudgets', `Getting budgets for employee ${employeeID} with expense type ${expenseTypeID}`);
+    logger.log(3, 'getBudgets', `Getting budgets for employee ${employeeID} with expense type ${expenseTypeID}`);
 
     return await this.budgetDynamo.queryWithTwoIndexesInDB(employeeID, expenseTypeID);
   }
@@ -196,13 +196,13 @@ class EmployeeRoutes extends Crud {
    * Get all expense types.
    */
   async getExpenseTypes() {
-    util.log(2, 'getExpenseTypes', 'Getting all expense types');
+    logger.log(2, 'getExpenseTypes', 'Getting all expense types');
 
     return await this.expenseTypeDynamo.getAllEntriesInDB();
   }
 
   _getUUID() {
-    util.log(4, '_getUUID', 'Getting random uuid');
+    logger.log(4, '_getUUID', 'Getting random uuid');
 
     return uuid();
   }
@@ -212,7 +212,7 @@ class EmployeeRoutes extends Crud {
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */
   async _isDuplicateEmployee(employee) {
-    util.log(2, '_isDuplicateEmployee', `Checking if user ${employee.id} is a duplicate employee`);
+    logger.log(2, '_isDuplicateEmployee', `Checking if user ${employee.id} is a duplicate employee`);
 
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
 
@@ -238,7 +238,7 @@ class EmployeeRoutes extends Crud {
    * Return an array of sorted budgets by fiscal start date
    */
   _sortBudgets(budgets) {
-    util.log(3, '_sortBudgets', 'Sorting budgets');
+    logger.log(3, '_sortBudgets', 'Sorting budgets');
 
     return _.sortBy(budgets, [
       budget => {
@@ -248,7 +248,7 @@ class EmployeeRoutes extends Crud {
   }
 
   _update(id, data) {
-    util.log(1, '_update', `Attempting to update user ${id}`);
+    logger.log(1, '_update', `Attempting to update user ${id}`);
 
     let employee = new Employee(data);
     employee.id = id;

@@ -3,8 +3,8 @@ var express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const Util = require('../js/Util');
-const util = new Util('roles');
+const Logger = require('../js/Logger');
+const logger = new Logger('roles');
 
 
 // Authentication middleware. When used, the
@@ -39,7 +39,7 @@ class Roles {
   }
 
   getUserRole(req, res) {
-    util.log(3, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
+    logger.log(3, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
 
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee.employeeRole);
@@ -49,7 +49,7 @@ class Roles {
   }
 
   getUser(req, res) {
-    util.log(3, 'getUser', `Getting employee info for user ${req.employee.id}`);
+    logger.log(3, 'getUser', `Getting employee info for user ${req.employee.id}`);
 
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee);

@@ -5,8 +5,8 @@ const MomentRange = require('moment-range');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 const _ = require('lodash');
-const Util = require('../js/Util');
-const util = new Util('expenseTypeRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('expenseTypeRoutes');
 
 const ExpenseType = require('./../models/expenseType');
 const expenseDynamo = new databaseModify('expenses');
@@ -21,7 +21,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _add(id, data) {
-    util.log(1, '_add', `Attempting to add expense type ${id}`);
+    logger.log(1, '_add', `Attempting to add expense type ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -34,14 +34,14 @@ class ExpenseTypeRoutes extends Crud {
       )
       .then(() => this.expenseTypeDynamo.addToDB(expenseType))
       .catch(err => {
-        util.log(1, '_add', `Failed to add expense type ${id}`);
-        util.error('_add', `Error code: ${err.code}`);
+        logger.log(1, '_add', `Failed to add expense type ${id}`);
+        logger.error('_add', `Error code: ${err.code}`);
         throw err;
       });
   }
 
   async _checkDates(start, end, recurringFlag, id) {
-    util.log(2, '_checkDates', 'Validating expense type dates');
+    logger.log(2, '_checkDates', 'Validating expense type dates');
 
     let err = {
       code: 403,
@@ -88,7 +88,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _checkFields(expenseType) {
-    util.log(2, '_checkFields', `Validating expense type ${expenseType.id}`);
+    logger.log(2, '_checkFields', `Validating expense type ${expenseType.id}`);
 
     let idCheck = !!expenseType.id;
     let budgetNameCheck = !!expenseType.budgetName;
@@ -103,7 +103,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   async _delete(id) {
-    util.log(1, '_delete', `Attempting to delete expense type ${id}`);
+    logger.log(1, '_delete', `Attempting to delete expense type ${id}`);
 
     let expenseType, typeExpenses;
 
@@ -122,19 +122,19 @@ class ExpenseTypeRoutes extends Crud {
         throw err;
       }
     } catch (err) {
-      util.log(1, '_delete', `Failed to delete expense type ${id}`);
+      logger.log(1, '_delete', `Failed to delete expense type ${id}`);
 
       throw err;
     }
   }
 
   _isEmpty(field) {
-    util.log(4, '_isEmpty', 'Checking if field exists');
+    logger.log(4, '_isEmpty', 'Checking if field exists');
     return field == null || field.trim().length <= 0;
   }
 
   async _updateBudgets(startDate, endDate, expenseTypeID) {
-    util.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseTypeID}`);
+    logger.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseTypeID}`);
 
     let updatePromise;
     let budgets =
@@ -152,7 +152,7 @@ class ExpenseTypeRoutes extends Crud {
   }
 
   _update(id, data) {
-    util.log(1, '_update', `Attempting to update expense type ${id}`);
+    logger.log(1, '_update', `Attempting to update expense type ${id}`);
 
     let expenseType = new ExpenseType(data);
     expenseType.id = id;
@@ -166,7 +166,7 @@ class ExpenseTypeRoutes extends Crud {
       .then(() => this._updateBudgets(expenseType.startDate, expenseType.endDate, expenseType.id))
       .then(() => this.expenseTypeDynamo.updateEntryInDB(expenseType))
       .catch(err => {
-        util.log(1, '_update', `Failed to update expense type ${id}`);
+        logger.log(1, '_update', `Failed to update expense type ${id}`);
 
         throw err;
       });

@@ -6,8 +6,8 @@ const trainingDynamo = new databaseModify('training-urls');
 const _ = require('lodash');
 
 const TrainingUrls = require('../models/trainingUrls');
-const Util = require('../js/Util');
-const util = new Util('trainingURLRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('trainingURLRoutes');
 
 // const metascraper = require('metascraper')([
 //   require('metascraper-description')(),
@@ -36,13 +36,13 @@ class TrainingURLRoutes extends Crud {
     //   const { body: html, url } = await got(id);
     //   metadata = await metascraper({ html, url });
     // } catch (err) {
-    //   util.error('_add', `>>> Failed to get metadata for ${id}`);
+    //   logger.error('_add', `>>> Failed to get metadata for ${id}`);
     // }
     return metadata;
   }
 
   async _add(id, data) {
-    util.log(1, '_add', `Attempting to add training url ${id} with category ${data.category}`);
+    logger.log(1, '_add', `Attempting to add training url ${id} with category ${data.category}`);
     let metadata = await this._getMetaData(id);
     metadata.id = data.id;
     metadata.category = data.category;
@@ -59,7 +59,7 @@ class TrainingURLRoutes extends Crud {
   }
 
   _checkFields(trainingURL) {
-    util.log(2, '_checkFields', 'Validating if the training url id exists and if the url has any hits');
+    logger.log(2, '_checkFields', 'Validating if the training url id exists and if the url has any hits');
 
     let idCheck = !!trainingURL.id;
     let hitsCheck = trainingURL.hits > 0;
@@ -74,7 +74,7 @@ class TrainingURLRoutes extends Crud {
 
   //unused?
   _getURLInfo(req, res) {
-    util.log(2, '_getURLInfo', `Getting info for url ${req.params.id}`);
+    logger.log(2, '_getURLInfo', `Getting info for url ${req.params.id}`);
 
     const NOT_FOUND = {
       code: 404,
@@ -107,7 +107,7 @@ class TrainingURLRoutes extends Crud {
   _update(id, category, data) {
     let trainingURL = new TrainingUrls(data);
 
-    util.log(1, '_update', `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`);
+    logger.log(1, '_update', `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`);
 
     return this.databaseModify
       .readFromDBURL(trainingURL.id, category)

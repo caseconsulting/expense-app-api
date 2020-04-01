@@ -5,8 +5,8 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const TrainingUrls = require('../models/trainingUrls');
 const STAGE = process.env.STAGE;
-const Util = require('../js/Util');
-const util = new Util('crudRoutes');
+const Logger = require('../js/Logger');
+const logger = new Logger('crudRoutes');
 
 // const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
@@ -55,13 +55,13 @@ class Crud {
   /* eslint-enable no-unused-vars */
 
   _checkPermissionForOnDelete(req) {
-    util.log(3, '_checkPermissionForOnDelete', 'Checking permissions for on delete');
+    logger.log(3, '_checkPermissionForOnDelete', 'Checking permissions for on delete');
 
     return this._isUser(req) && this._checkTableName(['expenses']);
   }
 
   _checkPermissionForShowList(req) {
-    util.log(3, '_checkPermissionForShowList', 'Checking permissions for show list');
+    logger.log(3, '_checkPermissionForShowList', 'Checking permissions for show list');
 
     return this._isAdmin(req) || this._checkTableName(['expense-types', 'employees']);
   }
@@ -72,7 +72,7 @@ class Crud {
    * @return true if found and false if the current table name is not in the list
    */
   _checkTableName(listOfValidTables) {
-    util.log(3, '_checkTableName', 'Checking if current table name is in list of valid tables');
+    logger.log(3, '_checkTableName', 'Checking if current table name is in list of valid tables');
 
     let foundItem = _.find(listOfValidTables, tableName => this.databaseModify.tableName === `${STAGE}-${tableName}`);
     return foundItem != undefined;
@@ -82,7 +82,7 @@ class Crud {
   * Creates the object in the database
   */
   create(req, res) {
-    util.log(3, 'create', 'Creating object');
+    logger.log(3, 'create', 'Creating object');
 
     if (this._validPermissions(req)) {
       let id = this._getTableName() === `${STAGE}-training-urls` ? req.body.id : uuid();
@@ -100,17 +100,17 @@ class Crud {
   }
 
   _createInDatabase(res, newObject) {
-    util.log(3, '_createInDatabase', 'Creating object in database');
+    logger.log(3, '_createInDatabase', 'Creating object in database');
 
     return this.databaseModify
       .addToDB(newObject)
       .then(data => {
         if (newObject instanceof TrainingUrls) {
-          util.log(1, '_createInDatabase',
+          logger.log(1, '_createInDatabase',
             `Successfully added ${newObject.id} with category ${newObject.category} to database`
           );
         } else {
-          util.log(1, '_createInDatabase',
+          logger.log(1, '_createInDatabase',
             `Successfully added ${newObject.id} to database`
           );
         }
@@ -126,7 +126,7 @@ class Crud {
   /* eslint-enable no-unused-vars */
 
   _getTableName() {
-    util.log(3, '_getTableName', 'Getting table name');
+    logger.log(3, '_getTableName', 'Getting table name');
 
     return this.databaseModify.tableName;
   }
@@ -135,7 +135,7 @@ class Crud {
   * Handles any errors in crud operations
   */
   _handleError(res, err) {
-    util.error('_handleError', `Error code: ${err.code}. ${err.message}`);
+    logger.error('_handleError', `Error code: ${err.code}. ${err.message}`);
 
     return res.status(err.code).send(err);
   }
@@ -154,13 +154,13 @@ class Crud {
   }
 
   _isAdmin(req) {
-    util.log(3, '_isAdmin', 'Checking if user role is admin');
+    logger.log(3, '_isAdmin', 'Checking if user role is admin');
 
     return req.employee.employeeRole === 'admin';
   }
 
   _isUser(req) {
-    util.log(3, '_isAdmin', 'Checking if user role is user');
+    logger.log(3, '_isAdmin', 'Checking if user role is user');
 
     return req.employee.employeeRole === 'user';
   }
@@ -169,7 +169,7 @@ class Crud {
   * delete the specified entry
   */
   onDelete(req, res) {
-    util.log(3, 'onDelete', 'Deleting specific entry');
+    logger.log(3, 'onDelete', 'Deleting specific entry');
 
     if (this._isAdmin(req)) {
       if (this._checkTableName(['expenses', 'expense-types', 'employees'])) {
@@ -179,7 +179,7 @@ class Crud {
         return this.databaseModify
           .removeFromDB(req.params.id)
           .then(data => {
-            util.log(1, 'onDelete', `Successfully deleted ${req.params.id} from database`);
+            logger.log(1, 'onDelete', `Successfully deleted ${req.params.id} from database`);
 
             res.status(200).send(data);
           })
@@ -197,11 +197,11 @@ class Crud {
   }
 
   _onDeleteHelper(id, res) {
-    util.log(3, '_onDeleteHelper', 'Helping delete');
+    logger.log(3, '_onDeleteHelper', 'Helping delete');
 
     return this._delete(id)
       .then(value => {
-        util.log(1, '_onDeleteHelper', `Successfully deleted ${id} from database`);
+        logger.log(1, '_onDeleteHelper', `Successfully deleted ${id} from database`);
 
         res.status(200).send(value);
       })
@@ -209,7 +209,7 @@ class Crud {
   }
 
   read(req, res) {
-    util.log(3, 'read', 'Reading object');
+    logger.log(3, 'read', 'Reading object');
 
     const FORBIDDEN = {
       code: 403,
@@ -243,7 +243,7 @@ class Crud {
     } else if (this._getTableName() === `${STAGE}-expenses` && this._isUser(req)) {
       return this.databaseModify.readFromDB(req.params.id).then(expense => {
         if (_.first(expense).userId === req.employee.id) {
-          util.log(2, 'read', `Read from table ${this._getTableName()} for employee ${req.employee.id}`);
+          logger.log(2, 'read', `Read from table ${this._getTableName()} for employee ${req.employee.id}`);
 
           res.status(200).send(_.first(expense));
         } else {
@@ -254,7 +254,7 @@ class Crud {
     } else if (this._getTableName() === `${STAGE}-expense-types` && this._isUser(req)) {
       return this.databaseModify.readFromDB(req.params.id).then(output => {
         if (_.first(output)) {
-          util.log(2, 'read', `Read from table ${this._getTableName()} for employee ${req.employee.id}`);
+          logger.log(2, 'read', `Read from table ${this._getTableName()} for employee ${req.employee.id}`);
 
           res.status(200).send(_.first(output));
         } else {
@@ -272,7 +272,7 @@ class Crud {
   * Retrieve all items in a given list specified by request
   */
   showList(req, res) {
-    util.log(3, 'showList', 'Retrieving all items in a given list');
+    logger.log(3, 'showList', 'Retrieving all items in a given list');
 
     let hasPermission = this._checkPermissionForShowList(req);
     if (hasPermission) {
@@ -299,7 +299,7 @@ class Crud {
   * update a specified entry
   */
   update(req, res) {
-    util.log(3, 'update', 'Updating object');
+    logger.log(3, 'update', 'Updating object');
 
     if (this._validPermissions(req)) {
       if (this._getTableName() === `${STAGE}-training-urls`) {
@@ -326,17 +326,17 @@ class Crud {
   * Updates the object
   */
   _updateDatabase(res, newObject) {
-    util.log(3, '_updateDatabase', 'Updating object in database');
+    logger.log(3, '_updateDatabase', 'Updating object in database');
 
     return this.databaseModify
       .updateEntryInDB(newObject)
       .then(data => {
         if (newObject instanceof TrainingUrls) {
-          util.log(1, '_updateDatabase',
+          logger.log(1, '_updateDatabase',
             `Successfully updated ${newObject.id} with category ${newObject.category} to database`
           );
         } else {
-          util.log(1, '_updateDatabase', `Successfully updated ${newObject.id} from database`);
+          logger.log(1, '_updateDatabase', `Successfully updated ${newObject.id} from database`);
         }
         res.status(200).send(data);
       })
@@ -348,7 +348,7 @@ class Crud {
    * seperates cases based on newObject
    */
   _validateInputs(res, newObject) {
-    util.log(2, '_validateInputs', 'Validating input for database fields');
+    logger.log(2, '_validateInputs', 'Validating input for database fields');
 
     if (newObject.id) {
       let inputCheckerCurried = _.curry(this._inputChecker);
@@ -371,7 +371,7 @@ class Crud {
   }
 
   _validPermissions(req) {
-    util.log(3, '_validPermissions', 'Validating permissions');
+    logger.log(3, '_validPermissions', 'Validating permissions');
 
     return (this._isAdmin(req) && this._checkTableName(['expense-types', 'employees', 'expenses', 'training-urls']))
     || (this._isUser(req) && this._checkTableName(['expenses', 'training-urls'])) ;
