@@ -9,15 +9,15 @@ const TrainingUrls = require('../models/trainingUrls');
 const Util = require('../js/Util');
 const util = new Util('trainingURLRoutes');
 
-const metascraper = require('metascraper')([
-  require('metascraper-description')(),
-  require('metascraper-image')(),
-  require('metascraper-logo')(),
-  require('metascraper-clearbit')(),
-  require('metascraper-publisher')(),
-  require('metascraper-title')(),
-  require('metascraper-url')()
-]);
+// const metascraper = require('metascraper')([
+//   require('metascraper-description')(),
+//   require('metascraper-image')(),
+//   require('metascraper-logo')(),
+//   require('metascraper-clearbit')(),
+//   require('metascraper-publisher')(),
+//   require('metascraper-title')(),
+//   require('metascraper-url')()
+// ]);
 
 const got = require('got');
 
@@ -29,13 +29,15 @@ class TrainingURLRoutes extends Crud {
 
   async _getMetaData(id) {
     let metadata = {};
-    //console.warn(await got(id));
-    try {
-      const { body: html, url } = await got(id);
-      metadata = await metascraper({ html, url });
-    } catch (err) {
-      util.error('_add', `>>> Failed to get metadata for ${id}`);
-    }
+
+    await got(id); // remove this line when including metascraper
+
+    // try {
+    //   const { body: html, url } = await got(id);
+    //   metadata = await metascraper({ html, url });
+    // } catch (err) {
+    //   util.error('_add', `>>> Failed to get metadata for ${id}`);
+    // }
     return metadata;
   }
 
