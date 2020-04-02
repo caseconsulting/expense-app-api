@@ -28,9 +28,14 @@ class ExpenseType {
     this.startDate = data.startDate;
     this.description = data.description;
     this.categories = data.categories;
+    this.accessibleBy = data.accessibleBy;
 
     if (!this.categories) {
       this.categories = [];
+    }
+
+    if (!this.accessibleBy) {
+      this.accessibleBy = 'ALL'; // 'ALL' = accessible by all employees
     }
 
     if (this.requiredFlag == null) {

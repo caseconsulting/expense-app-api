@@ -62,6 +62,17 @@ class ExpenseRoutes extends Crud {
         };
         throw err;
       }
+      // throw access denied error if the employee does not have access to the expense type
+      if (employee.employeeRole != 'admin'
+        && expenseType.accessibleBy !== 'ALL'
+        && !expenseType.accessibleBy.includes(employee.id)) {
+        let err = {
+          code: 403,
+          message:
+            'Access to this Expense Type Denied'
+        };
+        throw err;
+      }
       if (expenseType.requiredFlag && this._isEmpty(data.receipt)) {
         let err = {
           code: 403,
@@ -723,6 +734,18 @@ class ExpenseRoutes extends Crud {
     oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
     employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
     expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
+
+    // throw access denied error if the employee does not have access to the expense type
+    if (employee.employeeRole != 'admin'
+      && expenseType.accessibleBy !== 'ALL'
+      && !expenseType.accessibleBy.includes(employee.id)) {
+      let err = {
+        code: 403,
+        message:
+          'Access to this Expense Type Denied'
+      };
+      throw err;
+    }
 
     if (expenseType.id !== oldExpense.expenseTypeId) {
       let unreimburseExpense = _.cloneDeep(oldExpense);
