@@ -5,7 +5,7 @@
 /*
  * action # table
  *
- * 1. Sets all employee's work status to 100 (Full Time)
+ * 1. Sets all employee's work status active = 100 (Full Time) or inactive = 0
  */
 
 // check for stage argument
@@ -66,9 +66,9 @@ function getAllEntries() {
 }
 
 /**
- * Sets all employee's work status to 100 (Full Time)
+ * Sets all employee's work status active = 100 (Full Time) or inactive = 0
  */
-async function workStatus100() {
+async function workStatusActive() {
   let employees = await getAllEntries();
   _.forEach(employees, employee => {
     let params = {
@@ -83,12 +83,18 @@ async function workStatus100() {
       ReturnValues: 'UPDATED_NEW'
     };
 
+    if (employee.isInactive) {
+      params.ExpressionAttributeValues = {
+        ':ws': 0
+      };
+    }
+
     // update employee
-    ddb.update(params, function(err) {
+    ddb.update(params, function(err, data) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
-        console.log(`Updated employee id ${employee.id}`);
+        console.log(`Item Updated\n  Employee ID: ${employee.id}\n  Work Status: ${data.Attributes.workStatus}`);
       }
     });
   });
@@ -100,8 +106,8 @@ async function workStatus100() {
 async function main() {
   switch (ACTION) {
     case 1:
-      console.log('Setting all employee\'s work status to 100 (Full Time)');
-      workStatus100();
+      console.log('Setting all employee\'s work status active = 100 (Full Time) or inactive = 0');
+      workStatusActive();
       break;
     // case 2:
     //   break;
