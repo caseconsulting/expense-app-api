@@ -35,7 +35,6 @@ class Employee {
     this.hireDate = data.hireDate;
     this.email = data.email;
     this.employeeRole = data.employeeRole;
-    this.isInactive = data.isInactive;
     this.workStatus = data.workStatus;
 
     // New fields

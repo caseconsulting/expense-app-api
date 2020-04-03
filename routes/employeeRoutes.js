@@ -22,7 +22,6 @@ class EmployeeRoutes extends Crud {
 
     let employee = new Employee(data);
     employee.id = id;
-    employee.isInactive = false;
 
     try {
       let error = await this._isDuplicateEmployee(employee);

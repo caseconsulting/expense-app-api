@@ -265,7 +265,7 @@ class ExpenseRoutes extends Crud {
     validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
     balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
     expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
-    let valid = expenseTypeValid && validDateRange && balanceCheck && !employee.isInactive;
+    let valid = expenseTypeValid && validDateRange && balanceCheck && !this._isEmployeeInactive(employee);
     let errMessage = 'Expense is not valid because:';
     if (!valid) {
       if (!expenseTypeValid) {
@@ -277,7 +277,7 @@ class ExpenseRoutes extends Crud {
       if (!balanceCheck) {
         errMessage += ' the expense is over the budget limit';
       }
-      if (employee.isInactive) {
+      if (this._isEmployeeInactive(employee)) {
         errMessage += ' the employee is not active';
       }
     }
@@ -473,6 +473,10 @@ class ExpenseRoutes extends Crud {
     logger.log(4, '_getUUID', 'Getting random uuid');
 
     return uuid();
+  }
+
+  _isEmployeeInactive(employee) {
+    return employee.workStatus == 0;
   }
 
   _isEmpty(field) {

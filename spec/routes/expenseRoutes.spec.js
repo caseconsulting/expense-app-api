@@ -36,7 +36,7 @@ describe('expenseRoutes', () => {
     expenseTypes: '[expenseTypes]',
     email: '{email}',
     employeeRole: '{employeeRole}',
-    isInactive: '{isInactive}'
+    workStatus: '{workStatus}'
   };
   const expenseType = {
     id: '{id}',
@@ -513,7 +513,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isInactive = false;
+        employee.workStatus = 100;
       });
 
       it('should return a resolved promise', done => {
@@ -537,7 +537,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(false);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isInactive = false;
+        employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
           message: `Expense is not valid because: the expense is outside the budget range, ${startDate} to ${endDate}`
@@ -566,7 +566,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(false);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isInactive = false;
+        employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the expense is over the budget limit'
@@ -595,7 +595,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(false);
-        employee.isInactive = false;
+        employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the expense type is not valid'
@@ -624,7 +624,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isInactive = true;
+        employee.workStatus = 0;
         expectedErrorObject = {
           code: 403,
           message: 'Expense is not valid because: the employee is not active'
@@ -656,7 +656,7 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
-        employee.isInactive = false;
+        employee.workStatus = 100;
         expenseType.recurringFlag = true;
       });
 
