@@ -12,6 +12,7 @@
  * - email
  * - employeeRole
  * - isActive
+ * - status
  *
  * - birthday
  * - jobRole
@@ -35,6 +36,7 @@ class Employee {
     this.email = data.email;
     this.employeeRole = data.employeeRole;
     this.isInactive = data.isInactive;
+    this.workStatus = data.workStatus;
 
     // New fields
     this.birthday = data.birthday;
@@ -47,6 +49,10 @@ class Employee {
     this.st = data.st;
     this.country = data.country;
     this.deptDate = data.deptDate;
+
+    if (this.workStatus == null) {
+      this.workStatus = 100; // Default: Full Time
+    }
 
     //sets null values to an empty string
     for (var propName in this) {

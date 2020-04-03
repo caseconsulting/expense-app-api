@@ -1,7 +1,7 @@
 /*
- * node ./js/Scripts.js dev add 10
- * node ./js/Scripts.js dev get
- * node ./js/Scripts.js dev delete
+ * node ./js/Scripts/expenseScripts.js dev add 10
+ * node ./js/Scripts/expenseScripts.js dev get
+ * node ./js/Scripts/expenseScripts.js dev delete
  */
 
 const uuid = require('uuid/v4');
@@ -32,7 +32,7 @@ if (process.argv.length > 3) {
 }
 
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
-const table = `${STAGE}-expenses`;
+const expenseTable = `${STAGE}-expenses`;
 
 // get all the entries in dynamo expense table
 const getAllEntries = (params, out = []) => new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ const getAllEntries = (params, out = []) => new Promise((resolve, reject) => {
 function getAllEntriesInDB() {
   console.log('Getting all entries in dynamodb expense table');
   let params = {
-    TableName: table,
+    TableName: expenseTable,
   };
   let entries = getAllEntries(params);
   console.log('Finished getting all entries');
@@ -61,7 +61,7 @@ function addItems(numberOfItems) {
   console.log(`Add ${numberOfItems} items`);
   for (let i = 0; i < numberOfItems; i++) {
     let params = {
-      TableName: table,
+      TableName: expenseTable,
       Item: {
         id: uuid(),
         categories: 'test category',
@@ -92,7 +92,7 @@ async function deleteAllExpenses() {
   let expenses = await getAllEntriesInDB();
   _.forEach(expenses, expense => {
     let params = {
-      TableName: table,
+      TableName: expenseTable,
       Key: {
         'id': expense.id
       }
