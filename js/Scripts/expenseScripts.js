@@ -1,69 +1,69 @@
 /*
- * node ./js/Scripts/expenseScripts.js dev add 10
- * node ./js/Scripts/expenseScripts.js dev get
- * node ./js/Scripts/expenseScripts.js dev delete
+ * node ./js/Scripts/expenseScripts.js dev
+ * node ./js/Scripts/expenseScripts.js test
+ * node ./js/Scripts/expenseScripts.js prod --profile prod
  */
+
+// LIST OF ACTIONS
+const actions = [
+  '0. Cancel',
+  '1. List all expenses',
+  '2. Create a specified number of dummy expenses',
+  '3. Delete all expenses'
+];
+
+// check for stage argument
+if (process.argv.length < 3) {
+  throw new Error('Must include a stage');
+}
+
+// set and validate stage
+const STAGE = process.argv[2];
+if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
+  throw new Error('Invalid stage. Must be dev, test, or prod');
+}
+
+// set expense table
+const TABLE = `${STAGE}-expenses`;
 
 const uuid = require('uuid/v4');
 const _ = require('lodash');
+const readlineSync = require('readline-sync');
+
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
-
-// validate the stage (dev, test, prod)
-let STAGE;
-let COMMAND;
-let VALUE;
-if (process.argv.length > 3) {
-  STAGE = process.argv[2];
-  if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
-    throw new Error('stage env must be dev, test, or prod');
-  }
-  COMMAND = process.argv[3];
-  if (COMMAND == 'add') {
-    if (process.argv.length <= 4) {
-      throw new Error('must include how many items to add');
-    }
-    VALUE = parseInt(process.argv[4]);
-  } else if (COMMAND != 'delete' && COMMAND != 'get') {
-    throw new Error('invalid command. use [add #], [delete], or [get]');
-  }
-} else {
-  throw new Error('must include a stage env and command');
-}
-
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
-const expenseTable = `${STAGE}-expenses`;
 
-// get all the entries in dynamo expense table
-const getAllEntries = (params, out = []) => new Promise((resolve, reject) => {
+// helper to get all entries in dynamodb table
+const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) => {
   ddb.scan(params).promise()
     .then(({Items, LastEvaluatedKey}) => {
       out.push(...Items);
       !LastEvaluatedKey ? resolve(out)
-        : resolve(getAllEntries(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
+        : resolve(getAllEntriesHelper(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
     })
     .catch(reject);
 });
 
-// get all expenses in the expense table
-function getAllEntriesInDB() {
-  console.log('Getting all entries in dynamodb expense table');
+// get all entries in dynamodb table
+function getAllEntries() {
+  console.log('Getting all entries in dynamodb expenses table');
   let params = {
-    TableName: expenseTable,
+    TableName: TABLE,
   };
-  let entries = getAllEntries(params);
+  let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
 }
 
 // Used for testing dynamo limitations - populates data table with expenses
-function addItems(numberOfItems) {
-  console.log(`Add ${numberOfItems} items`);
+function createItems(numberOfItems) {
   for (let i = 0; i < numberOfItems; i++) {
+    let newId = uuid();
     let params = {
-      TableName: expenseTable,
+      TableName: TABLE,
       Item: {
-        id: uuid(),
+        id: newId,
         categories: 'test category',
         cost: 1,
         createdAt: '2020-03-23',
@@ -79,20 +79,20 @@ function addItems(numberOfItems) {
     };
     ddb.put(params, function(err) {
       if (err) {
-        console.error('Unable to add item. Error JSON:', JSON.stringify(err, null, 2));
+        console.error('Unable to create item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Created dummy expense with id: ${newId}`);
       }
     });
   }
-  console.log('Finished adding items');
 }
 
 // Used for testing dynamo limitations - deletes all expenses
 async function deleteAllExpenses() {
-  console.log('Deleting all expenses');
-  let expenses = await getAllEntriesInDB();
+  let expenses = await getAllEntries();
   _.forEach(expenses, expense => {
     let params = {
-      TableName: expenseTable,
+      TableName: TABLE,
       Key: {
         'id': expense.id
       }
@@ -104,18 +104,120 @@ async function deleteAllExpenses() {
       }
     });
   });
-  console.log('Completed deleting all expenses');
 }
 
-async function main() {
-  if (COMMAND == 'add') {
-    addItems(VALUE);
-  } else if (COMMAND == 'get') {
-    console.log(await getAllEntriesInDB());
-  } else if (COMMAND == 'delete') {
-    deleteAllExpenses();
+/*
+ * User chooses an action
+ */
+function chooseAction() {
+  let input;
+  let valid;
+
+  let prompt = `ACTIONS - ${STAGE}\n`;
+  actions.forEach(item => {
+    prompt += `${item}\n`;
+  });
+  prompt += `Select an action number [0-${actions.length - 1}]`;
+
+  input = readlineSync.question(`${prompt} `);
+  valid = !isNaN(input);
+  if (valid) {
+    input = parseInt(input);
+    if (input < 0 || input > actions.length) {
+      valid = false;
+    }
+  }
+
+  while (!valid) {
+    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
+    valid = !isNaN(input);
+    if (valid) {
+      input = parseInt(input);
+      if (input < 0 || input > actions.length - 1) {
+        valid = false;
+      }
+    }
+  }
+  return input;
+}
+
+/*
+ * Prompts the user and confirm action
+ */
+function confirmAction(prompt) {
+  let input;
+
+  input = readlineSync.question(`\nAre you sure you want to ${prompt}[y/n] `);
+  input = input.toLowerCase();
+
+  while (input != 'y' && input != 'yes' && input != 'n' && input != 'no') {
+    input = readlineSync.question(`\nInvalid Input\nAre you sure you want to ${prompt} [y/n] `);
+    input = input.toLowerCase();
+  }
+  if (input == 'y' || input == 'yes') {
+    return true;
   } else {
-    throw new Error('invalid command');
+    console.log('Action Canceled');
+    return false;
+  }
+}
+
+function getNumExpenses() {
+  let input;
+  let valid;
+
+  let prompt = 'How many expenses do you want to create?';
+
+  input = readlineSync.question(`${prompt} `);
+  valid = !isNaN(input);
+  if (valid) {
+    input = parseInt(input);
+    if (input < 0) {
+      valid = false;
+    }
+  }
+
+  while (!valid) {
+    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
+    valid = !isNaN(input);
+    if (valid) {
+      input = parseInt(input);
+      if (input < 0) {
+        valid = false;
+      }
+    }
+  }
+  return input;
+}
+
+/**
+ * main - action selector
+ */
+async function main() {
+  switch (chooseAction()) {
+    case 0:
+      break;
+    case 1:
+      if (confirmAction('list all expenses')) {
+        console.log('Listing all expenses');
+        console.log(await getAllEntries());
+      }
+      break;
+    case 2:
+      if (confirmAction('create a specified number of dummy expenses')) {
+        let numExpenses = getNumExpenses();
+        console.log(`creating ${numExpenses} dummy expenses`);
+        createItems(numExpenses);
+      }
+      break;
+    case 3:
+      if (confirmAction('delete all expenses')) {
+        console.log('Deleting all expenses');
+        deleteAllExpenses();
+      }
+      break;
+    default:
+      throw new Error('Invalid Action Number');
   }
 }
 

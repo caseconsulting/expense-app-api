@@ -116,9 +116,6 @@ async function removeAttribute(attribute) {
   });
 }
 
-
-
-
 /*
  * User chooses an action
  */
