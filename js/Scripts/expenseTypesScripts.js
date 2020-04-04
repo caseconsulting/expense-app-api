@@ -4,11 +4,11 @@
  * node ./js/Scripts/expenseTypesScripts.js prod --profile prod
  */
 
- // LIST OF ACTIONS
- const actions = [
-   "0. Cancel",
-   "1. Set all expense type's accessible by value to 'ALL'"
- ];
+// LIST OF ACTIONS
+const actions = [
+  '0. Cancel',
+  '1. Set all expense type\'s accessible by value to \'ALL\''
+];
 
 // check for stage argument
 if (process.argv.length < 3) {
@@ -91,27 +91,27 @@ function chooseAction() {
 
   let prompt = `ACTIONS - ${STAGE}\n`;
   actions.forEach(item => {
-    prompt += `${item}\n`
-  })
+    prompt += `${item}\n`;
+  });
   prompt += `Select an action number [0-${actions.length - 1}]`;
 
   input = readlineSync.question(`${prompt} `);
   valid = !isNaN(input);
   if (valid) {
-   input = parseInt(input);
-   if (input < 0 || input > actions.length) {
-     valid = false;
-   }
+    input = parseInt(input);
+    if (input < 0 || input > actions.length) {
+      valid = false;
+    }
   }
 
   while (!valid) {
     input = readlineSync.question(`\nInvalid Input\n${prompt} `);
     valid = !isNaN(input);
     if (valid) {
-     input = parseInt(input);
-     if (input < 0 || input > actions.length - 1) {
-       valid = false;
-     }
+      input = parseInt(input);
+      if (input < 0 || input > actions.length - 1) {
+        valid = false;
+      }
     }
   }
   return input;
@@ -146,8 +146,8 @@ async function main() {
     case 0:
       break;
     case 1:
-      if (confirmAction("set all expense type's accessible by value to 'ALL'?")) {
-        console.log("Setting all expense type's accessible by value to 'ALL'");
+      if (confirmAction('set all expense type\'s accessible by value to \'ALL\'?')) {
+        console.log('Setting all expense type\'s accessible by value to \'ALL\'');
         accessibleByAll();
       }
       break;
