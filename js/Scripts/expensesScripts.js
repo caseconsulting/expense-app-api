@@ -1,7 +1,7 @@
 /*
- * node ./js/Scripts/expenseScripts.js dev
- * node ./js/Scripts/expenseScripts.js test
- * node ./js/Scripts/expenseScripts.js prod --profile prod
+ * node ./js/Scripts/expensesScripts.js dev
+ * node ./js/Scripts/expensesScripts.js test
+ * node ./js/Scripts/expensesScripts.js prod --profile prod
  */
 
 // LIST OF ACTIONS
