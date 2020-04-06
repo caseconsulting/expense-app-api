@@ -63,9 +63,7 @@ class ExpenseRoutes extends Crud {
         throw err;
       }
       // throw access denied error if the employee does not have access to the expense type
-      if (employee.employeeRole != 'admin'
-        && expenseType.accessibleBy !== 'ALL'
-        && !expenseType.accessibleBy.includes(employee.id)) {
+      if (!this._hasAccess(employee, expenseType)) {
         let err = {
           code: 403,
           message:
@@ -475,6 +473,18 @@ class ExpenseRoutes extends Crud {
     return uuid();
   }
 
+  _hasAccess(employee, expenseType) {
+    if (employee.employeeRole == 'admin' || expenseType.accessibleBy == 'ALL') {
+      return true;
+    } else if (expenseType.accessibleBy == 'FULL TIME') {
+      return employee.workStatus == 100;
+    } else if (expenseType.accessibleBy == 'PART TIME') {
+      return employee.workStatus > 0 && employee.workStatus < 100;
+    } else {
+      return expenseType.accessibleBy.includes(employee.id);
+    }
+  }
+
   _isEmployeeInactive(employee) {
     return employee.workStatus == 0;
   }
@@ -740,9 +750,7 @@ class ExpenseRoutes extends Crud {
     expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
 
     // throw access denied error if the employee does not have access to the expense type
-    if (employee.employeeRole != 'admin'
-      && expenseType.accessibleBy !== 'ALL'
-      && !expenseType.accessibleBy.includes(employee.id)) {
+    if (!this._hasAccess(employee, expenseType)) {
       let err = {
         code: 403,
         message:
