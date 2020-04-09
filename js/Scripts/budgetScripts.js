@@ -86,7 +86,7 @@ async function getExpenseType(expenseTypeId) {
 /*
  * Get all employees
  */
- async function getAllEmployees() {
+async function getAllEmployees() {
   let param = {
     TableName: `${STAGE}-employees`
   };
