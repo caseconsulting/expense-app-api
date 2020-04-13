@@ -18,6 +18,7 @@ describe('expenseTypeRoutes', () => {
     expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['addToDB', 'updateEntryInDB']);
     databaseModify = jasmine.createSpyObj('databaseModify', [
       'removeFromDB',
+      'readFromDB',
     ]);
     expenseData = jasmine.createSpyObj('expenseData', ['querySecondaryIndexInDB']);
     expenseTypeRoutes.expenseTypeDynamo = expenseTypeDynamo;
@@ -54,6 +55,7 @@ describe('expenseTypeRoutes', () => {
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
         expenseTypeDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
+        spyOn(expenseTypeRoutes, '_createBudgets').and.returnValue(Promise.resolve());
       });
 
       it('should throw the error', done => {
@@ -274,6 +276,7 @@ describe('expenseTypeRoutes', () => {
     describe('when updateEntryInDB is successful', () => {
       beforeEach(() => {
         expenseTypeDynamo.updateEntryInDB.and.returnValue(Promise.resolve(expectedExpenseType));
+        databaseModify.readFromDB.and.returnValue(Promise.resolve(data));
       });
 
       it('should return updated object', done => {

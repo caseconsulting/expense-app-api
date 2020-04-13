@@ -30,10 +30,42 @@ class ExpenseRoutes extends Crud {
     this.moment = moment;
   }
 
+  _validateAdd(expenseType, employee, expense) {
+    // expense type must be active
+    if (expenseType.isInactive) {
+      let err = {
+        code: 403,
+        message:
+          `expense type ${expenseType.budgetName} is inactive`
+      };
+      throw err;
+    }
+    // employee must have access to expense type
+    if (!this._hasAccess(employee, expenseType)) {
+      let err = {
+        code: 403,
+        message:
+          `employee does not have access to expense type ${expenseType.budgetName}`
+      };
+      throw err;
+    }
+    // expense must have a receipt if the expense type requiredFlag is true
+    if (expenseType.requiredFlag && this._isEmpty(expense.receipt)) {
+      let err = {
+        code: 403,
+        message:
+          `expense type ${expenseType.budgetName} requires a receipt.`
+      };
+      throw err;
+    }
+    // expense purchase date must be within the expense type purchase date range
+    this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
+    return true;
+  }
+
   async _add(id, data) {
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee;
-    var budgets = [];
 
     expense = new Expense(data);
     //expense.id = id; // ignore the api generated uuid
@@ -43,8 +75,7 @@ class ExpenseRoutes extends Crud {
         `Attempting to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`
       );
-    }
-    else {
+    } else {
       logger.log(1, '_add',
         `Attempting to add reimbursed expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
         `for user ${expense.userId}`
@@ -54,35 +85,8 @@ class ExpenseRoutes extends Crud {
     try {
       employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
-      if (expenseType.isInactive) {
-        let err = {
-          code: 403,
-          message:
-            'The Expense Type selected is Inactive. New Expenses can not be created with an Inactive Expense Type'
-        };
-        throw err;
-      }
-      // throw access denied error if the employee does not have access to the expense type
-      if (!this._hasAccess(employee, expenseType)) {
-        let err = {
-          code: 403,
-          message:
-            'Access to this Expense Type Denied'
-        };
-        throw err;
-      }
-      if (expenseType.requiredFlag && this._isEmpty(data.receipt)) {
-        let err = {
-          code: 403,
-          message:
-            `The Expense Type ${expenseType.budgetName} requires a receipt.`
-        };
-        throw err;
-      }
-      this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
-      budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
-      // budget = await this._getBudgetData(budgets, expenseType, employee, expense);
-      budget = await this._getCurrentBudgetData(budgets, expenseType, employee);
+      this._validateAdd(expenseType, employee, expense);
+      budget = await this._getCurrentBudgetData(expenseType, employee);
     } catch (err) {
       logger.log(1, '_add',
         `Failed to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
@@ -93,7 +97,7 @@ class ExpenseRoutes extends Crud {
     }
 
     return this.checkValidity(expense, expenseType, budget, employee)
-      .then(() => this._decideIfBudgetExists(budget, expense, expenseType))
+      .then(() => this._addExpenseToBudget(budget, expense, expenseType, employee))
       .then(() => this.expenseDynamo.addToDB(expense))
       .then(expense => {
         return expense;
@@ -112,17 +116,8 @@ class ExpenseRoutes extends Crud {
     return Number(newValue.toFixed(2));
   }
 
-  _addExpenseToBudget(expense, budget) {
-    if (!this._isReimbursed(expense)) {
-      logger.log(1, '_addExpenseToBudget', `Adding pending expense ${expense.id} to budget ${budget.id}`);
-
-      budget.pendingAmount += expense.cost;
-    } else {
-      logger.log(1, '_addExpenseToBudget', `Adding reimbursed expense ${expense.id} to budget ${budget.id}`);
-
-      budget.reimbursedAmount += expense.cost;
-    }
-    return budget;
+  _adjustedBudget(expenseType, employee) {
+    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
   }
 
   _areExpenseTypesEqual(expense, oldExpense) {
@@ -307,31 +302,53 @@ class ExpenseRoutes extends Crud {
       newBudget.fiscalStartDate = expenseType.startDate;
       newBudget.fiscalEndDate = expenseType.endDate;
     }
+    // set the amount of the new budget
+    if (this._hasAccess(employee, expenseType)) {
+      newBudget.amount = this._adjustedBudget(employee, expenseType);
+    } else {
+      newBudget.amount = 0;
+    }
     return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
   }
 
-  _decideIfBudgetExists(budget, expense, expenseType) {
-    logger.log(3, '_decideIfBudgetExists', 'Determining if budget exists');
+  /*
+   * Creates a new budget if it does not exist. Update the budget with the expense cost.
+   *
+   * @param budget - Budget to be updated
+   * @param expense - Expense to be added to the budget
+   * @param expenseType - Expense type of the expense and budget
+   * @param employee - Employee of the expense and budget
+   */
+  async _addExpenseToBudget(budget, expense, expenseType, employee) {
+    logger.log(3, '_addExpenseToBudget', 'Determining if budget exists');
 
-    //if the budget does exist, add the cost of this expense to the pending balance of that budget
+    let updatedBudget;
+
     if (budget) {
-      budget = this._addExpenseToBudget(expense, budget);
-      return this.budgetDynamo.updateEntryInDB(budget);
+      // if the budget exists update the existing budget
+      updatedBudget = budget;
     } else {
-      let newBudget = {
-        id: this._getUUID(),
-        expenseTypeId: expense.expenseTypeId,
-        userId: expense.userId,
-        reimbursedAmount: 0,
-        pendingAmount: 0,
-        fiscalStartDate: expenseType.startDate,
-        fiscalEndDate: expenseType.endDate
-      };
-      newBudget = this._addExpenseToBudget(expense, newBudget);
-      return this.budgetDynamo.addToDB(newBudget);
+      // if the budget does not exist, create a new budget
+      updatedBudget = await this._createNewBudget(expenseType, employee, this._getUUID());
     }
+
+    if (this._isReimbursed(expense)) {
+      // if expense is remibursed, update the budgets reimbursed amount
+      updatedBudget.reimbursedAmount += expense.cost;
+    } else {
+      // if expense is not reimbursed, update the budgets pending amount
+      updatedBudget.pendingAmount += expense.cost;
+    }
+
+    // update the budget in the dynamo budget table
+    return this.budgetDynamo.updateEntryInDB(updatedBudget);
   }
 
+  /*
+   * Deletes an expense.
+   *
+   * @param id - Id of the expense to delete
+   */
   async _delete(id) {
     logger.log(1, '_delete', `Attempting to delete expense ${id}`);
 
@@ -375,18 +392,6 @@ class ExpenseRoutes extends Crud {
     }
   }
 
-  async _getBudgetData(budgets, expenseType, employee, expense) {
-    logger.log(2, '_getBudgetData',
-      `Getting budget data for expense ${expense.id} with expense type ${expenseType.id} for user ${employee.id}`
-    );
-
-    if (_.isEmpty(budgets)) {
-      return await this._createNewBudget(expenseType, employee, this._getUUID());
-    } else {
-      return await this._findBudgetWithMatchingRange(budgets, expense.purchaseDate);
-    }
-  }
-
   // TBD - duplicated from employee routes
   _getBudgetDates(hireDateParam) {
     let hireDate = moment(hireDateParam);
@@ -414,16 +419,17 @@ class ExpenseRoutes extends Crud {
     };
   }
 
-  async _getCurrentBudgetData(budgets, expenseType, employee) {
+  async _getCurrentBudgetData(expenseType, employee) {
     logger.log(3, '_getCurrentBudgetData',
       `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`
     );
 
+    let budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
     if (_.isEmpty(budgets)) {
       return await this._createNewBudget(expenseType, employee, this._getUUID());
     } else {
       if (expenseType.recurringFlag) {
-        return await this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
+        return this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
       } else {
         return budgets[0];
       }
@@ -760,9 +766,14 @@ class ExpenseRoutes extends Crud {
     }
 
     if (expenseType.id !== oldExpense.expenseTypeId) {
+      // if the expense type is changed
       let unreimburseExpense = _.cloneDeep(oldExpense);
       unreimburseExpense.reimbursedDate = ' ';
+
+      // get a new expense id
       newExpense.id = uuid();
+
+      // change the bucket/path of the receipt from the old expense id to the new expense id
       if (!this._isEmpty(oldExpense.receipt)){
         this._changeBucket(oldExpense.userId, oldExpense.id, newExpense.id);
       }
@@ -772,6 +783,7 @@ class ExpenseRoutes extends Crud {
       );
 
       try {
+        // get all budgets of the old expense type
         oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(oldExpense.expenseTypeId));
         if (oldExpenseType.isInactive && employee.employeeRole === 'user') {
           let err = {
@@ -786,24 +798,30 @@ class ExpenseRoutes extends Crud {
         });
       } catch (err) {
         logger.error('_update', `Error code: ${err.code}`);
-
         throw err;
       }
 
       if (!expenseType.requiredFlag) {
+        // if the new expense type does not require a receipt, clear the field
         newExpense.receipt = ' ';
       }
+
       if (expenseType.categories.length <= 0) {
+        // if the new expense type does not require a category, clear the field
         newExpense.categories = ' ';
       }
 
       if (!this._isEmpty(oldExpense.reimbursedDate)) {
+        // if the old expense is reimbursed
+        // add the new expense
         return this._add(null, newExpense)
           .then(async (addedObject) =>  {
+            // unreimburse the old expense
             await this._unreimburseExpense(oldExpense, unreimburseExpense, budgets, oldExpenseType);
             return addedObject;
           })
           .then(async (addedObject) => {
+            // delete the old expense
             await this._delete(oldExpense.id);
             return addedObject;
           })
@@ -811,8 +829,10 @@ class ExpenseRoutes extends Crud {
             throw err;
           });
       } else {
+        // add the new expense
         return this._add(null, newExpense)
           .then(async (addedObject) => {
+            // delete the old expense
             await this._delete(oldExpense.id);
             return addedObject;
           })
@@ -822,8 +842,8 @@ class ExpenseRoutes extends Crud {
       }
 
     } else {
+      // if the expense type is the same
       try {
-
         if (expenseType.isInactive && employee.employeeRole === 'user') {
           let err = {
             code: 403,
@@ -831,6 +851,7 @@ class ExpenseRoutes extends Crud {
           };
           throw err;
         }
+        // get all budgets of the expense type
         rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
         rawBudgets.forEach(function(e) {
           budgets.push(new Budget(e));
@@ -838,7 +859,6 @@ class ExpenseRoutes extends Crud {
         budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
       } catch (err) {
         logger.error('_update', `Error code: ${err.code}`);
-
         throw err;
       }
 

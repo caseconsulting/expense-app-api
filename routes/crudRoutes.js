@@ -7,6 +7,9 @@ const TrainingUrls = require('../models/trainingUrls');
 const STAGE = process.env.STAGE;
 const Logger = require('../js/Logger');
 const logger = new Logger('crudRoutes');
+const moment = require('moment');
+//const IsoFormat = 'YYYY-MM-DD';
+
 
 // const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
@@ -124,6 +127,36 @@ class Crud {
     //This function must be overwritten
   }
   /* eslint-enable no-unused-vars */
+
+  _getBudgetDates(hireDate) {
+    logger.log(3, '_getBudgetDates', `Getting budget dates for ${hireDate}`);
+
+    let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
+    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+    let anniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
+    const anniversaryComparisonDate = moment([anniversaryYear, anniversaryMonth, anniversaryDay]);
+    let startYear;
+    const today = moment();
+
+    if (anniversaryComparisonDate.isBefore(today)) {
+      startYear = today.isBefore(moment([today.year(), anniversaryMonth, anniversaryDay]))
+        ? today.year() - 1
+        : today.year();
+
+    } else {
+      startYear = anniversaryYear;
+    }
+
+    let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
+    let endDate = moment([startYear, anniversaryMonth, anniversaryDay])
+      .add('1', 'years')
+      .subtract('1', 'days');
+
+    return {
+      startDate,
+      endDate
+    };
+  }
 
   _getTableName() {
     logger.log(3, '_getTableName', 'Getting table name');

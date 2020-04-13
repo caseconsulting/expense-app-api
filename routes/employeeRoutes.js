@@ -28,7 +28,7 @@ class EmployeeRoutes extends Crud {
       if (error) {
         throw error;
       }
-      return this._createRecurringExpenses(employee.id, employee.hireDate).then(() => {
+      return this._createCurrentBudgets(employee).then(() => {
         return employee;
       });
     } catch (err) {
@@ -38,88 +38,79 @@ class EmployeeRoutes extends Crud {
     }
   }
 
-  /**
-   * Change budgets when hiring date changes
-   */
-  async _changeBudgetDates(oldEmployeePromise, newEmployee) {
-    let oldEmployee = await oldEmployeePromise;
-
-    logger.log(2, '_changeBudgetDates',
-      `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
-      `to ${newEmployee.hireDate}`
-    );
-
-    // if hire date is not changed, resolve promise
-    if (oldEmployee.hireDate === newEmployee.hireDate) {
-      return Promise.resolve(newEmployee);
-    }
-    try {
-      // get all expense types
-      this.getExpenseTypes().then( expenseTypes => {
-        // filter out non recurring expense types
-        let recurringExpenseTypes = _.filter(expenseTypes, ['recurringFlag', true]);
-        // for each expense type
-        recurringExpenseTypes.forEach( expenseType => {
-          // get all budgets
-          this.getBudgets(oldEmployee.id, expenseType.id).then( budgets => {
-            // sort budgets
-            let sortedBudgets = this._sortBudgets(budgets);
-            // loop through sorted budgets and update fiscal start and end date
-            for (let i = 0; i < sortedBudgets.length; i++)
-            {
-              let newBudget = sortedBudgets[i];
-              newBudget.fiscalStartDate = moment(newEmployee.hireDate)
-                .add(i, 'years')
-                .format(IsoFormat);
-              newBudget.fiscalEndDate = moment(newEmployee.hireDate)
-                .add(i + 1, 'years')
-                .subtract(1, 'days')
-                .format(IsoFormat);
-              this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
-            }
-          });
-        });
-      });
-    } catch (err) {
-      throw Promise.reject(err);
-    }
-    return Promise.resolve(newEmployee);
+  _adjustedBudget(expenseType, employee) {
+    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
   }
 
-  async _createRecurringExpenses(userId, hireDate) {
-    logger.log(2, '_createRecurringExpenses',
-      `Creating recurring expenses for user ${userId} starting on ${hireDate}`
+  /*
+   * Creates budgets for all active expense types for a given employee.
+   *
+   * @param employee - Employee who is getting new budgets
+   */
+  async _createCurrentBudgets(employee) {
+    logger.log(2, '_createCurrentBudgets',
+      `Creating recurring expenses for user ${employee.id} starting on ${employee.hireDate}`
     );
 
-    let dates = this._getBudgetDates(hireDate);
+    let dates = this._getBudgetDates(employee.hireDate);
     let expenseTypeList;
-    //get all recurring expenseTypes
+    let startDate;
+    let endDate;
+
+    //get all expense tpes
     try {
       expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
     } catch (err) {
-      logger.error('_createRecurringExpenses', `Error code: ${err.code}`);
-
+      logger.error('_createCurrentBudgets', `Error code: ${err.code}. Failed to get all expense types`);
       throw err;
     }
-    expenseTypeList = _.filter(expenseTypeList, exp => exp.recurringFlag);
-    return _.forEach(expenseTypeList, recurringExpenseType => {
-      let newBudget = {
-        id: this._getUUID(),
-        expenseTypeId: recurringExpenseType.id,
-        userId: userId,
-        reimbursedAmount: 0,
-        pendingAmount: 0,
-        fiscalStartDate: dates.startDate.format('YYYY-MM-DD'),
-        fiscalEndDate: dates.endDate.format('YYYY-MM-DD')
-      };
-      return this.budgetDynamo.addToDB(newBudget).then(() => {
-        return; //tell forEach to continue looping
-      });
+
+    // filter for expense types active today (recurring and includes today within date range)
+    expenseTypeList = _.filter(expenseTypeList, exp => {
+      let start = moment(exp.startDate, IsoFormat);
+      let end = moment(exp.endDate, IsoFormat);
+      return exp.recurringFlag || moment().isBetween(start, end, 'day', '[]');
     });
 
-    // return Promise.resolve();
-    //for each recurring expense type in the list
-    //create a budget using the userId and the expenseTypeId
+    // create budget for each expense type
+    return _.forEach(expenseTypeList, expenseType => {
+      let amount;
+
+      // get budget amount
+      if (this._hasAccess(employee, expenseType)) {
+        // if employee has access to the expense type, calculate the adjusted amount
+        amount = this._adjustedBudget(expenseType, employee);
+      } else {
+        // if employee does not have access to the expense type, set the amount to 0
+        amount = 0;
+      }
+
+      // get budget start and end date
+      if (expenseType.recurringFlag) {
+        // if expense type is recurring, set the budget dates to the recurring dates
+        startDate = dates.startDate.format('YYYY-MM-DD');
+        endDate = dates.endDate.format('YYYY-MM-DD');
+      } else {
+        // if expense type is not recurring, set the budget dates to the expense type dates
+        startDate = expenseType.startDate;
+        endDate = expenseType.endDate;
+      }
+
+      // create budget object
+      let newBudget = {
+        id: this._getUUID(),
+        expenseTypeId: expenseType.id,
+        userId: employee.id,
+        reimbursedAmount: 0,
+        pendingAmount: 0,
+        fiscalStartDate: startDate,
+        fiscalEndDate: endDate,
+        amount: amount
+      };
+
+      // add budget object to budget table
+      return this.budgetDynamo.addToDB(newBudget);
+    });
   }
 
   async _delete(id) {
@@ -202,8 +193,21 @@ class EmployeeRoutes extends Crud {
 
   _getUUID() {
     logger.log(4, '_getUUID', 'Getting random uuid');
-
     return uuid();
+  }
+
+  _hasAccess(employee, expenseType) {
+    if (employee.workStatus == 0) {
+      return false;
+    } else if (expenseType.accessibleBy == 'ALL') {
+      return true;
+    } else if (expenseType.accessibleBy == 'FULL TIME') {
+      return employee.workStatus == 100;
+    } else if (expenseType.accessibleBy == 'PART TIME') {
+      return employee.workStatus > 0 && employee.workStatus < 100;
+    } else {
+      return expenseType.accessibleBy.includes(employee.id);
+    }
   }
 
   // TODO: write test for this function. Should throw error not return it.
@@ -246,21 +250,124 @@ class EmployeeRoutes extends Crud {
     ]);
   }
 
-  _update(id, data) {
+  async _update(id, data) {
     logger.log(1, '_update', `Attempting to update user ${id}`);
 
-    let employee = new Employee(data);
-    employee.id = id;
+    let newEmployee = new Employee(data);
+    newEmployee.id = id;
 
-    let oldEmployee = this.databaseModify.findObjectInDB(id);
 
-    return this._changeBudgetDates(oldEmployee, employee)
+    let oldEmployee = await this.databaseModify.findObjectInDB(id).catch(err => {
+      throw err;
+    });
+
+
+    return this._updateBudgetDates(oldEmployee, newEmployee)
+      .then(this._updateBudgetAmount(oldEmployee, newEmployee))
       .then(() => {
-        return employee;
+        return newEmployee;
       })
       .catch(err => {
         throw err;
       });
+  }
+
+  /*
+   * Update the current employees budget amounts if the work status is changed
+   */
+  async _updateBudgetAmount(oldEmployeePromise, newEmployee) {
+    let oldEmployee = await oldEmployeePromise;
+    if (oldEmployee.workStatus == newEmployee.workStatus) {
+      // return if the employee work status was not changed
+      return Promise.resolve(newEmployee);
+    }
+
+    logger.log(2, '_updateBudgetAmount',
+      `Attempting to update current budget amounts for user ${oldEmployee.id} from ${oldEmployee.workStatus}%`,
+      `to ${newEmployee.workStatus}%`
+    );
+
+    try {
+      // get all employee's budgets
+      let employeeBudgets =
+        await this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', oldEmployee.id);
+      // get all expense types
+      let expenseTypes = await this.getExpenseTypes();
+      // filter for only current budgets
+      let currentBudgets = _.filter(employeeBudgets, budget => {
+        let start = moment(budget.fiscalStartDate, IsoFormat);
+        let end = moment(budget.fiscalEndDate, IsoFormat);
+        return moment().isBetween(start, end, 'day', '[]');
+      });
+
+      // update all current budget amounts
+      _.forEach(currentBudgets, budget => {
+        let newBudget = budget;
+        let expenseType = _.find(expenseTypes, ['id', newBudget.expenseTypeId]);
+        if (expenseType) {
+          if (this._hasAccess(newEmployee, expenseType)) {
+            // if employee has access to the expense type, set the adjusted amount
+            newBudget.amount = this._adjustedBudget(expenseType, newEmployee);
+          } else {
+            // if employee does not have access to the expense type, set the amount to 0
+            newBudget.amount = 0;
+          }
+          // update entry in dynamo table
+          this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
+        }
+      });
+    } catch (err) {
+      throw Promise.reject(err);
+    }
+    return Promise.resolve(newEmployee);
+  }
+
+  /**
+   * Update budgets when hiring date changes
+   */
+  async _updateBudgetDates(oldEmployeePromise, newEmployee) {
+    let oldEmployee = await oldEmployeePromise;
+
+    // if hire date is not changed, resolve promise
+    if (oldEmployee.hireDate === newEmployee.hireDate) {
+      return Promise.resolve(newEmployee);
+    }
+
+    logger.log(2, '_updateBudgetDates',
+      `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
+      `to ${newEmployee.hireDate}`
+    );
+    try {
+      // get all expense types
+      this.getExpenseTypes().then( expenseTypes => {
+        // filter out non recurring expense types
+        let recurringExpenseTypes = _.filter(expenseTypes, ['recurringFlag', true]);
+        // for each expense type
+        recurringExpenseTypes.forEach( expenseType => {
+          // get all budgets
+          this.getBudgets(oldEmployee.id, expenseType.id).then( budgets => {
+            // sort budgets
+            let sortedBudgets = this._sortBudgets(budgets);
+            // loop through sorted budgets and update fiscal start and end date
+            for (let i = 0; i < sortedBudgets.length; i++)
+            {
+              let newBudget = sortedBudgets[i];
+              newBudget.fiscalStartDate = moment(newEmployee.hireDate)
+                .add(i, 'years')
+                .format(IsoFormat);
+              newBudget.fiscalEndDate = moment(newEmployee.hireDate)
+                .add(i + 1, 'years')
+                .subtract(1, 'days')
+                .format(IsoFormat);
+              this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
+            }
+          });
+        });
+      });
+    } catch (err) {
+      throw Promise.reject(err);
+    }
+    return Promise.resolve(newEmployee);
   }
 }
 

@@ -4,62 +4,161 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
 const Budget = require('../../models/budget');
+
 const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 
 describe('expenseRoutes', () => {
   const uuid = 'uuid';
-  const id = 'id';
+  const id = '{id}';
+  const expenseId = '{expenseId}';
+  const userId = '{userId}';
+  const expenseTypeId = '{expenseTypeId}';
+  const budgetId = '{{budgetId}}';
+  const description = '{description}';
+  const categories = '[categories]';
+
+  // expenses
   const purchaseDate = '{purchaseDate}';
   const reimbursedDate = '{reimbursedDate}';
-  const cost = 0;
-  const description = '{description}';
   const note = '{note}';
-  const receipt = '{purchareceiptseDate}';
-  const expenseTypeId = '{expenseTypeId}';
-  const userId = '{userId}';
   const url = '{url}';
-  const name = '{name}';
   const createdAt = '{createdAt}';
-  const categories = '[categories]';
+  const receipt = '{purchareceiptseDate}';
+  const cost = 0;
+
+  // employees
+  const firstName = '{firstName}';
+  const middleName = '{middleName}';
+  const lastName = '{lastName}';
+  const employeeNumber = 0;
+  const hireDate = '{hireDate}';
+  const email = '{email}';
+  const employeeRole = '{employeeRole}';
+  const workStatus = '{workStatus}';
+
+  // expense types
+  const budgetName = '{budgetName}';
+  const budgetAmount = 0;
+  const startDate = '{startDate}';
+  const endDate = '{endDate}';
+  const odFlag = '{true}';
+  const requiredFlag = '{requiredFlag}';
+  const recurringFlag = '{false}';
+  const isInactive = '{isInactive}';
+  const accessibleBy = '{ALL}';
+
+  // budgets
   const reimbursedAmount = 0;
   const pendingAmount = 0;
   const fiscalStartDate = '{fiscalStartDate}';
   const fiscalEndDate = '{fiscalEndDate}';
-  let employee = {
-    id: '{id}',
-    firstName: '{firstName}',
-    middleName: '{middleName}',
-    lastName: '{lastName}',
-    employeeNumber: 0,
-    hireDate: '{hireDate}',
-    expenseTypes: '[expenseTypes]',
-    email: '{email}',
-    employeeRole: '{employeeRole}',
-    workStatus: '{workStatus}'
+  const amount = 0;
+
+  const expense = {
+    id: expenseId,
+    purchaseDate,
+    reimbursedDate,
+    note,
+    url,
+    createdAt,
+    receipt,
+    cost,
+    description,
+    userId,
+    expenseTypeId,
+    categories
   };
+
+  const employee = {
+    id: userId,
+    firstName,
+    middleName,
+    lastName,
+    employeeNumber,
+    hireDate,
+    email,
+    employeeRole,
+    workStatus
+  };
+
   const expenseType = {
-    id: '{id}',
-    budgetName: '{budgetName}',
-    budget: 0,
-    odFlag: '{true}',
-    description: description,
-    startDate: '{startDate}',
-    endDate: '{endDate}',
-    recurringFlag: '{false}',
-    isInactive: '{isInactive}',
-    requiredFlag: '{requiredFlag}',
-    categories: categories
+    id: expenseTypeId,
+    budgetName,
+    budget: budgetAmount,
+    startDate,
+    endDate,
+    odFlag,
+    requiredFlag,
+    recurringFlag,
+    isInactive,
+    description,
+    categories,
+    accessibleBy
   };
 
   const budget = {
-    id,
+    id: budgetId,
     expenseTypeId,
     userId,
     reimbursedAmount,
     pendingAmount,
     fiscalStartDate,
-    fiscalEndDate
+    fiscalEndDate,
+    amount
+  };
+
+  const expenseData = {
+    id: expenseId,
+    purchaseDate,
+    reimbursedDate,
+    note,
+    url,
+    createdAt,
+    receipt,
+    cost,
+    description,
+    userId,
+    expenseTypeId,
+    categories
+  };
+
+  const employeeData = {
+    id: userId,
+    firstName,
+    middleName,
+    lastName,
+    employeeNumber,
+    hireDate,
+    email,
+    employeeRole,
+    workStatus
+  };
+
+  const expenseTypeData = {
+    id: expenseTypeId,
+    budgetName,
+    budget: budgetAmount,
+    startDate,
+    endDate,
+    odFlag,
+    requiredFlag,
+    recurringFlag,
+    isInactive,
+    description,
+    categories,
+    accessibleBy
+  };
+
+  const budgetData = {
+    id: budgetId,
+    expenseTypeId,
+    userId,
+    reimbursedAmount,
+    pendingAmount,
+    fiscalStartDate,
+    fiscalEndDate,
+    amount
   };
 
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
@@ -88,22 +187,24 @@ describe('expenseRoutes', () => {
   });
 
   describe('_add', () => {
-    let data, expectedExpense, localExpenseType, localEmployee;
+    let expectedExpense, expense, expenseType, employee, budget;
 
     beforeEach(() => {
-      data = { id, purchaseDate, reimbursedDate, cost, description, note, receipt, expenseTypeId, userId, url };
-      expectedExpense = new Expense(data);
-      localExpenseType = new ExpenseType(expenseType);
+      expense = new Expense(expenseData);
+      expectedExpense = new Expense(expenseData);
+      expenseType = new ExpenseType(expenseTypeData);
       expenseType.isInactive = false;
-      localExpenseType.isInactive = false;
-      localEmployee = new Employee(employee);
+      employee = new Employee(employeeData);
+      budget = new Budget(budgetData);
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
       expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));
       expenseDynamo.addToDB.and.returnValue(expectedExpense);
-      spyOn(expenseRoutes, '_isPurchaseWithinRange').and.returnValue(true);
       spyOn(expenseRoutes, '_getCurrentBudgetData').and.returnValue(budget);
-      spyOn(expenseRoutes, '_decideIfBudgetExists').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(Promise.resolve());
+      spyOn(expenseRoutes, '_hasAccess').and.returnValue(true);
+      spyOn(expenseRoutes, '_createNewBudget').and.returnValue(budget);
+      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
     });
 
     describe('when expense is not reimbursed', () => {
@@ -114,7 +215,7 @@ describe('expenseRoutes', () => {
 
       it('should return added object', done => {
         return expenseRoutes
-          ._add(id, data)
+          ._add(expenseId, expense)
           .then(createdExpense => {
             expect(createdExpense).toEqual(expectedExpense);
             done();
@@ -126,14 +227,13 @@ describe('expenseRoutes', () => {
       }); // should return added object
 
       afterEach(() => {
-        expect(expenseRoutes._isPurchaseWithinRange).toHaveBeenCalledWith(localExpenseType, purchaseDate);
         expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
           expectedExpense,
-          localExpenseType,
+          expenseType,
           budget,
-          localEmployee
+          employee
         );
-        expect(expenseRoutes._decideIfBudgetExists).toHaveBeenCalledWith(budget, expectedExpense, localExpenseType);
+        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(budget, expectedExpense, expenseType, employee);
         expect(expenseDynamo.addToDB).toHaveBeenCalledWith(expectedExpense);
       });
     }); // when expense is not reimbursed
@@ -141,14 +241,15 @@ describe('expenseRoutes', () => {
     describe('when expense is reimbursed', () => {
 
       beforeEach(() => {
-        data.reimbursedDate = ' ';
+        expense.reimbursedDate = ' ';
         expectedExpense.reimbursedDate = ' ';
         spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       });
 
       it('should return added object', done => {
+        console.log('\n\n\n');
         return expenseRoutes
-          ._add(id, data)
+          ._add(expenseId, expense)
           .then(createdExpense => {
             expect(createdExpense).toEqual(expectedExpense);
             done();
@@ -160,14 +261,13 @@ describe('expenseRoutes', () => {
       }); // should return added object
 
       afterEach(() => {
-        expect(expenseRoutes._isPurchaseWithinRange).toHaveBeenCalledWith(localExpenseType, purchaseDate);
         expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
           expectedExpense,
-          localExpenseType,
+          expenseType,
           budget,
-          localEmployee
+          employee
         );
-        expect(expenseRoutes._decideIfBudgetExists).toHaveBeenCalledWith(budget, expectedExpense, localExpenseType);
+        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(budget, expectedExpense, expenseType, employee);
         expect(expenseDynamo.addToDB).toHaveBeenCalledWith(expectedExpense);
       });
     }); // when expense is reimbursed
@@ -179,11 +279,10 @@ describe('expenseRoutes', () => {
       });
 
       it('should throw an error', done => {
-        expenseRoutes._add(id, data).catch( err => {
+        expenseRoutes._add(expenseId, expense).catch( err => {
           expect(err).toEqual({
             code: 403,
-            message: 'The Expense Type selected is Inactive. '
-              + 'New Expenses can not be created with an Inactive Expense Type'
+            message: `expense type ${budgetName} is inactive`
           });
           done();
         });
@@ -194,10 +293,11 @@ describe('expenseRoutes', () => {
 
       beforeEach(() => {
         spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.reject('error'));
+        spyOn(expenseRoutes, '_validateAdd').and.returnValue(true);
       });
 
       it('should throw an error', done => {
-        expenseRoutes._add(id, data).catch( err => {
+        expenseRoutes._add(expenseId, expense).catch( err => {
           expect(err).toEqual('error');
           done();
         });
@@ -233,53 +333,6 @@ describe('expenseRoutes', () => {
       }); // should return the total with 2 deciaml percision
     }); // when two numbers round down
   }); // _addCost
-
-  describe('_addExpenseToBudget', () => {
-    let expense, budget;
-
-    beforeEach(() => {
-      expense = {
-        reimbursedDate: reimbursedDate,
-        cost: 1
-      };
-      budget = {
-        pendingAmount: 0,
-        reimbursedAmount: 0
-      };
-    });
-
-    describe('when there is no reimbursedDate ', () => {
-      let expectedBudget;
-      beforeEach(() => {
-        expense.reimbursedDate = undefined;
-        expectedBudget = {
-          pendingAmount: 1,
-          reimbursedAmount: 0
-        };
-      });
-      it('should add the expense cost to the pendingAmount', done => {
-        let result = expenseRoutes._addExpenseToBudget(expense, budget);
-        expect(result).toEqual(expectedBudget);
-        done();
-      }); // should add the expense cost to the pendingAmount
-    }); // when there is no reimbursedDate
-
-    describe('when there is a reimbursedDate', () => {
-      let expectedBudget;
-      beforeEach(() => {
-        expectedBudget = {
-          pendingAmount: 0,
-          reimbursedAmount: 1
-        };
-      });
-
-      it('should add the expense cost to the reimbursedAmount', done => {
-        let result = expenseRoutes._addExpenseToBudget(expense, budget);
-        expect(result).toEqual(expectedBudget);
-        done();
-      }); // should add the expense cost to the reimbursedAmount
-    }); // when there is a reimbursedDate
-  }); // _addExpenseToBudget
 
   describe('_areExpenseTypesEqual', () => {
     let expense, oldExpense;
@@ -602,6 +655,10 @@ describe('expenseRoutes', () => {
         };
       });
 
+      afterEach(() => {
+        expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
+      });
+
       it('should return an error object with the right error message', done => {
         expenseRoutes
           .checkValidity(expense, expenseType, budget, employee, oldExpense)
@@ -613,13 +670,10 @@ describe('expenseRoutes', () => {
             done();
           });
       }); // should return an error object with the right error message
-
-      afterEach(() => {
-        expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
-      });
     }); // expense type is not valid
 
     describe('employee is not active', () => {
+
       beforeEach(() => {
         spyOn(expenseRoutes, '_checkExpenseDate').and.returnValue(true);
         spyOn(expenseRoutes, '_checkBalance').and.returnValue(true);
@@ -631,6 +685,10 @@ describe('expenseRoutes', () => {
         };
       });
 
+      afterEach(() => {
+        expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
+      });
+
       it('should return an error object with the right error message', done => {
         expenseRoutes
           .checkValidity(expense, expenseType, budget, employee, oldExpense)
@@ -642,14 +700,11 @@ describe('expenseRoutes', () => {
             done();
           });
       }); // should return an error object with the right error message
-
-      afterEach(() => {
-        expect(expenseRoutes._checkExpenseDate).toHaveBeenCalledWith(expense.purchaseDate, startDate, endDate);
-      });
     }); // employee is not active
 
 
     describe('recurring flag is true', () => {
+
       let keptItsPromise;
 
       beforeEach(() => {
@@ -658,6 +713,11 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_areExpenseTypesEqual').and.returnValue(true);
         employee.workStatus = 100;
         expenseType.recurringFlag = true;
+      });
+
+      afterEach(() => {
+        expect(expenseRoutes._checkExpenseDate)
+          .toHaveBeenCalledWith(expense.purchaseDate, fiscalStartDate, fiscalEndDate);
       });
 
       it('should return a resolved promise', done => {
@@ -670,169 +730,219 @@ describe('expenseRoutes', () => {
           })
           .catch(() => done(new Error('Promise should resolve')));
       }); // should return a resolved promise
-
-      afterEach(() => {
-        expect(expenseRoutes._checkExpenseDate)
-          .toHaveBeenCalledWith(expense.purchaseDate, fiscalStartDate, fiscalEndDate);
-      });
     }); // all checks are true
 
   }); // checkValidity
 
   describe('_createNewBudget', () => {
-    let expenseType, employee, expectedBudget;
+    //let expenseType, employee, expectedBudget;
+    let expenseTypeIn, employeeIn, idIn, newBudget, returnBudget;
 
     beforeEach(() => {
-      expectedBudget = {
-        id: id,
-        expenseTypeId: expenseTypeId,
-        userId: userId,
-        reimbursedAmount: 0,
-        pendingAmount: 0
-      };
-      expenseType = {
-        id: expenseTypeId,
-        recurringFlag: false,
-        startDate: '2019-07-01',
-        endDate: '2019-07-31'
-      };
-      employee = {
-        id: userId,
-        hireDate: '2019-07-02'
-      };
-      budgetDynamo.addToDB.and.returnValue(Promise.resolve(expectedBudget));
+      expenseTypeIn = expenseType;
+      employeeIn = employee;
+      idIn = id;
+      newBudget = budget;
+      newBudget.id = idIn;
+      newBudget.expenseTypeId = expenseTypeIn.id;
+      newBudget.userId = employeeIn.id;
+      returnBudget = 'returnBudget';
+      budgetDynamo.addToDB.and.returnValue(Promise.resolve(returnBudget));
     });
 
     afterEach(() => {
-      expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+      expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
     });
 
     describe('when an expenseType is recurring', () => {
+
       beforeEach(() => {
-        expenseType.recurringFlag = true;
-        expectedBudget.fiscalStartDate = '2019-07-02';
-        expectedBudget.fiscalEndDate = '2020-07-01';
+        expenseTypeIn.recurringFlag = true;
+        newBudget.fiscalStartDate = '2019-07-02';
+        newBudget.fiscalEndDate = '2020-07-01';
         spyOn(expenseRoutes, '_getBudgetDates').and.returnValue({
           startDate: moment('2019-07-02'),
           endDate: moment('2020-07-01')
         });
       });
 
-      it('should return the new budget ', async done => {
-        let returnedObject = await expenseRoutes._createNewBudget(expenseType, employee, id);
-        expect(returnedObject).toEqual(expectedBudget);
-        done();
-      }); // should return the new budget
+      describe('and employee has access to the expense type', () => {
+
+        beforeEach(() => {
+          newBudget.amount = 100.00;
+          spyOn(expenseRoutes, '_hasAccess').and.returnValue(true);
+          spyOn(expenseRoutes, '_adjustedBudget').and.returnValue(100.00);
+        });
+
+        it('should return the new budget', done => {
+          expenseRoutes._createNewBudget(expenseTypeIn, employeeIn, idIn).then( data => {
+            expect(data).toEqual(newBudget);
+            done();
+          });
+        }); // should return the new budget
+      }); // and employee has access to the expense type
+
+      describe('and employee does not have access to the expense type', () => {
+
+        beforeEach(() => {
+          newBudget.amount = 0;
+          spyOn(expenseRoutes, '_hasAccess').and.returnValue(false);
+        });
+
+        it('should return the new budget', done => {
+          expenseRoutes._createNewBudget(expenseTypeIn, employeeIn, idIn).then( data => {
+            expect(data).toEqual(newBudget);
+            done();
+          });
+        }); // should return the new budget
+      }); // and employee does not have access to the expense type
     }); // when an expenseType is recurring
 
     describe('when an expenseType is not recurring', () => {
+
       beforeEach(() => {
-        expectedBudget.fiscalStartDate = expenseType.startDate;
-        expectedBudget.fiscalEndDate = expenseType.endDate;
+        expenseTypeIn.recurringFlag = false;
+        newBudget.fiscalStartDate = expenseTypeIn.startDate;
+        newBudget.fiscalEndDate = expenseTypeIn.endDate;
       });
 
-      it('should return the new budget with correct dates', async done => {
-        let returnedObject = await expenseRoutes._createNewBudget(expenseType, employee, id);
-        expect(returnedObject).toEqual(expectedBudget);
-        done();
-      }); // should return the new budget with correct dates
+      describe('and employee has access to the expense type', () => {
+
+        beforeEach(() => {
+          newBudget.amount = 100.00;
+          spyOn(expenseRoutes, '_hasAccess').and.returnValue(true);
+          spyOn(expenseRoutes, '_adjustedBudget').and.returnValue(100.00);
+        });
+
+        it('should return the new budget', done => {
+          expenseRoutes._createNewBudget(expenseTypeIn, employeeIn, idIn).then( data => {
+            expect(data).toEqual(newBudget);
+            done();
+          });
+        }); // should return the new budget
+      }); // and employee has access to the expense type
+
+      describe('and employee does not have access to the expense type', () => {
+
+        beforeEach(() => {
+          newBudget.amount = 0;
+          spyOn(expenseRoutes, '_hasAccess').and.returnValue(false);
+        });
+
+        it('should return the new budget', done => {
+          expenseRoutes._createNewBudget(expenseTypeIn, employeeIn, idIn).then( data => {
+            expect(data).toEqual(newBudget);
+            done();
+          });
+        }); // should return the new budget
+      }); // and employee does not have access to the expense type
     }); // when an expenseType is not recurring
   }); // _createNewBudget
 
-  describe('_decideIfBudgetExists', () => {
-    let expectedBudget, expense;
+  describe('_addExpenseToBudget', () => {
+    let localBudget, localExpense, localExpenseType, localEmployee, updatedBudget;
+
     beforeEach(() => {
-      expense = 'expense';
-      expectedBudget = {
-        id: uuid,
-        expenseTypeId: expenseTypeId,
-        userId: userId,
-        reimbursedAmount: 0,
-        pendingAmount: 0,
-        fiscalStartDate: expenseType.startDate,
-        fiscalEndDate: expenseType.endDate
-      };
-      spyOn(expenseRoutes, '_getUUID').and.returnValue(uuid);
+      localBudget = budget;
+      localExpense = expense;
+      localExpenseType = expenseType;
+      localEmployee = employee;
+      updatedBudget = localBudget;
+      budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(updatedBudget));
     });
 
-    describe('when the budget does exist', () => {
+    describe('when the budget exists', () => {
+
       beforeEach(() => {
-        spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(budget);
-        budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(budget));
-      });
-      afterEach(() => {
-        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(expense, budget);
+        updatedBudget = budget;
       });
 
-      it('should call updateEntryInDB and return the budget', async done => {
-        let result = await expenseRoutes._decideIfBudgetExists(budget, expense, expenseType);
-        expect(result).toEqual(budget);
-        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(budget);
-        done();
-      }); // should call updateEntryInDB and return the budget
+      describe('and the expense is reimbursed', () => {
+
+        beforeEach(() => {
+          spyOn(expenseRoutes, '_isReimbursed').and.returnValue(true);
+          updatedBudget.reimbursedAmount += expense.cost;
+        });
+
+        it('should return a budget with an updated reimbursed amount', done => {
+          expenseRoutes._addExpenseToBudget(localBudget, localExpense, localExpenseType, localEmployee).then( data => {
+            expect(data).toEqual(updatedBudget);
+            done();
+          });
+        }); // should return a budget with an updated reimbursed amount
+      }); // and the expense is reimbursed
+
+      describe('and the expense is not reimbursed', () => {
+
+        beforeEach(() => {
+          spyOn(expenseRoutes, '_isReimbursed').and.returnValue(false);
+          updatedBudget.pendingAmount += expense.cost;
+        });
+
+        it('should return a budget with an updated reimbursed amount', done => {
+          expenseRoutes._addExpenseToBudget(localBudget, localExpense, localExpenseType, localEmployee).then( data => {
+            expect(data).toEqual(updatedBudget);
+            done();
+          });
+        }); // should return a budget with an updated reimbursed amount
+      }); // and the expense is not reimbursed
     }); // when the budget does exist
 
     describe('when the budget does not exist', () => {
-      let budget;
 
       beforeEach(() => {
-        expense = {
-          expenseTypeId: expenseTypeId,
-          userId: userId
-        };
-        spyOn(expenseRoutes, '_addExpenseToBudget').and.returnValue(expectedBudget);
-        budgetDynamo.addToDB.and.returnValue(Promise.resolve(expectedBudget));
+        localBudget = null;
+        spyOn(expenseRoutes, '_getUUID').and.returnValue(uuid);
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(updatedBudget);
       });
 
       afterEach(() => {
-        expect(expenseRoutes._addExpenseToBudget).toHaveBeenCalledWith(expense, expectedBudget);
+        expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(localExpenseType, localEmployee, uuid);
       });
 
-      it('should call addToDB and return a new budget', async done => {
-        let result = await expenseRoutes._decideIfBudgetExists(budget, expense, expenseType);
-        expect(result).toEqual(expectedBudget);
-        expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-        done();
-      }); // should call addToDB and return a new budget
+      describe('and the expense is reimbursed', () => {
+
+        beforeEach(() => {
+          spyOn(expenseRoutes, '_isReimbursed').and.returnValue(true);
+          updatedBudget.reimbursedAmount += expense.cost;
+        });
+
+        it('should return a budget with an updated reimbursed amount', done => {
+          expenseRoutes._addExpenseToBudget(localBudget, localExpense, localExpenseType, localEmployee).then( data => {
+            expect(data).toEqual(updatedBudget);
+            done();
+          });
+        }); // should return a budget with an updated reimbursed amount
+      }); // and the expense is reimbursed
+
+      describe('and the expense is not reimbursed', () => {
+
+        beforeEach(() => {
+          spyOn(expenseRoutes, '_isReimbursed').and.returnValue(false);
+          updatedBudget.pendingAmount += expense.cost;
+        });
+
+        it('should return a budget with an updated reimbursed amount', done => {
+          expenseRoutes._addExpenseToBudget(localBudget, localExpense, localExpenseType, localEmployee).then( data => {
+            expect(data).toEqual(updatedBudget);
+            done();
+          });
+        }); // should return a budget with an updated reimbursed amount
+      }); // and the expense is not reimbursed
     }); // when the budget does not exist
-  }); // _decideIfBudgetExists
+  }); // _addExpenseToBudget
 
   describe('_delete', () => {
-    let expense, expenseData, budgetData, budget;
+    let localExpense, localBudget;
     beforeEach(() => {
-      expenseData = {
-        id,
-        purchaseDate,
-        reimbursedDate,
-        note,
-        url,
-        createdAt,
-        receipt,
-        cost,
-        name,
-        description,
-        userId,
-        expenseTypeId,
-        categories
-      };
-      budgetData = {
-        id,
-        expenseTypeId,
-        userId,
-        reimbursedAmount,
-        pendingAmount,
-        fiscalStartDate,
-        fiscalEndDate
-      };
-
-      expense = new Expense(expenseData);
-      budget = new Budget(budgetData);
+      localExpense = new Expense(expenseData);
+      localBudget = new Budget(budgetData);
 
       expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-      budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));
-      expenseDynamo.removeFromDB.and.returnValue(expense);
+      budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([localBudget]));
+      expenseDynamo.removeFromDB.and.returnValue(localExpense);
 
-      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(localBudget);
       spyOn(expenseRoutes, '_removeFromBudget').and.returnValue(Promise.resolve());
     });
 
@@ -841,7 +951,7 @@ describe('expenseRoutes', () => {
     describe('when successfully deleting an expense', () => {
 
       beforeEach(() => {
-        expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expense));
+        expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(localExpense));
         spyOn(expenseRoutes, '_isNotReimbursedPromise').and.returnValue(Promise.resolve());
       });
 
@@ -849,7 +959,7 @@ describe('expenseRoutes', () => {
         return expenseRoutes
           ._delete(id)
           .then(deletedExpense => {
-            expect(deletedExpense).toEqual(expense);
+            expect(deletedExpense).toEqual(localExpense);
             done();
           })
           .catch(() => {
@@ -858,7 +968,11 @@ describe('expenseRoutes', () => {
       }); // should return deleted object
 
       afterEach(() => {
-        expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(budget, expense, new ExpenseType(expenseType));
+        expect(expenseRoutes._removeFromBudget).toHaveBeenCalledWith(
+          localBudget,
+          localExpense,
+          new ExpenseType(expenseType)
+        );
         expect(expenseDynamo.removeFromDB).toHaveBeenCalledWith(id);
       });
     }); // when successfully deleting an expense
@@ -932,45 +1046,6 @@ describe('expenseRoutes', () => {
       }); // should throw an error
     }); // when no valid budgets are found
   }); // _findBudgetWithMatchingRange
-
-  describe('_getBudgetData', () => {
-    let expense, budgets;
-
-    describe('if the list of budgets contains a budget', () => {
-      beforeEach(() => {
-        budgets = [budget];
-        expense = {
-          purchaseDate: '{purchaseDate}'
-        };
-        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budgets);
-      });
-      it('should call _findBudgetWithMatchingRange', async done => {
-        expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(budgetsInRange => {
-          expect(budgetsInRange).toEqual(budgets);
-          expect(expenseRoutes._findBudgetWithMatchingRange).toHaveBeenCalledWith(budgets, expense.purchaseDate);
-          done();
-        });
-      }); // should call _findBudgetWithMatchingRange
-    }); // if the list of budgets contains a budget
-
-    describe('if budgets is empty', () => {
-      beforeEach(() => {
-        budgets = [];
-        expense = {
-          purchaseDate: '{purchaseDate}'
-        };
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve(['I\'m a new budget']));
-        spyOn(expenseRoutes, '_getUUID').and.returnValue(uuid);
-      });
-      it('should call _createNewBudget', async done => {
-        expenseRoutes._getBudgetData(budgets, expenseType, employee, expense).then(newBudgets => {
-          expect(newBudgets).toEqual(['I\'m a new budget']);
-          expect(expenseRoutes._createNewBudget).toHaveBeenCalledWith(expenseType, employee, uuid);
-          done();
-        });
-      }); // should call _createNewBudget
-    }); // if budgets is empty
-  }); // _getBudgetData
 
   describe('_getBudgetDates', () => {
     let hireDate,
@@ -1095,57 +1170,67 @@ describe('expenseRoutes', () => {
 
   describe('_getCurrentBudgetData', () => {
 
-    let budgets, expenseType, employee;
+    let localExpenseType, localEmployee;
+
+    beforeEach(() => {
+      localExpenseType = expenseType;
+      localEmployee = employee;
+    });
 
     describe('when budgets is empty', () => {
 
       beforeEach(() => {
-        expenseType = {id: 'expenseTypeId'};
-        employee = {id: 'employeeId'};
-        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve('success'));
+        budgetDynamo.queryWithTwoIndexesInDB.and.returnValue([]);
+        spyOn(expenseRoutes, '_createNewBudget').and.returnValue(Promise.resolve('New Budget'));
       });
 
       it('create a new budget', done => {
-        expenseRoutes._getCurrentBudgetData(budgets, expenseType, employee).then(data => {
-          expect(data).toEqual('success');
+        expenseRoutes._getCurrentBudgetData(localExpenseType, localEmployee).then(data => {
+          expect(data).toEqual('New Budget');
           done();
         });
-      }); // find budget with matching range
+      }); // create a new budget
     }); // when budgets is empty
 
-    describe('when budgets is not empty and expense type is not recurring', () => {
+    describe('when budgets is not empty', () => {
+
+      let budget2;
 
       beforeEach(() => {
-        budgets = ['budget'];
-        expenseType = {id: 'expenseTypeId'};
-        employee = {id: 'employeeId'};
-        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(Promise.resolve('success'));
+        budget2 = budget;
+        budget2.id = 'budget2Id';
+        budgetDynamo.queryWithTwoIndexesInDB.and.returnValue([budget, budget2]);
       });
 
-      it('create a new budget', done => {
-        expenseRoutes._getCurrentBudgetData(budgets, expenseType, employee).then(data => {
-          expect(data).toEqual('budget');
-          done();
+      describe('and expense type is recurring', () => {
+
+        beforeEach(() => {
+          localExpenseType.recurringFlag = true;
+          spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2);
         });
-      }); // find budget with matching range
-    }); // when budgets is not empty and expense type is not recurring
 
-    describe('when budgets is not empty and expense type is recurring', () => {
+        it('should return the 2nd budget', done => {
+          expenseRoutes._getCurrentBudgetData(localExpenseType, localEmployee).then(data => {
+            expect(data).toEqual(budget2);
+            done();
+          });
+        }); // should return the 2nd budget
+      }); //and expense type is recurring
 
-      beforeEach(() => {
-        budgets = ['budget', 'budget2'];
-        expenseType = {id: 'expenseTypeId', recurringFlag: true};
-        employee = {id: 'employeeId'};
-        spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(Promise.resolve('success'));
-      });
+      describe('and expense type is not recurring', () => {
 
-      it('create a new budget', done => {
-        expenseRoutes._getCurrentBudgetData(budgets, expenseType, employee).then(data => {
-          expect(data).toEqual('success');
-          done();
+        beforeEach(() => {
+          localExpenseType.recurringFlag = false;
         });
-      }); // find budget with matching range
-    }); // when budgets is not empty and expense type is recurring
+
+        it('should return the 2nd budget', done => {
+          expenseRoutes._getCurrentBudgetData(localExpenseType, localEmployee).then(data => {
+            expect(data).toEqual(budget);
+            done();
+          });
+        }); // should return the 1st budget
+      }); //and expense type is not recurring
+    }); // when budgets is not empty
   }); // _getCurrentBudgetData
 
   describe('_getEmployeeBudgetOverdrafts', () => {
@@ -2104,40 +2189,26 @@ describe('expenseRoutes', () => {
   }); // _unreimburseExpense
 
   describe('_update', () => {
-    let expenseData, localExpenseType, newExpense, oldExpense, budgets;
+    let expenseType, newExpense, oldExpense, budgets, budget, employee;
     beforeEach(() => {
-      expenseData = {
-        id,
-        purchaseDate,
-        reimbursedDate,
-        note,
-        url,
-        createdAt,
-        receipt,
-        cost,
-        name,
-        description,
-        userId,
-        expenseTypeId,
-        categories
-      };
       newExpense = new Expense(expenseData);
       oldExpense = new Expense(expenseData);
-      budgets = [new Budget(budget)];
+      budget = new Budget(budgetData);
+      budgets = [budget];
+      expenseType = new ExpenseType(expenseTypeData);
+      employee = new Employee(employeeData);
 
       expenseDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseData));
       employeeDynamo.findObjectInDB.and.returnValue(Promise.resolve(employee));
 
       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgets));
       spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget);
+      spyOn(expenseRoutes, '_hasAccess').and.returnValue(true);
     });
 
     describe('when expenseTypes match', () => {
       beforeEach(() => {
-        expenseType.id = '{expenseTypeId}';
-        localExpenseType = new ExpenseType(expenseType);
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-
         expenseDynamo.updateEntryInDB.and.returnValue(newExpense);
         //spyOn(expenseRoutes, '_isReimbursed').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes, '_performBudgetUpdate').and.returnValue(Promise.resolve());
@@ -2147,9 +2218,9 @@ describe('expenseRoutes', () => {
       afterEach(() => {
         expect(expenseRoutes.checkValidity).toHaveBeenCalledWith(
           newExpense,
-          localExpenseType,
-          new Budget(budget),
-          new Employee(employee),
+          expenseType,
+          budget,
+          employee,
           oldExpense
         );
 
@@ -2157,16 +2228,16 @@ describe('expenseRoutes', () => {
         expect(expenseRoutes._performBudgetUpdate).toHaveBeenCalledWith(
           oldExpense,
           newExpense,
-          new Budget(budget),
+          budget,
           budgets,
-          localExpenseType
+          expenseType
         );
         expect(expenseDynamo.updateEntryInDB).toHaveBeenCalledWith(newExpense);
       });
 
       it('should return the updated expense', done => {
         return expenseRoutes
-          ._update(id, expenseData)
+          ._update(expenseId, expenseData)
           .then(updatedExpense => {
             expect(updatedExpense).toEqual(newExpense);
             done();
@@ -2181,13 +2252,12 @@ describe('expenseRoutes', () => {
     describe('when expense type is inactive and employee is user', () => {
 
       beforeEach(() => {
-        expenseType.id = '{expenseTypeId}';
         employee.employeeRole = 'user';
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve( {isInactive: true} ));
       });
 
       it('should throw an error', () => {
-        expenseRoutes._update(id, expenseData).catch(err => {
+        expenseRoutes._update(expenseId, expenseData).catch(err => {
           expect(err).toEqual({
             code: 403,
             message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
@@ -2199,8 +2269,6 @@ describe('expenseRoutes', () => {
     describe('when update entry in database fails', () => {
 
       beforeEach(() => {
-        expenseType.id = '{expenseTypeId}';
-        localExpenseType = new ExpenseType(expenseType);
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
         expenseDynamo.updateEntryInDB.and.returnValue(Promise.reject('there was an error'));
         spyOn(expenseRoutes, '_performBudgetUpdate').and.returnValue(Promise.resolve());
@@ -2208,7 +2276,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should throw an error', done => {
-        expenseRoutes._update(id, expenseData).catch( err => {
+        expenseRoutes._update(expenseId, expenseData).catch( err => {
           expect(err).toEqual('there was an error');
           done();
         });

@@ -5,10 +5,11 @@ const expenseTypeDynamo = new databaseModify('expense-types');
 const budgetDynamo = new databaseModify('budgets');
 const trainingDynamo = new databaseModify('training-urls');
 const Logger = require('../js/Logger');
-const logger = new Logger('loggerityRoutes');
+const logger = new Logger('utilityRoutes');
 
 const express = require('express');
 const _ = require('lodash');
+//const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
@@ -49,6 +50,7 @@ class Utility {
 
     this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
     this._router.get('/:id/:date', checkJwt, this.empExpenses.bind(this)); //User
+    this._router.get('/:id/:date/:expenseTypeId', checkJwt, this.empExpenses.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
 
@@ -103,28 +105,41 @@ class Utility {
     logger.log(2, 'empExpenses', `Getting expenses for user ${req.params.id}`);
 
     try {
+      let returnObject;
       const userID = req.params.id;
       const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
-      const openBudgets = _.filter(userBudgets, budget => {
-        if (req.params.date == 'undefined' || req.params.date == null) {
-          return moment().isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
-        } else {
-          return moment(req.params.date).isBetween(budget.fiscalStartDate, budget.fiscalEndDate, 'day', '[]');
+      let dateExists = req.params.date != 'undefined' && req.params.date != null;
+      let expenseTypeIdExists = req.params.expenseTypeId != 'undefined' && req.params.expenseTypeId != null;
+      if (expenseTypeIdExists) {
+        let date = moment();
+        if (dateExists) {
+          date = moment(req.params.date);
         }
-      });
-      const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
-      const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
-      const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
-      const returnObject = _.map(openExpenseTypes, expenseType => {
-        return {
-          budget: expenseType.budget,
-          expenseTypeName: expenseType.budgetName,
-          description: expenseType.description,
-          odFlag: expenseType.odFlag,
-          expenseTypeId: expenseType.id,
-          budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
-        };
-      });
+        returnObject = _.find(userBudgets, budget => {
+          let between = date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
+          return between && req.params.expenseTypeId == budget.expenseTypeId;
+        });
+      } else {
+        const openBudgets = _.filter(userBudgets, budget => {
+          let date = moment();
+          if (dateExists) {
+            date = moment(req.params.date);
+          }
+          return date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
+        });
+        const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
+        const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
+        const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
+        returnObject = _.map(openExpenseTypes, expenseType => {
+          return {
+            expenseTypeName: expenseType.budgetName,
+            description: expenseType.description,
+            odFlag: expenseType.odFlag,
+            expenseTypeId: expenseType.id,
+            budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
+          };
+        });
+      }
       res.status(200).send(returnObject);
     } catch (error) {
       this._handleError(res, error);

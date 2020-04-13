@@ -20,6 +20,7 @@ class Budget {
     this.pendingAmount = Number(data.pendingAmount);
     this.fiscalStartDate = data.fiscalStartDate;
     this.fiscalEndDate = data.fiscalEndDate;
+    this.amount = data.amount;
   }
 }
 

@@ -1,11 +1,106 @@
 const EmployeeRoutes = require('../../routes/employeeRoutes');
+
+const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
+//const Expense = require('../../models/expense');
+const ExpenseType = require('../../models/expenseType');
+
+const IsoFormat = 'YYYY-MM-DD';
+const moment = require('moment');
 
 describe('employeeRoutes', () => {
+  const ID = '{id}';
+  const DESCRIPTION = '{description}';
+
+  const FIRST_NAME = '{firstName}';
+  const MIDDLE_NAME = '{middleName}';
+  const LAST_NAME = '{lastName}';
+  const EMPLOYEE_NUMBER = 0;
+  const HIRE_DATE = '{hireDate}';
+  const EMAIL = '{email}';
+  const EMPLOYEE_ROLE = '{employeeRole}';
+  const WORK_STATUS = 0;
+
+  const REIMBURSED_AMOUNT = 0;
+  const PENDING_AMOUNT = 0;
+  const FISCAL_START_DATE = '{fiscalStartDate}';
+  const FISCAL_END_DATE = '{fiscalEndDate}';
+  const AMOUNT = 0;
+
+  // const PURCHASE_DATE = '{purchaseDate}';
+  // const REIMBURSED_DATE = '{reimbursedDate}';
+  // const NOTE = '{note}';
+  // const URL = '{url}';
+  // const CREATED_AT = '{createdAt}';
+  // const RECEIPT = '{receipt}';
+  // const COST = 0;
+  const CATEGORIES = [];
+
+  const NAME = '{name}';
+  const BUDGET = '{budget}';
+  const START_DATE = '{startDate}';
+  const END_DATE = '{endDate}';
+  const OD_FLAG = '{odFlag}';
+  const REQUIRED_FLAG = '{requiredFlag}';
+  const RECURRING_FLAG = '{recurringFlag}';
+  const IS_INACTIVE = '{isInactive}';
+  const ACCESSIBLE_BY = '{accessibleBy}';
+
+  const EMPLOYEE_DATA = {
+    id: ID,
+    firstName: FIRST_NAME,
+    middleName: MIDDLE_NAME,
+    lastName: LAST_NAME,
+    employeeNumber: EMPLOYEE_NUMBER,
+    hireDate: HIRE_DATE,
+    email: EMAIL,
+    employeeRole: EMPLOYEE_ROLE,
+    workStatus: WORK_STATUS
+  };
+
+  const BUDGET_DATA = {
+    id: ID,
+    expenseTypeId: ID,
+    userId: ID,
+    reimbursedAmount: REIMBURSED_AMOUNT,
+    pendingAmount: PENDING_AMOUNT,
+    fiscalStartDate: FISCAL_START_DATE,
+    fiscalEndDate: FISCAL_END_DATE,
+    amount: AMOUNT
+  };
+
+  // const EXPENSE_DATA = {
+  //   id: ID,
+  //   purchaseDate: PURCHASE_DATE,
+  //   reimbursedDate: REIMBURSED_DATE,
+  //   note: NOTE,
+  //   url: URL,
+  //   createdAt: CREATED_AT,
+  //   receipt: RECEIPT,
+  //   cost: COST,
+  //   description: DESCRIPTION,
+  //   userId: ID,
+  //   expenseTypeId: ID,
+  //   categories: CATEGORIES
+  // };
+
+  const EXPENSE_TYPE_DATA = {
+    id: ID,
+    budgetName: NAME,
+    budget: BUDGET,
+    startDate: START_DATE,
+    endDate: END_DATE,
+    odFlag: OD_FLAG,
+    requiredFlag: REQUIRED_FLAG,
+    recurringFlag: RECURRING_FLAG,
+    isInactive: IS_INACTIVE,
+    description: DESCRIPTION,
+    categories: CATEGORIES,
+    accessibleBy: ACCESSIBLE_BY
+  };
+
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, employeeRoutes, expenseData;
   const uuid = 'uuid';
-  const id = 'id';
-  const userId = '{userId}';
   beforeEach(() => {
     employeeRoutes = new EmployeeRoutes();
     employeeRoutes.databaseModify = jasmine.createSpyObj('databaseModify', [
@@ -59,20 +154,17 @@ describe('employeeRoutes', () => {
       beforeEach(() => {
         expectedEmployee = new Employee(data);
 
-        spyOn(employeeRoutes, '_createRecurringExpenses').and.returnValue(Promise.resolve(expectedEmployee));
+        spyOn(employeeRoutes, '_createCurrentBudgets').and.returnValue(Promise.resolve(expectedEmployee));
         spyOn(employeeRoutes, '_isDuplicateEmployee').and.returnValue(false);
       });
 
-      it('should call _createRecurringExpenses and return the added employee', done => {
+      it('should call _createCurrentBudgets and return the added employee', done => {
         employeeRoutes._add(uuid, data).then(returnedEmployee => {
           expect(returnedEmployee).toEqual(expectedEmployee);
-          expect(employeeRoutes._createRecurringExpenses).toHaveBeenCalledWith(
-            expectedEmployee.id,
-            expectedEmployee.hireDate
-          );
+          expect(employeeRoutes._createCurrentBudgets).toHaveBeenCalledWith(expectedEmployee);
           done();
         });
-      }); // should call _createRecurringExpenses and return the added employee
+      }); // should call _createCurrentBudgets and return the added employee
     }); // when successfully adding employee
 
     describe('when failed to add employee', () => {
@@ -95,74 +187,82 @@ describe('employeeRoutes', () => {
     }); // when failed to add employee
   }); // _add
 
-  describe('_createRecurringExpenses', () => {
-    let hireDate, newBudget, dates, expenseType;
+  describe('_createCurrentBudgets', () => {
+
+    let employee;
+
     beforeEach(() => {
-      spyOn(employeeRoutes, '_getUUID').and.returnValue(uuid);
-      hireDate = 'YYYY-MM-DD';
-      newBudget = {
-        id: uuid,
-        expenseTypeId: id,
-        userId: userId,
-        reimbursedAmount: 0,
-        pendingAmount: 0,
-        fiscalStartDate: '{fiscalStartDate}',
-        fiscalEndDate: '{fiscalEndDate}'
-      };
-      dates = {
-        startDate: jasmine.createSpyObj('startDate', ['format']),
-        endDate: jasmine.createSpyObj('endDate', ['format'])
-      };
-
-      expenseType = {
-        id: id,
-        recurringFlag: true
-      };
-
-      dates.startDate.format.and.returnValue('{fiscalStartDate}');
-      dates.endDate.format.and.returnValue('{fiscalEndDate}');
-
-      spyOn(employeeRoutes, '_getBudgetDates').and.returnValue(dates);
-
-      budgetDynamo.addToDB.and.returnValue(Promise.resolve());
+      employee = new Employee(EMPLOYEE_DATA);
+      employee.hireDate = '2000-01-02';
     });
 
-    afterEach(() => {
-      expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-    });
+    describe('when successfully obtaining expense types', () => {
 
-    describe('when successfully creating recurring expeneses', () => {
+      let recurringExpenseType, currentExpenseType, oldExpenseType, expenseTypes;
 
       beforeEach(() => {
-        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+        recurringExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
+        recurringExpenseType.recurringFlag = true;
+        currentExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
+        currentExpenseType.recurringFlag = false;
+        currentExpenseType.startDate = moment().format(IsoFormat);
+        currentExpenseType.endDate = moment().format(IsoFormat);
+        oldExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
+        oldExpenseType.recurringFlag = false;
+        oldExpenseType.startDate = moment().subtract(1, 'd').format(IsoFormat);
+        oldExpenseType.endDate = moment().subtract(1, 'd').format(IsoFormat);
+        expenseTypes = [recurringExpenseType, currentExpenseType, oldExpenseType];
+        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(expenseTypes);
+        spyOn(employeeRoutes, '_getUUID').and.returnValue(ID);
+        budgetDynamo.addToDB.and.returnValue(new Budget(BUDGET_DATA));
       });
-
-      it('should return a list of created budgets', done => {
-        employeeRoutes._createRecurringExpenses(userId, hireDate).then(results => {
-          expect(results).toEqual([expenseType]);
-          done();
-        });
-      }); // should return a list of created budgets
 
       afterEach(() => {
-        expect(employeeRoutes._getBudgetDates).toHaveBeenCalledWith(hireDate);
-        expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
+        expect(budgetDynamo.addToDB).toHaveBeenCalledTimes(2);
       });
-    }); // when successfully creating recurring expeneses
+
+      describe('and employee has access to the expense type', () => {
+
+        beforeEach(() => {
+          spyOn(employeeRoutes, '_hasAccess').and.returnValue(true);
+        });
+
+        it('should return the expected list of created budgets', done => {
+          employeeRoutes._createCurrentBudgets(employee).then(results => {
+            expect(results).toEqual([recurringExpenseType, currentExpenseType]);
+            done();
+          });
+        }); // should return the expected list of created budgets
+      }); // and employee has access to the expense type
+
+      describe('and employee does not have access to the expense type', () => {
+
+        beforeEach(() => {
+          spyOn(employeeRoutes, '_hasAccess').and.returnValue(false);
+        });
+
+        it('should return the expected list of created budgets', done => {
+          employeeRoutes._createCurrentBudgets(employee).then(results => {
+            expect(results).toEqual([recurringExpenseType, currentExpenseType]);
+            done();
+          });
+        }); // should return the expected list of created budgets
+      }); // and employee does not have access to the expense type
+    }); // when successfully obtaining expense types
 
     describe('when failing to obtain expense type list', () => {
 
       beforeEach(() => {
-        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject('there was an error'));
+        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject('Error getting expense type list'));
       });
 
       it('should throw an error', () => {
-        employeeRoutes._createRecurringExpenses(userId, hireDate).catch( err => {
-          expect(err).toEqual('there was an error');
+        employeeRoutes._createCurrentBudgets(employee).catch( err => {
+          expect(err).toEqual('Error getting expense type list');
         });
       }); // should throw an error
     }); // when failing to obtain expense type list
-  }); // _createRecurringExpenses
+  }); // _createCurrentBudgets
 
   describe('_delete', () => {
 
@@ -388,17 +488,17 @@ describe('employeeRoutes', () => {
       });
     }); // if promise resolves
     describe('if the promise is rejected', () => {
-      let expectedErr;
+
       beforeEach(() => {
-        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.reject('server error'));
-        expectedErr = 'server error';
+        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.reject('Could not find employee'));
       });
 
-      it('should return error from server', () => {
-        employeeRoutes._update(id, data).catch(err => {
-          expect(err).toEqual(expectedErr);
+      it('should return Could not find employee', done => {
+        employeeRoutes._update(ID, EMPLOYEE_DATA).catch(err => {
+          expect(err).toEqual('Could not find employee');
+          done();
         });
-      }); // should return error from server
+      }); // should return Could not find employee
     }); // if the promise is rejected
   }); // _update
 }); // employeeRoutes
