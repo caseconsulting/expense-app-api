@@ -34,6 +34,7 @@ const checkJwt = jwt({
 });
 
 class Crud {
+
   constructor() {
     this._router = express.Router();
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));

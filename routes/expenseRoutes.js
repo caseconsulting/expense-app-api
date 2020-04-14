@@ -111,8 +111,7 @@ class ExpenseRoutes extends Crud {
   _addCost(addTo, addWith) {
     logger.log(4, '_addCost', 'Adding two costs together');
 
-    let newValue = addTo + addWith;
-    newValue = Number(newValue);
+    let newValue = Number(addTo) + Number(addWith);
     return Number(newValue.toFixed(2));
   }
 
@@ -210,15 +209,21 @@ class ExpenseRoutes extends Crud {
     });
   }
 
-  _checkBalance(expense, expenseType, budget, oldExpense) {
-    logger.log(2, '_checkBalance', `Validating budget for expense ${expense.id}`);
+  _checkBalance(newExpense, expenseType, budget, oldExpense) {
+    logger.log(2, '_checkBalance', `Validating budget for expense ${newExpense.id}`);
 
-    expense.cost = Number(expense.cost);
+    newExpense.cost = Number(newExpense.cost);
+
+    if (budget && expenseType && oldExpense && newExpense && oldExpense.cost == newExpense.cost) {
+      // return true if the costs are the same
+      return true;
+    }
+
     let oldCost = oldExpense ? oldExpense.cost : 0;
-    if (!budget && expense.cost <= expenseType.budget) {
+    if (!budget && newExpense.cost <= expenseType.budget) {
       // no budget exists yet, but the cost is valid
       return true;
-    } else if (!budget && expense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
+    } else if (!budget && newExpense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
       // if no budget exists yet, the expense type is overdraftable and the cost is valid
       return true;
     } else if (!budget) {
@@ -226,10 +231,10 @@ class ExpenseRoutes extends Crud {
       return false;
     }
 
-    let sum = Number((budget.pendingAmount + budget.reimbursedAmount + expense.cost - oldCost).toFixed(2));
-    if (sum <= expenseType.budget) {
+    let sum = Number((budget.pendingAmount + budget.reimbursedAmount + newExpense.cost - oldCost).toFixed(2));
+    if (sum <= budget.amount) {
       return true;
-    } else if (expenseType.odFlag && sum <= 2 * expenseType.budget) {
+    } else if (expenseType.odFlag && budget.amount == expenseType.budget && sum <= 2 * expenseType.budget) {
       //enough OD balance
       return true;
     } else {
@@ -248,30 +253,32 @@ class ExpenseRoutes extends Crud {
     return moment(purchaseDate).isBetween(startDate, endDate, 'day', '[]');
   }
 
-  checkValidity(expense, expenseType, budget, employee, oldExpense) {
-    logger.log(2, 'checkValidity', `Validating expense ${expense.id}`);
+  checkValidity(newExpense, expenseType, budget, employee, oldExpense) {
+    logger.log(2, 'checkValidity', `Validating expense ${newExpense.id}`);
 
     let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
 
     startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
     endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
-    validDateRange = this._checkExpenseDate(expense.purchaseDate, startDate, endDate);
-    balanceCheck = this._checkBalance(expense, expenseType, budget, oldExpense);
-    expenseTypeValid = this._areExpenseTypesEqual(expense, oldExpense);
+    validDateRange = this._checkExpenseDate(newExpense.purchaseDate, startDate, endDate);
+    balanceCheck = this._checkBalance(newExpense, expenseType, budget, oldExpense);
+    expenseTypeValid = this._areExpenseTypesEqual(newExpense, oldExpense);
     let valid = expenseTypeValid && validDateRange && balanceCheck && !this._isEmployeeInactive(employee);
-    let errMessage = 'Expense is not valid because:';
+    let errMessage;
+
+
     if (!valid) {
       if (!expenseTypeValid) {
-        errMessage += ' the expense type is not valid';
+        errMessage = 'the expense type is not valid';
       }
       if (!validDateRange) {
-        errMessage += ` the expense is outside the budget range, ${startDate} to ${endDate}`;
+        errMessage = `the expense is outside the budget range, ${startDate} to ${endDate}`;
       }
       if (!balanceCheck) {
-        errMessage += ' the expense is over the budget limit';
+        errMessage = 'the expense is over the budget limit';
       }
       if (this._isEmployeeInactive(employee)) {
-        errMessage += ' the employee is not active';
+        errMessage = 'the employee is not active';
       }
     }
     err = {
@@ -320,7 +327,7 @@ class ExpenseRoutes extends Crud {
    * @param employee - Employee of the expense and budget
    */
   async _addExpenseToBudget(budget, expense, expenseType, employee) {
-    logger.log(3, '_addExpenseToBudget', 'Determining if budget exists');
+    logger.log(3, '_addExpenseToBudget', 'Adding expense to budget');
 
     let updatedBudget;
 
@@ -658,8 +665,7 @@ class ExpenseRoutes extends Crud {
   _subtractCost(subtractFrom, subtractWith) {
     logger.log(4, '_subtractCost', 'subtracting two costs');
 
-    let newValue = subtractFrom - subtractWith;
-    newValue = Number(newValue);
+    let newValue = Number(subtractFrom) - Number(subtractWith);
     return Number(newValue.toFixed(2));
   }
 
@@ -752,6 +758,7 @@ class ExpenseRoutes extends Crud {
     newExpense = new Expense(data);
     newExpense.id = id;
     oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+
     employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
     expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
 
@@ -866,6 +873,7 @@ class ExpenseRoutes extends Crud {
         .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
         .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
         .catch(err => {
+          err.message = `Cannot update expense because ${err.message}`;
           throw err;
         });
     }

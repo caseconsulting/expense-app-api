@@ -35,6 +35,7 @@ describe('expenseTypeRoutes', () => {
 
       spyOn(expenseTypeRoutes, '_checkFields').and.returnValue(Promise.resolve());
       spyOn(expenseTypeRoutes, '_checkDates').and.returnValue(Promise.resolve());
+      spyOn(expenseTypeRoutes, '_createBudgets').and.returnValue(Promise.resolve());
       expenseTypeDynamo.addToDB.and.returnValue(Promise.resolve(expectedExpenseType));
     });
     afterEach(() => {
@@ -55,7 +56,6 @@ describe('expenseTypeRoutes', () => {
       beforeEach(() => {
         expectedErr = 'error from DynamoDB';
         expenseTypeDynamo.addToDB.and.returnValue(Promise.reject(expectedErr));
-        spyOn(expenseTypeRoutes, '_createBudgets').and.returnValue(Promise.resolve());
       });
 
       it('should throw the error', done => {

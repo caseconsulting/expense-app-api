@@ -161,6 +161,11 @@ describe('expenseRoutes', () => {
     amount
   };
 
+  const error = {
+    code: 403,
+    message: "there was an error"
+  };
+
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
 
   beforeEach(() => {
@@ -459,7 +464,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should return false', done => {
-        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        let result = expenseRoutes._checkBalance(expense, expenseType, undefined, oldExpense);
         expect(result).toBe(false);
         done();
       }); // should return false
@@ -468,6 +473,7 @@ describe('expenseRoutes', () => {
     describe('sum is less than or equal to the budget', () => {
       beforeEach(() => {
         expense.cost = 0;
+        budget.amount = 1;
         expenseType.budget = 0;
       });
       it('should return true', done => {
@@ -480,6 +486,7 @@ describe('expenseRoutes', () => {
     describe('expenseType allows overdrafting and sum is less than or equal to two times the budget', () => {
       beforeEach(() => {
         budget.pendingAmount = 2;
+        budget.amount = 1;
         expenseType.budget = 1;
         expenseType.odFlag = true;
       });
@@ -492,17 +499,21 @@ describe('expenseRoutes', () => {
 
     describe('when budget amount cannot cover the expense', () => {
       beforeEach(() => {
+        budget.amount = -1;
         expenseType.budget = -1;
         expenseType.odFlag = false;
       });
       it('should return false', done => {
-        let result = expenseRoutes._checkBalance(expense, expenseType, budget, oldExpense);
+        let result = expenseRoutes._checkBalance(expense, expenseType, budget, undefined);
         expect(result).toBe(false);
         done();
       }); // should return false
     }); // when budget amount cannot cover the expense
 
     describe('when old expense is undefiend', () => {
+      beforeEach(() => {
+        budget.amount = 1;
+      })
 
       it('should set the old cost to 0', () => {
         expect(expenseRoutes._checkBalance(expense, expenseType, budget, undefined)).toBe(true);
@@ -593,7 +604,7 @@ describe('expenseRoutes', () => {
         employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
-          message: `Expense is not valid because: the expense is outside the budget range, ${startDate} to ${endDate}`
+          message: `the expense is outside the budget range, ${startDate} to ${endDate}`
         };
       });
 
@@ -622,7 +633,7 @@ describe('expenseRoutes', () => {
         employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
-          message: 'Expense is not valid because: the expense is over the budget limit'
+          message: 'the expense is over the budget limit'
         };
       });
 
@@ -651,7 +662,7 @@ describe('expenseRoutes', () => {
         employee.workStatus = 100;
         expectedErrorObject = {
           code: 403,
-          message: 'Expense is not valid because: the expense type is not valid'
+          message: 'the expense type is not valid'
         };
       });
 
@@ -681,7 +692,7 @@ describe('expenseRoutes', () => {
         employee.workStatus = 0;
         expectedErrorObject = {
           code: 403,
-          message: 'Expense is not valid because: the employee is not active'
+          message: 'the employee is not active'
         };
       });
 
@@ -2267,17 +2278,21 @@ describe('expenseRoutes', () => {
     }); // when expense type is inactive and employee is user
 
     describe('when update entry in database fails', () => {
+      let expectedError;
 
       beforeEach(() => {
+        expectedError = error;
+        expectedError.message = "Cannot update expense because there was an error";
+
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
-        expenseDynamo.updateEntryInDB.and.returnValue(Promise.reject('there was an error'));
+        expenseDynamo.updateEntryInDB.and.returnValue(Promise.reject(error));
         spyOn(expenseRoutes, '_performBudgetUpdate').and.returnValue(Promise.resolve());
         spyOn(expenseRoutes, 'checkValidity').and.returnValue(Promise.resolve());
       });
 
       it('should throw an error', done => {
         expenseRoutes._update(expenseId, expenseData).catch( err => {
-          expect(err).toEqual('there was an error');
+          expect(err).toEqual(expectedError);
           done();
         });
       }); // should throw an error
