@@ -25,7 +25,7 @@ describe('expenseRoutes', () => {
   const createdAt = '{createdAt}';
   const receipt = '{purchareceiptseDate}';
   const cost = 0;
-  const category = "category"
+  const category = 'category';
 
   // employees
   const firstName = '{firstName}';
