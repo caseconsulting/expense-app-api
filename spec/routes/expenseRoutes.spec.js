@@ -163,7 +163,7 @@ describe('expenseRoutes', () => {
 
   const error = {
     code: 403,
-    message: "there was an error"
+    message: 'there was an error'
   };
 
   let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, expenseRoutes;
@@ -513,7 +513,7 @@ describe('expenseRoutes', () => {
     describe('when old expense is undefiend', () => {
       beforeEach(() => {
         budget.amount = 1;
-      })
+      });
 
       it('should set the old cost to 0', () => {
         expect(expenseRoutes._checkBalance(expense, expenseType, budget, undefined)).toBe(true);
@@ -2282,7 +2282,7 @@ describe('expenseRoutes', () => {
 
       beforeEach(() => {
         expectedError = error;
-        expectedError.message = "Cannot update expense because there was an error";
+        expectedError.message = 'Cannot update expense because there was an error';
 
         expenseTypeDynamo.findObjectInDB.and.returnValue(Promise.resolve(expenseType));
         expenseDynamo.updateEntryInDB.and.returnValue(Promise.reject(error));
