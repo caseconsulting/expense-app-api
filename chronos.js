@@ -22,7 +22,8 @@ async function start() {
         if (expenseType.recurringFlag) {
         //filter by the ones that are recurring
           let newBudget = _makeNewBudget(oldBudget, expenseType);
-          console.log(`Happy Anniversary user: ${newBudget.userId} 🥳 \n created new budget with id: ${newBudget.id}`);
+          let msg = `Happy Anniversary user: ${newBudget.employeeId} 🥳 \n created new budget with id: ${newBudget.id}`;
+          console.log(msg);
           numberRecurring++;
           return await budgetDynamo.addToDB(newBudget);
         }
@@ -62,7 +63,7 @@ function _makeNewBudget(oldBudget, expenseType) {
   let newBudget = {
     id: uuid(),
     expenseTypeId: oldBudget.expenseTypeId,
-    userId: oldBudget.userId,
+    employeeId: oldBudget.employeeId,
     reimbursedAmount: 0,
     pendingAmount: 0,
     fiscalStartDate: moment(oldBudget.fiscalStartDate)
@@ -76,7 +77,7 @@ function _makeNewBudget(oldBudget, expenseType) {
     let overage = oldBudget.reimbursedAmount - expenseType.budget;
     newBudget.reimbursedAmount = overage;
     console.log(`
-    Moving overdrafted amount of ${overage} to new budget: ${newBudget.id} for user ${newBudget.userId} 💰💰💰`);
+    Moving overdrafted amount of ${overage} to new budget: ${newBudget.id} for user ${newBudget.employeeId} 💰💰💰`);
   }
   return newBudget;
 }

@@ -4,7 +4,7 @@
  * Fields:
  * - id
  * - expenseTypeId
- * - userId
+ * - employeeId
  * - reimbursedAmount
  * - pendingAmount
  * - fiscalStartDate
@@ -15,7 +15,7 @@ class Budget {
   constructor(data) {
     this.id = data.id;
     this.expenseTypeId = data.expenseTypeId;
-    this.userId = data.userId;
+    this.employeeId = data.employeeId;
     this.reimbursedAmount = Number(data.reimbursedAmount);
     this.pendingAmount = Number(data.pendingAmount);
     this.fiscalStartDate = data.fiscalStartDate;

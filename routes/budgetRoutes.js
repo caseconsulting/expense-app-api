@@ -43,7 +43,7 @@ class Budgets {
 
     if (this._isAdmin(req)) {
       return this.budgetDynamo
-        .querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.params.id)
+        .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
         .then(data => {
           return res.status(200).send(data);
         })
@@ -57,7 +57,7 @@ class Budgets {
     logger.log(2, 'getCaller', `Getting budgets for user ${req.params.id}`);
 
     return this.budgetDynamo
-      .querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', req.employee.id)
+      .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.employee.id)
       .then(data => {
         return data ? res.status(200).send(data) : res.status(200).send([]);
       })

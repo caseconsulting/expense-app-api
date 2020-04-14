@@ -12,7 +12,7 @@
  * - cost
  * - name
  * - description
- * - userId
+ * - employeeId
  * - expenseTypeId
  */
 class Expense {
@@ -30,7 +30,7 @@ class Expense {
     this.receipt = data.receipt;
     this.cost = Number(data.cost).toFixed(2);
     this.description = data.description;
-    this.userId = data.userId;
+    this.employeeId = data.employeeId;
     this.expenseTypeId = data.expenseTypeId;
     this.category = data.category;
 

@@ -276,7 +276,7 @@ class Crud {
         .catch(err => this._handleError(res, err));
     } else if (this._getTableName() === `${STAGE}-expenses` && this._isUser(req)) {
       return this.databaseModify.readFromDB(req.params.id).then(expense => {
-        if (_.first(expense).userId === req.employee.id) {
+        if (_.first(expense).employeeId === req.employee.id) {
           logger.log(2, 'read', `Read from table ${this._getTableName()} for employee ${req.employee.id}`);
 
           res.status(200).send(_.first(expense));

@@ -272,10 +272,10 @@ describe('databaseModify', () => {
             ':n': objToUpdate.note,
             ':r': objToUpdate.receipt,
             ':eti': objToUpdate.expenseTypeId,
-            ':ui': objToUpdate.userId,
+            ':ei': objToUpdate.employeeId,
             ':cat': objToUpdate.createdAt,
             ':rurl': objToUpdate.url,
-            ':cate': objToUpdate.categories
+            ':cate': objToUpdate.category
           },
           _.identity
         );
@@ -522,8 +522,8 @@ describe('databaseModify', () => {
     let secondaryIndex, queryKey, queryParam;
 
     beforeEach(() => {
-      secondaryIndex = 'userId-index';
-      queryKey = 'userId';
+      secondaryIndex = 'employeeId-index';
+      queryKey = 'employeeId';
       queryParam = 'employeeId';
     });
 
@@ -570,10 +570,10 @@ describe('databaseModify', () => {
 
   describe('queryWithTwoIndexesInDB', () => {
 
-    let userId, expenseTypeId;
+    let employeeId, expenseTypeId;
 
     beforeEach(() => {
-      userId = 'userId';
+      employeeId = 'employeeId';
       expenseTypeId = 'expenseTypeId';
     });
 
@@ -588,7 +588,7 @@ describe('databaseModify', () => {
       });
 
       it('should return a resolved promise of queried items', done => {
-        databaseModify.queryWithTwoIndexesInDB(userId, expenseTypeId).then( data => {
+        databaseModify.queryWithTwoIndexesInDB(employeeId, expenseTypeId).then( data => {
           expect(data).toEqual(['data0, data1, data2']);
           done();
         });
@@ -606,7 +606,7 @@ describe('databaseModify', () => {
       });
 
       it('should return a resolved promise of queried items', done => {
-        databaseModify.queryWithTwoIndexesInDB(userId, expenseTypeId).then( data => {
+        databaseModify.queryWithTwoIndexesInDB(employeeId, expenseTypeId).then( data => {
           expect(data).toEqual(null);
           done();
         });
@@ -624,7 +624,7 @@ describe('databaseModify', () => {
       });
 
       it('should return the error given by AWS', done => {
-        databaseModify.queryWithTwoIndexesInDB(userId, expenseTypeId).catch(function(err) {
+        databaseModify.queryWithTwoIndexesInDB(employeeId, expenseTypeId).catch(function(err) {
           expect(err).toEqual({ message: 'AWS error' });
           done();
         });

@@ -34,7 +34,7 @@ describe('employeeRoutes', () => {
   // const CREATED_AT = '{createdAt}';
   // const RECEIPT = '{receipt}';
   // const COST = 0;
-  const CATEGORIES = [];
+  // const CATEGORY = '{category}';
 
   const NAME = '{name}';
   const BUDGET = '{budget}';
@@ -45,6 +45,7 @@ describe('employeeRoutes', () => {
   const RECURRING_FLAG = '{recurringFlag}';
   const IS_INACTIVE = '{isInactive}';
   const ACCESSIBLE_BY = '{accessibleBy}';
+  const CATEGORIES = [];
 
   const EMPLOYEE_DATA = {
     id: ID,
@@ -61,7 +62,7 @@ describe('employeeRoutes', () => {
   const BUDGET_DATA = {
     id: ID,
     expenseTypeId: ID,
-    userId: ID,
+    employeeId: ID,
     reimbursedAmount: REIMBURSED_AMOUNT,
     pendingAmount: PENDING_AMOUNT,
     fiscalStartDate: FISCAL_START_DATE,
@@ -79,9 +80,9 @@ describe('employeeRoutes', () => {
   //   receipt: RECEIPT,
   //   cost: COST,
   //   description: DESCRIPTION,
-  //   userId: ID,
+  //   employeeId: ID,
   //   expenseTypeId: ID,
-  //   categories: CATEGORIES
+  //   category: CATEGORY
   // };
 
   const EXPENSE_TYPE_DATA = {

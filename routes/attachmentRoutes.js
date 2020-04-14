@@ -42,7 +42,7 @@ var storage = multerS3({
   contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
   key: function(req, file, cb) {
-    cb(null, `${req.params.userId}/${req.params.expenseId}/${file.originalname}`);
+    cb(null, `${req.params.employeeId}/${req.params.expenseId}/${file.originalname}`);
   }
 });
 
@@ -93,9 +93,13 @@ class Attachment {
   constructor() {
     this.expenseData = expenseDynamo;
     this._router = express.Router();
-    this._router.post('/:userId/:expenseId', checkJwt, getUserInfo, this.uploadAttachmentToS3.bind(this));
-    this.router.get('/:userId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
-    this.router.delete('/:userId/:expenseId/:receipt', checkJwt, getUserInfo, this.deleteAttachmentFromS3.bind(this));
+    this._router.post('/:employeeId/:expenseId', checkJwt, getUserInfo, this.uploadAttachmentToS3.bind(this));
+    this.router.get('/:employeeId/:expenseId', checkJwt, getUserInfo, this.getAttachmentFromS3.bind(this));
+    this.router.delete('/:employeeId/:expenseId/:receipt',
+      checkJwt,
+      getUserInfo,
+      this.deleteAttachmentFromS3.bind(this)
+    );
   }
 
   get router() {
@@ -138,7 +142,7 @@ class Attachment {
 
     let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
     let fileExt = expense.receipt;
-    let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
+    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
     var params = { Bucket: BUCKET, Key: filePath, Expires: 60 };
     s3.getSignedUrl('getObject', params, (err, data) => {
       if (err) throw err;
@@ -154,7 +158,7 @@ class Attachment {
 
     // set up params
     let fileExt = req.params.receipt;
-    let filePath = `${req.params.userId}/${req.params.expenseId}/${fileExt}`;
+    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
     let params = { Bucket: BUCKET, Key: filePath};
     // make delete call to s3
     s3.deleteObject(params, (err, data) => {

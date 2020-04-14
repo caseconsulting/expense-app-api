@@ -100,7 +100,7 @@ class EmployeeRoutes extends Crud {
       let newBudget = {
         id: this._getUUID(),
         expenseTypeId: expenseType.id,
-        userId: employee.id,
+        employeeId: employee.id,
         reimbursedAmount: 0,
         pendingAmount: 0,
         fiscalStartDate: startDate,
@@ -119,12 +119,13 @@ class EmployeeRoutes extends Crud {
     let employee, userExpenses, userBudgets;
 
     try {
-      userExpenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', id);
+      userExpenses = await this.expenseData.querySecondaryIndexInDB('employeeId-index', 'employeeId', id);
 
       //can only delete a user if they have no expenses
       if (userExpenses.length === 0) {
         employee = new Employee(await this.databaseModify.removeFromDB(id));
-        userBudgets = await this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', id);
+        userBudgets =
+          await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', id);
         for (let budget of userBudgets) {
           await this.budgetDynamo.removeFromDB(budget.id); //deletes all users empty budgets
         }
@@ -290,7 +291,7 @@ class EmployeeRoutes extends Crud {
     try {
       // get all employee's budgets
       let employeeBudgets =
-        await this.budgetDynamo.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', oldEmployee.id);
+        await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id);
       // get all expense types
       let expenseTypes = await this.getExpenseTypes();
       // filter for only current budgets

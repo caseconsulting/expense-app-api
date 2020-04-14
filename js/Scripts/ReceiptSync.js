@@ -56,9 +56,9 @@ const listAllKeys = (params, out = []) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
-// create a mapping of userId/expense to receipt name
+// create a mapping of employeeId/expense to receipt name
 function s3PathMap(keys) {
-  console.log('Creating s3 map for userId/expense to receipt name');
+  console.log('Creating s3 map for employeeId/expense to receipt name');
   let map = [];
   _.forEach(keys, key => {
     let splitIndex = key.Key.indexOf('/', key.Key.indexOf('/') + 1);
@@ -100,7 +100,7 @@ async function updateReceiptFields() {
       let expenses = await getAllEntriesInDB();
       _.forEach(expenses, expense => {
         // find the S3 key that matches this expense
-        let mapping = _.find(map, {'path': `${expense.userId}/${expense.id}`});
+        let mapping = _.find(map, {'path': `${expense.employeeId}/${expense.id}`});
         // if the there is a match
         let params = {
           TableName: table,

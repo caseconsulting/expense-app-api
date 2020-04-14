@@ -72,7 +72,7 @@ class Utility {
   getEmployeeName(expense) {
     logger.log(3, 'getEmployeeName', `Getting employee name of expense ${expense.id}`);
 
-    return this.employeeData.readFromDB(expense.userId).then(employee => {
+    return this.employeeData.readFromDB(expense.employeeId).then(employee => {
       let emp = employee[0];
       expense.employeeName = this._fullName(emp);
       return expense;
@@ -105,8 +105,9 @@ class Utility {
 
     try {
       let returnObject;
-      const userID = req.params.id;
-      const userBudgets = await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
+      const employeeId = req.params.id;
+      const userBudgets =
+        await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
       let dateExists = req.params.date != 'undefined' && req.params.date != null;
       let expenseTypeIdExists = req.params.expenseTypeId != 'undefined' && req.params.expenseTypeId != null;
       if (expenseTypeIdExists) {
@@ -148,9 +149,9 @@ class Utility {
   getAllEmployeeExpenses(req, res) {
     logger.log(2, 'getAllEmployeeExpenses', 'Getting all employee expenses');
 
-    const userID = req.params.id;
+    const employeeId = req.params.id;
     this.expenseData
-      .querySecondaryIndexInDB('userId-index', 'userId', userID)
+      .querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId)
       .then(data => {
         res.status(200).send(data);
       })
@@ -162,9 +163,9 @@ class Utility {
   getAllExpenseTypeExpenses(req, res) {
     logger.log(2, 'getAllExpenseTypeExpenses', 'Getting all expense types');
 
-    const userID = req.params.id;
+    const employeeId = req.params.id;
     this.expenseData
-      .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', userID)
+      .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', employeeId)
       .then(data => {
         res.status(200).send(data);
       })
@@ -178,9 +179,9 @@ class Utility {
   //   logger.log(2, 'empExpenseHistory', `Checking if employee ${req.params.id} has any expenses`);
   //
   //   try {
-  //     const userID = req.params.id;
+  //     const employeeId = req.params.id;
   //     const userBudgets =
-  //       await this.budgetData.querySecondaryIndexInDB('userId-expenseTypeId-index', 'userId', userID);
+  //       await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
   //     const returnObject = null;
   //     res.status(200).send(returnObject);
   //   } catch (error) {
@@ -204,7 +205,7 @@ class Utility {
   _findEmployee(expenses, user, expensesTypes) {
     logger.log(3, '_findEmployee', `Finding user ${user.id}`);
 
-    let filteredExpenses = _.filter(expenses, expense => expense.userId === user.id);
+    let filteredExpenses = _.filter(expenses, expense => expense.employeeId === user.id);
     let temp = null;
     let returnObject = {
       firstName: user.firstName,
@@ -253,11 +254,12 @@ class Utility {
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else if (this._isUser(req)) {
-        let userID = req.employee.id;
-        let user = _.first(await this.employeeData.readFromDB(userID));
+        let employeeId = req.employee.id;
+        let user = _.first(await this.employeeData.readFromDB(employeeId));
         let users = [user];
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
-        let expenses = await this.expenseData.querySecondaryIndexInDB('userId-index', 'userId', req.employee.id);
+        let expenses =
+          await this.expenseData.querySecondaryIndexInDB('employeeId-index', 'employeeId', req.employee.id);
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else {
         res.status(403).send('Permission denied. Insufficient user permissions');
@@ -279,7 +281,7 @@ class Utility {
 
     _.forEach(expenses, expense => {
       let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
-      let employee = _.find(users, emp => emp.id === expense.userId);
+      let employee = _.find(users, emp => emp.id === expense.employeeId);
       if (expenseType !== undefined && employee !== undefined) {
         expense.budgetName = expenseType.budgetName;
         expense.employeeName = this._fullName(employee);
@@ -335,7 +337,9 @@ class Utility {
       `Filtering expenses with expense type ${expenseType.id} for user ${employee.id}`
     );
 
-    return _.filter(expenses, expense => expense.userId === employee.id && expense.expenseTypeId === expenseType.id);
+    return _.filter(expenses, expense => {
+      return expense.employeeId === employee.id && expense.expenseTypeId === expenseType.id;
+    });
   }
 
   _processExpenses(expenseData) {

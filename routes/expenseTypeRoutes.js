@@ -64,7 +64,7 @@ class ExpenseTypeRoutes extends Crud {
         let newBudget = {
           id: this._getUUID(),
           expenseTypeId: expenseType.id,
-          userId: employee.id,
+          employeeId: employee.id,
           reimbursedAmount: 0,
           pendingAmount: 0,
           fiscalStartDate: start,
@@ -234,7 +234,7 @@ class ExpenseTypeRoutes extends Crud {
 
       if (!sameBudget) {
         // update the budget amount
-        let employee = _.find(employees, ['id', budget.userId]);
+        let employee = _.find(employees, ['id', budget.employeeId]);
         if (this._hasAccess(employee, expenseType)) {
           budget.amount = this._adjustedBudget(expenseType, employee);
         } else {

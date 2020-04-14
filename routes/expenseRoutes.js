@@ -73,24 +73,24 @@ class ExpenseRoutes extends Crud {
     if (!this._isReimbursed(expense)) {
       logger.log(1, '_add',
         `Attempting to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.userId}`
+        `for user ${expense.employeeId}`
       );
     } else {
       logger.log(1, '_add',
         `Attempting to add reimbursed expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.userId}`
+        `for user ${expense.employeeId}`
       );
     }
 
     try {
-      employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.userId));
+      employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.employeeId));
       expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
       this._validateAdd(expenseType, employee, expense);
       budget = await this._getCurrentBudgetData(expenseType, employee);
     } catch (err) {
       logger.log(1, '_add',
         `Failed to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.userId}`
+        `for user ${expense.employeeId}`
       );
       logger.error('_add', `Error code: ${err.code}`);
       throw err;
@@ -156,7 +156,7 @@ class ExpenseRoutes extends Crud {
   /*
    * Change the path name for objects in an a s3 bucket
    */
-  async _changeBucket(userId, oldId, newId) {
+  async _changeBucket(employeeId, oldId, newId) {
     logger.log(2, '_changeBucket', `Attempting to change S3 file from ${oldId} to ${newId}`);
 
     var oldPrefix = `${oldId}`;
@@ -164,7 +164,7 @@ class ExpenseRoutes extends Crud {
 
     let listParams = {
       Bucket: BUCKET,
-      Prefix: `${userId}/${oldPrefix}`
+      Prefix: `${employeeId}/${oldPrefix}`
     };
     s3.listObjectsV2(listParams, function(err, data) {
       if (data.Contents.length) {
@@ -296,7 +296,7 @@ class ExpenseRoutes extends Crud {
     const newBudget = {
       id: newId,
       expenseTypeId: expenseType.id,
-      userId: employee.id,
+      employeeId: employee.id,
       reimbursedAmount: 0,
       pendingAmount: 0
     };
@@ -363,7 +363,7 @@ class ExpenseRoutes extends Crud {
 
     try {
       expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
-      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.userId, expense.expenseTypeId);
+      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.employeeId, expense.expenseTypeId);
       budgets = [];
       _.forEach(rawBudgets, budget => budgets.push(new Budget(budget)));
 
@@ -469,7 +469,7 @@ class ExpenseRoutes extends Crud {
       `for expense type ${expenseType}`
     );
 
-    let expenses = await this.expenseDynamo.querySecondaryIndexInDB('userId-index', 'userId', employeeId);
+    let expenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId);
 
     let filteredExpenses = _.filter(expenses, expense => {
       return this._isValidExpense(expense, budget, expenseType);
@@ -695,7 +695,7 @@ class ExpenseRoutes extends Crud {
     let sortedBudgets = this._sortBudgets(budgets);
 
     // get the sorted budget overdrafts
-    let budgetOverdrafts = await this._getEmployeeBudgetOverdrafts(sortedBudgets, newExpense.userId, expenseType);
+    let budgetOverdrafts = await this._getEmployeeBudgetOverdrafts(sortedBudgets, newExpense.employeeId, expenseType);
     budgetOverdrafts.unshift(0);
 
     // get the new expense budget
@@ -724,7 +724,7 @@ class ExpenseRoutes extends Crud {
         // get the reimbursed amount for the current budget
         let reimbursedAmnt = sortedBudgets[currBudgetIndex].reimbursedAmount;
         let totalReimbursedInBudget = await this._getEmployeeExpensesTotalReimbursedInBudget(
-          newExpense.userId,
+          newExpense.employeeId,
           sortedBudgets[currBudgetIndex],
           expenseType
         ); // get the total expenses in the budget
@@ -759,7 +759,7 @@ class ExpenseRoutes extends Crud {
     newExpense.id = id;
     oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
 
-    employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.userId));
+    employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.employeeId));
     expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
 
     // throw access denied error if the employee does not have access to the expense type
@@ -782,7 +782,7 @@ class ExpenseRoutes extends Crud {
 
       // change the bucket/path of the receipt from the old expense id to the new expense id
       if (!this._isEmpty(oldExpense.receipt)){
-        this._changeBucket(oldExpense.userId, oldExpense.id, newExpense.id);
+        this._changeBucket(oldExpense.employeeId, oldExpense.id, newExpense.id);
       }
 
       logger.log(1, '_update', `Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId}`,
@@ -799,7 +799,7 @@ class ExpenseRoutes extends Crud {
           };
           throw err;
         }
-        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(oldExpense.userId, oldExpense.expenseTypeId);
+        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(oldExpense.employeeId, oldExpense.expenseTypeId);
         rawBudgets.forEach(function(e) {
           budgets.push(new Budget(e));
         });
@@ -859,7 +859,7 @@ class ExpenseRoutes extends Crud {
           throw err;
         }
         // get all budgets of the expense type
-        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.userId, newExpense.expenseTypeId);
+        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.employeeId, newExpense.expenseTypeId);
         rawBudgets.forEach(function(e) {
           budgets.push(new Budget(e));
         });

@@ -27,7 +27,7 @@ describe('chronos', () => {
       oldBudget = {
         id: 'uuid',
         expenseTypeId: 'expenseTypeId',
-        userId: 'userId',
+        employeeId: 'employeeId',
         fiscalStartDate: '2020-03-02',
         fiscalEndDate: '2021-03-01',
         reimbursedAmount: 5
@@ -37,7 +37,7 @@ describe('chronos', () => {
       };
       expectedBudget = {
         expenseTypeId: 'expenseTypeId',
-        userId: 'userId',
+        employeeId: 'employeeId',
         fiscalStartDate: '2021-03-02',
         fiscalEndDate: '2022-03-01',
         reimbursedAmount: 0,
@@ -51,7 +51,7 @@ describe('chronos', () => {
         let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
         expect(newBudget.id).not.toBe(undefined);
         expect(newBudget.expenseTypeId).toEqual(expectedBudget.expenseTypeId);
-        expect(newBudget.userId).toEqual(expectedBudget.userId);
+        expect(newBudget.employeeId).toEqual(expectedBudget.employeeId);
         expect(newBudget.fiscalStartDate).toEqual(expectedBudget.fiscalStartDate);
         expect(newBudget.fiscalEndDate).toEqual(expectedBudget.fiscalEndDate);
         expect(newBudget.reimbursedAmount).toEqual(expectedBudget.reimbursedAmount);
@@ -70,7 +70,7 @@ describe('chronos', () => {
         let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
         expect(newBudget.id).not.toBe(undefined);
         expect(newBudget.expenseTypeId).toEqual(expectedBudget.expenseTypeId);
-        expect(newBudget.userId).toEqual(expectedBudget.userId);
+        expect(newBudget.employeeId).toEqual(expectedBudget.employeeId);
         expect(newBudget.fiscalStartDate).toEqual(expectedBudget.fiscalStartDate);
         expect(newBudget.fiscalEndDate).toEqual(expectedBudget.fiscalEndDate);
         expect(newBudget.reimbursedAmount).toEqual(expectedBudget.reimbursedAmount);

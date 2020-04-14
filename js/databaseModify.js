@@ -171,10 +171,10 @@ class databaseModify {
         ':n': objToUpdate.note,
         ':r': objToUpdate.receipt,
         ':eti': objToUpdate.expenseTypeId,
-        ':ui': objToUpdate.userId,
+        ':ei': objToUpdate.employeeId,
         ':cat': objToUpdate.createdAt,
         ':rurl': objToUpdate.url,
-        ':cate': objToUpdate.categories
+        ':cate': objToUpdate.category
       },
       _.identity
     );
@@ -259,15 +259,15 @@ class databaseModify {
       });
   }
 
-  queryWithTwoIndexesInDB(userId, expenseTypeId) {
+  queryWithTwoIndexesInDB(employeeId, expenseTypeId) {
     const params = {
       TableName: this.tableName,
-      IndexName: 'userId-expenseTypeId-index',
+      IndexName: 'employeeId-expenseTypeId-index',
       ExpressionAttributeValues: {
         ':expenseTypeId': expenseTypeId,
-        ':userId': userId
+        ':employeeId': employeeId
       },
-      KeyConditionExpression: 'expenseTypeId = :expenseTypeId and userId = :userId'
+      KeyConditionExpression: 'expenseTypeId = :expenseTypeId and employeeId = :employeeId'
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();

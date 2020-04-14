@@ -12,7 +12,7 @@ describe('expenseRoutes', () => {
   const uuid = 'uuid';
   const id = '{id}';
   const expenseId = '{expenseId}';
-  const userId = '{userId}';
+  const employeeId = '{employeeId}';
   const expenseTypeId = '{expenseTypeId}';
   const budgetId = '{{budgetId}}';
   const description = '{description}';
@@ -66,13 +66,13 @@ describe('expenseRoutes', () => {
     receipt,
     cost,
     description,
-    userId,
+    employeeId,
     expenseTypeId,
     category
   };
 
   const employee = {
-    id: userId,
+    id: employeeId,
     firstName,
     middleName,
     lastName,
@@ -101,7 +101,7 @@ describe('expenseRoutes', () => {
   const budget = {
     id: budgetId,
     expenseTypeId,
-    userId,
+    employeeId,
     reimbursedAmount,
     pendingAmount,
     fiscalStartDate,
@@ -119,13 +119,13 @@ describe('expenseRoutes', () => {
     receipt,
     cost,
     description,
-    userId,
+    employeeId,
     expenseTypeId,
     category
   };
 
   const employeeData = {
-    id: userId,
+    id: employeeId,
     firstName,
     middleName,
     lastName,
@@ -154,7 +154,7 @@ describe('expenseRoutes', () => {
   const budgetData = {
     id: budgetId,
     expenseTypeId,
-    userId,
+    employeeId,
     reimbursedAmount,
     pendingAmount,
     fiscalStartDate,
@@ -757,7 +757,7 @@ describe('expenseRoutes', () => {
       newBudget = budget;
       newBudget.id = idIn;
       newBudget.expenseTypeId = expenseTypeIn.id;
-      newBudget.userId = employeeIn.id;
+      newBudget.employeeId = employeeIn.id;
       returnBudget = 'returnBudget';
       budgetDynamo.addToDB.and.returnValue(Promise.resolve(returnBudget));
     });
@@ -1992,13 +1992,13 @@ describe('expenseRoutes', () => {
 
     beforeEach(() => {
       oldExpense = {
-        userId: 'userId',
+        employeeId: 'employeeId',
         purchaseDate: '2001-01-02',
         reimbursedDate: '2001-01-02',
         cost: 5,
       };
       newExpense = {
-        userId: 'userId',
+        employeeId: 'employeeId',
         purchaseDate: '2001-01-02',
         reimbursedDate: undefined,
         cost: 5,
@@ -2047,7 +2047,7 @@ describe('expenseRoutes', () => {
         budget2001.reimbursedAmount = 8;
         spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([0, 3, 0]);
         spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
-          .withArgs('userId', budget2001, expenseType).and.returnValue(8);
+          .withArgs('employeeId', budget2001, expenseType).and.returnValue(8);
       });
 
       it('should update a single budget', done => {
@@ -2084,8 +2084,8 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2001);
         spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([0, 3, 0]);
         spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
-          .withArgs('userId', budget2001, expenseType).and.returnValue(13)
-          .withArgs('userId', budget2002, expenseType).and.returnValue(0);
+          .withArgs('employeeId', budget2001, expenseType).and.returnValue(13)
+          .withArgs('employeeId', budget2002, expenseType).and.returnValue(0);
       });
 
       it('should update the expense budget and the carry over budget', done => {
@@ -2131,9 +2131,9 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2000);
         spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([3, 1, 0]);
         spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
-          .withArgs('userId', budget2000, expenseType).and.returnValue(13)
-          .withArgs('userId', budget2001, expenseType).and.returnValue(11)
-          .withArgs('userId', budget2002, expenseType).and.returnValue(2);
+          .withArgs('employeeId', budget2000, expenseType).and.returnValue(13)
+          .withArgs('employeeId', budget2001, expenseType).and.returnValue(11)
+          .withArgs('employeeId', budget2002, expenseType).and.returnValue(2);
 
       });
 
@@ -2184,9 +2184,9 @@ describe('expenseRoutes', () => {
         spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(budget2000);
         spyOn(expenseRoutes, '_getEmployeeBudgetOverdrafts').and.returnValue([2, 0, -10]);
         spyOn(expenseRoutes, '_getEmployeeExpensesTotalReimbursedInBudget')
-          .withArgs('userId', budget2000, expenseType).and.returnValue(12)
-          .withArgs('userId', budget2001, expenseType).and.returnValue(10)
-          .withArgs('userId', budget2002, expenseType).and.returnValue(0);
+          .withArgs('employeeId', budget2000, expenseType).and.returnValue(12)
+          .withArgs('employeeId', budget2001, expenseType).and.returnValue(10)
+          .withArgs('employeeId', budget2002, expenseType).and.returnValue(0);
       });
 
       it('should update the expense budgets and the carry over budgets', done => {

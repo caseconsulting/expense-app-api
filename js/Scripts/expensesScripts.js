@@ -10,7 +10,8 @@ const actions = [
   '1. List all expenses',
   '2. Create a specified number of dummy expenses',
   '3. Delete all expenses',
-  '4. Change all expense attributes labeled categories to category'
+  '4. Change all expense attributes labeled categories to category',
+  '5. Change all expense attributes labeled userId to employeeId'
 ];
 
 // check for stage argument
@@ -65,7 +66,7 @@ function createItems(numberOfItems) {
       TableName: TABLE,
       Item: {
         id: newId,
-        categories: 'test category',
+        category: 'test category',
         cost: 1,
         createdAt: '2020-03-23',
         description: 'test description',
@@ -75,7 +76,7 @@ function createItems(numberOfItems) {
         receipt: 'testReceipt.jpeg',
         reimbursedDate: '2020-03-23',
         url: 'https://testUrl.com',
-        userId: 'c722279e-2e11-43bb-a1d2-4999e8a98a6c' // info account
+        employeeId: 'c722279e-2e11-43bb-a1d2-4999e8a98a6c' // info account
       }
     };
     ddb.put(params, function(err) {
@@ -108,35 +109,36 @@ async function deleteAllExpenses() {
 }
 
 /**
- * Copies value of categories into category attribute
+ * Copies values from old attribute name to new attribute name
  */
-async function copyCategoriesToCategory() {
+async function copyValues(oldName, newName) {
   let expenses = await getAllEntries();
+
   _.forEach(expenses, expense => {
     let params = {
       TableName: TABLE,
       Key: {
         'id': expense.id
       },
-      UpdateExpression: 'set category = :c',
+      UpdateExpression: `set ${newName} = :e`,
       ExpressionAttributeValues: {
-        ':c': expense.categories
+        ':e': expense[oldName]
       },
       ReturnValues: 'UPDATED_NEW'
     };
 
-    if (expense.category) {
+    if (expense[newName]) {
       params.ExpressionAttributeValues = {
-        ':c': expense.category
+        ':e': expense[newName]
       };
     }
 
-    // update employee
+    // update expense
     ddb.update(params, function(err, data) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
-        console.log(`Item Updated\n  Expense ID: ${expense.id}\n  Category copied: ${data.Attributes.category}`);
+        console.log(`Item Updated\n  Expense ID: ${expense.id}\n  ${newName} copied: ${data.Attributes[newName]}`);
       }
     });
   });
@@ -157,7 +159,7 @@ async function removeAttribute(attribute) {
       ReturnValues: 'UPDATED_NEW'
     };
 
-    // update employee
+    // update expense
     ddb.update(params, function(err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
@@ -167,11 +169,11 @@ async function removeAttribute(attribute) {
 }
 
 /**
- * Copies categories values to category and removes categories attribute from data
+ * Changes attribute name
  */
-async function categoriesToCategory() {
-  copyCategoriesToCategory();
-  removeAttribute('categories');
+async function changeAttributeName(oldName, newName) {
+  copyValues(oldName, newName);
+  removeAttribute(oldName);
 }
 
 /*
@@ -266,28 +268,34 @@ async function main() {
     case 0:
       break;
     case 1:
-      if (confirmAction('list all expenses')) {
+      if (confirmAction('list all expenses?')) {
         console.log('Listing all expenses');
         console.log(await getAllEntries());
       }
       break;
     case 2:
-      if (confirmAction('create a specified number of dummy expenses')) {
+      if (confirmAction('create a specified number of dummy expenses?')) {
         let numExpenses = getNumExpenses();
         console.log(`creating ${numExpenses} dummy expenses`);
         createItems(numExpenses);
       }
       break;
     case 3:
-      if (confirmAction('delete all expenses')) {
+      if (confirmAction('delete all expenses?')) {
         console.log('Deleting all expenses');
         deleteAllExpenses();
       }
       break;
     case 4:
-      if (confirmAction('change all expense attributes labeled categories to category')) {
+      if (confirmAction('change all expense attributes labeled categories to category?')) {
         console.log('Changing all expense attributes labeled categories to category');
-        categoriesToCategory();
+        changeAttributeName('categories', 'category');
+      }
+      break;
+    case 5:
+      if (confirmAction('change all expense attributes labeled userId to employeeId?')) {
+        console.log('Changing all expense attributes labeled userId to employeeId');
+        changeAttributeName('userId', 'employeeId');
       }
       break;
     default:

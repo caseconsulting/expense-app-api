@@ -665,13 +665,13 @@ describe('crudRoutes', () => {
       describe('and expense id matches user id', () => {
 
         beforeEach(() => {
-          databaseModify.readFromDB.and.returnValue(Promise.resolve([{userId: 'id'}]));
+          databaseModify.readFromDB.and.returnValue(Promise.resolve([{employeeId: 'id'}]));
         });
 
         it('should respond with a 200 and data', done => {
           crudRoutes.read(req, res).then(() => {
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith({userId: 'id'});
+            expect(res.send).toHaveBeenCalledWith({employeeId: 'id'});
             done();
           });
         }); // should respond with a 200 and data
@@ -686,7 +686,7 @@ describe('crudRoutes', () => {
             code: 403,
             message: 'Unable to get objects from database due to insufficient user permissions'
           };
-          databaseModify.readFromDB.and.returnValue(Promise.resolve([{userId: 'differentId'}]));
+          databaseModify.readFromDB.and.returnValue(Promise.resolve([{employeeId: 'differentId'}]));
           spyOn(crudRoutes, '_handleError');
         });
 

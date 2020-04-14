@@ -7,7 +7,8 @@
 // LIST OF ACTIONS
 const actions = [
   '0. Cancel',
-  '1. Set the amount of all budgets based on employee work status and expense type'
+  '1. Set the amount of all budgets based on employee work status and expense type',
+  '2. Change all budget attributes labeled userId to employeeId'
 ];
 
 // check for stage argument
@@ -101,7 +102,7 @@ async function getEmployee(employeeId) {
 
 async function calculateAdjustedBudget(budget) {
   let expenseType = await getExpenseType(budget.expenseTypeId);
-  let employee = await getEmployee(budget.userId);
+  let employee = await getEmployee(budget.employeeId);
   if (expenseType && employee && hasAccess(employee, expenseType)) {
     return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
   } else {
@@ -137,6 +138,75 @@ async function maxAmount() {
       }
     });
   });
+}
+
+
+/**
+ * Copies values from old attribute name to new attribute name
+ */
+async function copyValues(oldName, newName) {
+  let budgets = await getAllEntries();
+
+  _.forEach(budgets, budget => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': budget.id
+      },
+      UpdateExpression: `set ${newName} = :e`,
+      ExpressionAttributeValues: {
+        ':e': budget[oldName]
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    if (budget[newName]) {
+      params.ExpressionAttributeValues = {
+        ':e': budget[newName]
+      };
+    }
+
+    // update budget
+    ddb.update(params, function(err, data) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  ${newName} copied: ${data.Attributes[newName]}`);
+      }
+    });
+  });
+}
+
+/**
+ * Removes given attribute from all budget data
+ */
+async function removeAttribute(attribute) {
+  let budgets = await getAllEntries();
+  _.forEach(budgets, budget => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': budget.id
+      },
+      UpdateExpression: `remove ${attribute}`,
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update budget
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
+}
+
+/**
+ * Changes attribute name
+ */
+async function changeAttributeName(oldName, newName) {
+  copyValues(oldName, newName);
+  removeAttribute(oldName);
 }
 
 /*
@@ -206,6 +276,12 @@ async function main() {
       if (confirmAction('set the amount of all budgets based on employee work status and expense type?')) {
         console.log('Setting the amount of all budgets based on employee work status and expense type');
         maxAmount();
+      }
+      break;
+    case 2:
+      if (confirmAction('change all budget attributes labeled userId to employeeId?')) {
+        console.log('Changing all budget attributes labeled userId to employeeId');
+        changeAttributeName('userId', 'employeeId');
       }
       break;
     default:
