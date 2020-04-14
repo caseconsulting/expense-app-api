@@ -9,7 +9,8 @@ const actions = [
   '0. Cancel',
   '1. List all expenses',
   '2. Create a specified number of dummy expenses',
-  '3. Delete all expenses'
+  '3. Delete all expenses',
+  '4. Change all expense attributes labeled categories to category'
 ];
 
 // check for stage argument
@@ -104,6 +105,73 @@ async function deleteAllExpenses() {
       }
     });
   });
+}
+
+/**
+ * Copies value of categories into category attribute
+ */
+async function copyCategoriesToCategory() {
+  let expenses = await getAllEntries();
+  _.forEach(expenses, expense => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expense.id
+      },
+      UpdateExpression: 'set category = :c',
+      ExpressionAttributeValues: {
+        ':c': expense.categories
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    if (expense.category) {
+      params.ExpressionAttributeValues = {
+        ':c': expense.category
+      };
+    }
+
+    // update employee
+    ddb.update(params, function(err, data) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Item Updated\n  Expense ID: ${expense.id}\n  Category copied: ${data.Attributes.category}`);
+      }
+    });
+  });
+}
+
+/**
+ * Removes given attribute from all expense data
+ */
+async function removeAttribute(attribute) {
+  let expenses = await getAllEntries();
+  _.forEach(expenses, expense => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expense.id
+      },
+      UpdateExpression: `remove ${attribute}`,
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update employee
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
+}
+
+/**
+ * Copies categories values to category and removes categories attribute from data
+ */
+async function categoriesToCategory() {
+  copyCategoriesToCategory();
+  removeAttribute('categories');
 }
 
 /*
@@ -214,6 +282,12 @@ async function main() {
       if (confirmAction('delete all expenses')) {
         console.log('Deleting all expenses');
         deleteAllExpenses();
+      }
+      break;
+    case 4:
+      if (confirmAction('change all expense attributes labeled categories to category')) {
+        console.log('Changing all expense attributes labeled categories to category');
+        categoriesToCategory();
       }
       break;
     default:
