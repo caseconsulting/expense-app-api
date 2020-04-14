@@ -32,7 +32,7 @@ class Expense {
     this.description = data.description;
     this.userId = data.userId;
     this.expenseTypeId = data.expenseTypeId;
-    this.categories = data.categories;
+    this.category = data.category;
 
     //sets null values to an empty string
     for (var propName in this) {

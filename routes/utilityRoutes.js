@@ -48,12 +48,11 @@ class Utility {
     //Not Garbage
     this._router.get('/getAllExpenses', checkJwt, getUserInfo, this.getAllExpenses.bind(this)); //Admin
 
-    this._router.get('/:id', checkJwt, this.empExpenses.bind(this)); //User
-    this._router.get('/:id/:date', checkJwt, this.empExpenses.bind(this)); //User
-    this._router.get('/:id/:date/:expenseTypeId', checkJwt, this.empExpenses.bind(this)); //User
+    this._router.get('/getEmployeeBudgets/:id', checkJwt, this.empBudgets.bind(this)); //User
+    this._router.get('/getEmployeeBudgets/:id/:date', checkJwt, this.empBudgets.bind(this)); //User
+    this._router.get('/getEmployeeBudgets/:id/:date/:expenseTypeId', checkJwt, this.empBudgets.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
-
     this._router.get('/getURLInfo/:id/:category', checkJwt, this.getURLInfo.bind(this));
   }
 
@@ -101,8 +100,8 @@ class Utility {
       });
   }
 
-  async empExpenses(req, res) {
-    logger.log(2, 'empExpenses', `Getting expenses for user ${req.params.id}`);
+  async empBudgets(req, res) {
+    logger.log(2, 'empBudgets', `Getting budgets for user ${req.params.id}`);
 
     try {
       let returnObject;

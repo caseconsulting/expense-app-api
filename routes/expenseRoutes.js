@@ -815,7 +815,7 @@ class ExpenseRoutes extends Crud {
 
       if (expenseType.categories.length <= 0) {
         // if the new expense type does not require a category, clear the field
-        newExpense.categories = ' ';
+        newExpense.category = ' ';
       }
 
       if (!this._isEmpty(oldExpense.reimbursedDate)) {

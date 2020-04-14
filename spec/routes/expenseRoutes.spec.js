@@ -16,7 +16,6 @@ describe('expenseRoutes', () => {
   const expenseTypeId = '{expenseTypeId}';
   const budgetId = '{{budgetId}}';
   const description = '{description}';
-  const categories = '[categories]';
 
   // expenses
   const purchaseDate = '{purchaseDate}';
@@ -26,6 +25,7 @@ describe('expenseRoutes', () => {
   const createdAt = '{createdAt}';
   const receipt = '{purchareceiptseDate}';
   const cost = 0;
+  const category = "category"
 
   // employees
   const firstName = '{firstName}';
@@ -47,6 +47,7 @@ describe('expenseRoutes', () => {
   const recurringFlag = '{false}';
   const isInactive = '{isInactive}';
   const accessibleBy = '{ALL}';
+  const categories = '[categories]';
 
   // budgets
   const reimbursedAmount = 0;
@@ -67,7 +68,7 @@ describe('expenseRoutes', () => {
     description,
     userId,
     expenseTypeId,
-    categories
+    category
   };
 
   const employee = {
@@ -120,7 +121,7 @@ describe('expenseRoutes', () => {
     description,
     userId,
     expenseTypeId,
-    categories
+    category
   };
 
   const employeeData = {
