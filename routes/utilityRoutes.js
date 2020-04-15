@@ -110,36 +110,30 @@ class Utility {
         await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
       let dateExists = req.params.date != 'undefined' && req.params.date != null;
       let expenseTypeIdExists = req.params.expenseTypeId != 'undefined' && req.params.expenseTypeId != null;
-      if (expenseTypeIdExists) {
+      const openBudgets = _.filter(userBudgets, budget => {
         let date = moment();
+        let expenseTypeCheck = true;
         if (dateExists) {
           date = moment(req.params.date);
         }
-        returnObject = _.find(userBudgets, budget => {
-          let between = date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
-          return between && req.params.expenseTypeId == budget.expenseTypeId;
-        });
-      } else {
-        const openBudgets = _.filter(userBudgets, budget => {
-          let date = moment();
-          if (dateExists) {
-            date = moment(req.params.date);
-          }
-          return date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
-        });
-        const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
-        const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
-        const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
-        returnObject = _.map(openExpenseTypes, expenseType => {
-          return {
-            expenseTypeName: expenseType.budgetName,
-            description: expenseType.description,
-            odFlag: expenseType.odFlag,
-            expenseTypeId: expenseType.id,
-            budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
-          };
-        });
-      }
+        let dateCheck = date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
+        if (expenseTypeIdExists) {
+          expenseTypeCheck = req.params.expenseTypeId == budget.expenseTypeId;
+        }
+        return dateCheck && expenseTypeCheck;
+      });
+      const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
+      const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
+      const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
+      returnObject = _.map(openExpenseTypes, expenseType => {
+        return {
+          expenseTypeName: expenseType.budgetName,
+          description: expenseType.description,
+          odFlag: expenseType.odFlag,
+          expenseTypeId: expenseType.id,
+          budgetObject: _.find(openBudgets, budget => expenseType.id === budget.expenseTypeId)
+        };
+      });
       res.status(200).send(returnObject);
     } catch (error) {
       this._handleError(res, error);
