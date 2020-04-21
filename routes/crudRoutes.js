@@ -40,7 +40,7 @@ class Crud {
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
-  }
+  } // constructor
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
@@ -76,7 +76,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkPermissionToCreate
 
   /**
    * Check employee permissions to delete from a table. A user has permissions to delete an expense. An admin has
@@ -111,7 +111,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkPermissionToDelete
 
   /**
    * Check employee permissions to read from a table. A user has permissions to read an expense, expnse type, or
@@ -147,7 +147,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkPermissionToRead
 
   /**
    * Check employee permissions to read all entries from a table. User has permission to read all expense types,
@@ -183,7 +183,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkPermissionToReadAll
 
   /**
    * Check employee permissions to update a table. A user has permissions to update an expense, employee, or training
@@ -219,7 +219,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkPermissionToUpdate
 
   /**
    * Check if the database table is in a given list of table names. Returns true if the table is in the list, otherwise
@@ -251,7 +251,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _checkTableName
 
   /* eslint-disable no-unused-vars */
 
@@ -263,7 +263,7 @@ class Crud {
   */
   async _create(body) {
     // This function must be overwritten
-  }
+  } // _create
 
   /* eslint-enable no-unused-vars */
 
@@ -330,7 +330,7 @@ class Crud {
       // return error
       return err;
     }
-  }
+  } // _createWrapper
 
   /* eslint-disable no-unused-vars */
 
@@ -342,7 +342,7 @@ class Crud {
    */
   async _delete(id) {
     // This function must be overwritten
-  }
+  } // _delete
 
   /* eslint-enable no-unused-vars */
 
@@ -400,7 +400,7 @@ class Crud {
       // return error
       return err;
     }
-  }
+  } // _deleteWrapper
 
   /**
    * Get the current annual budget start and end dates based on a given hire date.
@@ -449,7 +449,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // getBudgetDates
 
   /**
    * Returns the database table name.
@@ -468,7 +468,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // _getTableName
 
   /**
    * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
@@ -492,7 +492,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // isAdmin
 
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
@@ -516,7 +516,7 @@ class Crud {
 
     // return result
     return result;
-  }
+  } // isUser
 
   /* eslint-disable no-unused-vars */
 
@@ -528,7 +528,7 @@ class Crud {
    */
   async _read(params) {
     // This function must be overwritten
-  }
+  } // _read
 
   /* eslint-enable no-unused-vars */
 
@@ -603,7 +603,7 @@ class Crud {
       // return error
       return FORBIDDEN;
     }
-  }
+  } // _readWrapper
 
   /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
@@ -656,7 +656,7 @@ class Crud {
       // return error
       return err;
     }
-  }
+  } // _readAllWrapper
 
   /**
    * Returns the instace express router.
@@ -668,7 +668,7 @@ class Crud {
     logger.log(2, 'router', 'Getting router');
 
     return this._router;
-  }
+  } // router
 
   /**
    * Send api response error status.
@@ -683,7 +683,7 @@ class Crud {
 
     // return error status
     return res.status(err.code).send(err);
-  }
+  } // _sendError
 
   /* eslint-disable no-unused-vars */
 
@@ -695,7 +695,7 @@ class Crud {
    */
   async _update(body) {
     // This function must be overwritten
-  }
+  } // _update
 
   /* eslint-enable no-unused-vars */
 
@@ -771,7 +771,7 @@ class Crud {
       // return error
       return err;
     }
-  }
+  } // _updateWrapper
 
   /**
    * Validate inputs. Returns the object if all inputs are valid.
@@ -826,7 +826,7 @@ class Crud {
       // return rejected promise
       return Promise.reject(err);
     }
-  }
-}
+  } // _validateInputs
+} // Crud
 
 module.exports = Crud;
