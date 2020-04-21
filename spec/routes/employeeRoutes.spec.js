@@ -8,7 +8,7 @@ const ExpenseType = require('../../models/expenseType');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 
-describe('employeeRoutes', () => {
+xdescribe('employeeRoutes', () => {
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 

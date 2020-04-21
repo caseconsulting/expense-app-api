@@ -1,13 +1,12 @@
 const Crud = require('./crudRoutes');
-
 const databaseModify = require('../js/databaseModify');
-const trainingDynamo = new databaseModify('training-urls');
-
 const _ = require('lodash');
 
 const TrainingUrls = require('../models/trainingUrls');
 const Logger = require('../js/Logger');
 const logger = new Logger('trainingURLRoutes');
+
+const atob = require('atob');
 
 // const metascraper = require('metascraper')([
 //   require('metascraper-description')(),
@@ -24,7 +23,7 @@ const got = require('got');
 class TrainingURLRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = trainingDynamo;
+    this.databaseModify = new databaseModify('training-urls');
   }
 
   async _getMetaData(id) {
@@ -41,9 +40,9 @@ class TrainingURLRoutes extends Crud {
     return metadata;
   }
 
-  async _add(id, data) {
-    logger.log(1, '_add', `Attempting to add training url ${id} with category ${data.category}`);
-    let metadata = await this._getMetaData(id);
+  async _create(data) {
+    logger.log(1, '_add', `Attempting to add training url ${data.id} with category ${data.category}`);
+    let metadata = await this._getMetaData(data.id);
     metadata.id = data.id;
     metadata.category = data.category;
     metadata.hits = data.hits;
@@ -52,7 +51,6 @@ class TrainingURLRoutes extends Crud {
     //trainingURL.id = url;
 
     return this._checkFields(trainingURL)
-      .then(() => this.databaseModify.addToDB(trainingURL))
       .catch(err => {
         throw err;
       });
@@ -104,18 +102,31 @@ class TrainingURLRoutes extends Crud {
       .catch(err => this._handleError(res, err));
   }
 
-  _update(id, category, data) {
+  async _read(data) {
+    if (!data.category) {
+    // category does not exist
+      let categoryErr = {
+        code: 403,
+        message: 'Unable to read training url from database. Missing category.'
+      };
+      return Promise.reject(categoryErr);
+    } else {
+      let encodedId = data.id.replace(/%2F/g, '/');
+      let decodedId = atob(encodedId);
+
+      // category exists
+      return this.databaseModify.getEntryUrl(decodedId, data.category); // read from database
+    }
+  }
+
+  async _update(data) {
     let trainingURL = new TrainingUrls(data);
 
     logger.log(1, '_update', `Attempting to update url ${trainingURL.id} and category ${trainingURL.category}`);
 
-    return this.databaseModify
-      .readFromDBURL(trainingURL.id, category)
+    return this.databaseModify.getEntryUrl(trainingURL.id, trainingURL.category)
       .then(() => {
         return trainingURL;
-      })
-      .catch(err => {
-        throw err;
       });
   }
 }

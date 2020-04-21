@@ -6,11 +6,11 @@ const budgetDynamo = new databaseModify('budgets');
 const trainingDynamo = new databaseModify('training-urls');
 const Logger = require('../js/Logger');
 const logger = new Logger('utilityRoutes');
+const _ = require('lodash');
+const moment = require('moment');
+//const IsoFormat = 'YYYY-MM-DD';
 
 const express = require('express');
-const _ = require('lodash');
-//const IsoFormat = 'YYYY-MM-DD';
-const moment = require('moment');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
@@ -72,9 +72,8 @@ class Utility {
   getEmployeeName(expense) {
     logger.log(3, 'getEmployeeName', `Getting employee name of expense ${expense.id}`);
 
-    return this.employeeData.readFromDB(expense.employeeId).then(employee => {
-      let emp = employee[0];
-      expense.employeeName = this._fullName(emp);
+    return this.employeeData.getEntry(expense.employeeId).then(employee => {
+      expense.employeeName = this._fullName(employee);
       return expense;
     });
   }
@@ -82,9 +81,8 @@ class Utility {
   getExpenseTypeName(expense) {
     logger.log(3, 'getExpenseTypeName', `Getting expense type name of expense ${expense.id}`);
 
-    return this.expenseTypeData.readFromDB(expense.expenseTypeId).then(expenseType => {
-      let type = expenseType[0];
-      expense.budgetName = type.budgetName;
+    return this.expenseTypeData.getEntry(expense.expenseTypeId).then(expenseType => {
+      expense.budgetName = expenseType.budgetName;
       return expense;
     });
   }
@@ -108,16 +106,14 @@ class Utility {
       const employeeId = req.params.id;
       const userBudgets =
         await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
-      let dateExists = req.params.date != 'undefined' && req.params.date != null;
-      let expenseTypeIdExists = req.params.expenseTypeId != 'undefined' && req.params.expenseTypeId != null;
       const openBudgets = _.filter(userBudgets, budget => {
         let date = moment();
         let expenseTypeCheck = true;
-        if (dateExists) {
+        if (req.params.date) {
           date = moment(req.params.date);
         }
         let dateCheck = date.isBetween(moment(budget.fiscalStartDate), moment(budget.fiscalEndDate), 'day', '[]');
-        if (expenseTypeIdExists) {
+        if (req.params.expenseTypeId) {
           expenseTypeCheck = req.params.expenseTypeId == budget.expenseTypeId;
         }
         return dateCheck && expenseTypeCheck;
@@ -157,9 +153,9 @@ class Utility {
   getAllExpenseTypeExpenses(req, res) {
     logger.log(2, 'getAllExpenseTypeExpenses', 'Getting all expense types');
 
-    const employeeId = req.params.id;
+    const expenseTypeId = req.params.id;
     this.expenseData
-      .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', employeeId)
+      .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseTypeId)
       .then(data => {
         res.status(200).send(data);
       })
@@ -249,7 +245,7 @@ class Utility {
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else if (this._isUser(req)) {
         let employeeId = req.employee.id;
-        let user = _.first(await this.employeeData.readFromDB(employeeId));
+        let user = await this.employeeData.getEntry(employeeId);
         let users = [user];
         let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
         let expenses =
@@ -274,7 +270,7 @@ class Utility {
     logger.log(3, '_getEmployeeName', 'Setting employee name for all expenses');
 
     _.forEach(expenses, expense => {
-      let expenseType = _.find(expenseTypes, et => et.id === expense.expenseTypeId);
+      let expenseType = _.find(expenseTypes, expenseType => expenseType.id === expense.expenseTypeId);
       let employee = _.find(users, emp => emp.id === expense.employeeId);
       if (expenseType !== undefined && employee !== undefined) {
         expense.budgetName = expenseType.budgetName;
@@ -300,8 +296,7 @@ class Utility {
     };
 
     return (
-      this.trainingURLData
-        .readFromDBURL(decoded, req.params.category)
+      this.trainingURLData.getEntryUrl(decoded, req.params.category)
         .then(output => {
           if (output) {
             res.status(200).send(output);

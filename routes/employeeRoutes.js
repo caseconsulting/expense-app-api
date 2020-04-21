@@ -14,14 +14,13 @@ class EmployeeRoutes extends Crud {
     this.databaseModify = new databaseModify('employees');
     this.budgetDynamo = new databaseModify('budgets');
     this.expenseTypeDynamo = new databaseModify('expense-types');
-    this.expenseData = new databaseModify('expenses');
+    this.expenseDynamo = new databaseModify('expenses');
   }
 
-  async _add(id, data) {
-    logger.log(1, '_add', `Attempting to add employee ${id}`);
+  async _create(data) {
+    logger.log(1, '_create', `Attempting create employee ${data.id}`);
 
     let employee = new Employee(data);
-    employee.id = id;
 
     try {
       let error = await this._isDuplicateEmployee(employee);
@@ -32,7 +31,7 @@ class EmployeeRoutes extends Crud {
         return employee;
       });
     } catch (err) {
-      logger.log(1, '_add', `Failed to add employee ${id}`);
+      logger.log(1, '_add', `Failed to add employee ${data.id}`);
       logger.error('_add', `Error code: ${err.code}`);
       throw err;
     }
@@ -52,7 +51,7 @@ class EmployeeRoutes extends Crud {
       `Creating recurring expenses for user ${employee.id} starting on ${employee.hireDate}`
     );
 
-    let dates = this._getBudgetDates(employee.hireDate);
+    let dates = this.getBudgetDates(employee.hireDate);
     let expenseTypeList;
     let startDate;
     let endDate;
@@ -119,11 +118,11 @@ class EmployeeRoutes extends Crud {
     let employee, userExpenses, userBudgets;
 
     try {
-      userExpenses = await this.expenseData.querySecondaryIndexInDB('employeeId-index', 'employeeId', id);
+      userExpenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', id);
 
       //can only delete a user if they have no expenses
       if (userExpenses.length === 0) {
-        employee = new Employee(await this.databaseModify.removeFromDB(id));
+        employee = new Employee(await this.databaseModify.getEntry(id));
         userBudgets =
           await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', id);
         for (let budget of userBudgets) {
@@ -142,36 +141,6 @@ class EmployeeRoutes extends Crud {
 
       throw err;
     }
-  }
-
-  _getBudgetDates(hireDate) {
-    logger.log(2, '_getBudgetDates', `Getting budget dates for ${hireDate}`);
-
-    let anniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-    let anniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-    let anniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
-    const anniversaryComparisonDate = moment([anniversaryYear, anniversaryMonth, anniversaryDay]);
-    let startYear;
-    const today = moment();
-
-    if (anniversaryComparisonDate.isBefore(today)) {
-      startYear = today.isBefore(moment([today.year(), anniversaryMonth, anniversaryDay]))
-        ? today.year() - 1
-        : today.year();
-
-    } else {
-      startYear = anniversaryYear;
-    }
-
-    let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([startYear, anniversaryMonth, anniversaryDay])
-      .add('1', 'years')
-      .subtract('1', 'days');
-
-    return {
-      startDate,
-      endDate
-    };
   }
 
   /**
@@ -211,7 +180,6 @@ class EmployeeRoutes extends Crud {
     }
   }
 
-  // TODO: write test for this function. Should throw error not return it.
   /**
    * Returns error code if an employee number or email is within the employee database. Return false if not.
    */
@@ -219,6 +187,14 @@ class EmployeeRoutes extends Crud {
     logger.log(2, '_isDuplicateEmployee', `Checking if user ${employee.id} is a duplicate employee`);
 
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
+
+    if (allEmployees.some(e => e.id === employee.id)) {
+      let err = {
+        code: 403,
+        message: 'Unexpected duplicate id created. Please try submitting again.'
+      };
+      return err;
+    }
 
     if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
       let err = {
@@ -238,6 +214,10 @@ class EmployeeRoutes extends Crud {
     return false;
   }
 
+  async _read(data) {
+    return this.databaseModify.getEntry(data.id); // read from database
+  }
+
   /*
    * Return an array of sorted budgets by fiscal start date
    */
@@ -251,17 +231,14 @@ class EmployeeRoutes extends Crud {
     ]);
   }
 
-  async _update(id, data) {
-    logger.log(1, '_update', `Attempting to update user ${id}`);
+  async _update(data) {
+    logger.log(1, '_update', `Attempting to update employee ${data.id}`);
 
     let newEmployee = new Employee(data);
-    newEmployee.id = id;
 
-
-    let oldEmployee = await this.databaseModify.findObjectInDB(id).catch(err => {
+    let oldEmployee = await this.databaseModify.getEntry(data.id).catch(err => {
       throw err;
     });
-
 
     return this._updateBudgetDates(oldEmployee, newEmployee)
       .then(this._updateBudgetAmount(oldEmployee, newEmployee))
@@ -288,39 +265,36 @@ class EmployeeRoutes extends Crud {
       `to ${newEmployee.workStatus}%`
     );
 
-    try {
-      // get all employee's budgets
-      let employeeBudgets =
-        await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id);
-      // get all expense types
-      let expenseTypes = await this.getExpenseTypes();
-      // filter for only current budgets
-      let currentBudgets = _.filter(employeeBudgets, budget => {
-        let start = moment(budget.fiscalStartDate, IsoFormat);
-        let end = moment(budget.fiscalEndDate, IsoFormat);
-        return moment().isBetween(start, end, 'day', '[]');
-      });
+    // get all employee's budgets
+    let employeeBudgets =
+      await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id);
+    // get all expense types
+    let expenseTypes = await this.getExpenseTypes();
+    // filter for only current budgets
+    let currentBudgets = _.filter(employeeBudgets, budget => {
+      let start = moment(budget.fiscalStartDate, IsoFormat);
+      let end = moment(budget.fiscalEndDate, IsoFormat);
+      return moment().isBetween(start, end, 'day', '[]');
+    });
 
-      // update all current budget amounts
-      _.forEach(currentBudgets, budget => {
-        let newBudget = budget;
-        let expenseType = _.find(expenseTypes, ['id', newBudget.expenseTypeId]);
-        if (expenseType) {
-          if (this._hasAccess(newEmployee, expenseType)) {
-            // if employee has access to the expense type, set the adjusted amount
-            newBudget.amount = this._adjustedBudget(expenseType, newEmployee);
-          } else {
-            // if employee does not have access to the expense type, set the amount to 0
-            newBudget.amount = 0;
-          }
-          // update entry in dynamo table
-          this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
+    // update all current budget amounts
+    _.forEach(currentBudgets, budget => {
+      let newBudget = budget;
+      let expenseType = _.find(expenseTypes, ['id', newBudget.expenseTypeId]);
+      if (expenseType) {
+        if (this._hasAccess(newEmployee, expenseType)) {
+          // if employee has access to the expense type, set the adjusted amount
+          newBudget.amount = this._adjustedBudget(expenseType, newEmployee);
+        } else {
+          // if employee does not have access to the expense type, set the amount to 0
+          newBudget.amount = 0;
         }
-      });
-    } catch (err) {
-      throw Promise.reject(err);
-    }
-    return Promise.resolve(newEmployee);
+        // update entry in dynamo table
+        this.budgetDynamo.updateEntryInDB(newBudget);
+      }
+    });
+
+    return newEmployee;
   }
 
   /**

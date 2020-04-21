@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-const LOG_LEVEL = 2; // 1 for highest priority (most important)
+const LOG_LEVEL = 5; // 1 for highest priority (most important)
 
 class Logger {
   constructor(name) {
@@ -24,7 +24,7 @@ class Logger {
         fullDescription += `${args[i]} `;
       }
 
-      console.warn(
+      console.log(
         `[${moment().format()}] ${fullDescription.trim()} | Processing handled by function ${this.className}.${method}`
       );
     }
@@ -46,7 +46,7 @@ class Logger {
       fullDescription += `${args[i]} `;
     }
 
-    console.warn(
+    console.log(
       `[${moment().format()}] ${fullDescription.trim()} | Error logged by function ${this.className}.${method}`
     );
 

@@ -1,7 +1,7 @@
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
 const ExpenseType = require('../../models/expenseType');
 
-describe('expenseTypeRoutes', () => {
+xdescribe('expenseTypeRoutes', () => {
   const id = 'id';
   const budgetName = 'budgetName';
   const budget = 1000;

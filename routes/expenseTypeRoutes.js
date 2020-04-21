@@ -8,36 +8,28 @@ const _ = require('lodash');
 const Logger = require('../js/Logger');
 const logger = new Logger('expenseTypeRoutes');
 const uuid = require('uuid/v4');
-
 const ExpenseType = require('./../models/expenseType');
 
 class ExpenseTypeRoutes extends Crud {
   constructor() {
     super();
-    this.expenseTypeDynamo = new databaseModify('expense-types');
+    this.databaseModify = new databaseModify('expense-types');
     this.budgetDynamo = new databaseModify('budgets');
     this.employeeDynamo = new databaseModify('employees');
     this.expenseData = new databaseModify('expenses');
-    this.databaseModify = this.expenseTypeDynamo;
   }
 
-  _add(id, data) {
-    logger.log(1, '_add', `Attempting to add expense type ${id}`);
+  _create(data) {
+    logger.log(1, '_create', `Attempting to create expense type ${data.id}`);
 
     let expenseType = new ExpenseType(data);
-    expenseType.id = id;
 
     return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType.startDate,
-        expenseType.endDate,
-        expenseType.recurringFlag,
-        expenseType.id)
-      )
+      .then(() => this._checkDates(expenseType))
       .then(() => this._createBudgets(expenseType))
-      .then(() => this.expenseTypeDynamo.addToDB(expenseType))
       .catch(err => {
-        logger.log(1, '_add', `Failed to add expense type ${id}`);
-        logger.error('_add', `Error code: ${err.code}`);
+        logger.log(1, '_create', `Failed to create expense type ${data.id}`);
+        logger.error('_create', `Error code: ${err.code}`);
         throw err;
       });
   }
@@ -57,7 +49,7 @@ class ExpenseTypeRoutes extends Crud {
           start = expenseType.startDate;
           end = expenseType.endDate;
         } else {
-          let dates = this._getBudgetDates(employee.hireDate);
+          let dates = this.getBudgetDates(employee.hireDate);
           start = dates.startDate.format(IsoFormat);
           end = dates.endDate.format(IsoFormat);
         }
@@ -74,15 +66,20 @@ class ExpenseTypeRoutes extends Crud {
         this.budgetDynamo.addToDB(newBudget);
       }
     });
-    return Promise.resolve();
+    return expenseType;
   }
 
   _adjustedBudget(expenseType, employee) {
     return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
   }
 
-  async _checkDates(start, end, recurringFlag, id) {
+  async _checkDates(expenseType) {
     logger.log(2, '_checkDates', 'Validating expense type dates');
+
+    let start = expenseType.startDate;
+    let end =  expenseType.endDate;
+    let recurringFlag =  expenseType.recurringFlag;
+    let id =  expenseType.id;
 
     let err = {
       code: 403,
@@ -125,7 +122,7 @@ class ExpenseTypeRoutes extends Crud {
       }
     }
 
-    return valid ? Promise.resolve() : Promise.reject(err);
+    return valid ? expenseType : Promise.reject(err);
   }
 
   _checkFields(expenseType) {
@@ -140,7 +137,7 @@ class ExpenseTypeRoutes extends Crud {
       code: 403,
       message: 'One of the required fields is empty.'
     };
-    return valid ? Promise.resolve() : Promise.reject(err);
+    return valid ? Promise.resolve(expenseType) : Promise.reject(err);
   }
 
   async _delete(id) {
@@ -150,10 +147,11 @@ class ExpenseTypeRoutes extends Crud {
 
     try {
       typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
-
       //can only delete an expense type if they have no expense data
       if (typeExpenses.length === 0) {
-        expenseType = new ExpenseType(await this.databaseModify.removeFromDB(id));
+        // TODO: remove any created budgets with this expense type
+        let expenseTypeData = await this.databaseModify.getEntry(id);
+        expenseType = new ExpenseType(expenseTypeData);
         return expenseType;
       } else {
         let err = {
@@ -193,77 +191,71 @@ class ExpenseTypeRoutes extends Crud {
     return field == null || field.trim().length <= 0;
   }
 
+  async _read(data) {
+    return this.databaseModify.getEntry(data.id); // read from database
+  }
+
   /*
    * Updates all budgets with the given expense type
    */
   async _updateBudgets(expenseType) {
+    logger.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseType.id}`);
 
     // get the old expense type
-    let oldExpenseType = await this.databaseModify.readFromDB(expenseType.id);
+    let oldExpenseType = await this.databaseModify.getEntry(expenseType.id);
 
     let sameStart = oldExpenseType.startDate == expenseType.startDate;
     let sameEnd = oldExpenseType.endDate == expenseType.endDate;
     let sameBudget = oldExpenseType.budget == expenseType.budget;
-    if (sameStart && sameEnd && sameBudget) {
-      // return if neither the start date, end date, or budget amount is changed
-      return Promise.resolve();
-    }
+    if (!(sameStart && sameEnd && sameBudget)) {
+    // need to update buget
+      // get all the budgets for the expense type
+      let budgets =
+        await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
 
-    logger.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseType.id}`);
-    let updatePromise;
-    // get all the budgets for the expense type
-    let budgets =
-      await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
-
-    let employees;
-    if (!sameBudget) {
-      // if the budget amount is changed, get all the employees
-      employees = await this.employeeDynamo.getAllEntriesInDB();
-    }
-
-    budgets.forEach(budget => {
-      if (!this._isEmpty(expenseType.startDate) && !sameStart) {
-        // update the fiscal start date
-        budget.fiscalStartDate = expenseType.startDate;
-      }
-
-      if (!this._isEmpty(expenseType.endDate) && !sameEnd) {
-        // update the fiscal end date
-        budget.fiscalEndDate = expenseType.endDate;
-      }
-
+      let employees;
       if (!sameBudget) {
-        // update the budget amount
-        let employee = _.find(employees, ['id', budget.employeeId]);
-        if (this._hasAccess(employee, expenseType)) {
-          budget.amount = this._adjustedBudget(expenseType, employee);
-        } else {
-          budget.amount = 0;
-        }
+        // if the budget amount is changed, get all the employees
+        employees = await this.employeeDynamo.getAllEntriesInDB();
       }
 
-      updatePromise = this.budgetDynamo.updateEntryInDB(budget).catch(err => { return Promise.reject(err); });
-    });
+      budgets.forEach(budget => {
+        if (!this._isEmpty(expenseType.startDate) && !sameStart) {
+          // update the fiscal start date
+          budget.fiscalStartDate = expenseType.startDate;
+        }
 
-    return updatePromise;
+        if (!this._isEmpty(expenseType.endDate) && !sameEnd) {
+          // update the fiscal end date
+          budget.fiscalEndDate = expenseType.endDate;
+        }
+
+        if (!sameBudget) {
+          // update the budget amount
+          let employee = _.find(employees, ['id', budget.employeeId]);
+          if (this._hasAccess(employee, expenseType)) {
+            budget.amount = this._adjustedBudget(expenseType, employee);
+          } else {
+            budget.amount = 0;
+          }
+        }
+
+        this.budgetDynamo.updateEntryInDB(budget);
+      });
+    }
+    return expenseType;
   }
 
-  _update(id, data) {
-    logger.log(1, '_update', `Attempting to update expense type ${id}`);
+  _update(data) {
+    logger.log(1, '_update', `Attempting to update expense type ${data.id}`);
 
     let expenseType = new ExpenseType(data);
-    expenseType.id = id;
 
     return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType.startDate,
-        expenseType.endDate,
-        expenseType.recurringFlag,
-        expenseType.id)
-      )
+      .then(() => this._checkDates(expenseType))
       .then(() => this._updateBudgets(expenseType))
-      .then(() => this.expenseTypeDynamo.updateEntryInDB(expenseType))
       .catch(err => {
-        logger.log(1, '_update', `Failed to update expense type ${id}`);
+        logger.log(1, '_update', `Failed to update expense type ${data.id}`);
 
         throw err;
       });

@@ -8,7 +8,7 @@ const Budget = require('../../models/budget');
 const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
 
-describe('expenseRoutes', () => {
+xdescribe('expenseRoutes', () => {
   const uuid = 'uuid';
   const id = '{id}';
   const expenseId = '{expenseId}';
@@ -192,7 +192,7 @@ describe('expenseRoutes', () => {
     expenseRoutes.expenseDynamo = expenseDynamo;
   });
 
-  describe('_add', () => {
+  describe('_create', () => {
     let expectedExpense, expense, expenseType, employee, budget;
 
     beforeEach(() => {
@@ -220,8 +220,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should return added object', done => {
-        return expenseRoutes
-          ._add(expenseId, expense)
+        return expenseRoutes._create(expense)
           .then(createdExpense => {
             expect(createdExpense).toEqual(expectedExpense);
             done();
@@ -253,9 +252,8 @@ describe('expenseRoutes', () => {
       });
 
       it('should return added object', done => {
-        console.log('\n\n\n');
         return expenseRoutes
-          ._add(expenseId, expense)
+          ._create(expense)
           .then(createdExpense => {
             expect(createdExpense).toEqual(expectedExpense);
             done();
@@ -285,7 +283,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should throw an error', done => {
-        expenseRoutes._add(expenseId, expense).catch( err => {
+        expenseRoutes._create(expense).catch( err => {
           expect(err).toEqual({
             code: 403,
             message: `expense type ${budgetName} is inactive`
@@ -303,13 +301,13 @@ describe('expenseRoutes', () => {
       });
 
       it('should throw an error', done => {
-        expenseRoutes._add(expenseId, expense).catch( err => {
+        expenseRoutes._create(expense).catch( err => {
           expect(err).toEqual('error');
           done();
         });
       }); // should throw an error
     }); // when invalid
-  }); //_add
+  }); // _create
 
   describe('_addCost', () => {
 
@@ -957,8 +955,6 @@ describe('expenseRoutes', () => {
       spyOn(expenseRoutes, '_findBudgetWithMatchingRange').and.returnValue(localBudget);
       spyOn(expenseRoutes, '_removeFromBudget').and.returnValue(Promise.resolve());
     });
-
-
 
     describe('when successfully deleting an expense', () => {
 

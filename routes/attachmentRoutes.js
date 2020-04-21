@@ -119,9 +119,10 @@ class Attachment {
         let error = {
           code: 403,
           message:
-            `${err}`
+            `${err.message}`
         };
-        return res.send(error);
+        res.status(error.code).send(error);
+        return error;
       } else {
         // successfully validated file
         logger.log(1, 'uploadAttachmentToS3',
@@ -129,7 +130,8 @@ class Attachment {
           `to S3 bucket ${req.file.bucket}`
         );
 
-        res.send('Successfully uploaded file:' + req.file.key);
+        res.status(200).send(req.file);
+        return req.file;
       }
     });
   }
@@ -140,7 +142,7 @@ class Attachment {
   async getAttachmentFromS3(req, res) {
     logger.log(1, 'getAttachmentFromS3', `Getting attachment for expense ${req.params.expenseId}`);
 
-    let expense = await this.expenseData.findObjectInDB(req.params.expenseId);
+    let expense = await this.expenseData.getEntry(req.params.expenseId);
     let fileExt = expense.receipt;
     let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
     var params = { Bucket: BUCKET, Key: filePath, Expires: 60 };
@@ -173,7 +175,9 @@ class Attachment {
           message:
             `${err.message}`
         };
-        return res.send(error);
+
+        res.status(error.code).send(error);
+        return error;
       } else {
         // successfully deleted the file
         logger.log(1, 'deleteAttachmentFromS3',

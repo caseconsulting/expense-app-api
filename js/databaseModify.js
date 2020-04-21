@@ -39,6 +39,35 @@ class databaseModify {
     });
   }
 
+  /**
+   * Add the entry to the database
+   */
+  addToDB(newDyanmoObj) {
+    if (newDyanmoObj) {
+      const params = {
+        TableName: this.tableName,
+        Item: newDyanmoObj
+      };
+      const documentClient = new AWS.DynamoDB.DocumentClient();
+      return documentClient
+        .put(params)
+        .promise()
+        .then(function() {
+          return newDyanmoObj;
+        })
+        .catch(function(err) {
+          console.error(err);
+          throw err; //Throw error and handle properly in crudRoutes
+        });
+    } else {
+      let err = {
+        code: 406,
+        message: 'ADD: Object already in system'
+      };
+      return Promise.reject(err);
+    }
+  }
+
   _buildBudgetUpdateParams(objToUpdate) {
     return _.assign(
       {
@@ -133,58 +162,10 @@ class databaseModify {
   }
 
   /**
-   * Add the entry to the database
-   */
-  addToDB(newDyanmoObj) {
-    if (newDyanmoObj) {
-      const params = {
-        TableName: this.tableName,
-        Item: newDyanmoObj
-      };
-      const documentClient = new AWS.DynamoDB.DocumentClient();
-      return documentClient
-        .put(params)
-        .promise()
-        .then(function() {
-          return newDyanmoObj;
-        })
-        .catch(function(err) {
-          console.error(err);
-          throw err; //Throw error and handle properly in crudRoutes
-        });
-    } else {
-      let err = {
-        code: 406,
-        message: 'ADD: Object already in system'
-      };
-      return Promise.reject(err);
-    }
-  }
-
-  buildExpressionAttributeValues(objToUpdate) {
-    return _.pickBy(
-      {
-        ':pd': objToUpdate.purchaseDate,
-        ':rd': objToUpdate.reimbursedDate,
-        ':c': objToUpdate.cost,
-        ':d': objToUpdate.description,
-        ':n': objToUpdate.note,
-        ':r': objToUpdate.receipt,
-        ':eti': objToUpdate.expenseTypeId,
-        ':ei': objToUpdate.employeeId,
-        ':cat': objToUpdate.createdAt,
-        ':rurl': objToUpdate.url,
-        ':cate': objToUpdate.category
-      },
-      _.identity
-    );
-  }
-
-  /**
    * Builds the parameters for update depending on the this.tableName
    * @return the parameters for update
    */
-  buildUpdateParams(objToUpdate) {
+  _buildupdateparams(objToUpdate) {
     switch (this.tableName) {
       case `${STAGE}-expenses`:
         return this._buildExpenseUpdateParams(objToUpdate);
@@ -199,10 +180,27 @@ class databaseModify {
     }
   }
 
+  getAllEntriesInDB() {
+    let params = {
+      TableName: this.tableName
+    };
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+
+    return scanDB(params, documentClient)
+      .then(function(items) {
+        return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
+      })
+      .catch(function(err) {
+        console.error(err);
+        throw err;
+      });
+  }
+
   /**
    * returns the value if it exists
    */
-  findObjectInDB(primaryKey) {
+  getEntry(primaryKey) {
     return this.readFromDB(primaryKey)
       .then(function(data) {
         if (_.first(data)) {
@@ -221,20 +219,26 @@ class databaseModify {
       });
   }
 
-  getAllEntriesInDB() {
-    let params = {
-      TableName: this.tableName
-    };
+  /**
+   * returns the value if it exists
+   */
+  getEntryUrl(primaryKey, secondary) {
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
-
-    return scanDB(params, documentClient)
-      .then(function(items) {
-        return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
+    return this.readFromDBUrl(primaryKey, secondary)
+      .then(function(data) {
+        if (_.first(data)) {
+          return _.first(data);
+        } else {
+          let err = {
+            code: 404,
+            message: 'Entry not found in database'
+          };
+          throw err;
+        }
       })
       .catch(function(err) {
         console.error(err);
-        throw err;
+        throw err; //Throw error and handle properly in crudRoutes
       });
   }
 
@@ -313,11 +317,11 @@ class databaseModify {
       });
   }
 
-  readFromDBURL(passedID, category) {
-    console.warn(
+  readFromDBUrl(passedID, category) {
+    console.log(
       `[${moment().format()}]`,
       `Reading from training-urls database with id ${passedID} and category ${category}`,
-      '| Processing handled by function databaseModify.readFromDBURL'
+      '| Processing handled by function databaseModify.readFromDBUrl'
     );
 
     const params = {
@@ -367,7 +371,7 @@ class databaseModify {
   }
 
   updateEntryInDB(newDyanmoObj) {
-    const params = this.buildUpdateParams(newDyanmoObj);
+    const params = this._buildupdateparams(newDyanmoObj);
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
       .update(params)

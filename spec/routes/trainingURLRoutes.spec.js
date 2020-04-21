@@ -2,7 +2,7 @@ const TrainingURLRoutes = require('../../routes/trainingURLRoutes');
 const TrainingURL = require('../../models/trainingUrls');
 const _ = require('lodash');
 
-describe('trainingURLRoutes', () => {
+xdescribe('trainingURLRoutes', () => {
   const id = 'https://invalidSite.notASite';
   const category = 'test';
   const hits = 1;

@@ -25,8 +25,7 @@ class ExpenseRoutes extends Crud {
     this.budgetDynamo = new databaseModify('budgets');
     this.expenseTypeDynamo = new databaseModify('expense-types');
     this.employeeDynamo = new databaseModify('employees');
-    this.expenseDynamo = new databaseModify('expenses');
-    this.databaseModify = this.expenseDynamo;
+    this.databaseModify = new databaseModify('expenses');
     this.moment = moment;
   }
 
@@ -63,12 +62,11 @@ class ExpenseRoutes extends Crud {
     return true;
   }
 
-  async _add(id, data) {
+  async _create(data) {
     //query DB to see if Budget exists
     let expenseType, budget, expense, employee;
 
     expense = new Expense(data);
-    //expense.id = id; // ignore the api generated uuid
 
     if (!this._isReimbursed(expense)) {
       logger.log(1, '_add',
@@ -83,9 +81,10 @@ class ExpenseRoutes extends Crud {
     }
 
     try {
-      employee = new Employee(await this.employeeDynamo.findObjectInDB(expense.employeeId));
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
+      employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
       this._validateAdd(expenseType, employee, expense);
+
       budget = await this._getCurrentBudgetData(expenseType, employee);
     } catch (err) {
       logger.log(1, '_add',
@@ -98,8 +97,7 @@ class ExpenseRoutes extends Crud {
 
     return this.checkValidity(expense, expenseType, budget, employee)
       .then(() => this._addExpenseToBudget(budget, expense, expenseType, employee))
-      .then(() => this.expenseDynamo.addToDB(expense))
-      .then(expense => {
+      .then(() => {
         return expense;
       })
       .catch(err => {
@@ -302,7 +300,7 @@ class ExpenseRoutes extends Crud {
     };
     if (expenseType.recurringFlag) {
       // TBD - duplicated from employee routes
-      const dates = this._getBudgetDates(employee.hireDate);
+      const dates = this.getBudgetDates(employee.hireDate);
       newBudget.fiscalStartDate = dates.startDate.format('YYYY-MM-DD');
       newBudget.fiscalEndDate = dates.endDate.format('YYYY-MM-DD');
     } else {
@@ -362,12 +360,12 @@ class ExpenseRoutes extends Crud {
     let expense, budget, expenseType, rawBudgets, budgets;
 
     try {
-      expense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+      expense = new Expense(await this.databaseModify.getEntry(id));
       rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.employeeId, expense.expenseTypeId);
       budgets = [];
       _.forEach(rawBudgets, budget => budgets.push(new Budget(budget)));
 
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(expense.expenseTypeId));
+      expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
       budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
     } catch (err) {
       logger.error('_delete', `Error code: ${err.code}`);
@@ -375,7 +373,9 @@ class ExpenseRoutes extends Crud {
       throw err;
     }
     return this._removeFromBudget(budget, expense, expenseType)
-      .then(() => this.expenseDynamo.removeFromDB(id))
+      .then(() => {
+        return expense;
+      })
       .catch(err => {
         throw err;
       });
@@ -397,33 +397,6 @@ class ExpenseRoutes extends Crud {
       };
       throw err;
     }
-  }
-
-  // TBD - duplicated from employee routes
-  _getBudgetDates(hireDateParam) {
-    let hireDate = moment(hireDateParam);
-    logger.log(3, '_getBudgetDates', `Getting budget dates from hire date ${hireDate.format('YYYY-MM-DD')}`);
-
-    if (hireDate.isSameOrAfter(moment())) {
-
-      return {
-        startDate: hireDate,
-        endDate: moment(hireDate).add(1, 'years').subtract(1, 'days')
-      };
-    }
-
-    let currentYear = moment().year();
-    let anniversaryMonth = hireDate.month(); // form 0-11
-    let anniversaryDay = hireDate.date(); // from 1 to 31
-    const anniversaryComparisonDate = moment([currentYear, anniversaryMonth, anniversaryDay]);
-    let startYear = anniversaryComparisonDate.isSameOrBefore(moment(), 'day') ? currentYear : currentYear - 1;
-    let startDate = moment([startYear, anniversaryMonth, anniversaryDay]);
-    let endDate = moment([startYear, anniversaryMonth, anniversaryDay]).add(1, 'years').subtract(1, 'days');
-
-    return {
-      startDate,
-      endDate
-    };
   }
 
   async _getCurrentBudgetData(expenseType, employee) {
@@ -469,7 +442,7 @@ class ExpenseRoutes extends Crud {
       `for expense type ${expenseType}`
     );
 
-    let expenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId);
+    let expenses = await this.databaseModify.querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId);
 
     let filteredExpenses = _.filter(expenses, expense => {
       return this._isValidExpense(expense, budget, expenseType);
@@ -581,6 +554,10 @@ class ExpenseRoutes extends Crud {
     return false;
   }
 
+  async _read(data) {
+    return this.databaseModify.getEntry(data.id); // read from database
+  }
+
   async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
     logger.log(1, '_reimburseExpense', `Attempting to reimburse expense ${oldExpense.id}`);
 
@@ -615,8 +592,7 @@ class ExpenseRoutes extends Crud {
           nextYearsBudget.reimbursedAmount = this._addCost(nextYearsBudget.reimbursedAmount, overage);
 
           // update budgets on dynamodb
-          dbPromise = await this.budgetDynamo
-            .updateEntryInDB(newBudget)
+          dbPromise = await this.budgetDynamo.updateEntryInDB(newBudget)
             .then(this.budgetDynamo.updateEntryInDB(nextYearsBudget));
 
           // update to the next budget iteration
@@ -750,17 +726,16 @@ class ExpenseRoutes extends Crud {
     return sortedBudgets;
   }
 
-  async _update(id, data) {
-    logger.log(1, '_update', `Attempting to update expense ${id}`);
+  async _update(data) {
+    logger.log(1, '_update', `Attempting to update expense ${data.id}`);
 
     let expenseType, oldExpenseType, budget, newExpense, employee, oldExpense, rawBudgets;
     var budgets = [];
     newExpense = new Expense(data);
-    newExpense.id = id;
-    oldExpense = new Expense(await this.expenseDynamo.findObjectInDB(id));
+    oldExpense = new Expense(await this.databaseModify.getEntry(data.id));
 
-    employee = new Employee(await this.employeeDynamo.findObjectInDB(newExpense.employeeId));
-    expenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(newExpense.expenseTypeId));
+    employee = new Employee(await this.employeeDynamo.getEntry(newExpense.employeeId));
+    expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(newExpense.expenseTypeId));
 
     // throw access denied error if the employee does not have access to the expense type
     if (!this._hasAccess(employee, expenseType)) {
@@ -791,7 +766,7 @@ class ExpenseRoutes extends Crud {
 
       try {
         // get all budgets of the old expense type
-        oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.findObjectInDB(oldExpense.expenseTypeId));
+        oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(oldExpense.expenseTypeId));
         if (oldExpenseType.isInactive && employee.employeeRole === 'user') {
           let err = {
             code: 403,
@@ -821,7 +796,9 @@ class ExpenseRoutes extends Crud {
       if (!this._isEmpty(oldExpense.reimbursedDate)) {
         // if the old expense is reimbursed
         // add the new expense
-        return this._add(null, newExpense)
+        return this._create(newExpense) // create expense
+          .then(object => this._validateInputs(object)) // validate inputs
+          .then(validated => this.databaseModify.addToDB(validated)) // add expense to database
           .then(async (addedObject) =>  {
             // unreimburse the old expense
             await this._unreimburseExpense(oldExpense, unreimburseExpense, budgets, oldExpenseType);
@@ -837,7 +814,9 @@ class ExpenseRoutes extends Crud {
           });
       } else {
         // add the new expense
-        return this._add(null, newExpense)
+        return this._create(newExpense) // create expense
+          .then(object => this._validateInputs(object)) // validate inputs
+          .then(validated => this.databaseModify.addToDB(validated)) // add expense to database
           .then(async (addedObject) => {
             // delete the old expense
             await this._delete(oldExpense.id);
@@ -871,7 +850,9 @@ class ExpenseRoutes extends Crud {
 
       return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
         .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
-        .then(() => this.expenseDynamo.updateEntryInDB(newExpense))
+        .then(() => {
+          return newExpense;
+        })
         .catch(err => {
           err.message = `Cannot update expense because ${err.message}`;
           throw err;

@@ -41,16 +41,16 @@ class Budgets {
   getBudgetByUser(req, res) {
     logger.log(2, 'getBudgetByUser', `Getting budgets for user ${req.params.id} if admin`);
 
-    if (this._isAdmin(req)) {
-      return this.budgetDynamo
-        .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
-        .then(data => {
-          return res.status(200).send(data);
-        })
-        .catch(err => {
-          throw err;
-        });
-    }
+    return this.budgetDynamo
+      .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
+      .then(data => {
+        res.status(200).send(data);
+        return data;
+      })
+      .catch(err => {
+        throw err;
+      });
+
   }
 
   getCaller(req, res) {

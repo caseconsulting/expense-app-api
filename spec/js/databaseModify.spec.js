@@ -1,5 +1,4 @@
 const databaseModifyClass = require('../../js/databaseModify');
-const _ = require('lodash');
 
 const AWS = require('aws-sdk-mock');
 
@@ -251,72 +250,7 @@ describe('databaseModify', () => {
     });
   }); // addToDB
 
-  describe('buildExpressionAttributeValues', () => {
-
-    let objToUpdate;
-
-    describe ('default call', () => {
-
-      beforeEach(() => {
-        objToUpdate = '{objToUpdate}';
-        spyOn(_, 'pickBy').and.returnValue('result');
-      });
-
-      afterEach(() => {
-        expect(_.pickBy).toHaveBeenCalledWith(
-          {
-            ':pd': objToUpdate.purchaseDate,
-            ':rd': objToUpdate.reimbursedDate,
-            ':c': objToUpdate.cost,
-            ':d': objToUpdate.description,
-            ':n': objToUpdate.note,
-            ':r': objToUpdate.receipt,
-            ':eti': objToUpdate.expenseTypeId,
-            ':ei': objToUpdate.employeeId,
-            ':cat': objToUpdate.createdAt,
-            ':rurl': objToUpdate.url,
-            ':cate': objToUpdate.category
-          },
-          _.identity
-        );
-      });
-
-      it('should return result', () => {
-        expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual('result');
-      }); // should return result
-    }); // default call
-
-    describe('when there are no undefined values', () => {
-      beforeEach(() => {
-        objToUpdate = {
-          purchaseDate: 'my purchase date'
-        };
-      });
-
-      it('should return the appropriate object', () => {
-        expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual({
-          ':pd': 'my purchase date'
-        });
-      });
-    }); // when there are no undefined values
-
-    describe('when there are undefined values', () => {
-      beforeEach(() => {
-        objToUpdate = {
-          purchaseDate: 'my purchase date',
-          reimbursedDate: undefined
-        };
-      });
-
-      it('should return the appropriate object', () => {
-        expect(databaseModify.buildExpressionAttributeValues(objToUpdate)).toEqual({
-          ':pd': 'my purchase date'
-        });
-      });
-    }); // when there are undefined values
-  }); // buildExpressionAttributeValues
-
-  describe('buildUpdateParams', () => {
+  describe('_buildupdateparams', () => {
 
     let objToUpdate;
 
@@ -341,7 +275,7 @@ describe('databaseModify', () => {
       });
 
       it('should return {expenseParams}', () => {
-        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{expenseParams}');
+        expect(databaseModify._buildupdateparams(objToUpdate)).toEqual('{expenseParams}');
       });
     }); // when this.tableName is dev-expenses
 
@@ -358,7 +292,7 @@ describe('databaseModify', () => {
       });
 
       it('should return {employeeParams}', () => {
-        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{employeeParams}');
+        expect(databaseModify._buildupdateparams(objToUpdate)).toEqual('{employeeParams}');
       });
     }); // when this.tableName is dev-employees
 
@@ -375,7 +309,7 @@ describe('databaseModify', () => {
       });
 
       it('should return {expenseTypeParams}', () => {
-        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{expenseTypeParams}');
+        expect(databaseModify._buildupdateparams(objToUpdate)).toEqual('{expenseTypeParams}');
       });
     }); // when this.tableName is dev-expense-types
 
@@ -392,7 +326,7 @@ describe('databaseModify', () => {
       });
 
       it('should return {budgetParams}', () => {
-        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{budgetParams}');
+        expect(databaseModify._buildupdateparams(objToUpdate)).toEqual('{budgetParams}');
       });
     }); // when this.tableName is dev-budgets
 
@@ -409,12 +343,12 @@ describe('databaseModify', () => {
       });
 
       it('should return {trainingUrlParams}', () => {
-        expect(databaseModify.buildUpdateParams(objToUpdate)).toEqual('{trainingUrlParams}');
+        expect(databaseModify._buildupdateparams(objToUpdate)).toEqual('{trainingUrlParams}');
       });
     }); // when this.tableName is dev-training-urls
-  }); // buildUpdateParams
+  }); // _buildupdateparams
 
-  describe('findObjectInDB', () => {
+  describe('getEntry', () => {
 
     let primaryKey;
 
@@ -428,7 +362,7 @@ describe('databaseModify', () => {
       });
 
       it('should return a resolved promise and the found object', done => {
-        databaseModify.findObjectInDB(primaryKey).then(data => {
+        databaseModify.getEntry(primaryKey).then(data => {
           expect(data).toEqual('Successfully found object in database');
           done();
         });
@@ -443,7 +377,7 @@ describe('databaseModify', () => {
       });
 
       it('should return a rejected promise with a reason', done => {
-        databaseModify.findObjectInDB(primaryKey).catch(err => {
+        databaseModify.getEntry(primaryKey).catch(err => {
           expect(err).toEqual({code: 404, message: 'Entry not found in database'});
           done();
         });
@@ -457,13 +391,13 @@ describe('databaseModify', () => {
       });
 
       it('should return a rejected promise with a reason', done => {
-        databaseModify.findObjectInDB(primaryKey).catch(err => {
+        databaseModify.getEntry(primaryKey).catch(err => {
           expect(err).toEqual('object not found in database');
           done();
         });
       });
     }); // when entry is not in the database
-  }); // findObjectInDB
+  }); // getEntry
 
   describe('getAllEntriesInDB', () => {
     // let newJsonObj;
@@ -706,7 +640,7 @@ describe('databaseModify', () => {
     });
   }); // readFromDB
 
-  describe('readFromDBURL', () => {
+  describe('readFromDBUrl', () => {
 
     let passedID, category;
 
@@ -726,7 +660,7 @@ describe('databaseModify', () => {
       });
 
       it('should return a resolved promise of queried item', done => {
-        databaseModify.readFromDBURL(passedID, category).then( data => {
+        databaseModify.readFromDBUrl(passedID, category).then( data => {
           expect(data).toEqual(['data']);
           done();
         });
@@ -744,7 +678,7 @@ describe('databaseModify', () => {
       });
 
       it('should return the error given by AWS', done => {
-        databaseModify.readFromDBURL(passedID, category).catch(function(err) {
+        databaseModify.readFromDBUrl(passedID, category).catch(function(err) {
           expect(err).toEqual({ message: 'AWS error' });
           done();
         });
@@ -762,7 +696,7 @@ describe('databaseModify', () => {
       });
 
       it('should return null', () => {
-        databaseModify.readFromDBURL(passedID, category).catch( err => {
+        databaseModify.readFromDBUrl(passedID, category).catch( err => {
           expect(err).toEqual(null);
         });
       }); // should return null
@@ -771,7 +705,7 @@ describe('databaseModify', () => {
     afterEach(() => {
       AWS.restore();
     });
-  }); // readFromDBURL
+  }); // readFromDBUrl
 
   describe('removeFromDB', () => {
 
