@@ -11,8 +11,7 @@
  * - expenseTypes
  * - email
  * - employeeRole
- * - isActive
- * - status
+ * - workStatus
  *
  * - birthday
  * - jobRole
@@ -36,8 +35,6 @@ class Employee {
     this.email = data.email;
     this.employeeRole = data.employeeRole;
     this.workStatus = data.workStatus;
-
-    // New fields
     this.birthday = data.birthday;
     this.jobRole = data.jobRole;
     this.prime = data.prime;
@@ -50,15 +47,70 @@ class Employee {
     this.deptDate = data.deptDate;
 
     if (this.workStatus == null) {
-      this.workStatus = 100; // Default: Full Time
+      this.workStatus = 0; // Default: Inactive
     }
 
-    //sets null values to an empty string
+    // populates empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+      if (this[propName] === null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
+  }
+
+  /**
+   * Returns the employee's full name (first name and last name).
+   *
+   * @return String - employee's full name
+   */
+  fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  }
+
+  /**
+   * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
+   *
+   * @return boolean - employee is admin
+   */
+  isAdmin() {
+    return this.employeeRole === 'admin';
+  }
+
+  /**
+   * Check if the employee is full time. Returns true if employee work status is 100, otherwise returns false.
+   *
+   * @return boolean - employee is full time
+   */
+  isFullTime() {
+    return this.workStatus == 100;
+  }
+
+  /**
+   * Check if the employee is inactive. Returns true if employee work status is 0, otherwise returns false.
+   *
+   * @return boolean - employee is inactive
+   */
+  isInactive() {
+    return this.workStatus == 0;
+  }
+
+  /**
+   * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
+   * otherwise returns false.
+   *
+   * @return boolean - employee is part time
+   */
+  isPartTime() {
+    return this.workStatus > 0 && this.workStatus < 100;
+  }
+
+  /**
+   * Check if the employee is a user. Returns true if employee role is 'user', otherwise returns false.
+   *
+   * @return boolean - employee is user
+   */
+  isUser() {
+    return this.employeeRole === 'user';
   }
 }
 
