@@ -1,3 +1,6 @@
+const moment = require('moment');
+const ISOFORMAT = 'YYYY-MM-DD';
+
 /**
  * ExpenseType model
  *
@@ -16,53 +19,66 @@ class ExpenseType {
   constructor(data) {
     this.id = data.id;
     this.budgetName = data.budgetName;
-
-    // We need to make sure this value is always stored as a number, not a string
     this.budget = Number(data.budget).toFixed(2);
-    
-    this.startDate = data.startDate;
-    this.endDate = data.endDate;
-
+    this.startDate = moment(data.startDate, ISOFORMAT);
+    this.endDate = moment(data.endDate, ISOFORMAT);
     this.odFlag = data.odFlag;
     this.requiredFlag = data.requiredFlag;
     this.recurringFlag = data.recurringFlag;
-    this.isInactive = data.isInactive; //mark an expense type as inactive
-
+    this.isInactive = data.isInactive;
     this.description = data.description;
     this.categories = data.categories;
     this.accessibleBy = data.accessibleBy;
 
     if (!this.categories) {
-      this.categories = [];
+      this.categories = []; // default: no categories
     }
 
     if (!this.accessibleBy) {
-      this.accessibleBy = 'ALL'; // 'ALL' = accessible by all employees
+      this.accessibleBy = 'ALL'; // default: accessible by all employees
     }
 
     if (this.requiredFlag == null) {
-      this.requiredFlag = true;
+      this.requiredFlag = true; // default: receipt required
     }
 
     if (this.recurringFlag == null) {
-      this.recurringFlag = false;
+      this.recurringFlag = false; // default: not recurring
     }
 
     if (this.odFlag == null) {
-      this.odFlag = false;
+      this.odFlag = false; // default: overdraft not allowed
     }
 
     if (this.isInactive == null) {
-      this.isInactive = false;
+      this.isInactive = false; // default: active
     }
 
-    //sets null values to an empty string
+    // populate empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+      if (this[propName] === null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
-  }
+  } // constructor
+
+  /**
+   * Check if a date is in the expense type date range. Returns true if the expense type is recurring or the date is
+   * between the expense type start and end date. Returns false otherwise.
+   *
+   * @param date - moment of date to be checked
+   * @return Boolean - date is in range
+   */
+  isDateInRange(dateStr) {
+    if (this.recurringFlag) {
+      return true;
+    } else {
+      let date = moment(dateStr, ISOFORMAT);
+      let start = moment(this.startDate, ISOFORMAT);
+      let end = moment(this.endDate, ISOFORMAT);
+      return date.isBetween(start, end, null, '[]');
+    }
+  } // isDateInRange
 }
 
 module.exports = ExpenseType;

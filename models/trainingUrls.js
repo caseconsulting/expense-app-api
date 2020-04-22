@@ -5,6 +5,11 @@
  * - id (the url)
  * - hits
  * - category
+ * - title
+ * - description
+ * - image
+ * - logo
+ * - publisher
  */
 
 class TrainingUrls {
@@ -18,13 +23,13 @@ class TrainingUrls {
     this.logo = data.logo;
     this.publisher = data.publisher;
 
-    //sets null values to an empty string
+    // populate empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+      if (this[propName] === null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
-  }
+  } // constructor
 }
 
 module.exports = TrainingUrls;

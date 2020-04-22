@@ -47,16 +47,16 @@ class Employee {
     this.deptDate = data.deptDate;
 
     if (this.workStatus == null) {
-      this.workStatus = 0; // Default: Inactive
+      this.workStatus = 0; // default: inactive
     }
 
-    // populates empty fields with a space holder
+    // populate empty fields with a space holder
     for (var propName in this) {
       if (this[propName] === null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
-  }
+  } // constructor
 
   /**
    * Returns the employee's full name (first name and last name).
@@ -65,7 +65,7 @@ class Employee {
    */
   fullName() {
     return `${this.firstName} ${this.lastName}`;
-  }
+  } // fullName
 
   /**
    * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
@@ -74,7 +74,7 @@ class Employee {
    */
   isAdmin() {
     return this.employeeRole === 'admin';
-  }
+  } // isAdmin
 
   /**
    * Check if the employee is full time. Returns true if employee work status is 100, otherwise returns false.
@@ -83,7 +83,7 @@ class Employee {
    */
   isFullTime() {
     return this.workStatus == 100;
-  }
+  } // isFullTime
 
   /**
    * Check if the employee is inactive. Returns true if employee work status is 0, otherwise returns false.
@@ -92,7 +92,7 @@ class Employee {
    */
   isInactive() {
     return this.workStatus == 0;
-  }
+  } // isInactive
 
   /**
    * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
@@ -102,7 +102,7 @@ class Employee {
    */
   isPartTime() {
     return this.workStatus > 0 && this.workStatus < 100;
-  }
+  } // isPartTime
 
   /**
    * Check if the employee is a user. Returns true if employee role is 'user', otherwise returns false.
@@ -111,7 +111,7 @@ class Employee {
    */
   isUser() {
     return this.employeeRole === 'user';
-  }
+  } // isUser
 }
 
 module.exports = Employee;

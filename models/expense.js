@@ -1,3 +1,6 @@
+const moment = require('moment');
+const ISOFORMAT = 'YYYY-MM-DD';
+
 /**
  * Expense model
  *
@@ -10,23 +13,19 @@
  * - createdAt
  * - receipt
  * - cost
- * - name
  * - description
  * - employeeId
  * - expenseTypeId
+ * - category
  */
 class Expense {
   constructor(data) {
     this.id = data.id;
-    this.purchaseDate = data.purchaseDate;
-
-    // DynamoDB interprets NULL values as true. If we do not include them as
-    // class attributes, then it will be undefined in DynamoDB.
-    this.reimbursedDate = data.reimbursedDate;
+    this.purchaseDate = moment(data.purchaseDate, ISOFORMAT);
+    this.reimbursedDate = moment(data.reimbursedDate, ISOFORMAT);
     this.note = data.note;
     this.url = data.url;
-
-    this.createdAt = data.createdAt;
+    this.createdAt = moment(data.createdAt, ISOFORMAT);
     this.receipt = data.receipt;
     this.cost = Number(data.cost).toFixed(2);
     this.description = data.description;
@@ -34,13 +33,31 @@ class Expense {
     this.expenseTypeId = data.expenseTypeId;
     this.category = data.category;
 
-    //sets null values to an empty string
+    // populate empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === undefined || this[propName] === '') {
+      if (this[propName] === null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
-  }
+  } // constructor
+
+  /**
+   * Check if the attribute is empty. Returns true if attribute is null or a space holder.
+   *
+   * @return boolean - attribute is empty
+   */
+  isEmpty(attribute) {
+    return attribute == null || attribute.trim().length <= 0;
+  } // isEmpty
+
+  /**
+   * Check if the expense is reimbursed. Returns true if reimburse date exists, otherwise returns false.
+   *
+   * @return boolean - expense is reimbursed
+   */
+  isReimbursed() {
+    return !this.isEmpty(this.reimbursedDate);
+  } // isReimbursed
 }
 
 module.exports = Expense;
