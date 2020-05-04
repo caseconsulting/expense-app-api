@@ -75,7 +75,7 @@
     "express": "^4.17.1",
     "express-jwt": "^5.3.1",
     "express-jwt-authz": "^2.3.1",
-    "got": "^10.7.0",
+    "got": "^11.1.0",
     "jwks-rsa": "^1.7.0",
     "lodash": "^4.17.15",
     "metascraper": "^5.11.6",
