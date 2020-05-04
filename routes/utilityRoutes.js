@@ -8,7 +8,11 @@ const Logger = require('../js/Logger');
 const logger = new Logger('utilityRoutes');
 const _ = require('lodash');
 const moment = require('moment');
-//const IsoFormat = 'YYYY-MM-DD';
+const ISOFORMAT = 'YYYY-MM-DD';
+const Employee = require('./../models/employee');
+const ExpenseType = require('./../models/expenseType');
+const Budget = require('./../models/budget');
+// const Expense = require('./../models/expense');
 
 const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
@@ -36,11 +40,11 @@ const checkJwt = jwt({
 
 class Utility {
   constructor() {
-    this.expenseData = expenseDynamo;
-    this.employeeData = employeeDynamo;
-    this.expenseTypeData = expenseTypeDynamo;
-    this.budgetData = budgetDynamo;
-    this.trainingURLData = trainingDynamo;
+    this.expenseDynamo = expenseDynamo;
+    this.employeeDynamo = employeeDynamo;
+    this.expenseTypeDynamo = expenseTypeDynamo;
+    this.budgetDynamo = budgetDynamo;
+    this.trainingURLDynamo = trainingDynamo;
     this._router = express.Router();
     //Garbage
     this._router.get('/', checkJwt, getUserInfo, this.showList.bind(this));
@@ -48,9 +52,16 @@ class Utility {
     //Not Garbage
     this._router.get('/getAllExpenses', checkJwt, getUserInfo, this.getAllExpenses.bind(this)); //Admin
 
-    this._router.get('/getEmployeeBudgets/:id', checkJwt, this.empBudgets.bind(this)); //User
-    this._router.get('/getEmployeeBudgets/:id/:date', checkJwt, this.empBudgets.bind(this)); //User
-    this._router.get('/getEmployeeBudgets/:id/:date/:expenseTypeId', checkJwt, this.empBudgets.bind(this)); //User
+    this._router.get('/getAllActiveEmployeeBudgets/:id', checkJwt, this._getAllActiveEmployeeBudgets.bind(this));
+    this._router.get('/getEmployeeBudget/:id/:expenseTypeId/:date', checkJwt, this._getEmployeeBudget.bind(this));
+    this._router.get('/getEmployeeBudgetsByDate/:id/:startDate/:endDate',
+      checkJwt,
+      this._getEmployeeBudgetsByDate.bind(this)
+    );
+
+    // this._router.get('/getEmployeeBudgets/:id', checkJwt, this.empBudgets.bind(this)); //User
+    // this._router.get('/getEmployeeBudgets/:id/:date', checkJwt, this.empBudgets.bind(this)); //User
+    // this._router.get('/getEmployeeBudgets/:id/:date/:expenseTypeId', checkJwt, this.empBudgets.bind(this)); //User
     this._router.get('/getAllEmployeeExpenses/:id', checkJwt, this.getAllEmployeeExpenses.bind(this)); //User
     this._router.get('/getAllExpenseTypeExpenses/:id', checkJwt, this.getAllExpenseTypeExpenses.bind(this)); //User
     this._router.get('/getURLInfo/:id/:category', checkJwt, this.getURLInfo.bind(this));
@@ -72,16 +83,31 @@ class Utility {
   getEmployeeName(expense) {
     logger.log(3, 'getEmployeeName', `Getting employee name of expense ${expense.id}`);
 
-    return this.employeeData.getEntry(expense.employeeId).then(employee => {
+    return this.employeeDynamo.getEntry(expense.employeeId).then(employee => {
       expense.employeeName = this._fullName(employee);
       return expense;
     });
   }
 
+  /**
+   * Send api response error status.
+   *
+   * @param res - api response
+   * @param err - status error
+   * @return API Status - error status
+   */
+  _sendError(res, err) {
+    // log method
+    //logger.log(2, '_sendError', `Sending ${err.code} error status: ${err.message}`);
+
+    // return error status
+    return res.status(err.code).send(err);
+  } // _sendError
+
   getExpenseTypeName(expense) {
     logger.log(3, 'getExpenseTypeName', `Getting expense type name of expense ${expense.id}`);
 
-    return this.expenseTypeData.getEntry(expense.expenseTypeId).then(expenseType => {
+    return this.expenseTypeDynamo.getEntry(expense.expenseTypeId).then(expenseType => {
       expense.budgetName = expenseType.budgetName;
       return expense;
     });
@@ -90,12 +116,285 @@ class Utility {
   showList(req, res) {
     logger.log(3, 'showList', 'Getting all entries in database');
 
-    return this.expenseData
+    return this.expenseDynamo
       .getAllEntriesInDB()
       .then(values => this._processExpenses(values))
       .then(returnValue => {
         res.status(200).send(returnValue);
       });
+  }
+
+  /**
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
+   * amount.
+   *
+   * @param employee - Employee to adjust amount for
+   * @param expenseType - ExpenseType budget to be adjusted
+   * @return Number - adjusted budget amount
+   */
+  calcAdjustedAmount(employee, expenseType) {
+    // log method
+    // logger.log(2, 'calcAdjustedAmount',
+    //   `Calculating adjusted budget amount for employee ${employee.id} and expense type ${expenseType.id}`
+    // );
+
+    // compute method
+    let result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+
+    // log result
+    //logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
+
+    // return result
+    return result;
+  } // calcAdjustedAmount
+
+  /**
+   * Get the current annual budget start and end dates based on a given hire date.
+   *
+   * @param hireDate - ISO formatted hire date String
+   * @return Object - moment start date and moment end date
+   */
+  getBudgetDates(date) {
+    // log method
+    //logger.log(2, 'getBudgetDates', `Getting current annual budget dates for ${date}`);
+
+    // compute method
+    let startYear;
+    let hireDate = moment(date, ISOFORMAT);
+    let hireYear = hireDate.year();
+    let hireMonth = hireDate.month(); // form 0-11
+    let hireDay = hireDate.date(); // from 1 to 31
+    let today = moment();
+
+    // determine start date year
+    if (hireDate.isBefore(today)) {
+      // hire date is before today
+      // if anniversary hasn't occured yet this year, set the start of the budget to last year
+      // if the anniversary already occured this year, set the start of the budget to this year
+      startYear = today.isBefore(moment([today.year(), hireMonth, hireDay]))
+        ? today.year() - 1
+        : today.year();
+    } else {
+      // hire date is after today
+      startYear = hireYear;
+    }
+
+    let startDate = moment([startYear, hireMonth, hireDay]);
+    let endDate = moment([startYear, hireMonth, hireDay])
+      .add('1', 'years')
+      .subtract('1', 'days');
+
+    let result = {
+      startDate,
+      endDate
+    };
+
+    // log result
+    // logger.log(2, 'getBudgetDates',
+    //   `Current annual budget date for ${date} starts on ${startDate.format(ISOFORMAT)} and ends on`,
+    //   `${endDate.format(ISOFORMAT)}`
+    // );
+
+    // return result
+    return result;
+  } // getBudgetDates
+
+  /**
+   * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
+   *
+   * @param employee - Employee to access
+   * @param expenseType - ExpenseType to be accessed
+   * @return Boolean - employee has access to expense type
+   */
+  hasAccess(employee, expenseType) {
+    // log method
+    //logger.log(2, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
+
+    // compute method
+    let result;
+
+    if (expenseType.accessibleBy == 'ALL') {
+      // accessible by all employees
+      result = true;
+    } else if (expenseType.accessibleBy == 'FULL TIME') {
+      // accessible by full time employees
+      result = employee.workStatus == 100;
+    } else if (expenseType.accessibleBy == 'PART TIME') {
+      // accessible by part time employees
+      result = employee.workStatus > 0 && employee.workStatus < 100;
+    } else {
+      // accessible by custom employees
+      result = expenseType.accessibleBy.includes(employee.id);
+    }
+
+    // log result
+    // if (result) {
+    //   logger.log(2, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
+    // } else {
+    //   logger.log(2, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
+    // }
+
+    // return result
+    return result;
+  } // hasAccess
+
+  async _getActiveBudget(employee, expenseType) {
+
+    let today = moment().format(ISOFORMAT);
+
+    // get all budgets for employee and expense type
+    let expenseTypeBudgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+    let expenseTypeBudgets = _.map(expenseTypeBudgetsData, budgetData => {
+      return new Budget(budgetData);
+    });
+
+    // find the budget object for today
+    let budgetObject = _.find(expenseTypeBudgets, expenseTypeBudget => {
+      return expenseTypeBudget.isDateInRange(today);
+    });
+
+    if (!budgetObject) {
+      // budget does not exist, create a temporary budget
+      budgetObject = {
+        expenseTypeId: expenseType.id,
+        employeeId: employee.id,
+        pendingAmount: 0,
+        reimbursedAmount: 0,
+        amount: 0
+      };
+
+      if (expenseType.recurringFlag) {
+        // use Anniversary dates for budget if expense type is recurring
+        let dates = this.getBudgetDates(employee.hireDate);
+        budgetObject.startDate = dates.startDate.format(ISOFORMAT);
+        budgetObject.endDate = dates.endDate.format(ISOFORMAT);
+      } else {
+        // use expense type dates for buet if expense type is not recurring
+        budgetObject.startDate = expenseType.startDate;
+        budgetObject.endDate = expenseType.endDate;
+      }
+
+      if (this.hasAccess(employee, expenseType)) {
+        // set the budget amount if the employee has access to the expense type
+        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);
+      }
+    }
+
+    return {
+      expenseTypeName: expenseType.budgetName,
+      description: expenseType.description,
+      odFlag: expenseType.odFlag,
+      expenseTypeId: expenseType.id,
+      budgetObject: budgetObject
+    };
+  }
+
+  async _getEmployeeBudget(req, res) {
+    try {
+      const employee = new Employee(await this.employeeDynamo.getEntry(req.params.id)); // get employee
+      const expenseTypeData = await this.expenseTypeDynamo.getEntry(req.params.expenseTypeId); // get expense type
+      const expenseType = new ExpenseType(expenseTypeData);
+
+      // get all budgets for employee and expense type
+      let budgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
+      });
+
+      // find the budget object for the given date
+      let budget = _.find(budgets, budget => {
+        return budget.isDateInRange(req.params.date);
+      });
+
+      res.status(200).send(budget);
+    } catch (err) {
+      this._sendError(res, err);
+
+      return err;
+    }
+  }
+
+  /*
+   * Async function to loop an array
+   */
+  async asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
+  }
+
+  async _getAllActiveEmployeeBudgets(req, res) {
+    // log method
+    //logger.log(2, '_getAllActiveEmployeeBudgets', `Getting budgets for user ${req.params.id}`);
+
+    // compute method
+    try {
+      const employee = new Employee(await this.employeeDynamo.getEntry(req.params.id)); // get employee
+      let expenseTypes;
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB(); // get all expense types
+      expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+        return new ExpenseType(expenseTypeData);
+      });
+      let activeBudgets = []; // store active budgets
+      let today = moment().format(ISOFORMAT);
+
+      // loop all expense types
+      await this.asyncForEach(expenseTypes, async expenseType => {
+        if (expenseType.isDateInRange(today)) {
+          // expense type is active today
+          // push the current active budget
+          activeBudgets.push(await this._getActiveBudget(employee, expenseType));
+        }
+      });
+
+      res.status(200).send(activeBudgets);
+    } catch (err) {
+      this._sendError(res, err);
+      return err;
+    }
+  }
+
+  async _getEmployeeBudgetsByDate(req, res) {
+
+    try {
+      // get employee
+      const employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
+      const allExpenseTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
+
+      // get all budgets
+      let budgetsData = await budgetDynamo
+        .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employee.id);
+
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
+      });
+
+      // filter budgets within date range
+      budgets = _.filter(budgets, budget => {
+        return budget.isDateInRange(req.params.startDate) || budget.isDateInRange(req.params.endDate);
+      });
+
+      budgets = _.map(budgets, budget => {
+        let expenseType = _.find(allExpenseTypes, ['id', budget.expenseTypeId]);
+        return {
+          expenseTypeName: expenseType.budgetName,
+          description: expenseType.description,
+          odFlag: expenseType.odFlag,
+          expenseTypeId: expenseType.id,
+          budgetObject: budget
+        };
+      });
+
+      res.status(200).send(budgets);
+      return budgets;
+
+    } catch (err) {
+      // error
+      this._sendError(res, err);
+
+      return err;
+    }
   }
 
   async empBudgets(req, res) {
@@ -105,7 +404,7 @@ class Utility {
       let returnObject;
       const employeeId = req.params.id;
       const userBudgets =
-        await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
+        await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
       const openBudgets = _.filter(userBudgets, budget => {
         let date = moment();
         let expenseTypeCheck = true;
@@ -119,7 +418,7 @@ class Utility {
         return dateCheck && expenseTypeCheck;
       });
       const openExpenseTypeIds = _.map(openBudgets, fb => fb.expenseTypeId);
-      const allExpenseTypes = await this.expenseTypeData.getAllEntriesInDB();
+      const allExpenseTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
       const openExpenseTypes = _.filter(allExpenseTypes, et => _.includes(openExpenseTypeIds, et.id));
       returnObject = _.map(openExpenseTypes, expenseType => {
         return {
@@ -140,7 +439,7 @@ class Utility {
     logger.log(2, 'getAllEmployeeExpenses', 'Getting all employee expenses');
 
     const employeeId = req.params.id;
-    this.expenseData
+    this.expenseDynamo
       .querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId)
       .then(data => {
         res.status(200).send(data);
@@ -154,7 +453,7 @@ class Utility {
     logger.log(2, 'getAllExpenseTypeExpenses', 'Getting all expense types');
 
     const expenseTypeId = req.params.id;
-    this.expenseData
+    this.expenseDynamo
       .querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseTypeId)
       .then(data => {
         res.status(200).send(data);
@@ -171,7 +470,7 @@ class Utility {
   //   try {
   //     const employeeId = req.params.id;
   //     const userBudgets =
-  //       await this.budgetData.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
+  //       await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', employeeId);
   //     const returnObject = null;
   //     res.status(200).send(returnObject);
   //   } catch (error) {
@@ -183,9 +482,9 @@ class Utility {
     logger.log(3, 'showAll', 'Showing all expenses, users, and expense types');
 
     try {
-      let expenses = await this.expenseData.getAllEntriesInDB();
-      let users = await this.employeeData.getAllEntriesInDB();
-      let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+      let expenses = await this.expenseDynamo.getAllEntriesInDB();
+      let users = await this.employeeDynamo.getAllEntriesInDB();
+      let expensesTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
       res.status(200).send(this._findExpenseTypes(expenses, users, expensesTypes));
     } catch (error) {
       this._handleError(res, error);
@@ -239,17 +538,17 @@ class Utility {
 
     try {
       if (this._isAdmin(req)) {
-        let expenses = await this.expenseData.getAllEntriesInDB();
-        let users = await this.employeeData.getAllEntriesInDB();
-        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+        let expenses = await this.expenseDynamo.getAllEntriesInDB();
+        let users = await this.employeeDynamo.getAllEntriesInDB();
+        let expensesTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else if (this._isUser(req)) {
         let employeeId = req.employee.id;
-        let user = await this.employeeData.getEntry(employeeId);
+        let user = await this.employeeDynamo.getEntry(employeeId);
         let users = [user];
-        let expensesTypes = await this.expenseTypeData.getAllEntriesInDB();
+        let expensesTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
         let expenses =
-          await this.expenseData.querySecondaryIndexInDB('employeeId-index', 'employeeId', req.employee.id);
+          await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', req.employee.id);
         res.status(200).send(this._getEmployeeName(expenses, users, expensesTypes));
       } else {
         res.status(403).send('Permission denied. Insufficient user permissions');
@@ -296,7 +595,7 @@ class Utility {
     };
 
     return (
-      this.trainingURLData.getEntryUrl(decoded, req.params.category)
+      this.trainingURLDynamo.getEntryUrl(decoded, req.params.category)
         .then(output => {
           if (output) {
             res.status(200).send(output);

@@ -1,884 +1,1090 @@
+const AWS = require('aws-sdk');
+const Budget = require('./../models/budget');
 const Crud = require('./crudRoutes');
-const databaseModify = require('../js/databaseModify');
-const _ = require('lodash');
-const { v4: uuid } = require('uuid');
-const Moment = require('moment');
-const MomentRange = require('moment-range');
-const IsoFormat = 'YYYY-MM-DD';
-const moment = MomentRange.extendMoment(Moment);
-const Logger = require('../js/Logger');
-const logger = new Logger('expenseRoutes');
-
+const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
-const Budget = require('./../models/budget');
+const Logger = require('../js/Logger');
+const _ = require('lodash');
+const moment = require('moment');
 
-const AWS = require('aws-sdk');
+const logger = new Logger('expenseRoutes');
+const ISOFORMAT = 'YYYY-MM-DD';
+
 const STAGE = process.env.STAGE;
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
 const s3 = new AWS.S3({ params: { Bucket: BUCKET }, region: 'us-east-1', apiVersion: '2006-03-01' });
 
 class ExpenseRoutes extends Crud {
+
   constructor() {
     super();
-    this.budgetDynamo = new databaseModify('budgets');
-    this.expenseTypeDynamo = new databaseModify('expense-types');
-    this.employeeDynamo = new databaseModify('employees');
-    this.databaseModify = new databaseModify('expenses');
-    this.moment = moment;
-  }
+    this.databaseModify = new DatabaseModify('expenses');
+  } // constructor
 
-  _validateAdd(expenseType, employee, expense) {
-    // expense type must be active
-    if (expenseType.isInactive) {
-      let err = {
-        code: 403,
-        message: `expense type ${expenseType.budgetName} is inactive`
-      };
-      throw err;
-    }
-    // employee must have access to expense type
-    if (!this._hasAccess(employee, expenseType)) {
-      let err = {
-        code: 403,
-        message: `employee does not have access to expense type ${expenseType.budgetName}`
-      };
-      throw err;
-    }
-    // expense must have a receipt if the expense type requiredFlag is true
-    if (expenseType.requiredFlag && this._isEmpty(expense.receipt)) {
-      let err = {
-        code: 403,
-        message: `expense type ${expenseType.budgetName} requires a receipt.`
-      };
-      throw err;
-    }
-    // expense purchase date must be within the expense type purchase date range
-    this._isPurchaseWithinRange(expenseType, expense.purchaseDate);
-    return true;
-  }
-
-  async _create(data) {
-    //query DB to see if Budget exists
-    let expenseType, budget, expense, employee;
-
-    expense = new Expense(data);
-
-    if (!this._isReimbursed(expense)) {
-      logger.log(
-        1,
-        '_add',
-        `Attempting to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.employeeId}`
-      );
-    } else {
-      logger.log(
-        1,
-        '_add',
-        `Attempting to add reimbursed expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.employeeId}`
-      );
-    }
-
-    try {
-      employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
-      this._validateAdd(expenseType, employee, expense);
-
-      budget = await this._getCurrentBudgetData(expenseType, employee);
-    } catch (err) {
-      logger.log(
-        1,
-        '_add',
-        `Failed to add pending expense ${expense.id} for expense type id ${expense.expenseTypeId}`,
-        `for user ${expense.employeeId}`
-      );
-      logger.error('_add', `Error code: ${err.code}`);
-      throw err;
-    }
-
-    return this.checkValidity(expense, expenseType, budget, employee)
-      .then(() => this._addExpenseToBudget(budget, expense, expenseType, employee))
-      .then(() => {
-        return expense;
-      })
-      .catch((err) => {
-        throw err;
-      });
-  }
-
-  //returns number fixed at 2 decimal places after addtion operation
-  _addCost(addTo, addWith) {
-    logger.log(4, '_addCost', 'Adding two costs together');
-
-    let newValue = Number(addTo) + Number(addWith);
-    return Number(newValue.toFixed(2));
-  }
-
-  _adjustedBudget(expenseType, employee) {
-    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
-  }
-
-  _areExpenseTypesEqual(expense, oldExpense) {
-    logger.log(3, '_areExpenseTypesEqual', `Checking new and old expense types are equal for expense ${expense.id}`);
-
-    if (expense && oldExpense) {
-      return expense.expenseTypeId === oldExpense.expenseTypeId;
-    } else {
-      return true; //this is a new expense
-    }
-  }
-
-  /*
-   * calculate the overdraft for a particular employee budget
-   */
-  async _calcOverdraft(budget, employeeId, expenseType) {
-    logger.log(
-      3,
-      '_calcOverdraft',
-      `Calculating overdraft for user ${employeeId} for budget ${budget.id} for expense type ${expenseType}`
-    );
-
-    let totalExp = await this._getEmployeeExpensesTotalReimbursedInBudget(employeeId, budget, expenseType);
-    let overdraft = totalExp - Number(expenseType.budget);
-
-    return overdraft;
-  }
-
-  _calculateBudgetOverage(budget, expenseType) {
-    logger.log(
-      3,
-      '_calculateBudgetOverage',
-      `Calculating reimbursed overage for budget ${budget.id} and expense type ${expenseType.id}`
-    );
-
-    return budget.reimbursedAmount - expenseType.budget;
-  }
-
-  /*
-   * Change the path name for objects in an a s3 bucket
-   */
-  async _changeBucket(employeeId, oldId, newId) {
-    logger.log(2, '_changeBucket', `Attempting to change S3 file from ${oldId} to ${newId}`);
-
-    var oldPrefix = `${oldId}`;
-    var newPrefix = `${newId}`;
-
-    let listParams = {
-      Bucket: BUCKET,
-      Prefix: `${employeeId}/${oldPrefix}`
-    };
-    s3.listObjectsV2(listParams, function (err, data) {
-      if (data.Contents.length) {
-        let mostRecentFile;
-        _.forEach(data.Contents, (file) => {
-          if (!mostRecentFile || file.LastModified > mostRecentFile.LastModified) {
-            mostRecentFile = file;
-          }
-        });
-
-        var params = {
-          Bucket: BUCKET,
-          CopySource: BUCKET + '/' + mostRecentFile.Key,
-          Key: mostRecentFile.Key.replace(oldPrefix, newPrefix)
-        };
-
-        s3.copyObject(params, function (copyErr) {
-          if (copyErr) {
-            logger.error('_changeBucket', copyErr);
-          } else {
-            logger.log(2, '_changeBucket', `Copied S3 ${mostRecentFile.Key} to ${params.Key}`);
-          }
-        });
-
-        /* // code below copies all files but last modified is same making the receipt sync out of order
-        _.forEach(data.Contents, async file => {
-          var params = {
-            Bucket: BUCKET,
-            CopySource: BUCKET + '/' + file.Key,
-            Key: file.Key.replace(oldPrefix, newPrefix)
-          };
-          s3.copyObject(params, function(copyErr){
-            if (copyErr) {
-              logger.error('_changeBucket', copyErr);
-            }
-            else {
-              logger.log(2, '_changeBucket', `Copied S3 ${file.Key} to ${params.Key}`);
-            }
-          });
-         }); */
-      }
-    });
-  }
-
-  _checkBalance(newExpense, expenseType, budget, oldExpense) {
-    logger.log(2, '_checkBalance', `Validating budget for expense ${newExpense.id}`);
-
-    newExpense.cost = Number(newExpense.cost);
-
-    if (budget && expenseType && oldExpense && newExpense && oldExpense.cost == newExpense.cost) {
-      // return true if the costs are the same
-      return true;
-    }
-
-    let oldCost = oldExpense ? oldExpense.cost : 0;
-    if (!budget && newExpense.cost <= expenseType.budget) {
-      // no budget exists yet, but the cost is valid
-      return true;
-    } else if (!budget && newExpense.cost <= expenseType.budget * 2 && expenseType.odFlag) {
-      // if no budget exists yet, the expense type is overdraftable and the cost is valid
-      return true;
-    } else if (!budget) {
-      // any other case where the budget is null
-      return false;
-    }
-
-    let sum = Number((budget.pendingAmount + budget.reimbursedAmount + newExpense.cost - oldCost).toFixed(2));
-    if (sum <= budget.amount) {
-      return true;
-    } else if (expenseType.odFlag && budget.amount == expenseType.budget && sum <= 2 * expenseType.budget) {
-      //enough OD balance
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  _checkExpenseDate(purchaseDate, stringStartDate, stringEndDate) {
-    logger.log(
-      3,
-      '_checkExpenseDate',
-      `Checking purchase date ${purchaseDate} is between ${stringStartDate} - ${stringEndDate}`
-    );
-
-    let startDate, endDate;
-    startDate = moment(stringStartDate, IsoFormat);
-    endDate = moment(stringEndDate, IsoFormat);
-    return moment(purchaseDate).isBetween(startDate, endDate, 'day', '[]');
-  }
-
-  checkValidity(newExpense, expenseType, budget, employee, oldExpense) {
-    logger.log(2, 'checkValidity', `Validating expense ${newExpense.id}`);
-
-    let expenseTypeValid, err, startDate, endDate, validDateRange, balanceCheck;
-
-    startDate = expenseType.recurringFlag ? budget.fiscalStartDate : expenseType.startDate;
-    endDate = expenseType.recurringFlag ? budget.fiscalEndDate : expenseType.endDate;
-    validDateRange = this._checkExpenseDate(newExpense.purchaseDate, startDate, endDate);
-    balanceCheck = this._checkBalance(newExpense, expenseType, budget, oldExpense);
-    expenseTypeValid = this._areExpenseTypesEqual(newExpense, oldExpense);
-    let valid = expenseTypeValid && validDateRange && balanceCheck && !this._isEmployeeInactive(employee);
-    let errMessage;
-
-    if (!valid) {
-      if (!expenseTypeValid) {
-        errMessage = 'the expense type is not valid';
-      }
-      if (!validDateRange) {
-        errMessage = `the expense is outside the budget range, ${startDate} to ${endDate}`;
-      }
-      if (!balanceCheck) {
-        errMessage = 'the expense is over the budget limit';
-      }
-      if (this._isEmployeeInactive(employee)) {
-        errMessage = 'the employee is not active';
-      }
-    }
-    err = {
-      code: 403,
-      message: errMessage
-    };
-    return valid ? Promise.resolve() : Promise.reject(err);
-  }
-
-  _createNewBudget(expenseType, employee, newId) {
-    logger.log(
-      2,
-      '_createNewBudget',
-      `Creating a new budget ${newId} for expense type ${expenseType.id} for user ${employee.id}`
-    );
-
-    const newBudget = {
-      id: newId,
-      expenseTypeId: expenseType.id,
-      employeeId: employee.id,
-      reimbursedAmount: 0,
-      pendingAmount: 0
-    };
-    if (expenseType.recurringFlag) {
-      // TBD - duplicated from employee routes
-      const dates = this.getBudgetDates(employee.hireDate);
-      newBudget.fiscalStartDate = dates.startDate.format('YYYY-MM-DD');
-      newBudget.fiscalEndDate = dates.endDate.format('YYYY-MM-DD');
-    } else {
-      newBudget.fiscalStartDate = expenseType.startDate;
-      newBudget.fiscalEndDate = expenseType.endDate;
-    }
-    // set the amount of the new budget
-    if (this._hasAccess(employee, expenseType)) {
-      newBudget.amount = this._adjustedBudget(employee, expenseType);
-    } else {
-      newBudget.amount = 0;
-    }
-    return this.budgetDynamo.addToDB(newBudget).then(() => newBudget);
-  }
-
-  /*
-   * Creates a new budget if it does not exist. Update the budget with the expense cost.
+  /**
+   * Adds expense cost to budget. Returns the budget if successfully added the expense cost, otherwise returns error.
    *
-   * @param budget - Budget to be updated
-   * @param expense - Expense to be added to the budget
-   * @param expenseType - Expense type of the expense and budget
-   * @param employee - Employee of the expense and budget
+   * @param expense - Expense to add to budget
+   * @param employee - Employee of expense
+   * @param expenseType - ExpenseType of expense
+   * @param budget - Budget to add expense to
+   * @return Budget - budget with added expense
    */
-  async _addExpenseToBudget(budget, expense, expenseType, employee) {
-    logger.log(3, '_addExpenseToBudget', 'Adding expense to budget');
+  async _addToBudget(expense, employee, expenseType, budget) {
+    // log method
+    logger.log(2, '_addToBudget', `Attempting to add expense ${expense.id} to budget ${budget.id}`);
 
-    let updatedBudget;
+    // compute method
+    if(!this._isValidCostChange(undefined, expense, expenseType, budget)) {
+      // total exceeds max amount allowed for budget
+      // log error
+      logger.log(2, '_addToBudget',
+        `Failed to add expense ${expense.id} to budget ${budget.id} becuase expense is over the budget limit`
+      );
+      let err = {
+        code: 403,
+        message: 'Expense is over the budget limit.'
+      };
 
-    if (budget) {
-      // if the budget exists update the existing budget
-      updatedBudget = budget;
-    } else {
-      // if the budget does not exist, create a new budget
-      updatedBudget = await this._createNewBudget(expenseType, employee, this._getUUID());
+      // return rejected promise
+      return Promise.reject(err);
     }
 
-    if (this._isReimbursed(expense)) {
+    let updatedBudget = _.cloneDeep(budget);
+    if (expense.isReimbursed()) {
       // if expense is remibursed, update the budgets reimbursed amount
+      logger.log(2, '_addToBudget', `Adding $${expense.cost} to reimbursed amount ($${budget.reimbursedAmount})`);
+
       updatedBudget.reimbursedAmount += expense.cost;
     } else {
       // if expense is not reimbursed, update the budgets pending amount
+      logger.log(2, '_addToBudget', `Adding $${expense.cost} to pending amount ($${budget.pendingAmount})`);
+
       updatedBudget.pendingAmount += expense.cost;
     }
 
     // update the budget in the dynamo budget table
-    return this.budgetDynamo.updateEntryInDB(updatedBudget);
-  }
+    return this.budgetDynamo.updateEntryInDB(updatedBudget)
+      .then(updatedBudget => {
+        // log success
+        logger.log(2, '_addToBudget', `Successfully added expense ${expense.id} to budget ${updatedBudget.id}`);
 
-  /*
-   * Deletes an expense.
+        // return updated budget
+        return updatedBudget;
+      })
+      .catch(err => {
+        // log error
+        logger.log(2, '_addToBudget',
+          `Failed to add expense ${expense.id} to budget ${updatedBudget.id}`
+        );
+
+        // return rejected promise
+        return Promise.reject(err);
+      });
+  } // _addToBudget
+
+  /**
+   * Change the path name for the most recent receipt object in the aws s3 bucket.
    *
-   * @param id - Id of the expense to delete
+   * @param employeeId - employee id of receipt
+   * @param oldExpenseId - old expense id
+   * @param newExpenseId - new expense id
+   */
+  async _changeBucket(employeeId, oldExpenseId, newExpenseId) {
+    // log method
+    logger.log(2, '_changeBucket', `Attempting to copy S3 file from ${oldExpenseId} to ${newExpenseId}`);
+
+    // compute method
+    let listParams = {
+      Bucket: BUCKET,
+      Prefix: `${employeeId}/${oldExpenseId}`
+    };
+
+    s3.listObjectsV2(listParams, function(err, data) {
+      if (data.Contents.length) {
+        // get the most recent file in the s3 bucket
+        let mostRecentFile;
+        _.forEach(data.Contents, file => {
+          if (!mostRecentFile || moment(file.LastModified).isAfter(moment(mostRecentFile.LastModified))) {
+            mostRecentFile = file;
+          }
+        });
+
+        // set up aws copy params
+        let params = {
+          Bucket: BUCKET,
+          CopySource: BUCKET + '/' + mostRecentFile.Key,
+          Key: mostRecentFile.Key.replace(oldExpenseId, newExpenseId)
+        };
+
+        // copy the file from old s3 bucket to new s3 bucket
+        s3.copyObject(params, function(err) {
+          if (err) {
+            logger.log(2, '_changeBucket',
+              `Failed to copy S3 file from ${employeeId}/${oldExpenseId} to ${employeeId}/${newExpenseId}`
+            );
+          } else {
+            logger.log(2, '_changeBucket', `Successfully copied S3 ${mostRecentFile.Key} to ${params.Key}`);
+          }
+        });
+      }
+    });
+  } // _changeBucket
+
+  /**
+   * Create an expense and update budgets. Returns the expense created.
+   *
+   * @param data - data of expense
+   * @return Expense - expense created
+   */
+  async _create(data) {
+    // log method
+    logger.log(2, '_create',
+      `Attempting to create expense ${data.id} for expense type ${data.expenseTypeId} for employee ${data.employeeId}`
+    );
+
+    // compute method
+    try {
+      let expense = new Expense(data);
+      let employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
+      let expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
+
+      return this._validateExpense(expense, employee, expenseType) // validate expense
+        .then(() => this._validateAdd(expense, employee, expenseType)) // validate add
+        .then(() => {
+          return this._findBudget(employee.id, expenseType.id, expense.purchaseDate) // find budget
+            .catch(() => {
+              return this.createNewBudget(employee, expenseType); // create budget
+            });
+        })
+        .then(budget => this._addToBudget(expense, employee, expenseType, budget)) // add expense to budget
+        .then(() => {
+          // log success
+          logger.log(2, '_create',
+            `Successfully created expense ${data.id} for expense type ${data.expenseTypeId} for employee`,
+            `${data.employeeId}`
+          );
+
+          // return created expense
+          return expense;
+        })
+        .catch(err => {
+          throw err;
+        });
+    } catch (err) {
+      // log error
+      logger.log(2, '_create',
+        `Failed to create expense ${data.id} for expense type ${data.expenseTypeId} for employee ${data.employeeId}`
+      );
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _create
+
+  /**
+   * Delete an expense. Returns the expense deleted.
+   *
+   * @param id - id of expense
+   * @return Object - expense deleted
    */
   async _delete(id) {
-    logger.log(1, '_delete', `Attempting to delete expense ${id}`);
-
-    let expense, budget, expenseType, rawBudgets, budgets;
+    // log method
+    logger.log(2, '_delete', `Attempting to delete expense ${id}`);
 
     try {
-      expense = new Expense(await this.databaseModify.getEntry(id));
-      rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(expense.employeeId, expense.expenseTypeId);
-      budgets = [];
-      _.forEach(rawBudgets, (budget) => budgets.push(new Budget(budget)));
+      let expense = new Expense(await this.databaseModify.getEntry(id));
+      let employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
+      let expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
 
-      expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(expense.expenseTypeId));
-      budget = new Budget(this._findBudgetWithMatchingRange(budgets, expense.purchaseDate));
+      return this._validateDelete(expense) // validate delete
+        .then(() => this._updateBudgets(expense, undefined, employee, expenseType)) // update budgets
+        .then(() => {
+          // log success
+          logger.log(2, '_delete',
+            `Successfully deleted expense ${expense.id} for expense type ${expense.expenseTypeId} for employee`,
+            `${expense.employeeId}`
+          );
+
+          // return expense deleted
+          return expense;
+        })
+        .catch(err => {
+          throw err;
+        });
     } catch (err) {
-      logger.error('_delete', `Error code: ${err.code}`);
+      // log error
+      logger.log(2, '_delete',
+        `Failed to delete expense ${id}`
+      );
 
-      throw err;
+      // return rejected promise
+      return Promise.reject(err);
     }
-    return this._removeFromBudget(budget, expense, expenseType)
-      .then(() => {
-        return expense;
-      })
-      .catch((err) => {
-        throw err;
+  } // _delete
+
+  /**
+   * Find a budget for a given date. Returns the budget if found, otherwise returns an error.
+   *
+   * @param employeeId - Budget employee id
+   * @param expenseTypeId - Budget expense type id
+   * @param date - Date to find budget for
+   * @return Budget - budget for expense
+   */
+  async _findBudget(employeeId, expenseTypeId, date) {
+    // log method
+    logger.log(2, '_findBudget',
+      `Attempting to find current budget for employee ${employeeId} with expense type ${expenseTypeId}`
+    );
+
+    // compute method
+    try {
+
+      // get all budgets
+      let budgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employeeId, expenseTypeId);
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
       });
-  }
 
-  _findBudgetWithMatchingRange(budgets, purchaseDate) {
-    logger.log(3, '_findBudgetWithMatchingRange', `Finding budget for purchase date ${purchaseDate}`);
+      // find buget with given date
+      let budget = _.find(budgets, currBudget => {
+        return currBudget.isDateInRange(date);
+      });
 
-    let validBudgets = _.find(budgets, (budget) => {
-      return this._checkExpenseDate(purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate);
-    });
+      if (!budget) {
+        // throw error if budget not found
+        let err = {
+          code: 404,
+          message: 'Budget was not found.'
+        };
+        throw err;
+      }
 
-    if (validBudgets) {
-      return validBudgets;
-    } else {
-      let err = {
-        code: 403,
-        message: 'Purchase Date is out of your anniversary budget range'
-      };
-      throw err;
+      // log success
+      logger.log(2, '_findBudget', `Successfully found budget ${budget.id}`);
+
+      // return budget
+      return budget;
+    } catch (err) {
+      // log error
+      logger.log(2, '_findBudget',
+        `Failed to find budget for employee ${employeeId} with expense type ${expenseTypeId}`
+      );
+
+      // return rejected promise
+      return Promise.reject(err);
     }
-  }
+  } // _findBudget
 
-  async _getCurrentBudgetData(expenseType, employee) {
-    logger.log(
-      3,
-      '_getCurrentBudgetData',
-      `Getting current budget data for expense type ${expenseType.id} for user ${employee.id}`
+  /**
+   * Checks if an expense reimbursed date is the only attribute changed. Returns a resolved promise with true if all
+   * attributes, other than the reimbursed date, is the same.
+   *
+   * @param oldExpense - old Expense being updated from
+   * @param newExpense - new Expense being updated to
+   * @return Promise(Boolean) - expense is only being reimbursed
+   */
+  _isOnlyReimburseDateChange(oldExpense, newExpense) {
+    // log method
+    logger.log(3, '_isOnlyReimburseDateChange',
+      `Checking if reimbursed date for expense ${oldExpense.id} is only attribute changed`
     );
 
-    let budgets = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
-    if (_.isEmpty(budgets)) {
-      return await this._createNewBudget(expenseType, employee, this._getUUID());
+    // compute method
+    let oldExp = _.cloneDeep(oldExpense);
+    let newExp = _.cloneDeep(newExpense);
+    delete oldExp.reimbursedDate;
+    delete newExp.reimbursedDate;
+    let result = _.isEqual(oldExp, newExp);
+
+    // log result
+    if (result) {
+      logger.log(3, '_isOnlyReimburseDateChange',
+        `Reimbursed date for expense ${oldExpense.id} is the only attribute changed`
+      );
     } else {
-      if (expenseType.recurringFlag) {
-        return this._findBudgetWithMatchingRange(budgets, moment().format(IsoFormat));
+      logger.log(3, '_isOnlyReimburseDateChange',
+        `Reimbursed date for expense ${oldExpense.id} is not the only attribute changed`
+      );
+    }
+
+    // return result
+    return Promise.resolve(result);
+  } // _isOnlyReimburseDateChange
+
+  /**
+   * Checks if a cost change is valid. Returns true if the cost is below the budget limit, otherwise returns false.
+   *
+   * @param oldExpense - expense cost to subtract
+   * @param newExpense - expense cost to add
+   * @param expenseType - expense type of expense
+   * @param budget - budget of expense
+   * @return Boolean - cost change is valid
+   */
+  _isValidCostChange(oldExpense, newExpense, expenseType, budget) {
+    // log method
+    logger.log(2, '_isValidCostChange', `Checking if changing cost for budget ${budget.id} is valid`);
+
+    // compute method
+    let oldCost = oldExpense ? oldExpense.cost : 0;
+    // set the max amount that can be added to budget
+    // overdraft x2 allowed if expense type allows overdraft and employee is full time
+    let maxAmount;
+    if (budget.amount == expenseType.budget && expenseType.odFlag) {
+      // budget is full time and od allowed
+      maxAmount = budget.amount * 2;
+    } else {
+      // budget is not full time or od is not allowed
+      maxAmount = budget.amount;
+    }
+    let total = budget.pendingAmount + budget.reimbursedAmount - oldCost + newExpense.cost;
+
+    let result = total <= maxAmount;
+
+    // log result
+    if (result) {
+      logger.log(2, '_isValidCostChange',
+        `Changing cost from ${oldCost} to ${newExpense.cost} for budget ${budget.id} is valid`);
+    } else {
+      logger.log(2, '_isValidCostChange',
+        `Changing cost from ${oldCost} to ${newExpense.cost} for budget ${budget.id} is invalid`);
+    }
+
+    // return result
+    return result;
+  } // _isValidCostChange
+
+  /**
+   * Log the update type. Changing pending/reimbursed expense, reimbursing, or unreimbursing.
+   *
+   * @param oldExpense - old expense updated from
+   * @param newExpense - new expense updated to
+   */
+  _logUpdateType(oldExpense, newExpense) {
+    if (oldExpense.expenseTypeId == newExpense.expenseTypeId) {
+      // updated the same expense
+      if (!oldExpense.isReimbursed() && !newExpense.isReimbursed()) {
+        // changing a pending expense
+        logger.log(2, '_logUpdate', `Changed pending expense ${oldExpense.id}`);
+      } else if (!oldExpense.isReimbursed() && newExpense.isReimbursed()) {
+        // reimbursing an expense
+        logger.log(2, '_logUpdate', `Reimbursed expense ${oldExpense.id}`);
+      } else if (oldExpense.isReimbursed() && !newExpense.isReimbursed()){
+        // unreimbursing an expense
+        logger.log(2, '_logUpdate', `Unreimbursed expense ${oldExpense.id}`);
       } else {
-        return budgets[0];
+        // changing a reimbursed expense
+        logger.log(2, '_logUpdate', `Changed reimbursed expense ${oldExpense.id}`);
+      }
+    } else {
+      // deleted and created a new expense
+      if (!oldExpense.isReimbursed() && !newExpense.isReimbursed()) {
+        // changing a pending expense
+        logger.log(2, '_logUpdate', `Changed pending expense ${oldExpense.id} to ${newExpense.id}`);
+      } else if (!oldExpense.isReimbursed() && newExpense.isReimbursed()) {
+        // reimbursing an expense
+        logger.log(2, '_logUpdate', `Reimbursed expense ${oldExpense.id} to ${newExpense.id}`);
+      } else if (oldExpense.isReimbursed() && !newExpense.isReimbursed()){
+        // unreimbursing an expense
+        logger.log(2, '_logUpdate', `Unreimbursed expense ${oldExpense.id} to ${newExpense.id}`);
+      } else {
+        // changing a reimbursed expense
+        logger.log(2, '_logUpdate', 'AN ERROR SHOULD HAVE BEEN THROWN IN VALIDATE UPDATE');
       }
     }
-  }
+  } // _logUpdate
 
-  /*
-   * Return a mapped array of overdrafts for the employee budgets
+  /**
+   * Reads an expense from the database. Returns the expense read.
+   *
+   * @param data - parameters of expense
+   * @return Expense - expense read
    */
-  async _getEmployeeBudgetOverdrafts(budgets, employeeId, expenseType) {
-    logger.log(
-      3,
-      '_getEmployeeBudgetOverdrafts',
-      `Getting overdrafts for user ${employeeId} for expense type ${expenseType.id}`
-    );
-
-    let overdrafts = [];
-    for (let x = 0; x < budgets.length; x++) {
-      let overdraft = await this._calcOverdraft(budgets[x], employeeId, expenseType);
-
-      overdrafts.push(overdraft);
-    }
-    return overdrafts;
-  }
-
-  /*
-   * Return the total cost of reimbursed expenses for an employee within a budget range
-   */
-  async _getEmployeeExpensesTotalReimbursedInBudget(employeeId, budget, expenseType) {
-    logger.log(
-      3,
-      '_getEmployeeExpensesTotalReimbursedInBudget',
-      `Calculating total cost of reimbursed expenses for user ${employeeId} within budget ${budget.id}`,
-      `for expense type ${expenseType}`
-    );
-
-    let expenses = await this.databaseModify.querySecondaryIndexInDB('employeeId-index', 'employeeId', employeeId);
-
-    let filteredExpenses = _.filter(expenses, (expense) => {
-      return this._isValidExpense(expense, budget, expenseType);
-    });
-
-    return _.sumBy(filteredExpenses, (expense) => {
-      return expense.cost;
-    });
-  }
-
-  _getUUID() {
-    logger.log(4, '_getUUID', 'Getting random uuid');
-
-    return uuid();
-  }
-
-  _hasAccess(employee, expenseType) {
-    if (employee.employeeRole == 'admin' || expenseType.accessibleBy == 'ALL') {
-      return true;
-    } else if (expenseType.accessibleBy == 'FULL TIME') {
-      return employee.workStatus == 100;
-    } else if (expenseType.accessibleBy == 'PART TIME') {
-      return employee.workStatus > 0 && employee.workStatus < 100;
-    } else {
-      return expenseType.accessibleBy.includes(employee.id);
-    }
-  }
-
-  _isEmployeeInactive(employee) {
-    return employee.workStatus == 0;
-  }
-
-  _isEmpty(field) {
-    logger.log(4, '_isEmpty', 'Checking if field exists');
-    return field == null || field.trim().length <= 0;
-  }
-
-  _isNotReimbursedPromise(expense) {
-    logger.log(3, '_isNotReimbursedPromise', `Checking if expense ${expense.id} is reimbursed`);
-
-    let err = {
-      code: 403,
-      message: 'expense cannot perform action because it has already been reimbursed'
-    };
-    return this._isReimbursed(expense) ? Promise.reject(err) : Promise.resolve(true);
-  }
-
-  _isPurchaseWithinRange(expenseType, purchaseDate) {
-    logger.log(
-      3,
-      '_isPurchaseWithinRange',
-      `Checking purchase date ${purchaseDate} is within range of expense type ${expenseType.id}`
-    );
-
-    if (expenseType.recurringFlag) {
-      return true;
-    } else if (expenseType.startDate && moment(purchaseDate).isBefore(moment(expenseType.startDate))) {
-      throw {
-        code: 403,
-        message:
-          `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
-          'Select a later purchase date'
-      };
-    } else if (expenseType.endDate && moment(expenseType.endDate).isBefore(moment(purchaseDate))) {
-      throw {
-        code: 403,
-        message:
-          `Purchase date must be between ${expenseType.startDate} and ${expenseType.endDate}. ` +
-          'Select an earlier purchase date'
-      };
-    } else {
-      return true;
-    }
-  }
-
-  _isReimbursed(expense) {
-    logger.log(3, '_isReimbursed', `Checking if expense ${expense.id} is reimbursed`);
-
-    return !!expense.reimbursedDate && expense.reimbursedDate.trim().length > 0;
-  }
-
-  /*
-   * return true if expense matches expense type, is reimbursed, and within budget range
-   */
-  _isValidExpense(expense, budget, expenseType) {
-    logger.log(
-      4,
-      '_isValidExpense',
-      `Validating if expense ${expense.id} matches expenseType ${expenseType.id}, is reimbursed,`,
-      `and within budget ${budget.id} range`
-    );
-
-    return (
-      expense.expenseTypeId === expenseType.id &&
-      this._isReimbursed(expense) &&
-      this._checkExpenseDate(expense.purchaseDate, budget.fiscalStartDate, budget.fiscalEndDate)
-    );
-  }
-
-  _performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType) {
-    logger.log(2, '_performBudgetUpdate', `Updating budget ${budget.id}`);
-
-    if (!this._isReimbursed(oldExpense) && this._isReimbursed(newExpense)) {
-      //if reimbursing an expense
-      return this._reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType);
-    } else if (!this._isReimbursed(oldExpense) && !this._isReimbursed(newExpense)) {
-      // if changing an unimbursed expense
-      return this._unimbursedExpenseChange(oldExpense, newExpense, budget, budgets, expenseType);
-    } else if (this._isReimbursed(oldExpense) && !this._isReimbursed(newExpense)) {
-      // if unreimbursing an expense
-      return this._unreimburseExpense(oldExpense, newExpense, budgets, expenseType);
-    }
-    return false;
-  }
-
   async _read(data) {
-    return this.databaseModify.getEntry(data.id); // read from database
-  }
+    // log method
+    logger.log(2, '_read', `Attempting to read expense ${data.id}`);
 
-  async _reimburseExpense(oldExpense, newExpense, budget, budgets, expenseType) {
-    logger.log(1, '_reimburseExpense', `Attempting to reimburse expense ${oldExpense.id}`);
+    // compute method
+    try {
+      let expense = new Expense(await this.databaseModify.getEntry(data.id)); // read from database
+      // log success
+      logger.log(2, '_read', `Successfully read expense ${data.id}`);
 
-    budget.pendingAmount = this._subtractCost(budget.pendingAmount, oldExpense.cost); // remove pending from old budget
+      // return expense
+      return expense;
+    } catch (err) {
+      // log error
+      logger.log(2, '_read', `Failed to read expense ${data.id}`);
 
-    // get new expense budget
-    let newBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
-
-    if (budget.id === newBudget.id) {
-      newBudget = budget;
-    } else {
-      await this.budgetDynamo.updateEntryInDB(budget);
-    }
-
-    //add reimburse cost to new budget
-    newBudget.reimbursedAmount = this._addCost(newBudget.reimbursedAmount, newExpense.cost);
-
-    let dbPromise = await this.budgetDynamo.updateEntryInDB(newBudget);
-    let purchaseIncremented = moment(newExpense.purchaseDate, IsoFormat).add(1, 'years'); // increase year by one
-
-    // if over draft is allowed, carry over any overage
-    if (expenseType.odFlag) {
-      try {
-        let nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-        let overage = this._calculateBudgetOverage(newBudget, expenseType); // calculate overdraft overage
-
-        // transfer overage to next year if both exist
-        while (nextYearsBudget && overage > 0) {
-          // top off overdrafted budget
-          newBudget.reimbursedAmount = this._subtractCost(newBudget.reimbursedAmount, overage);
-          // move overage to next years budget
-          nextYearsBudget.reimbursedAmount = this._addCost(nextYearsBudget.reimbursedAmount, overage);
-
-          // update budgets on dynamodb
-          dbPromise = await this.budgetDynamo
-            .updateEntryInDB(newBudget)
-            .then(this.budgetDynamo.updateEntryInDB(nextYearsBudget));
-
-          // update to the next budget iteration
-          newBudget = nextYearsBudget;
-          purchaseIncremented.add(1, 'years'); // increment budget year
-          nextYearsBudget = this._findBudgetWithMatchingRange(budgets, purchaseIncremented); // get next years budget
-          overage = this._calculateBudgetOverage(newBudget, expenseType); // calculate overdraft overage
-        }
-        logger.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
-
-        return dbPromise;
-      } catch (e) {
-        return dbPromise;
-      }
-    }
-    logger.log(1, '_reimburseExpense', `Successfully reimbursed expense ${oldExpense.id}`);
-
-    return dbPromise;
-  }
-
-  _removeFromBudget(budget, expense, expenseType) {
-    logger.log(1, '_removeFromBudget', `Removing expense ${expense.id} from budget ${budget.id}`);
-
-    budget.pendingAmount -= expense.cost;
-    if (!budget.pendingAmount && !budget.reimbursedAmount && !expenseType.recurringFlag) {
-      return this.budgetDynamo.removeFromDB(budget.id);
-    } else {
-      return this.budgetDynamo.updateEntryInDB(budget);
+      // return error
+      return Promise.reject(err);
     }
   }
 
   /*
-   * Return an array of sorted budgets by fiscal start date
+   * Sorts array of budgets by fiscal start date. Returns sorted budgets.
+   *
+   * @param budgets - Array of budgets
+   * @return Array - sorted Budgets Array
    */
   _sortBudgets(budgets) {
     logger.log(3, '_sortBudgets', 'Sorting budgets');
 
     return _.sortBy(budgets, [
-      (budget) => {
-        return moment(budget.fiscalStartDate, IsoFormat);
+      budget => {
+        return moment(budget.fiscalStartDate, ISOFORMAT);
       }
     ]);
-  }
+  } // _sortBudgets
 
-  //returns number fixed at 2 decimal places after subtraction operation
-  _subtractCost(subtractFrom, subtractWith) {
-    logger.log(4, '_subtractCost', 'subtracting two costs');
-
-    let newValue = Number(subtractFrom) - Number(subtractWith);
-    return Number(newValue.toFixed(2));
-  }
-
-  _unimbursedExpenseChange(oldExpense, newExpense, budget, budgets) {
-    logger.log(1, '_unimbursedExpenseChange', `Changing pending expense ${oldExpense.id}`);
-
-    budget.pendingAmount -= oldExpense.cost; // remove old cost from old budget pending amount
-    // get new expense budget
-    let newBudget = this._findBudgetWithMatchingRange(budgets, moment(newExpense.purchaseDate, IsoFormat));
-    if (budget.id !== newBudget.id) {
-      // if the new expense is on a new budget
-      newBudget.pendingAmount += newExpense.cost; // add new cost to new budget pending amount
-      this.budgetDynamo.updateEntryInDB(newBudget);
-    } else {
-      budget.pendingAmount += newExpense.cost; // add new cost from same budget pending amount
-    }
-    return this.budgetDynamo.updateEntryInDB(budget); // update dynamo budget
-  }
-
-  /*
-   * Unreimburse an expense
+  /**
+   * Update expense and budgets. Returns the expense updated.
+   *
+   * @param data - data of expense
+   * @return Expense - expense updated
    */
-  async _unreimburseExpense(oldExpense, newExpense, budgets, expenseType) {
-    logger.log(1, '_unreimburseExpense', `Unreimbursing expense ${oldExpense.id}`);
-
-    // sort the budgets
-    let sortedBudgets = this._sortBudgets(budgets);
-
-    // get the sorted budget overdrafts
-    let budgetOverdrafts = await this._getEmployeeBudgetOverdrafts(sortedBudgets, newExpense.employeeId, expenseType);
-    budgetOverdrafts.unshift(0);
-
-    // get the new expense budget
-    let expenseBudget = await this._findBudgetWithMatchingRange(
-      sortedBudgets,
-      moment(newExpense.purchaseDate, IsoFormat)
+  async _update(data) {
+    // log method
+    logger.log(2, '_update',
+      `Attempting to update expense ${data.id} for employee ${data.employeeId}`
     );
 
-    let currBudgetIndex = 0;
-    let acquiredOverdraft = 0;
-    let performBudgetUpdate = false;
-    let unimburse = Number(oldExpense.cost);
-    let remaining = unimburse;
-    let refund = 0;
-    do {
-      // calculate the accumulated overdraft
-      acquiredOverdraft = Math.max((acquiredOverdraft += budgetOverdrafts[currBudgetIndex]), 0);
-
-      if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
-        // if reaching the unreimburse expense budget
-        sortedBudgets[currBudgetIndex].pendingAmount += unimburse; // reset pending amount
-        performBudgetUpdate = true; // signal budget updates
-      }
-      if (performBudgetUpdate) {
-        // if should performing budget updates
-        // get the reimbursed amount for the current budget
-        let reimbursedAmnt = sortedBudgets[currBudgetIndex].reimbursedAmount;
-        let totalReimbursedInBudget = await this._getEmployeeExpensesTotalReimbursedInBudget(
-          newExpense.employeeId,
-          sortedBudgets[currBudgetIndex],
-          expenseType
-        ); // get the total expenses in the budget
-        // calculate how much to refund for current budget
-        if (expenseBudget.id == sortedBudgets[currBudgetIndex].id) {
-          refund =
-            Math.max(reimbursedAmnt - (totalReimbursedInBudget - unimburse), 0) +
-            remaining -
-            (Math.max(acquiredOverdraft, 0) + unimburse);
-        } else {
-          refund = Math.max(reimbursedAmnt - totalReimbursedInBudget, 0) + remaining - Math.max(acquiredOverdraft, 0);
-        }
-
-        remaining -= refund; // subtract current refund from remaining refund
-
-        // update budget
-        sortedBudgets[currBudgetIndex].reimbursedAmount -= refund;
-        await this.budgetDynamo.updateEntryInDB(sortedBudgets[currBudgetIndex]); // update budget in table
-      }
-      currBudgetIndex++; // continue to next budget
-    } while (remaining > 0 && currBudgetIndex < sortedBudgets.length);
-    logger.log(1, '_unreimburseExpense', `Successfully unreimbursed expense ${oldExpense.id}`);
-
-    return sortedBudgets;
-  }
-
-  async _update(data) {
-    logger.log(1, '_update', `Attempting to update expense ${data.id}`);
-
-    let expenseType, oldExpenseType, budget, newExpense, employee, oldExpense, rawBudgets;
-    var budgets = [];
-    newExpense = new Expense(data);
-    oldExpense = new Expense(await this.databaseModify.getEntry(data.id));
-
-    employee = new Employee(await this.employeeDynamo.getEntry(newExpense.employeeId));
-    expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(newExpense.expenseTypeId));
-
-    // throw access denied error if the employee does not have access to the expense type
-    if (!this._hasAccess(employee, expenseType)) {
-      let err = {
-        code: 403,
-        message: 'Access to this Expense Type Denied'
-      };
-      throw err;
-    }
-
-    if (expenseType.id !== oldExpense.expenseTypeId) {
-      // if the expense type is changed
-      let unreimburseExpense = _.cloneDeep(oldExpense);
-      unreimburseExpense.reimbursedDate = ' ';
-
-      // get a new expense id
-      newExpense.id = uuid();
-
-      // change the bucket/path of the receipt from the old expense id to the new expense id
-      if (!this._isEmpty(oldExpense.receipt)) {
-        this._changeBucket(oldExpense.employeeId, oldExpense.id, newExpense.id);
-      }
-
-      logger.log(
-        1,
-        '_update',
-        `Changing the expense type for ${oldExpense.id} from ${oldExpense.expenseTypeId}`,
-        `to ${expenseType.id} with new id ${newExpense.id}`
-      );
-
-      try {
-        // get all budgets of the old expense type
-        oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(oldExpense.expenseTypeId));
-        if (oldExpenseType.isInactive && employee.employeeRole === 'user') {
-          let err = {
-            code: 403,
-            message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
-          };
-          throw err;
-        }
-        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(oldExpense.employeeId, oldExpense.expenseTypeId);
-        rawBudgets.forEach(function (e) {
-          budgets.push(new Budget(e));
-        });
-      } catch (err) {
-        logger.error('_update', `Error code: ${err.code}`);
-        throw err;
-      }
-
-      if (!expenseType.requiredFlag) {
-        // if the new expense type does not require a receipt, clear the field
-        newExpense.receipt = ' ';
-      }
-
-      if (expenseType.categories.length <= 0) {
-        // if the new expense type does not require a category, clear the field
-        newExpense.category = ' ';
-      }
-
-      if (!this._isEmpty(oldExpense.reimbursedDate)) {
-        // if the old expense is reimbursed
-        // add the new expense
-        return this._create(newExpense) // create expense
-          .then((object) => this._validateInputs(object)) // validate inputs
-          .then((validated) => this.databaseModify.addToDB(validated)) // add expense to database
-          .then(async (addedObject) => {
-            // unreimburse the old expense
-            await this._unreimburseExpense(oldExpense, unreimburseExpense, budgets, oldExpenseType);
-            return addedObject;
+    // compute method
+    try {
+      let oldExpense = new Expense(await this.databaseModify.getEntry(data.id));
+      let newExpense = new Expense(data);
+      let employee = new Employee(await this.employeeDynamo.getEntry(newExpense.employeeId));
+      let expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(newExpense.expenseTypeId));
+      if (oldExpense.expenseTypeId == newExpense.expenseTypeId) {
+        // expense types are the same
+        return this._isOnlyReimburseDateChange(oldExpense, newExpense) // check if only reimbursing
+          .then(onlyReimbursing => {
+            if (onlyReimbursing) {
+              // only need to validate date change
+              if (moment(newExpense.reimbursedDate, ISOFORMAT).isBefore(moment(newExpense.purchaseDate, ISOFORMAT))) {
+                let err = {
+                  code: 403,
+                  message: 'Reimbursed date must be after purchase date.'
+                };
+                return Promise.reject(err);
+              } else {
+                return Promise.resolve();
+              }
+            } else {
+              // changing expense
+              return this._validateExpense(newExpense, employee, expenseType) // validate expense
+                .then(() => this._validateUpdate(oldExpense, newExpense, employee, expenseType)); // validate update
+            }
           })
-          .then(async (addedObject) => {
-            // delete the old expense
-            await this._delete(oldExpense.id);
-            return addedObject;
+          .then(() => this._updateBudgets(oldExpense, newExpense, employee, expenseType)) // update budgets
+          .then(() => {
+            // log success
+            logger.log(2, '_update',
+              `Successfully updated expense ${oldExpense.id} for expense type ${expenseType.id} for employee`,
+              `${employee.id}`
+            );
+
+            // log update
+            this._logUpdateType(oldExpense, newExpense);
+
+            // return expense updated
+            return newExpense;
           })
-          .catch((err) => {
+          .catch(err => {
+            // error
             throw err;
           });
       } else {
-        // add the new expense
+        // expense types are different
+        // generate a new expense id
+        newExpense.id = this.getUUID();
+        let oldExpenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(oldExpense.expenseTypeId));
+
+
+        if (!expenseType.requiredFlag) {
+          // clear receipt if the new expense type does not require a receipt
+          newExpense.receipt = ' ';
+        } else {
+          if (oldExpense.hasReceipt()) {
+            // change the bucket/path of the receipt from the old expense id to the new expense id
+            this._changeBucket(oldExpense.employeeId, oldExpense.id, newExpense.id);
+          }
+        }
+
+        if (expenseType.categories.length <= 0) {
+          // clear category if the new expense type does not have categories
+          newExpense.category = ' ';
+        }
+
         return this._create(newExpense) // create expense
-          .then((object) => this._validateInputs(object)) // validate inputs
-          .then((validated) => this.databaseModify.addToDB(validated)) // add expense to database
-          .then(async (addedObject) => {
-            // delete the old expense
-            await this._delete(oldExpense.id);
-            return addedObject;
+          .then(objectCreated => this._validateInputs(objectCreated)) // validate inputs
+          .then(objectValidated => this.databaseModify.addToDB(objectValidated)) // add object to database
+          // remove old exp from budgets
+          .then(() => this._updateBudgets(oldExpense, undefined, employee, oldExpenseType))
+          .then(() => this.databaseModify.removeFromDB(oldExpense.id)) // remove old expense from database
+          .then(() => {
+            // log success
+            logger.log(2, '_update',
+              `Successfully updated old expense ${oldExpense.id} to new expense ${newExpense.id} for expense type`,
+              `${expenseType.id} for employee ${employee.id}`
+            );
+
+            this._logUpdateType(oldExpense, newExpense);
+
+            // return expense updated
+            return newExpense;
           })
-          .catch((err) => {
+          .catch(err => {
             throw err;
           });
       }
-    } else {
-      // if the expense type is the same
-      try {
-        if (expenseType.isInactive && employee.employeeRole === 'user') {
-          let err = {
-            code: 403,
-            message: 'Permission Denied. Users can not edit Expenses with an Inactive Expense Type'
-          };
-          throw err;
-        }
-        // get all budgets of the expense type
-        rawBudgets = await this.budgetDynamo.queryWithTwoIndexesInDB(newExpense.employeeId, newExpense.expenseTypeId);
-        rawBudgets.forEach(function (e) {
-          budgets.push(new Budget(e));
-        });
-        budget = new Budget(this._findBudgetWithMatchingRange(budgets, oldExpense.purchaseDate));
-      } catch (err) {
-        logger.error('_update', `Error code: ${err.code}`);
+    } catch (err) {
+      // log error
+      logger.log(2, '_update',
+        `Failed to update expense ${data.id}`
+      );
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _update
+
+  /**
+   * Updates budgets when changing an expense. Updates all budgets affected by carry over and deletes a budget if the
+   * budget does not have any pending or reimbursed expenses.
+   *
+   * @param oldExpense - Expense being removed from budgets
+   * @param newExpense - Expense being added to budgets
+   * @param employee - Employee of budgets to remove from
+   * @param expenseType - Expense Type of budgets to remove from
+   * @return Array - Array of Budgets for the Employee Expense Type
+   */
+  async _updateBudgets(oldExpense, newExpense, employee, expenseType) {
+    // log method
+    logger.log(2, '_updateBudgets', `Attempting to update budgets for expense ${oldExpense.id}`);
+
+    // compute method
+    try {
+
+      // get all expenses with matching expense type and employee
+      let expensesData = await this.databaseModify.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+      let expenses = _.map(expensesData, expenseData => {
+        return new Expense(expenseData);
+      });
+
+      // remove matching old expense
+      _.remove(expenses, exp => {
+        return _.isEqual(exp, oldExpense);
+      });
+
+      let expense = newExpense ? newExpense : oldExpense;
+      if (newExpense) {
+        expenses.push(newExpense);
+      }
+
+      // get all budgets with matching expense type and employee
+      let budgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
+      });
+
+      // sort budgets
+      let sortedBudgets = this._sortBudgets(budgets);
+
+      // get the budget index of the expense
+      let expBudgetIndex = _.findIndex(sortedBudgets, budget => {
+        return budget.isDateInRange(expense.purchaseDate);
+      });
+
+      if (expBudgetIndex == -1) {
+        // log error
+        logger.log(2, '_updateBudgets',
+          `Failed to find budget for expense ${expense.id} from list of budgets with employee ${employee.id} and`,
+          `expense type ${expense.id}`
+        );
+
+        let err = {
+          code: 304,
+          message: `Failed to find budget for expense ${expense.id}.`
+        };
+
+        // throw error
         throw err;
       }
 
-      return this.checkValidity(newExpense, expenseType, budget, employee, oldExpense)
-        .then(() => this._performBudgetUpdate(oldExpense, newExpense, budget, budgets, expenseType))
-        .then(() => {
-          return newExpense;
-        })
-        .catch((err) => {
-          err.message = `Cannot update expense because ${err.message}`;
-          throw err;
+      // create mapping of pending/reimbursed for each budget
+      let mapExpToBud = [];
+      _.forEach(sortedBudgets, () => {
+        mapExpToBud.push({
+          pendingAmount: 0,
+          reimbursedAmount: 0
         });
+      });
+
+      // populate mapping of pending/reimbursed for each budget
+      _.forEach(expenses, exp => {
+        // find the sorted budget index for the expense
+        let budgetIndex = _.findIndex(sortedBudgets, budget => {
+          return budget.isDateInRange(exp.purchaseDate);
+        });
+
+        // add expense cost to map
+        if (exp.isReimbursed()) {
+          // increment map index reimbursed amount if expense is reimbursed
+          mapExpToBud[budgetIndex].reimbursedAmount += exp.cost;
+        } else {
+          // increment map index pending amount if expense is pending
+          mapExpToBud[budgetIndex].pendingAmount += exp.cost;
+        }
+      });
+
+      let i; // index of sorted budgets array
+      let carryPending = 0; // current accumulated pending amount carry over
+      let carryReimbursed = 0; // current accumulated reimbursed amount carry over
+
+      // loop through budgets
+      for (i = 0; i < sortedBudgets.length; i++) {
+        // get current total pending and reimbursed amounts with carry
+        let currPending = carryPending + mapExpToBud[i].pendingAmount;
+        let currReimbursed = carryReimbursed + mapExpToBud[i].reimbursedAmount;
+
+        // update carry over accumulators
+        if (expenseType.budget == sortedBudgets[i].amount
+          && currPending + currReimbursed > sortedBudgets[i].amount
+          && expenseType.recurringFlag
+          && !_.isEqual(
+            sortedBudgets[i].fiscalStartDate,
+            this.getBudgetDates(employee.hireDate).startDate.format(ISOFORMAT)
+          )
+        ) {
+          // set carry over accumulators if budget is full time, needs to carry costs, and isn't the latest budget
+          if (i == sortedBudgets.length - 1
+            || !moment(sortedBudgets[i].fiscalEndDate).add(1, 'd').isSame(moment(sortedBudgets[i + 1].fiscalStartDate))
+          ) {
+            // create a new budget if a sequential recurring budget does not exist
+            logger.log(2, '_updateBudgets',
+              `Attempting to create a new budget starting on ${moment(sortedBudgets[i].fiscalEndDate).add(1, 'd')}`
+            );
+
+            let newBudgetData =
+              await this.createNewBudget(
+                employee,
+                expenseType,
+                moment(sortedBudgets[i].fiscalEndDate).add(1, 'd').format(ISOFORMAT)
+              );
+            let newBudget = new Budget(newBudgetData);
+            sortedBudgets.splice(i + 1, 0, newBudget);
+            mapExpToBud.splice(i + 1, 0, {
+              pendingAmount: 0,
+              reimbursedAmount: 0
+            });
+
+            logger.log(2, '_updateBudgets', `Successfully created new budget ${newBudget.id}`);
+          }
+          carryReimbursed = Math.max(currReimbursed - sortedBudgets[i].amount, 0);
+          carryPending = Math.max(currPending + currReimbursed - carryReimbursed - sortedBudgets[i].amount, 0);
+        } else {
+          // clear carry over accumulators if budget is not full time or does not need to carry costs
+          carryPending = 0;
+          carryReimbursed = 0;
+        }
+
+        if (i >= expBudgetIndex) {
+          // updated budget if passed expense budget
+          sortedBudgets[i].pendingAmount = currPending - carryPending;
+          sortedBudgets[i].reimbursedAmount = currReimbursed - carryReimbursed;
+
+
+          if (currPending + currReimbursed == 0) {
+            // delete the current budget if it is empty
+            logger.log(2, '_updateBudgets', `Attempting to delete budget ${sortedBudgets[i].id}`);
+
+            await this.budgetDynamo.removeFromDB(sortedBudgets[i].id)
+              .then(data => {
+                logger.log(2, '_updateBudgets', `Successfully deleted budget ${data.id}`);
+              });
+
+            // remove budget from sorted budgets
+            sortedBudgets.splice(i, 1);
+            mapExpToBud.splice(i, 1);
+
+            // decrement the sorted budgets loop index
+            i--;
+          } else {
+            // update the current budget if it is not empty
+            logger.log(2, '_updateBudgets', `Attempting to update budget ${sortedBudgets[i].id}`);
+            await this.budgetDynamo.updateEntryInDB(sortedBudgets[i])
+              .then(data => {
+                logger.log(2, '_updateBudgets', `Successfully updated budget ${data.id}`);
+              });
+          }
+        }
+      }
+      // log success
+      logger.log(2, '_updateBudgets', `Successfully updated budgets for expense ${expense.id}`);
+
+      // return updated sorted budgets
+      return sortedBudgets;
+    } catch (err) {
+      // log error
+      let expense = newExpense ? newExpense : oldExpense;
+      logger.log(2, '_updateBudgets', `Failed to update budgets for expense ${expense.id}`);
+
+      let error = {
+        code: 404,
+        message: 'Error updating budgets.'
+      };
+
+      // return rejected promise
+      return Promise.reject(error);
     }
-  }
-}
+  } // _updateBudgets
+
+  /**
+   * Validate that an expense can be added. Returns the expense if the expense being added is in the current annual
+   * budget.
+   *
+   * @param expense - Expense to be added
+   * @param employee - Employee of expense
+   * @param expenseType - Expense Type of expense
+   * @return Expense - validated expense
+   */
+  _validateAdd(expense, employee, expenseType) {
+    // log method
+    logger.log(2, '_validateAdd', `Validating add for expense ${expense.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense.'
+      };
+
+      // validate recurring expense is in the current annual budget
+      if (expenseType.recurringFlag) {
+        let dates = this.getBudgetDates(employee.hireDate);
+        if (!moment(expense.purchaseDate, ISOFORMAT).isBetween(dates.startDate, dates.endDate, null, '[]')) {
+          // log error
+          logger.log(2, '_validateAdd',
+            `Purchase date ${expense.purchaseDate} is out of current annual budget range`,
+            `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}`
+          );
+
+          // throw error
+          err.message = 'Purchase date must be in current annual budget range from'
+            + `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}.`;
+          throw err;
+        }
+      }
+
+      // log success
+      logger.log(2, '_validateAdd', `Successfully validated add for expense ${expense.id}`);
+
+      // return expense on success
+      return Promise.resolve(expense);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateAdd', `Failed to validate add for expense ${expense.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateAdd
+
+  /**
+   * Validate that an expense can be deleted. Returns the expense if the expense to be deleted is successfully
+   * validated, otherwise returns an error.
+   *
+   * @param expense - Expense to validate delete
+   * @return Expense - validated expense
+   */
+  async _validateDelete(expense) {
+    // log method
+    logger.log(2, '_validateDelete', `Validating delete for expense ${expense.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating delete for expense.'
+      };
+
+      // validate expense is not reimbursed
+      if (expense.isReimbursed()) {
+        // log error
+        logger.log(2, '_validateDelete',
+          `Expense ${expense.id} is reimbursed`
+        );
+
+        // throw error
+        err.message = 'Cannot delete a reimbursed expense.';
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateDelete', `Successfully validated delete for expense ${expense.id}`);
+
+      // return expense on success
+      return expense;
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateDelete', `Failed to validate delete for expense ${expense.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateDelete
+
+  /**
+   * Validate that an expense is valid. Returns the expense if the expense is successfully validated, otherwise returns
+   * an error.
+   *
+   * @param expense - Expense object to be validated
+   * @param employee - Employee of expense
+   * @param expenseType - Expense Type of expense
+   * @return Expense - validated expense
+   */
+  _validateExpense(expense, employee, expenseType) {
+    // log method
+    logger.log(2, '_validateExpense', `Validating expense ${expense.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense.'
+      };
+
+      // validate reimburse date is after purchase date
+      if (moment(expense.reimbursedDate, ISOFORMAT).isBefore(moment(expense.purchaseDate, ISOFORMAT))) {
+        // log error
+        logger.log(2, '_validateExpense',
+          `Reimbursed date ${expense.reimbursedDate} is before purchase date ${expense.purchaseDate}`
+        );
+
+        // throw error
+        err.message = 'Reimbursed date must be after purchase date.';
+        throw err;
+      }
+
+      // validate expense type is active
+      if (expenseType.isInactive) {
+        // log error
+        logger.log(2, '_validateExpense', `Expense type ${expenseType.id} is inactive`);
+
+        // throw error
+        err.message = `Expense type ${expenseType.budgetName} is not active.`;
+        throw err;
+      }
+
+      // validate receipt exists if required by expense type
+      if (expenseType.requiredFlag && !expense.hasReceipt()) {
+        // log error
+        logger.log(2, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
+
+        // throw error
+        err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
+        throw err;
+      }
+
+      // validate expense purchase date is in expense type range
+      if (!expenseType.isDateInRange(expense.purchaseDate)) {
+        // log error
+        logger.log(2, '_validateExpense',
+          `Expense purchase date ${expense.purchaseDate} is out of expense type range`
+        );
+
+        // throw error
+        err.message = `Purchase date is out of ${expenseType.budgetName} range ${expenseType.startDate} to`
+          + ` ${expenseType.endDate}.`;
+        throw err;
+      }
+
+      // validate employee is active
+      if (employee.isInactive()) {
+        // log error
+        logger.log(2, '_validateExpense', `Employee ${employee.id} is inactive`);
+
+        // throw error
+        err.message = `Employee ${employee.fullName()} is inactive.`;
+        throw err;
+      }
+
+      // validate employee has access to expense type
+      if (!this.hasAccess(employee, expenseType)) {
+        // log error
+        logger.log(2, '_validateExpense',
+          `Employee ${employee.id} does not have access to expense type ${expenseType.id}`
+        );
+
+        // throw error
+        err.message = `Employee ${employee.fullName()} does not have access to ${expenseType.budgetName}.`;
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateExpense', `Successfully validated expense ${expense.id}`);
+
+      // return expense on success
+      return Promise.resolve(expense);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateExpense', `Failed to validate expense ${expense.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateExpense
+
+  /**
+   * Updates budgets from old expense to new expense. Returns the budget the new expense was updated to.
+   *
+   * @param oldExpense - Expense being updated from
+   * @param newExpense - Expense being updated to
+   * @param employee - Employee of expense
+   * @param expenseType - Expense Type of expense
+   * @return Budget - budget with added expense
+   */
+  async _validateUpdate(oldExpense, newExpense, employee, expenseType) {
+    // log method
+    logger.log(2, '_validateUpdate', `Validating update for expense ${oldExpense.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense.'
+      };
+
+      // validate expense id
+      if (oldExpense.id != newExpense.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Old expense id ${oldExpense.id} does not match new expense id ${newExpense.id}`
+        );
+
+        // throw error
+        err.message = 'Error validating expense IDs.';
+        throw err;
+      }
+
+      // validate old expense employee id
+      if (oldExpense.employeeId != employee.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Old expense employee ${oldExpense.employeeId} does not match employee ${employee.id}`
+        );
+
+        // throw error
+        err.message = `Error validating current expense for employee ${employee.fullName()}.`;
+        throw err;
+      }
+
+      // validate new expense employee id
+      if (newExpense.employeeId != employee.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `New expense employee ${oldExpense.employeeId} does not match employee ${employee.id}`
+        );
+
+        // throw error
+        err.message = `Error validating new expense for employee ${employee.fullName()}.`;
+        throw err;
+      }
+
+      // validate new expense expense type id
+      if (newExpense.expenseTypeId != expenseType.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `New expense expense type ${oldExpense.expenseTypeId} does not match expense type ${expenseType.id}`
+        );
+
+        // throw error
+        err.message = `Error validating new expense for expense type ${expenseType.budgetName}.`;
+        throw err;
+      }
+
+      let oldBudget = await this._findBudget(oldExpense.employeeId, oldExpense.expenseTypeId, oldExpense.purchaseDate)
+        .catch(error => {
+          throw error;
+        });
+
+      // validate change cost
+      if (oldExpense.cost != newExpense.cost) {
+        // validate reimbursed expense cost is not being changed
+        if (oldExpense.isReimbursed() && newExpense.isReimbursed()) {
+          // log error
+          logger.log(2, '_validateUpdate', 'Cannot change cost of reimbursed expense');
+
+          // throw error
+          err.message = 'Cannot change cost of reimbursed expenses.';
+          throw err;
+        }
+
+        // validate expense is in todays budget
+        let todaysBudget = await this._findBudget(oldExpense.employeeId, oldExpense.expenseTypeId, moment())
+          .catch(error => {
+            throw error;
+          });
+
+        if (!_.isEqual(oldBudget, todaysBudget)) {
+          // log error
+          logger.log(2, '_validateUpdate',
+            `Cannot change cost of expenses outside of current annual budget from ${todaysBudget.fiscalStartDate} to`,
+            `${todaysBudget.fiscalEndDate}`
+          );
+
+          // throw error
+          err.message = 'Cannot change cost of expenses outside of current annual budget from'
+            + ` ${todaysBudget.fiscalStartDate} to ${todaysBudget.fiscalEndDate}.`;
+          throw err;
+        } else {
+
+          if (!this._isValidCostChange(oldExpense, newExpense, expenseType, todaysBudget)) {
+            // log error
+            logger.log(2, '_validateUpdate', `New expense $${newExpense.cost} exceeds the budget limit`);
+
+            // throw error
+            err.message = 'Expense is over the budget limit.';
+            throw err;
+          }
+        }
+      }
+
+      // validate expenses are in same budget
+      let newBudget = await this._findBudget(newExpense.employeeId, newExpense.expenseTypeId, newExpense.purchaseDate)
+        .catch(error => {
+          throw error;
+        });
+
+      if (!_.isEqual(oldBudget, newBudget)) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `New expense purchased on ${newExpense.purchaseDate} is not in the same budget as old expense between`,
+          `${oldBudget.fiscalStartDate} and ${oldBudget.fiscalEndDate}`
+        );
+
+        // throw error
+        err.message = 'Cannot change cost of expenses outside of current annual budget from'
+          + ` ${oldBudget.fiscalStartDate} to ${oldBudget.fiscalEndDate}.`;
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateUpdate', `Successfully validated update for expense ${oldExpense.id}`);
+
+      // return new expense on success
+      return newExpense;
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateUpdate', `Failed to validate update for expense ${oldExpense.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateUpdate
+} // ExpenseRoutes
+
 module.exports = ExpenseRoutes;

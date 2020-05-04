@@ -19,9 +19,9 @@ class ExpenseType {
   constructor(data) {
     this.id = data.id;
     this.budgetName = data.budgetName;
-    this.budget = Number(data.budget).toFixed(2);
-    this.startDate = moment(data.startDate, ISOFORMAT);
-    this.endDate = moment(data.endDate, ISOFORMAT);
+    this.budget = Number(Number(data.budget).toFixed(2));
+    this.startDate = data.startDate;
+    this.endDate = data.endDate;
     this.odFlag = data.odFlag;
     this.requiredFlag = data.requiredFlag;
     this.recurringFlag = data.recurringFlag;
@@ -55,8 +55,8 @@ class ExpenseType {
     }
 
     // populate empty fields with a space holder
-    for (var propName in this) {
-      if (this[propName] === null || this[propName] === '') {
+    for (let propName in this) {
+      if (this[propName] == null  || this[propName] === '') {
         this[propName] = ' ';
       }
     }

@@ -25,7 +25,7 @@ class TrainingUrls {
 
     // populate empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === '') {
+      if (this[propName] == null || this[propName] === '') {
         this[propName] = ' ';
       }
     }

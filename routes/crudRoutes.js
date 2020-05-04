@@ -1,11 +1,14 @@
+const Budget = require('./../models/budget');
+const DatabaseModify = require('../js/databaseModify');
 const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
-const TrainingUrls = require('../models/trainingUrls');
-const Logger = require('../js/Logger');
-const _ = require('lodash');
-const moment = require('moment');
 const jwksRsa = require('jwks-rsa');
+const Logger = require('../js/Logger');
+const moment = require('moment');
+const TrainingUrls = require('../models/trainingUrls');
+const { v4: uuid } = require('uuid');
+const _ = require('lodash');
 
 const STAGE = process.env.STAGE;
 const ISOFORMAT = 'YYYY-MM-DD';
@@ -40,7 +43,35 @@ class Crud {
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
+    this.budgetDynamo = new DatabaseModify('budgets');
+    this.employeeDynamo = new DatabaseModify('employees');
+    this.expenseDyanamo = new DatabaseModify('expenses');
+    this.expenseTypeDynamo = new DatabaseModify('expense-types');
   } // constructor
+
+  /**
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
+   * amount.
+   *
+   * @param employee - Employee to adjust amount for
+   * @param expenseType - ExpenseType budget to be adjusted
+   * @return Number - adjusted budget amount
+   */
+  calcAdjustedAmount(employee, expenseType) {
+    // log method
+    logger.log(2, 'calcAdjustedAmount',
+      `Calculating adjusted budget amount for employee ${employee.id} and expense type ${expenseType.id}`
+    );
+
+    // compute method
+    let result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+
+    // log result
+    logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
+
+    // return result
+    return result;
+  } // calcAdjustedAmount
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
@@ -52,8 +83,8 @@ class Crud {
    */
   _checkPermissionToCreate(employee) {
     // log method
-    logger.log(2, '_checkPermissionToCreate', `Checking if employee ${employee.id} has permission to create to the`,
-      `${this._getTableName()} table`
+    logger.log(2, '_checkPermissionToCreate',
+      `Checking if employee ${employee.id} has permission to create to the ${this._getTableName()} table`
     );
 
     // compute method
@@ -65,12 +96,12 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToCreate', `Employee ${employee.id} has permission to create to the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToCreate',
+        `Employee ${employee.id} has permission to create to the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToCreate', `Employee ${employee.id} does not have permission to create to the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToCreate',
+        `Employee ${employee.id} does not have permission to create to the ${this._getTableName()} table`
       );
     }
 
@@ -88,8 +119,8 @@ class Crud {
    */
   _checkPermissionToDelete(employee) {
   // log method
-    logger.log(2, '_checkPermissionToDelete', `Checking if employee ${employee.id} has permission to delete from the`,
-      `${this._getTableName()} table`
+    logger.log(2, '_checkPermissionToDelete',
+      `Checking if employee ${employee.id} has permission to delete from the ${this._getTableName()} table`
     );
 
     // compute method
@@ -100,12 +131,12 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToDelete', `Employee ${employee.id} has permission to delete from the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToDelete',
+        `Employee ${employee.id} has permission to delete from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToDelete', `Employee ${employee.id} does not have permission to delete from the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToDelete',
+        `Employee ${employee.id} does not have permission to delete from the ${this._getTableName()} table`
       );
     }
 
@@ -123,8 +154,8 @@ class Crud {
    */
   _checkPermissionToRead(employee) {
     // log method
-    logger.log(2, '_checkPermissionToRead', `Checking if employee ${employee.id} has permission to read from the`,
-      `${this._getTableName()} table`
+    logger.log(2, '_checkPermissionToRead',
+      `Checking if employee ${employee.id} has permission to read from the ${this._getTableName()} table`
     );
 
     // compute method
@@ -136,12 +167,12 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToRead', `Employee ${employee.id} has permission to read from the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToRead',
+        `Employee ${employee.id} has permission to read from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToRead', `Employee ${employee.id} does not have permission to read from the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToRead',
+        `Employee ${employee.id} does not have permission to read from the ${this._getTableName()} table`
       );
     }
 
@@ -159,8 +190,8 @@ class Crud {
    */
   _checkPermissionToReadAll(employee) {
     // log method
-    logger.log(2, '_checkPermissionToReadAll', `Checking if employee ${employee.id} has permission to read all`,
-      `entries from the ${this._getTableName()} table`
+    logger.log(2, '_checkPermissionToReadAll',
+      `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
     let userPermissions = this.isUser(employee)
@@ -172,12 +203,12 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToReadAll', `Employee ${employee.id} has permission to read all entries from the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToReadAll',
+        `Employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToReadAll', `Employee ${employee.id} does not have permission to read all`,
-        `entries from the ${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToReadAll',
+        `Employee ${employee.id} does not have permission to read all entries from the ${this._getTableName()} table`
       );
     }
 
@@ -195,8 +226,8 @@ class Crud {
    */
   _checkPermissionToUpdate(employee) {
     // log method
-    logger.log(2, '_checkPermissionToUpdate', `Checking if employee ${employee.id} has permission to update the`,
-      `${this._getTableName()} table`
+    logger.log(2, '_checkPermissionToUpdate',
+      `Checking if employee ${employee.id} has permission to update the ${this._getTableName()} table`
     );
 
     // compute method
@@ -208,12 +239,12 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToUpdate', `Employee ${employee.id} has permission to update the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToUpdate',
+        `Employee ${employee.id} has permission to update the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToUpdate', `Employee ${employee.id} does not have permission to update the`,
-        `${this._getTableName()} table`
+      logger.log(2, '_checkPermissionToUpdate',
+        `Employee ${employee.id} does not have permission to update the ${this._getTableName()} table`
       );
     }
 
@@ -230,8 +261,8 @@ class Crud {
    */
   _checkTableName(tableNames) {
     // log method
-    logger.log(2, '_checkTableName', `Checking if ${this._getTableName()} is in the list of table names`,
-      `[${tableNames}]`
+    logger.log(2, '_checkTableName',
+      `Checking if ${this._getTableName()} is in the list of table names [${tableNames}]`
     );
 
     // compute method
@@ -256,16 +287,84 @@ class Crud {
   /* eslint-disable no-unused-vars */
 
   /**
-  * Create an object. Returns the object created.
-  *
-  * @param body - data of object
-  * @return Object - object created
-  */
+   * Create an object. Returns the object created.
+   *
+   * @param body - data of object
+   * @return Object - object created
+   */
   async _create(body) {
     // This function must be overwritten
   } // _create
 
   /* eslint-enable no-unused-vars */
+
+  /**
+   * Creates a new budget for a given employee and expense type. Returns the budget if successful, otherwise returns
+   * an error.
+   *
+   * @param employee - Employee to create budget for
+   * @param expenseType - ExpenseType of the budget
+   * @return Budget - budget created
+   */
+  async createNewBudget(employee, expenseType, annualStart) {
+    // log method
+    logger.log(2, 'createNewBudget',
+      `Attempting to create a new budget for employee ${employee.id} with expense type ${expenseType.id}`
+    );
+
+    // compute method
+    let budgetData = {
+      id: this.getUUID(),
+      expenseTypeId: expenseType.id,
+      employeeId: employee.id,
+      reimbursedAmount: 0,
+      pendingAmount: 0,
+      amount: 0
+    };
+
+    // set fiscal start and end date
+    if (expenseType.recurringFlag) {
+      if (annualStart) {
+        // set fiscal dates to the provided start date
+        budgetData.fiscalStartDate = annualStart;
+        budgetData.fiscalEndDate = moment(annualStart, ISOFORMAT).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      } else {
+        // set fiscal dates to current anniversary date if no start date provided
+        let dates = this.getBudgetDates(employee.hireDate);
+        budgetData.fiscalStartDate = dates.startDate.format(ISOFORMAT);
+        budgetData.fiscalEndDate = dates.endDate.format(ISOFORMAT);
+      }
+    } else {
+      budgetData.fiscalStartDate = expenseType.startDate;
+      budgetData.fiscalEndDate = expenseType.endDate;
+    }
+
+    // set the amount of the new budget
+    if (this.hasAccess(employee, expenseType)) {
+      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+    }
+
+    let newBudget = new Budget(budgetData);
+    return this.budgetDynamo.addToDB(newBudget) // add budget to database
+      .then(budget => {
+        // log success
+        logger.log(2, 'createNewBudget',
+          `Successfully created new budget ${budget.id} for employee ${employee.id} with expense type ${expenseType.id}`
+        );
+
+        // return new budget
+        return budget;
+      })
+      .catch(err => {
+        // log error
+        logger.log(2, 'createNewBudget',
+          `Failed to create new budget for employee ${employee.id} and expense type ${expenseType.id}`
+        );
+
+        // throw error
+        throw err;
+      });
+  } // createNewBudget
 
   /**
    * Create object in database. If successful, sends 200 status request with the object created and returns the object.
@@ -289,12 +388,12 @@ class Crud {
           if (data instanceof TrainingUrls) {
             // created a training url
             logger.log(2, '_createWrapper',
-              `Successfully created ${data.id} with category ${data.category} in ${this._getTableName()}`
+              `Successfully created object ${data.id} with category ${data.category} in ${this._getTableName()}`
             );
           } else {
             // created an expense, expense type, or employee
             logger.log(2, '_createWrapper',
-              `Successfully created ${data.id} in ${this._getTableName()}`
+              `Successfully created object ${data.id} in ${this._getTableName()}`
             );
           }
 
@@ -365,7 +464,7 @@ class Crud {
         .then(data => {
           // log success
           logger.log(2, '_deleteWrapper',
-            `Successfully deleted ${data.id} from ${this._getTableName()}`
+            `Successfully deleted object ${data.id} from ${this._getTableName()}`
           );
 
           // send sucessful 200 status
@@ -444,8 +543,10 @@ class Crud {
     };
 
     // log result
-    logger.log(2, 'getBudgetDates', `Current annual budget date for ${date} starts on`,
-      `${startDate.format(ISOFORMAT)} and ends on ${endDate.format(ISOFORMAT)}`);
+    logger.log(2, 'getBudgetDates',
+      `Current annual budget date for ${date} starts on ${startDate.format(ISOFORMAT)} and ends on`,
+      `${endDate.format(ISOFORMAT)}`
+    );
 
     // return result
     return result;
@@ -469,6 +570,54 @@ class Crud {
     // return result
     return result;
   } // _getTableName
+
+  /**
+   * Generates and returns a new uuid.
+   *
+   * @return String - new uuid
+   */
+  getUUID() {
+    return uuid();
+  }
+
+  /**
+   * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
+   *
+   * @param employee - Employee to access
+   * @param expenseType - ExpenseType to be accessed
+   * @return Boolean - employee has access to expense type
+   */
+  hasAccess(employee, expenseType) {
+    // log method
+    logger.log(2, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
+
+    // compute method
+    let result;
+
+    if (expenseType.accessibleBy == 'ALL') {
+      // accessible by all employees
+      result = true;
+    } else if (expenseType.accessibleBy == 'FULL TIME') {
+      // accessible by full time employees
+      result = employee.workStatus == 100;
+    } else if (expenseType.accessibleBy == 'PART TIME') {
+      // accessible by part time employees
+      result = employee.workStatus > 0 && employee.workStatus < 100;
+    } else {
+      // accessible by custom employees
+      result = expenseType.accessibleBy.includes(employee.id);
+    }
+
+    // log result
+    if (result) {
+      logger.log(2, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
+    } else {
+      logger.log(2, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
+    }
+
+    // return result
+    return result;
+  } // hasAccess
 
   /**
    * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
@@ -567,12 +716,12 @@ class Crud {
           if (data instanceof TrainingUrls) {
             // read a training url
             logger.log(2, '_readWrapper',
-              `Successfully read ${data.id} with category ${data.category} from ${this._getTableName()}`
+              `Successfully read object ${data.id} with category ${data.category} from ${this._getTableName()}`
             );
           } else {
             // read an expense, expense-type, or employee
             logger.log(2, '_readWrapper',
-              `Successfully read ${data.id} from ${this._getTableName()}`
+              `Successfully read object ${data.id} from ${this._getTableName()}`
             );
           }
 
@@ -730,12 +879,12 @@ class Crud {
           if (data instanceof TrainingUrls) {
             // updated a training url
             logger.log(2, '_updateWrapper',
-              `Successfully updated ${data.id} with category ${data.category} from ${this._getTableName()}`
+              `Successfully updated object ${data.id} with category ${data.category} from ${this._getTableName()}`
             );
           } else {
             // updated an expense, expense-type, or employee
             logger.log(2, '_updateWrapper',
-              `Successfully updated ${data.id} from ${this._getTableName()}`
+              `Successfully updated object ${data.id} from ${this._getTableName()}`
             );
           }
 
@@ -817,7 +966,7 @@ class Crud {
       // object id does not exist
       let err =  {
         code: 400, //Bad Request
-        message: 'Failed to validate inputs'
+        message: 'Failed to validate inputs.'
       };
 
       // log error

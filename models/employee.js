@@ -52,7 +52,7 @@ class Employee {
 
     // populate empty fields with a space holder
     for (var propName in this) {
-      if (this[propName] === null || this[propName] === '') {
+      if (this[propName] == null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
@@ -73,7 +73,7 @@ class Employee {
    * @return boolean - employee is admin
    */
   isAdmin() {
-    return this.employeeRole === 'admin';
+    return this.employeeRole == 'admin';
   } // isAdmin
 
   /**
@@ -110,7 +110,7 @@ class Employee {
    * @return boolean - employee is user
    */
   isUser() {
-    return this.employeeRole === 'user';
+    return this.employeeRole == 'user';
   } // isUser
 }
 

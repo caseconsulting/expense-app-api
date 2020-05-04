@@ -1,6 +1,3 @@
-const moment = require('moment');
-const ISOFORMAT = 'YYYY-MM-DD';
-
 /**
  * Expense model
  *
@@ -21,25 +18,34 @@ const ISOFORMAT = 'YYYY-MM-DD';
 class Expense {
   constructor(data) {
     this.id = data.id;
-    this.purchaseDate = moment(data.purchaseDate, ISOFORMAT);
-    this.reimbursedDate = moment(data.reimbursedDate, ISOFORMAT);
+    this.purchaseDate = data.purchaseDate;
+    this.reimbursedDate = data.reimbursedDate;
     this.note = data.note;
     this.url = data.url;
-    this.createdAt = moment(data.createdAt, ISOFORMAT);
+    this.createdAt = data.createdAt;
     this.receipt = data.receipt;
-    this.cost = Number(data.cost).toFixed(2);
+    this.cost = Number(Number(data.cost).toFixed(2));
     this.description = data.description;
     this.employeeId = data.employeeId;
     this.expenseTypeId = data.expenseTypeId;
     this.category = data.category;
 
     // populate empty fields with a space holder
-    for (var propName in this) {
-      if (this[propName] === null || this[propName] === '') {
+    for (let propName in this) {
+      if (this[propName] == null || this[propName] === '') {
         this[propName] = ' ';
       }
     }
   } // constructor
+
+  /**
+   * Check if the expense has a receipt. Returns true if the receipt exists, otherwise returns false.
+   *
+   * @return boolean - expense has receipt
+   */
+  hasReceipt() {
+    return !this.isEmpty(this.receipt);
+  }
 
   /**
    * Check if the attribute is empty. Returns true if attribute is null or a space holder.

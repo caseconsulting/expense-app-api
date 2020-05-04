@@ -30,7 +30,7 @@ class Budgets {
   constructor(){
     this.budgetDynamo = budgetDynamo;
     this._router = express.Router();
-    this._router.get('/user/:id', checkJwt, getUserInfo, this.getBudgetByUser.bind(this));
+    this._router.get('/employee/:id', checkJwt, getUserInfo, this.getEmployeeBudgets.bind(this));
     this._router.get('/', checkJwt, getUserInfo, this.getCaller.bind(this));
   }
 
@@ -38,8 +38,8 @@ class Budgets {
     return this._router;
   }
 
-  getBudgetByUser(req, res) {
-    logger.log(2, 'getBudgetByUser', `Getting budgets for user ${req.params.id} if admin`);
+  getEmployeeBudgets(req, res) {
+    logger.log(2, 'getEmployeeBudgets', `Getting budgets for user ${req.params.id} if admin`);
 
     return this.budgetDynamo
       .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)

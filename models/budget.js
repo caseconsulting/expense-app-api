@@ -20,11 +20,11 @@ class Budget {
     this.id = data.id;
     this.expenseTypeId = data.expenseTypeId;
     this.employeeId = data.employeeId;
-    this.reimbursedAmount = Number(data.reimbursedAmount).toFixed(2);
-    this.pendingAmount = Number(data.pendingAmount).toFixed(2);
+    this.reimbursedAmount = Number(Number(data.reimbursedAmount).toFixed(2));
+    this.pendingAmount = Number(Number(data.pendingAmount).toFixed(2));
     this.fiscalStartDate = data.fiscalStartDate;
     this.fiscalEndDate = data.fiscalEndDate;
-    this.amount = Number(data.amount).toFixed(2);
+    this.amount = Number(Number(data.amount).toFixed(2));
   } // constructor
 
   /**
