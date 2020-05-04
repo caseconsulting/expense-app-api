@@ -7,5 +7,5 @@
   "unused": true,
   "trailing": true,
   "jasmine": true,
-  "esversion": 6
+  "esversion": 9
 }
