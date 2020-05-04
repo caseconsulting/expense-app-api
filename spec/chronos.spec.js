@@ -1,26 +1,7 @@
 const chronos = require('../chronos');
-// const _ = require('lodash');
-// const uuid = require('uuid/v4');
-
-// const AWS = require('aws-sdk-mock');
 
 describe('chronos', () => {
-
-  // let budgetDynamo, expenseTypeDynamo;
-
-  // beforeEach(() => {
-  //   budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
-  //     'addToDB',
-  //     'querySecondaryIndexInDB'
-  //   ]);
-  //   expenseTypeDynamo = jasmine.createSpyObj('budgetDynamo', [
-  //     'getAllEntriesInDB'
-  //   ]);
-  // });
-
-
   describe('_makeNewBudget', () => {
-
     let oldBudget, expenseType, expectedBudget;
 
     beforeEach(() => {
@@ -46,7 +27,6 @@ describe('chronos', () => {
     });
 
     describe('when there is no overage', () => {
-
       it('should return a new budget with a reimbursed amount of 0', () => {
         let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
         expect(newBudget.id).not.toBe(undefined);
@@ -60,7 +40,6 @@ describe('chronos', () => {
     }); // when there is no overage
 
     describe('when there is overage', () => {
-
       beforeEach(() => {
         oldBudget.reimbursedAmount = 15;
         expectedBudget.reimbursedAmount = 5;
@@ -80,23 +59,20 @@ describe('chronos', () => {
   }); // _makeNewBudget
 
   describe('_getExpenseType', () => {
-
     let expenseTypes, expectedExpenseType;
 
     beforeEach(() => {
-      expenseTypes = [ { id: 'id' }, { id: 'id-2'} ];
+      expenseTypes = [{ id: 'id' }, { id: 'id-2' }];
       expectedExpenseType = { id: 'id-2' };
     });
 
     describe('expense type id exists in expense types', () => {
-
       it('should return the expense type that has a matching id', () => {
         expect(chronos._getExpenseType(expenseTypes, 'id-2')).toEqual(expectedExpenseType);
       }); // should return the expense type that has a matching id
     }); // expense type id exists in expense types
 
     describe('expense type id is not in expense types', () => {
-
       it('should throw an error', () => {
         try {
           chronos._getExpenseType(expenseTypes, 'id-3');
@@ -109,13 +85,12 @@ describe('chronos', () => {
   }); // _getExpenseType
 
   describe('asyncForEach', () => {
-
     let array, foo;
 
     beforeEach(() => {
       array = [1, 2, 3];
       foo = {
-        callback: function(value) {
+        callback: function (value) {
           return value * 2;
         }
       };
@@ -129,7 +104,6 @@ describe('chronos', () => {
     afterEach(() => {
       expect(foo.callback).toHaveBeenCalled();
     });
-
   }); // asyncForEach
 
   describe('start', () => {
@@ -137,5 +111,4 @@ describe('chronos', () => {
     //  how to mock or spy on budgetDynamo/expenseTypeDynamo to return a specific value in start?
     //
   }); // start
-
 }); // chronos

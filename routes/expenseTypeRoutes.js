@@ -7,7 +7,7 @@ const moment = MomentRange.extendMoment(Moment);
 const _ = require('lodash');
 const Logger = require('../js/Logger');
 const logger = new Logger('expenseTypeRoutes');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const ExpenseType = require('./../models/expenseType');
 
 class ExpenseTypeRoutes extends Crud {
@@ -27,7 +27,7 @@ class ExpenseTypeRoutes extends Crud {
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType))
       .then(() => this._createBudgets(expenseType))
-      .catch(err => {
+      .catch((err) => {
         logger.log(1, '_create', `Failed to create expense type ${data.id}`);
         logger.error('_create', `Error code: ${err.code}`);
         throw err;
@@ -37,14 +37,15 @@ class ExpenseTypeRoutes extends Crud {
   async _createBudgets(expenseType) {
     logger.log(1, '_createBudgets', `Creating budgets for expense type ${expenseType.id}`);
     let employees = await this.employeeDynamo.getAllEntriesInDB();
-    _.forEach(employees, employee => {
+    _.forEach(employees, (employee) => {
       if (this._hasAccess(employee, expenseType)) {
         let adjustedAmount = this._adjustedBudget(expenseType, employee);
         let start;
         let end;
-        if (!expenseType.recurringFlag
-          && !this._isEmpty(expenseType.startDate)
-          && !this._isEmpty(expenseType.startDate)
+        if (
+          !expenseType.recurringFlag &&
+          !this._isEmpty(expenseType.startDate) &&
+          !this._isEmpty(expenseType.startDate)
         ) {
           start = expenseType.startDate;
           end = expenseType.endDate;
@@ -77,9 +78,9 @@ class ExpenseTypeRoutes extends Crud {
     logger.log(2, '_checkDates', 'Validating expense type dates');
 
     let start = expenseType.startDate;
-    let end =  expenseType.endDate;
-    let recurringFlag =  expenseType.recurringFlag;
-    let id =  expenseType.id;
+    let end = expenseType.endDate;
+    let recurringFlag = expenseType.recurringFlag;
+    let id = expenseType.id;
 
     let err = {
       code: 403,
@@ -93,7 +94,7 @@ class ExpenseTypeRoutes extends Crud {
     let firstExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
     let lastExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
 
-    _.each(allPurchaseDates, current => {
+    _.each(allPurchaseDates, (current) => {
       let currentDate = moment(current, IsoFormat);
       if (currentDate.isBefore(firstExpenseDate)) {
         firstExpenseDate = currentDate;
@@ -106,12 +107,11 @@ class ExpenseTypeRoutes extends Crud {
     if (!valid && !!start && !!end) {
       let startDate = moment(start, IsoFormat);
       let endDate = moment(end, IsoFormat);
-      if (startDate.isBefore(endDate))
-      {
-        if (startDate.isAfter(firstExpenseDate) && endDate.isBefore(lastExpenseDate))
-        {
-          err.message = `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}`
-            + ` and end date must be after ${lastExpenseDate.format(IsoFormat)}.`;
+      if (startDate.isBefore(endDate)) {
+        if (startDate.isAfter(firstExpenseDate) && endDate.isBefore(lastExpenseDate)) {
+          err.message =
+            `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}` +
+            ` and end date must be after ${lastExpenseDate.format(IsoFormat)}.`;
         } else if (startDate.isAfter(firstExpenseDate)) {
           err.message = `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}.`;
         } else if (endDate.isBefore(lastExpenseDate)) {
@@ -208,10 +208,13 @@ class ExpenseTypeRoutes extends Crud {
     let sameEnd = oldExpenseType.endDate == expenseType.endDate;
     let sameBudget = oldExpenseType.budget == expenseType.budget;
     if (!(sameStart && sameEnd && sameBudget)) {
-    // need to update buget
+      // need to update buget
       // get all the budgets for the expense type
-      let budgets =
-        await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
+      let budgets = await this.budgetDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-index',
+        'expenseTypeId',
+        expenseType.id
+      );
 
       let employees;
       if (!sameBudget) {
@@ -219,7 +222,7 @@ class ExpenseTypeRoutes extends Crud {
         employees = await this.employeeDynamo.getAllEntriesInDB();
       }
 
-      budgets.forEach(budget => {
+      budgets.forEach((budget) => {
         if (!this._isEmpty(expenseType.startDate) && !sameStart) {
           // update the fiscal start date
           budget.fiscalStartDate = expenseType.startDate;
@@ -254,7 +257,7 @@ class ExpenseTypeRoutes extends Crud {
     return this._checkFields(expenseType)
       .then(() => this._checkDates(expenseType))
       .then(() => this._updateBudgets(expenseType))
-      .catch(err => {
+      .catch((err) => {
         logger.log(1, '_update', `Failed to update expense type ${data.id}`);
 
         throw err;

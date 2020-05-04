@@ -2,7 +2,8 @@ const _ = require('lodash');
 const databaseModify = require('./js/databaseModify');
 const budgetDynamo = new databaseModify('budgets');
 const expenseTypeDynamo = new databaseModify('expense-types');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
+
 const moment = require('moment');
 
 async function start() {
@@ -17,10 +18,10 @@ async function start() {
     expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
 
     if (budgets.length != 0) {
-      await asyncForEach(budgets, async oldBudget => {
+      await asyncForEach(budgets, async (oldBudget) => {
         let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
         if (expenseType.recurringFlag) {
-        //filter by the ones that are recurring
+          //filter by the ones that are recurring
           let newBudget = _makeNewBudget(oldBudget, expenseType);
           let msg = `Happy Anniversary user: ${newBudget.employeeId} 🥳 \n created new budget with id: ${newBudget.id}`;
           console.log(msg);
@@ -29,8 +30,7 @@ async function start() {
         }
       });
       console.log(`Created ${numberRecurring} new budget${numberRecurring > 1 ? 's' : ''} tonight! 🍕`);
-    }
-    else {
+    } else {
       console.log('There are no new budgets being created tonight 😴🛌');
     }
   } catch (err) {
@@ -47,17 +47,15 @@ async function asyncForEach(array, callback) {
 }
 
 function _getExpenseType(expenseTypes, expenseTypeId) {
-  let expenseType = _.find(expenseTypes, expenseType => {
+  let expenseType = _.find(expenseTypes, (expenseType) => {
     return expenseType.id === expenseTypeId;
   });
   if (expenseType) {
     return expenseType;
-  }
-  else {
+  } else {
     throw new Error('Expense Type does not exist');
   }
 }
-
 
 function _makeNewBudget(oldBudget, expenseType) {
   let newBudget = {
@@ -66,12 +64,10 @@ function _makeNewBudget(oldBudget, expenseType) {
     employeeId: oldBudget.employeeId,
     reimbursedAmount: 0,
     pendingAmount: 0,
-    fiscalStartDate: moment(oldBudget.fiscalStartDate)
-      .add(1, 'years')
-      .format('YYYY-MM-DD'), //increment the budgets fiscal start day by one year
-    fiscalEndDate: moment(oldBudget.fiscalEndDate)
-      .add(1, 'years')
-      .format('YYYY-MM-DD') //increment the budgets fiscal end day by one year
+    //increment the budgets fiscal start day by one year
+    fiscalStartDate: moment(oldBudget.fiscalStartDate).add(1, 'years').format('YYYY-MM-DD'),
+    //increment the budgets fiscal end day by one year
+    fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD')
   };
   if (oldBudget.reimbursedAmount > expenseType.budget) {
     let overage = oldBudget.reimbursedAmount - expenseType.budget;
@@ -89,4 +85,5 @@ async function handler(event) {
 }
 
 // module.exports = { start, handler };
-module.exports = { start, handler, asyncForEach, _getExpenseType, _makeNewBudget}; // included other methods for testing
+// included other methods for testing
+module.exports = { start, handler, asyncForEach, _getExpenseType, _makeNewBudget };

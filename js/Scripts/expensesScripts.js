@@ -28,30 +28,34 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 // set expense table
 const TABLE = `${STAGE}-expenses`;
 
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 const AWS = require('aws-sdk');
-AWS.config.update({region: 'us-east-1'});
-const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
+AWS.config.update({ region: 'us-east-1' });
+const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 
 // helper to get all entries in dynamodb table
-const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) => {
-  ddb.scan(params).promise()
-    .then(({Items, LastEvaluatedKey}) => {
-      out.push(...Items);
-      !LastEvaluatedKey ? resolve(out)
-        : resolve(getAllEntriesHelper(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
-    })
-    .catch(reject);
-});
+const getAllEntriesHelper = (params, out = []) =>
+  new Promise((resolve, reject) => {
+    ddb
+      .scan(params)
+      .promise()
+      .then(({ Items, LastEvaluatedKey }) => {
+        out.push(...Items);
+        !LastEvaluatedKey
+          ? resolve(out)
+          : resolve(getAllEntriesHelper(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), out));
+      })
+      .catch(reject);
+  });
 
 // get all entries in dynamodb table
 function getAllEntries() {
   console.log('Getting all entries in dynamodb expenses table');
   let params = {
-    TableName: TABLE,
+    TableName: TABLE
   };
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
@@ -79,7 +83,7 @@ function createItems(numberOfItems) {
         employeeId: 'c722279e-2e11-43bb-a1d2-4999e8a98a6c' // info account
       }
     };
-    ddb.put(params, function(err) {
+    ddb.put(params, function (err) {
       if (err) {
         console.error('Unable to create item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -92,15 +96,15 @@ function createItems(numberOfItems) {
 // Used for testing dynamo limitations - deletes all expenses
 async function deleteAllExpenses() {
   let expenses = await getAllEntries();
-  _.forEach(expenses, expense => {
+  _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expense.id
+        id: expense.id
       }
     };
 
-    ddb.delete(params, function(err) {
+    ddb.delete(params, function (err) {
       if (err) {
         console.error('Unable to delete item. Error JSON:', JSON.stringify(err, null, 2));
       }
@@ -114,11 +118,11 @@ async function deleteAllExpenses() {
 async function copyValues(oldName, newName) {
   let expenses = await getAllEntries();
 
-  _.forEach(expenses, expense => {
+  _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expense.id
+        id: expense.id
       },
       UpdateExpression: `set ${newName} = :e`,
       ExpressionAttributeValues: {
@@ -134,7 +138,7 @@ async function copyValues(oldName, newName) {
     }
 
     // update expense
-    ddb.update(params, function(err, data) {
+    ddb.update(params, function (err, data) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -149,18 +153,18 @@ async function copyValues(oldName, newName) {
  */
 async function removeAttribute(attribute) {
   let expenses = await getAllEntries();
-  _.forEach(expenses, expense => {
+  _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expense.id
+        id: expense.id
       },
       UpdateExpression: `remove ${attribute}`,
       ReturnValues: 'UPDATED_NEW'
     };
 
     // update expense
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       }
@@ -184,7 +188,7 @@ function chooseAction() {
   let valid;
 
   let prompt = `ACTIONS - ${STAGE}\n`;
-  actions.forEach(item => {
+  actions.forEach((item) => {
     prompt += `${item}\n`;
   });
   prompt += `Select an action number [0-${actions.length - 1}]`;

@@ -2,7 +2,7 @@ const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
 const moment = require('moment');
 const _ = require('lodash');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const Logger = require('../js/Logger');
 const logger = new Logger('employeeRoutes');
 const Employee = require('./../models/employee');
@@ -47,7 +47,9 @@ class EmployeeRoutes extends Crud {
    * @param employee - Employee who is getting new budgets
    */
   async _createCurrentBudgets(employee) {
-    logger.log(2, '_createCurrentBudgets',
+    logger.log(
+      2,
+      '_createCurrentBudgets',
       `Creating recurring expenses for user ${employee.id} starting on ${employee.hireDate}`
     );
 
@@ -65,14 +67,14 @@ class EmployeeRoutes extends Crud {
     }
 
     // filter for expense types active today (recurring and includes today within date range)
-    expenseTypeList = _.filter(expenseTypeList, exp => {
+    expenseTypeList = _.filter(expenseTypeList, (exp) => {
       let start = moment(exp.startDate, IsoFormat);
       let end = moment(exp.endDate, IsoFormat);
       return exp.recurringFlag || moment().isBetween(start, end, 'day', '[]');
     });
 
     // create budget for each expense type
-    return _.forEach(expenseTypeList, expenseType => {
+    return _.forEach(expenseTypeList, (expenseType) => {
       let amount;
 
       // get budget amount
@@ -123,8 +125,11 @@ class EmployeeRoutes extends Crud {
       //can only delete a user if they have no expenses
       if (userExpenses.length === 0) {
         employee = new Employee(await this.databaseModify.getEntry(id));
-        userBudgets =
-          await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', id);
+        userBudgets = await this.budgetDynamo.querySecondaryIndexInDB(
+          'employeeId-expenseTypeId-index',
+          'employeeId',
+          id
+        );
         for (let budget of userBudgets) {
           await this.budgetDynamo.removeFromDB(budget.id); //deletes all users empty budgets
         }
@@ -188,7 +193,7 @@ class EmployeeRoutes extends Crud {
 
     let allEmployees = await this.databaseModify.getAllEntriesInDB();
 
-    if (allEmployees.some(e => e.id === employee.id)) {
+    if (allEmployees.some((e) => e.id === employee.id)) {
       let err = {
         code: 403,
         message: 'Unexpected duplicate id created. Please try submitting again.'
@@ -196,7 +201,7 @@ class EmployeeRoutes extends Crud {
       return err;
     }
 
-    if (allEmployees.some(e => e.employeeNumber === employee.employeeNumber)) {
+    if (allEmployees.some((e) => e.employeeNumber === employee.employeeNumber)) {
       let err = {
         code: 403,
         message: 'Employee number already taken. Please enter a new Employee number'
@@ -204,7 +209,7 @@ class EmployeeRoutes extends Crud {
       return err;
     }
 
-    if (allEmployees.some(e => e.email === employee.email)) {
+    if (allEmployees.some((e) => e.email === employee.email)) {
       let err = {
         code: 403,
         message: 'Employee email already taken. Please enter a new email'
@@ -225,7 +230,7 @@ class EmployeeRoutes extends Crud {
     logger.log(3, '_sortBudgets', 'Sorting budgets');
 
     return _.sortBy(budgets, [
-      budget => {
+      (budget) => {
         return moment(budget.fiscalStartDate, IsoFormat);
       }
     ]);
@@ -236,7 +241,7 @@ class EmployeeRoutes extends Crud {
 
     let newEmployee = new Employee(data);
 
-    let oldEmployee = await this.databaseModify.getEntry(data.id).catch(err => {
+    let oldEmployee = await this.databaseModify.getEntry(data.id).catch((err) => {
       throw err;
     });
 
@@ -245,7 +250,7 @@ class EmployeeRoutes extends Crud {
       .then(() => {
         return newEmployee;
       })
-      .catch(err => {
+      .catch((err) => {
         throw err;
       });
   }
@@ -260,25 +265,30 @@ class EmployeeRoutes extends Crud {
       return Promise.resolve(newEmployee);
     }
 
-    logger.log(2, '_updateBudgetAmount',
+    logger.log(
+      2,
+      '_updateBudgetAmount',
       `Attempting to update current budget amounts for user ${oldEmployee.id} from ${oldEmployee.workStatus}%`,
       `to ${newEmployee.workStatus}%`
     );
 
     // get all employee's budgets
-    let employeeBudgets =
-      await this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id);
+    let employeeBudgets = await this.budgetDynamo.querySecondaryIndexInDB(
+      'employeeId-expenseTypeId-index',
+      'employeeId',
+      oldEmployee.id
+    );
     // get all expense types
     let expenseTypes = await this.getExpenseTypes();
     // filter for only current budgets
-    let currentBudgets = _.filter(employeeBudgets, budget => {
+    let currentBudgets = _.filter(employeeBudgets, (budget) => {
       let start = moment(budget.fiscalStartDate, IsoFormat);
       let end = moment(budget.fiscalEndDate, IsoFormat);
       return moment().isBetween(start, end, 'day', '[]');
     });
 
     // update all current budget amounts
-    _.forEach(currentBudgets, budget => {
+    _.forEach(currentBudgets, (budget) => {
       let newBudget = budget;
       let expenseType = _.find(expenseTypes, ['id', newBudget.expenseTypeId]);
       if (expenseType) {
@@ -308,33 +318,34 @@ class EmployeeRoutes extends Crud {
       return Promise.resolve(newEmployee);
     }
 
-    logger.log(2, '_updateBudgetDates',
+    logger.log(
+      2,
+      '_updateBudgetDates',
       `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
       `to ${newEmployee.hireDate}`
     );
     try {
       // get all expense types
-      this.getExpenseTypes().then( expenseTypes => {
+      this.getExpenseTypes().then((expenseTypes) => {
         // filter out non recurring expense types
         let recurringExpenseTypes = _.filter(expenseTypes, ['recurringFlag', true]);
         // for each expense type
-        recurringExpenseTypes.forEach( expenseType => {
+        recurringExpenseTypes.forEach((expenseType) => {
           // get all budgets
-          this.getBudgets(oldEmployee.id, expenseType.id).then( budgets => {
+          this.getBudgets(oldEmployee.id, expenseType.id).then((budgets) => {
             // sort budgets
             let sortedBudgets = this._sortBudgets(budgets);
             // loop through sorted budgets and update fiscal start and end date
-            for (let i = 0; i < sortedBudgets.length; i++)
-            {
+            for (let i = 0; i < sortedBudgets.length; i++) {
               let newBudget = sortedBudgets[i];
-              newBudget.fiscalStartDate = moment(newEmployee.hireDate)
-                .add(i, 'years')
-                .format(IsoFormat);
+              newBudget.fiscalStartDate = moment(newEmployee.hireDate).add(i, 'years').format(IsoFormat);
               newBudget.fiscalEndDate = moment(newEmployee.hireDate)
                 .add(i + 1, 'years')
                 .subtract(1, 'days')
                 .format(IsoFormat);
-              this.budgetDynamo.updateEntryInDB(newBudget).catch(err => { throw err; });
+              this.budgetDynamo.updateEntryInDB(newBudget).catch((err) => {
+                throw err;
+              });
             }
           });
         });

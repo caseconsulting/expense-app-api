@@ -98,7 +98,7 @@
     "readline-sync": "^1.4.10",
     "serve-favicon": "^2.5.0",
     "through": "^2.3.8",
-    "uuid": "^3.4.0"
+    "uuid": "^8.0.0"
   },
   "devDependencies": {
     "acorn": "^7.1.1",
