@@ -1,14 +1,16 @@
 {
+  "root": true,
   "env": {
     "es6": true,
-    "node": true,
-    "jasmine": true
+    "jasmine": true,
+    "node": true
   },
   "extends": ["eslint:recommended"],
   "parserOptions": {
     "sourceType": "module",
     "ecmaVersion": 9
   },
+  "globals": {},
   "rules": {
     "max-len": [
       "error",
@@ -16,14 +18,12 @@
         "code": 120
       }
     ],
-    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "indent": ["error", 2, { "SwitchCase": 1, "flatTernaryExpressions": true }],
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", "avoid-escape"],
     "semi": ["error", "always"],
+    "generator-star-spacing": "off",
+    "no-debugger": "error",
     "no-console": "off"
-  },
-  "globals": {
-    "_": true,
-    "uuid": true
   }
 }
