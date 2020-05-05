@@ -21,6 +21,7 @@ class ExpenseRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expenses');
+    this.s3 = s3;
   } // constructor
 
   /**
@@ -85,6 +86,54 @@ class ExpenseRoutes extends Crud {
       });
   } // _addToBudget
 
+  // /**
+  //  * Change the path name for the most recent receipt object in the aws s3 bucket.
+  //  *
+  //  * @param employeeId - employee id of receipt
+  //  * @param oldExpenseId - old expense id
+  //  * @param newExpenseId - new expense id
+  //  */
+  // async _changeBucket(employeeId, oldExpenseId, newExpenseId) {
+  //   // log method
+  //   logger.log(2, '_changeBucket', `Attempting to copy S3 file from ${oldExpenseId} to ${newExpenseId}`);
+  //
+  //   // compute method
+  //   let listParams = {
+  //     Bucket: BUCKET,
+  //     Prefix: `${employeeId}/${oldExpenseId}`
+  //   };
+  //
+  //   s3.listObjectsV2(listParams, function(err, data) {
+  //     if (data.Contents.length) {
+  //       // get the most recent file in the s3 bucket
+  //       let mostRecentFile;
+  //       _.forEach(data.Contents, file => {
+  //         if (!mostRecentFile || moment(file.LastModified).isAfter(moment(mostRecentFile.LastModified))) {
+  //           mostRecentFile = file;
+  //         }
+  //       });
+  //
+  //       // set up aws copy params
+  //       let params = {
+  //         Bucket: BUCKET,
+  //         CopySource: BUCKET + '/' + mostRecentFile.Key,
+  //         Key: mostRecentFile.Key.replace(oldExpenseId, newExpenseId)
+  //       };
+  //
+  //       // copy the file from old s3 bucket to new s3 bucket
+  //       s3.copyObject(params, function(err) {
+  //         if (err) {
+  //           logger.log(2, '_changeBucket',
+  //             `Failed to copy S3 file from ${employeeId}/${oldExpenseId} to ${employeeId}/${newExpenseId}`
+  //           );
+  //         } else {
+  //           logger.log(2, '_changeBucket', `Successfully copied S3 ${mostRecentFile.Key} to ${params.Key}`);
+  //         }
+  //       });
+  //     }
+  //   });
+  // } // _changeBucket
+
   /**
    * Change the path name for the most recent receipt object in the aws s3 bucket.
    *
@@ -94,7 +143,7 @@ class ExpenseRoutes extends Crud {
    */
   async _changeBucket(employeeId, oldExpenseId, newExpenseId) {
     // log method
-    logger.log(2, '_changeBucket', `Attempting to copy S3 file from ${oldExpenseId} to ${newExpenseId}`);
+    logger.log(2, '_changeBucket', `Attempting to copy S3 bucket from ${oldExpenseId} to ${newExpenseId}`);
 
     // compute method
     let listParams = {
@@ -102,36 +151,80 @@ class ExpenseRoutes extends Crud {
       Prefix: `${employeeId}/${oldExpenseId}`
     };
 
-    s3.listObjectsV2(listParams, function(err, data) {
-      if (data.Contents.length) {
-        // get the most recent file in the s3 bucket
-        let mostRecentFile;
-        _.forEach(data.Contents, file => {
-          if (!mostRecentFile || moment(file.LastModified).isAfter(moment(mostRecentFile.LastModified))) {
-            mostRecentFile = file;
-          }
-        });
+    // set up curry function
+    let curryCopy = _.curry(this._copyFunction);
+    let copySetUp = curryCopy(this.s3, this._copyFunctionLog, employeeId, oldExpenseId, newExpenseId);
 
-        // set up aws copy params
-        let params = {
-          Bucket: BUCKET,
-          CopySource: BUCKET + '/' + mostRecentFile.Key,
-          Key: mostRecentFile.Key.replace(oldExpenseId, newExpenseId)
-        };
-
-        // copy the file from old s3 bucket to new s3 bucket
-        s3.copyObject(params, function(err) {
-          if (err) {
-            logger.log(2, '_changeBucket',
-              `Failed to copy S3 file from ${employeeId}/${oldExpenseId} to ${employeeId}/${newExpenseId}`
-            );
-          } else {
-            logger.log(2, '_changeBucket', `Successfully copied S3 ${mostRecentFile.Key} to ${params.Key}`);
-          }
-        });
-      }
-    });
+    // list the objects in the current bucket and execute copy curry function
+    await this.s3.listObjectsV2(listParams, copySetUp);
   } // _changeBucket
+
+  /**
+   *  Copies a file from one s3 bucket to another.
+   *
+   * @param s3 - the s3 sdk to the buckets
+   * @param copyFunctionLog - function to log status
+   * @param employeeId - employee id of receipt
+   * @param oldExpenseId - old expense id
+   * @param newExpenseId - new expense id
+   * @param err - s3 listObjectsV2 error
+   * @param data - s3 listObjectsV2 data
+   * @return Promise - rejected promise if error exists
+   */
+  async _copyFunction(s3, copyFunctionLog, employeeId, oldExpenseId, newExpenseId, err, data) {
+    // log method
+    logger.log(2, '_changeBucket',
+      `Attempting to copy S3 file from ${employeeId}/${oldExpenseId} to ${employeeId}/${newExpenseId}`
+    );
+
+    // compute method
+    if (err) {
+      // if err exists, return err
+      logger.log(2, '_changeBucket', `Failed to copy S3 bucket from ${oldExpenseId} to ${newExpenseId}`);
+      return Promise.reject(err);
+    }
+
+    if (data.Contents.length) {
+      // if there is a file in the bucket to copy
+      let mostRecentFile; // get the most recent file in the s3 bucket
+      _.forEach(data.Contents, file => {
+        if (!mostRecentFile || moment(file.LastModified).isAfter(moment(mostRecentFile.LastModified))) {
+          mostRecentFile = file;
+        }
+      });
+
+      // set up aws copy params
+      let params = {
+        Bucket: BUCKET,
+        CopySource: BUCKET + '/' + mostRecentFile.Key,
+        Key: mostRecentFile.Key.replace(oldExpenseId, newExpenseId)
+      };
+
+      // copy the file from old s3 bucket to new s3 bucket
+      await s3.copyObject(params, copyFunctionLog);
+    } else {
+      // no files in bucket to copy
+      logger.log(2, '_changeBucket', `No S3 bucket content to copy from ${employeeId}/${oldExpenseId}`);
+    }
+  } // _copyFunction
+
+  /**
+   * Logs the status of copy function. Returns a rejected promise is the status has an error.
+   *
+   * @param error - copy function error
+   * @return Promise - rejected promise if error exists
+   */
+  async _copyFunctionLog(error) {
+    if (error) {
+      logger.log(2, '_changeBucket',
+        'Failed to copy S3 file'
+      );
+      return Promise.reject(error);
+    } else {
+      logger.log(2, '_changeBucket', 'Successfully copied S3 file');
+      logger.log(2, '_changeBucket', 'Successfully copied S3 bucket');
+    }
+  } // _copyFunctionLog
 
   /**
    * Create an expense and update budgets. Returns the expense created.

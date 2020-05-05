@@ -100,7 +100,7 @@ describe('expenseRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let expenseRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseTypeDynamo;
+  let expenseRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseTypeDynamo, s3;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -151,12 +151,17 @@ describe('expenseRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    s3 = jasmine.createSpyObj('s3', [
+      'listObjectsV2',
+      'copyObject'
+    ]);
 
     expenseRoutes = new ExpenseRoutes();
     expenseRoutes.budgetDynamo = budgetDynamo;
     expenseRoutes.databaseModify = databaseModify;
     expenseRoutes.employeeDynamo = employeeDynamo;
     expenseRoutes.expenseTypeDynamo = expenseTypeDynamo;
+    expenseRoutes.s3 = s3;
   });
 
   describe('_addToBudget', () => {
@@ -278,64 +283,216 @@ describe('expenseRoutes', () => {
 
   describe('_changeBucket', () => {
 
-    let employeeId, oldExpenseId, newExpenseId, s3;
+    let employeeId, oldExpenseId, newExpenseId;
 
     beforeEach(() => {
       employeeId = ID;
       oldExpenseId = 'oldId';
       newExpenseId = 'newId';
-      s3 = jasmine.createSpyObj('s3', [
-        'listObjectsV2',
-        'copyObject'
-      ]);
     });
 
-    describe('when there are no files in the s3 bucket', () => {
+    afterEach(() => {
+      expect(s3.listObjectsV2).toHaveBeenCalled();
+    });
 
-      afterEach(() => {
-        expect(s3.copyObject).toHaveBeenCalledTimes(0);
+    it('should call listObjectsV2', done => {
+      expenseRoutes._changeBucket(employeeId, oldExpenseId, newExpenseId);
+      done();
+    }); // should call listObjectsV2
+
+  }); // _changeBucket
+
+  describe('_copyFunction', () => {
+
+    let employeeId, oldExpenseId, newExpenseId, data;
+
+    beforeEach(() => {
+      employeeId = 'Employee_ID';
+      oldExpenseId = 'Old_ID';
+      newExpenseId = 'New_ID';
+    });
+
+    describe('when passed data', () => {
+
+      describe('and does not contain any files', () => {
+
+        beforeEach(() => {
+          data = {
+            Contents: []
+          };
+        });
+
+        afterEach(() => {
+          expect(s3.copyObject).toHaveBeenCalledTimes(0);
+        });
+
+        it('should not copy any files', done => {
+          expenseRoutes._copyFunction(
+            s3,
+            expenseRoutes._copyFunctionLog,
+            employeeId,
+            oldExpenseId,
+            newExpenseId,
+            undefined,
+            data
+          );
+          done();
+        }); // should not copy any files
+      }); // and does not contain any files
+
+      describe('and contains two files', () => {
+
+        describe('and the second file is the most recent', () => {
+
+          let file1, file2, expectedParams;
+
+          beforeEach(() => {
+            file1 = {
+              LastModified: '2009-10-12T17:50:30.000Z',
+              Key: 'Old_ID/file1_id'
+            };
+            file2 = {
+              LastModified: '2009-10-14T17:50:30.000Z',
+              Key: 'Old_ID/file2_id'
+            };
+
+            expectedParams = {
+              Bucket: 'case-consulting-expense-app-attachments-dev',
+              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file2_id',
+              Key: 'New_ID/file2_id'
+            };
+            data = {
+              Contents: [file1, file2]
+            };
+          });
+
+          afterEach(() => {
+            expect(s3.copyObject).toHaveBeenCalledTimes(1);
+            expect(s3.copyObject).toHaveBeenCalledWith(expectedParams, jasmine.any(Function));
+          });
+
+          it('should copy the most recent file', done => {
+            expenseRoutes._copyFunction(
+              s3,
+              expenseRoutes._copyFunctionLog,
+              employeeId,
+              oldExpenseId,
+              newExpenseId,
+              undefined,
+              data
+            );
+            done();
+          }); // should copy the most recent file
+        }); // and the second file is the most recent
+
+        describe('and the first file is the most recent', () => {
+
+          let file1, file2, expectedParams;
+
+          beforeEach(() => {
+            file1 = {
+              LastModified: '2009-10-12T17:50:30.000Z',
+              Key: 'Old_ID/file1_id'
+            };
+            file2 = {
+              LastModified: '2009-10-10T17:50:30.000Z',
+              Key: 'Old_ID/file2_id'
+            };
+
+            expectedParams = {
+              Bucket: 'case-consulting-expense-app-attachments-dev',
+              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file1_id',
+              Key: 'New_ID/file1_id'
+            };
+            data = {
+              Contents: [file1, file2]
+            };
+          });
+
+          afterEach(() => {
+            expect(s3.copyObject).toHaveBeenCalledTimes(1);
+            expect(s3.copyObject).toHaveBeenCalledWith(expectedParams, jasmine.any(Function));
+          });
+
+          it('should copy the most recent file', done => {
+            expenseRoutes._copyFunction(
+              s3,
+              expenseRoutes._copyFunctionLog,
+              employeeId,
+              oldExpenseId,
+              newExpenseId,
+              undefined,
+              data
+            );
+            done();
+          }); // should copy the most recent file
+        }); // and the first file is the most recent
+      }); // and contains two files
+    }); // when passed data
+
+    describe('when passed an error', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = 'Error getting bucket data.';
       });
 
-      it('should not copy any files', () => {
-        expenseRoutes._changeBucket(employeeId, oldExpenseId, newExpenseId);
-      }); // should not copy any files
-    }); // when there are no files in the s3 bucket
+      it('should return an error', done => {
+        expenseRoutes._copyFunction(
+          s3,
+          expenseRoutes._copyFunctionLog,
+          employeeId,
+          oldExpenseId,
+          newExpenseId,
+          err,
+          undefined
+        )
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return an error
+    }); // when passed an error
+  }); // _copyFunction
 
-    // describe('when there are two files in the s3 bucket', () => {
-    //
-    //   let file1, file2, expectedParams;
-    //
-    //   beforeEach(() => {
-    //     file1 = {
-    //       LastModified: '2009-10-12T17:50:30.000Z',
-    //       key: 'oldId/file1_id'
-    //     };
-    //     file2 = {
-    //       LastModified: '2009-10-14T17:50:30.000Z',
-    //       key: 'oldId/file2_id'
-    //     };
-    //
-    //     // HOW TO CHANGE DATA PARAM OF NESTED FUNCTION
-    //     // s3.listObjectsV2.function.data = {
-    //     //   Contents: [file1, file2]
-    //     // };
-    //
-    //     expectedParams = {
-    //       Bucket: `case-consulting-expense-app-attachments-dev`,
-    //       CopySource: 'case-consulting-expense-app-attachments-dev/oldId/file2_id',
-    //       Key: 'newId/file2_id'
-    //     };
-    //   });
-    //
-    //   afterEach(() => {
-    //     expect(s3.copyObject).toHaveBeenCalledWith(expectedParams);
-    //   });
-    //
-    //   it('should copy file2', () => {
-    //     expenseRoutes._changeBucket(employeeId, oldExpenseId, newExpenseId);
-    //   }); // should copy file2
-    // }); // when there are two files in the s3 bucket
-  }); // _changeBucket
+  describe('_copyFunctionLog', () => {
+
+    beforeEach(() => {
+      console.log = jasmine.createSpy('log');
+    });
+
+    afterEach(() => {
+      expect(console.log).toHaveBeenCalled();
+    });
+
+    describe('when there is an error', () => {
+
+      it('should log and return error', done => {
+        expenseRoutes._copyFunctionLog('error')
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual('error');
+            done();
+          });
+      }); // should log and return error
+    }); // when there is an error
+
+    describe('when there is no error', () => {
+
+      it('should log', done => {
+        expenseRoutes._copyFunctionLog();
+        done();
+      });  // should log
+    }); // when there is no error
+  }); // _copyFunctionLog
 
   describe('_create', () => {
 
@@ -1314,7 +1471,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when changing a pending expense
 
       describe('and reimbursing an expense', () => {
@@ -1326,7 +1483,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when reimbursing an expense
 
       describe('and unreimbursing an expense', () => {
@@ -1338,7 +1495,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when unreimbursing an expense
 
       describe('and changing a reimbursed expense', () => {
@@ -1350,7 +1507,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when changing a reimbursed expense
     }); // when expense types are the same
 
@@ -1370,7 +1527,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when changing a pending expense
 
       describe('and reimbursing an expense', () => {
@@ -1382,7 +1539,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when reimbursing an expense
 
       describe('and unreimbursing an expense', () => {
@@ -1394,7 +1551,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when unreimbursing an expense
 
       describe('and changing a reimbursed expense', () => {
@@ -1406,7 +1563,7 @@ describe('expenseRoutes', () => {
 
         it('should log', () => {
           expenseRoutes._logUpdateType(oldExpense, newExpense);
-        });
+        }); // should log
       }); // when changing a reimbursed expense
     }); // when expense types are different
   }); // _logUpdateType
