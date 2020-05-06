@@ -1,19 +1,19 @@
-const express = require('express');
-const databaseModify = require('../js/databaseModify');
-const budgetDynamo = new databaseModify('budgets');
+const Budget = require('./../models/budget');
 const Logger = require('../js/Logger');
-const logger = new Logger('budgetRoutes');
-
+const databaseModify = require('../js/databaseModify');
+const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
-const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-// Authentication middleware. When used, the
-// Access Token must exist and be verified against
-// the Auth0 JSON Web Key Set
+const jwt = require('express-jwt');
+const _ = require('lodash');
+
+const logger = new Logger('budgetRoutes');
+const budgetDynamo = new databaseModify('budgets');
+
+// Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
-  // Dynamically provide a signing key
-  // based on the kid in the header and
-  // the signing keys provided by the JWKS endpoint.
+  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
+  // endpoint.
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
@@ -26,51 +26,124 @@ const checkJwt = jwt({
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
   algorithms: ['RS256']
 });
+
 class Budgets {
-  constructor(){
-    this.budgetDynamo = budgetDynamo;
+
+  constructor() {
     this._router = express.Router();
-    this._router.get('/employee/:id', checkJwt, getUserInfo, this.getEmployeeBudgets.bind(this));
-    this._router.get('/', checkJwt, getUserInfo, this.getCaller.bind(this));
-  }
+    this._checkJwt = checkJwt;
+    this._getUserInfo = getUserInfo;
+    this._router.get('/', this._checkJwt, this._getUserInfo, this._getCallerBudgets.bind(this));
+    this._router.get('/employee/:id', this._checkJwt, this._getUserInfo, this._getEmployeeBudgets.bind(this));
+    this.budgetDynamo = budgetDynamo;
+  } // constructor
 
+  /**
+   * Read all budgets for employee caller. If successful, sends 200 status request with the budgets read and returns
+   * the budgets.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - employee budgets read
+   */
+  async _getCallerBudgets(req, res) {
+    // log method
+    logger.log(2, 'getCallerBudgets', `Attempting to read all budgets for employee caller ${req.employee.id}`);
+
+    // compute method
+    return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.employee.id)
+      .then(budgetsData => {
+        // log success
+        logger.log(2, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
+
+        let budgets = _.map(budgetsData, budgetData => {
+          return new Budget(budgetData);
+        });
+
+        // send successful 200 status
+        res.status(200).send(budgets);
+
+        // return employee budgets
+        return budgets;
+      })
+      .catch(err => {
+        // log error
+        logger.log(2, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.employee.id}`);
+
+        // send error status
+        this._sendError(res, err);
+
+        // return error
+        return Promise.reject(err);
+      });
+  } // getCallerBudgets
+
+  /**
+   * Read all budgets for employee. If successful, sends 200 status request with the budgets read and returns the
+   * employee's budgets.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - employee budgets read
+   */
+  async _getEmployeeBudgets(req, res) {
+    // log method
+    logger.log(2, 'getEmployeeBudgets', `Attempting to read all budgets for employee ${req.params.id}`);
+
+    // compute method
+    return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
+      .then(budgetsData => {
+        // log success
+        logger.log(2, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
+
+        let budgets = _.map(budgetsData, budgetData => {
+          return new Budget(budgetData);
+        });
+
+        // send successful 200 status
+        res.status(200).send(budgets);
+
+        // return employee budgets
+        return budgets;
+      })
+      .catch(err => {
+        // log error
+        logger.log(2, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.params.id}`);
+
+        // send error status
+        this._sendError(res, err);
+
+        // return error
+        return Promise.reject(err);
+      });
+  } // getEmployeeBudgets
+
+  /**
+   * Returns the instace express router.
+   *
+   * @return Router Object - express router
+   */
   get router() {
+    // log method
+    logger.log(2, 'router', 'Getting router');
+
     return this._router;
-  }
+  } // router
 
-  getEmployeeBudgets(req, res) {
-    logger.log(2, 'getEmployeeBudgets', `Getting budgets for user ${req.params.id} if admin`);
+  /**
+   * Send api response error status.
+   *
+   * @param res - api response
+   * @param err - status error
+   * @return API Status - error status
+   */
+  _sendError(res, err) {
+    // log method
+    logger.log(2, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
-    return this.budgetDynamo
-      .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
-      .then(data => {
-        res.status(200).send(data);
-        return data;
-      })
-      .catch(err => {
-        throw err;
-      });
-
-  }
-
-  getCaller(req, res) {
-    logger.log(2, 'getCaller', `Getting budgets for user ${req.params.id}`);
-
-    return this.budgetDynamo
-      .querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.employee.id)
-      .then(data => {
-        return data ? res.status(200).send(data) : res.status(200).send([]);
-      })
-      .catch(err => {
-        throw err;
-      });
-  }
-
-  _isAdmin(req) {
-    logger.log(3, '_isAdmin', 'Checking if user role is admin');
-
-    return req.employee.employeeRole === 'admin';
-  }
-}
+    // return error status
+    return res.status(err.code).send(err);
+  } // _sendError
+} // Budgets
 
 module.exports = Budgets;

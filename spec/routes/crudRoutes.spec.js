@@ -198,7 +198,7 @@ describe('crudRoutes', () => {
         expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
       }); // should return the full expense type budget
     }); // when employee is full time
-  });
+  }); // calcAdjustedAmount
 
   describe('_checkPermissionToCreate', () => {
 
@@ -1616,6 +1616,7 @@ describe('crudRoutes', () => {
   }); // _readWrapper
 
   describe('router', () => {
+    
     it('should return the router', () => {
       expect(crudRoutes.router).toEqual(_ROUTER);
     }); // should return the router

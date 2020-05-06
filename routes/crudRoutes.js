@@ -1,12 +1,12 @@
 const Budget = require('./../models/budget');
 const DatabaseModify = require('../js/databaseModify');
+const Logger = require('../js/Logger');
+const TrainingUrls = require('../models/trainingUrls');
 const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const Logger = require('../js/Logger');
 const moment = require('moment');
-const TrainingUrls = require('../models/trainingUrls');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 

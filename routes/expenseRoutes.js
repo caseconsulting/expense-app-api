@@ -6,8 +6,8 @@ const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const _ = require('lodash');
 const moment = require('moment');
+const _ = require('lodash');
 
 const logger = new Logger('expenseRoutes');
 const ISOFORMAT = 'YYYY-MM-DD';

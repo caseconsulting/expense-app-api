@@ -1,12 +1,12 @@
-const express = require('express');
-const databaseModify = require('../js/databaseModify');
-const _ = require('lodash');
 const Logger = require('../js/Logger');
+const databaseModify = require('../js/databaseModify');
+const express = require('express');
+const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
+const jwksRsa = require('jwks-rsa');
+const jwt = require('express-jwt');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
-const jwt = require('express-jwt');
-const jwksRsa = require('jwks-rsa');
+const _ = require('lodash');
 
 const logger = new Logger('attachmentRoutes');
 const expenseDynamo = new databaseModify('expenses');
