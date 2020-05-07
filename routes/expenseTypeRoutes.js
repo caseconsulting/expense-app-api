@@ -1,267 +1,561 @@
-const Crud = require('./crudRoutes');
 const databaseModify = require('../js/databaseModify');
+const Budget = require('./../models/budget');
+const Crud = require('./crudRoutes');
+const Employee = require('./../models/employee');
+// const Expense = require('./../models/expense');
+const ExpenseType = require('./../models/expenseType');
+const Logger = require('../js/Logger');
 const Moment = require('moment');
 const MomentRange = require('moment-range');
-const IsoFormat = 'YYYY-MM-DD';
 const moment = MomentRange.extendMoment(Moment);
 const _ = require('lodash');
-const Logger = require('../js/Logger');
+
 const logger = new Logger('expenseTypeRoutes');
-const { v4: uuid } = require('uuid');
-const ExpenseType = require('./../models/expenseType');
+const ISOFORMAT = 'YYYY-MM-DD';
 
 class ExpenseTypeRoutes extends Crud {
+
   constructor() {
     super();
     this.databaseModify = new databaseModify('expense-types');
-    this.budgetDynamo = new databaseModify('budgets');
-    this.employeeDynamo = new databaseModify('employees');
-    this.expenseData = new databaseModify('expenses');
-  }
+  } // constructor
 
-  _create(data) {
-    logger.log(1, '_create', `Attempting to create expense type ${data.id}`);
+  /**
+   * Create an expense type. Returns the expense type created.
+   *
+   * @param data - data of expense type
+   * @return ExpenseType - expense type created
+   */
+  async _create(data) {
+    // log method
+    logger.log(2, '_create', `Attempting to create expense type ${data.budgetName} with ID ${data.id}`);
 
     let expenseType = new ExpenseType(data);
 
-    return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType))
-      .then(() => this._createBudgets(expenseType))
-      .catch((err) => {
-        logger.log(1, '_create', `Failed to create expense type ${data.id}`);
-        logger.error('_create', `Error code: ${err.code}`);
-        throw err;
+    return this._validateExpenseType(expenseType)
+      .then(() => {
+        // log success
+        logger.log(2, '_create', `Successfully created expense type ${data.budgetName} with ID ${data.id}`);
+
+        // return created expense type
+        return Promise.resolve(expenseType);
+      })
+      .catch(err => {
+        // log error
+        logger.log(2, '_create', `Failed to create expense type ${data.budgetName} with ID ${data.id}`);
+
+        // return rejected promise
+        return Promise.reject(err);
       });
-  }
+  } // _create
 
-  async _createBudgets(expenseType) {
-    logger.log(1, '_createBudgets', `Creating budgets for expense type ${expenseType.id}`);
-    let employees = await this.employeeDynamo.getAllEntriesInDB();
-    _.forEach(employees, (employee) => {
-      if (this._hasAccess(employee, expenseType)) {
-        let adjustedAmount = this._adjustedBudget(expenseType, employee);
-        let start;
-        let end;
-        if (
-          !expenseType.recurringFlag &&
-          !this._isEmpty(expenseType.startDate) &&
-          !this._isEmpty(expenseType.startDate)
-        ) {
-          start = expenseType.startDate;
-          end = expenseType.endDate;
-        } else {
-          let dates = this.getBudgetDates(employee.hireDate);
-          start = dates.startDate.format(IsoFormat);
-          end = dates.endDate.format(IsoFormat);
-        }
-        let newBudget = {
-          id: this._getUUID(),
-          expenseTypeId: expenseType.id,
-          employeeId: employee.id,
-          reimbursedAmount: 0,
-          pendingAmount: 0,
-          fiscalStartDate: start,
-          fiscalEndDate: end,
-          amount: adjustedAmount
-        };
-        this.budgetDynamo.addToDB(newBudget);
-      }
-    });
-    return expenseType;
-  }
-
-  _adjustedBudget(expenseType, employee) {
-    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
-  }
-
-  async _checkDates(expenseType) {
-    logger.log(2, '_checkDates', 'Validating expense type dates');
-
-    let start = expenseType.startDate;
-    let end = expenseType.endDate;
-    let recurringFlag = expenseType.recurringFlag;
-    let id = expenseType.id;
-
-    let err = {
-      code: 403,
-      message: 'The dates are invalid.'
-    };
-
-    let valid = recurringFlag;
-
-    let typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
-    let allPurchaseDates = _.map(typeExpenses, 'purchaseDate');
-    let firstExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
-    let lastExpenseDate = moment(_.first(allPurchaseDates), IsoFormat);
-
-    _.each(allPurchaseDates, (current) => {
-      let currentDate = moment(current, IsoFormat);
-      if (currentDate.isBefore(firstExpenseDate)) {
-        firstExpenseDate = currentDate;
-      }
-      if (currentDate.isAfter(lastExpenseDate)) {
-        lastExpenseDate = currentDate;
-      }
-    });
-
-    if (!valid && !!start && !!end) {
-      let startDate = moment(start, IsoFormat);
-      let endDate = moment(end, IsoFormat);
-      if (startDate.isBefore(endDate)) {
-        if (startDate.isAfter(firstExpenseDate) && endDate.isBefore(lastExpenseDate)) {
-          err.message =
-            `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}` +
-            ` and end date must be after ${lastExpenseDate.format(IsoFormat)}.`;
-        } else if (startDate.isAfter(firstExpenseDate)) {
-          err.message = `Expenses exist. Start date must be before ${firstExpenseDate.format(IsoFormat)}.`;
-        } else if (endDate.isBefore(lastExpenseDate)) {
-          err.message = `Expenses exist. End date must be after ${lastExpenseDate.format(IsoFormat)}.`;
-        } else {
-          valid = true;
-        }
-      }
-    }
-
-    return valid ? expenseType : Promise.reject(err);
-  }
-
-  _checkFields(expenseType) {
-    logger.log(2, '_checkFields', `Validating expense type ${expenseType.id}`);
-
-    let idCheck = !!expenseType.id;
-    let budgetNameCheck = !!expenseType.budgetName;
-    let budgetCheck = expenseType.budget > 0;
-    let descriptionCheck = !!expenseType.description;
-    let valid = idCheck && budgetNameCheck && budgetCheck && descriptionCheck;
-    let err = {
-      code: 403,
-      message: 'One of the required fields is empty.'
-    };
-    return valid ? Promise.resolve(expenseType) : Promise.reject(err);
-  }
-
+  /**
+   * Delete an expense type. Returns the expense type deleted.
+   *
+   * @param id - id of expense type
+   * @return ExpenseType - expense type deleted
+   */
   async _delete(id) {
-    logger.log(1, '_delete', `Attempting to delete expense type ${id}`);
-
-    let expenseType, typeExpenses;
+    // log method
+    logger.log(2, '_delete', `Attempting to delete expense type ${id}`);
 
     try {
-      typeExpenses = await this.expenseData.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', id);
-      //can only delete an expense type if they have no expense data
-      if (typeExpenses.length === 0) {
-        // TODO: remove any created budgets with this expense type
-        let expenseTypeData = await this.databaseModify.getEntry(id);
-        expenseType = new ExpenseType(expenseTypeData);
-        return expenseType;
-      } else {
-        let err = {
-          code: 403,
-          message: 'Expense Type can not be deleted if they have expenses'
-        };
-        throw err;
-      }
+      let expenseType = new ExpenseType(await this.databaseModify.getEntry(id));
+
+      return this._validateDelete(expenseType)
+        .then(() => {
+          // log success
+          logger.log(2, '_delete', `Successfully deleted expense expense type ${id}`);
+
+          // return expense type deleted
+          return expenseType;
+        })
+        .catch(err => {
+          throw err;
+        });
     } catch (err) {
-      logger.log(1, '_delete', `Failed to delete expense type ${id}`);
+      // log error
+      logger.log(2, '_delete', `Failed to delete expense type ${id}`);
 
-      throw err;
+      // return rejected promise
+      return Promise.reject(err);
     }
-  }
+  } // _delete
 
-  _getUUID() {
-    logger.log(4, '_getUUID', 'Getting random uuid');
-    return uuid();
-  }
-
-  _hasAccess(employee, expenseType) {
-    if (employee.workStatus == 0) {
-      return false;
-    } else if (expenseType.accessibleBy == 'ALL') {
-      return true;
-    } else if (expenseType.accessibleBy == 'FULL TIME') {
-      return employee.workStatus == 100;
-    } else if (expenseType.accessibleBy == 'PART TIME') {
-      return employee.workStatus > 0 && employee.workStatus < 100;
-    } else {
-      return expenseType.accessibleBy.includes(employee.id);
-    }
-  }
-
-  _isEmpty(field) {
-    logger.log(4, '_isEmpty', 'Checking if field exists');
-    return field == null || field.trim().length <= 0;
-  }
-
-  async _read(data) {
-    return this.databaseModify.getEntry(data.id); // read from database
-  }
-
-  /*
-   * Updates all budgets with the given expense type
+  /**
+   * Reads an expense type from the database. Returns the expense type read.
+   *
+   * @param data - parameters of expense type
+   * @return ExpenseType - expense type read
    */
-  async _updateBudgets(expenseType) {
-    logger.log(2, '_updateBudgets', `Updating budgets for expense type ${expenseType.id}`);
+  async _read(data) {
+    // log method
+    logger.log(2, '_read', `Attempting to read expense type ${data.id}`);
 
-    // get the old expense type
-    let oldExpenseType = await this.databaseModify.getEntry(expenseType.id);
+    // compute method
+    try {
+      let expenseType = new ExpenseType(await this.databaseModify.getEntry(data.id)); // read from database
 
-    let sameStart = oldExpenseType.startDate == expenseType.startDate;
-    let sameEnd = oldExpenseType.endDate == expenseType.endDate;
-    let sameBudget = oldExpenseType.budget == expenseType.budget;
-    if (!(sameStart && sameEnd && sameBudget)) {
-      // need to update buget
-      // get all the budgets for the expense type
-      let budgets = await this.budgetDynamo.querySecondaryIndexInDB(
-        'expenseTypeId-index',
-        'expenseTypeId',
-        expenseType.id
-      );
+      // log success
+      logger.log(2, '_read', `Successfully read expense type ${data.id}`);
 
-      let employees;
-      if (!sameBudget) {
-        // if the budget amount is changed, get all the employees
-        employees = await this.employeeDynamo.getAllEntriesInDB();
+      // return expense type
+      return expenseType;
+    } catch (err) {
+      // log error
+      logger.log(2, '_read', `Failed to read expense type ${data.id}`);
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // _read
+
+  /**
+   * Update expense type and budgets. Returns the expense type updated.
+   *
+   * @param data - data of expense type
+   * @return ExpenseType - expense type updated
+   */
+  async _update(data) {
+    // log method
+    logger.log(2, '_update', `Attempting to update expense type ${data.budgetName} with ID ${data.id}`);
+
+    // compute method
+    try {
+      let newExpenseType = new ExpenseType(data);
+      let oldExpenseType = new ExpenseType(await this.databaseModify.getEntry(data.id));
+
+      return this._validateExpenseType(newExpenseType)
+        .then(() => this._validateUpdate(oldExpenseType, newExpenseType))
+        .then(() => this._validateDates(oldExpenseType, newExpenseType))
+        .then(() => this._updateBudgets(oldExpenseType, newExpenseType))
+        .then(() => {
+          // log success
+          if (oldExpenseType.budgetName == newExpenseType.budgetName) {
+            logger.log(2, '_update',
+              `Successfully updated expense type ${oldExpenseType.budgetName} with ID ${data.id}`
+            );
+          } else {
+            logger.log(2, '_update',
+              `Successfully updated expense type ${oldExpenseType.budgetName} to ${newExpenseType.budgetName} with ID`,
+              `${data.id}`
+            );
+          }
+
+          // return expense updated
+          return newExpenseType;
+        })
+        .catch(err => {
+          throw err;
+        });
+    } catch (err) {
+      // log error
+      logger.log(2, '_update', `Failed to update expense type ${data.budgetName} with ID ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _update
+
+  /**
+   * Updates budgets when changing an expense type.
+   *
+   * @param expenseType - ExpenseType to be updated from
+   * @param newExpenseType - ExpenseType to be updated to
+   * @return Array - Array of Budgets updated
+   */
+  async _updateBudgets(oldExpenseType, newExpenseType) {
+    // log method
+    logger.log(2, '_updateBudgets', `Attempting to update budgets for expense type ${oldExpenseType.id}`);
+
+    try {
+      let budgets = [];
+
+      let diffStart = oldExpenseType.startDate != newExpenseType.startDate;
+      let diffEnd = oldExpenseType.endDate != newExpenseType.endDate;
+      let diffBudget = oldExpenseType.budget != newExpenseType.budget;
+
+      if (diffStart || diffEnd || diffBudget) {
+        // need to update budgets
+        let budgetsData =
+          await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', newExpenseType.id);
+
+        budgets = _.map(budgetsData, budgetData => {
+          return new Budget(budgetData);
+        });
+
+        let employees;
+        if (diffBudget) {
+          // get all employees if changing budget amount
+          let employeesData = await this.employeeDynamo.getAllEntriesInDB();
+          employees = _.map(employeesData, employeeData => {
+            return new Employee(employeeData);
+          });
+        }
+
+        let i; // index of budgets
+        for (i = 0; i < budgets.length; i++) {
+          if (diffStart) {
+            // update the fiscal start date
+            budgets[i].fiscalStartDate = newExpenseType.startDate;
+          }
+
+          if (diffEnd) {
+            // update the fiscal end date
+            budgets[i].fiscalEndDate = newExpenseType.endDate;
+          }
+
+          if (diffBudget) {
+            // update the budget amount
+            let employee = _.find(employees, ['id', budgets[i].employeeId]);
+            console.log(employee);
+            console.log(this.hasAccess(employee, newExpenseType));
+            if (this.hasAccess(employee, newExpenseType)) {
+              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
+            } else {
+              budgets[i].amount = 0;
+            }
+          }
+
+          // update budget in database
+          await this.budgetDynamo.updateEntryInDB(budgets[i])
+            .then(() => {
+              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+            })
+            .catch(err => {
+              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+              throw err;
+            });
+        }
       }
 
-      budgets.forEach((budget) => {
-        if (!this._isEmpty(expenseType.startDate) && !sameStart) {
-          // update the fiscal start date
-          budget.fiscalStartDate = expenseType.startDate;
-        }
+      // log success
+      logger.log(2, '_updateBudgets', `Successfully updated budgets for expense type ${oldExpenseType.id}`);
 
-        if (!this._isEmpty(expenseType.endDate) && !sameEnd) {
-          // update the fiscal end date
-          budget.fiscalEndDate = expenseType.endDate;
-        }
+      // return updated bugets
+      return budgets;
+    } catch (err) {
+      // log error
+      logger.log(2, '_updateBudgets', `Failed to update budgets for expense type ${oldExpenseType.id}`);
 
-        if (!sameBudget) {
-          // update the budget amount
-          let employee = _.find(employees, ['id', budget.employeeId]);
-          if (this._hasAccess(employee, expenseType)) {
-            budget.amount = this._adjustedBudget(expenseType, employee);
-          } else {
-            budget.amount = 0;
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateBudgets
+
+  /**
+   * Validate that an expense type dates are valid. Return true if the start date is before all expense purchase dates
+   * and end date is after all expense purchase dates
+   *
+   * @param expenseType - ExpenseType to be validated
+   * @return ExpenseType - validated expense type
+   */
+  async _validateDates(expenseType) {
+    // log method
+    logger.log(2, '_validateDates', `Validating dates for expense type ${expenseType.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense type dates.'
+      };
+
+      if (!expenseType.recurringFlag) {
+        // expense type is not recurring
+        // get all the expense type expenses
+        let expenses =
+          await this.expenseDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
+
+        if (expenses.length > 0) {
+          // map all purchase dates
+          let purchaseDates = _.map(expenses, expense => {
+            return moment(expense.purchaseDate, ISOFORMAT);
+          });
+
+          let firstPurchaseDate = _.first(purchaseDates); // current first purchase date
+          let lastPurchaseDate = _.first(purchaseDates); // current last purchase date
+
+          // find first and last purchase dates
+          _.forEach(purchaseDates, purchaseDate => {
+            if (purchaseDate.isBefore(firstPurchaseDate)) {
+              // update the first purchase date
+              firstPurchaseDate = purchaseDate;
+            }
+            if (purchaseDate.isAfter(lastPurchaseDate)) {
+              // update the last purchase date
+              lastPurchaseDate = purchaseDate;
+            }
+          });
+
+
+          if (moment(expenseType.startDate, ISOFORMAT).isAfter(firstPurchaseDate)) {
+            // expense type start date is after the first purchase date
+            // log error
+
+            logger.log(2, '_validateDates',
+              `Expense type start date ${expenseType.startDate} is after first expense purchased on`,
+              `${firstPurchaseDate.format(ISOFORMAT)}`
+            );
+
+            // throw error
+            err.message = `Start date must be before ${firstPurchaseDate.add(1, 'd').format(ISOFORMAT)}.`;
+            throw err;
+          }
+
+          if (moment(expenseType.endDate, ISOFORMAT).isBefore(lastPurchaseDate)) {
+            // expense type end date is before the last purchase date
+            // log error
+            logger.log(2, '_validateDates',
+              `Expense type end date ${expenseType.endDate} is before last expense purchased on`,
+              `${lastPurchaseDate.format(ISOFORMAT)}`
+            );
+
+            // throw error
+            err.message = `End date must be after ${lastPurchaseDate.subtract(1, 'd').format(ISOFORMAT)}.`;
+            throw err;
           }
         }
+      }
 
-        this.budgetDynamo.updateEntryInDB(budget);
-      });
+      // log success
+      logger.log(2, '_validateDates', `Successfully validated dates for expense type ${expenseType.id}`);
+
+      // return expense type on success
+      return Promise.resolve(expenseType);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateDates', `Failed to validate dates for expense type ${expenseType.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
     }
-    return expenseType;
-  }
+  } // _validateDates
 
-  _update(data) {
-    logger.log(1, '_update', `Attempting to update expense type ${data.id}`);
+  /**
+  * Validate that an expense type can be deleted. Returns the expense if the expense type to be deleted is successfully
+  * validated, otherwise returns an error.
+  *
+  * @param expenseType - ExpenseType to validate delete
+  * @return ExpenseType - validated expense type
+  */
+  async _validateDelete(expenseType) {
+    // log method
+    logger.log(2, '_validateDelete', `Validating delete for expense type ${expenseType.id}`);
 
-    let expenseType = new ExpenseType(data);
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating delete for expense.'
+      };
 
-    return this._checkFields(expenseType)
-      .then(() => this._checkDates(expenseType))
-      .then(() => this._updateBudgets(expenseType))
-      .catch((err) => {
-        logger.log(1, '_update', `Failed to update expense type ${data.id}`);
+      // get all expenses for this expense type
+      let expenses =
+        await this.expenseDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
 
+      // validate there are no expenses with this expense type
+      if (expenses.length > 0) {
+        // log error
+        logger.log(2, '_validateDelete', `Expenses exist for expense type ${expenseType.budgetName}`);
+
+        // throw error
+        err.message = 'Cannot delete an expense type with expenses.';
         throw err;
-      });
-  }
-}
+      }
+
+      // log success
+      logger.log(2, '_validateDelete', `Successfully validated delete for expense type ${expenseType.id}`);
+
+      // return expense type on success
+      return expenseType;
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateDelete', `Failed to validate delete for expense type ${expenseType.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validatDelete
+
+  /**
+   * Validate that an expense type is valid. Returns the expense type if the expense type is successfully validated,
+   * otherwise returns an error.
+   *
+   * @param expenseType - ExpenseType object to be validated
+   * @return ExpenseType - validated expense type
+   */
+  _validateExpenseType(expenseType) {
+    // log method
+    logger.log(2, '_validateExpense', `Validating expense ${expenseType.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense type.'
+      };
+
+      // validate id
+      if (this.isEmpty(expenseType.id)) {
+        // log error
+        logger.log(2, '_validateExpenseType', 'Expense type id is empty');
+
+        // throw error
+        err.message = 'Invalid expense type id.';
+        throw err;
+      }
+
+      // validate budget name
+      if (this.isEmpty(expenseType.budgetName)) {
+        // log error
+        logger.log(2, '_validateExpenseType', 'Expense type budget name is empty');
+
+        // throw error
+        err.message = 'Invalid expense type budget name.';
+        throw err;
+      }
+
+      // validate budget
+      if (this.isEmpty(expenseType.budget)) {
+        // log error
+        logger.log(2, '_validateExpenseType', 'Expense type budget is empty');
+
+        // throw error
+        err.message = 'Invalid expense type budget.';
+        throw err;
+      }
+
+      // validate description
+      if (this.isEmpty(expenseType.description)) {
+        // log error
+        logger.log(2, '_validateExpenseType', 'Expense type description is empty');
+
+        // throw error
+        err.message = 'Invalid expense type description.';
+        throw err;
+      }
+
+      // validate accessibleBy
+      if (this.isEmpty(expenseType.accessibleBy)) {
+        // log error
+        logger.log(2, '_validateExpenseType', 'Expense type accessibleBy is empty');
+
+        // throw error
+        err.message = 'Invalid expense type accessible by.';
+        throw err;
+      }
+
+      // validate start and end date
+      if (!expenseType.recurringFlag) {
+        // expense type is non recurring
+        if (this.isEmpty(expenseType.startDate)) {
+          // log error
+          logger.log(2, '_validateExpenseType', 'Expense type is not recurring and missing a start date');
+
+          // throw error
+          err.message = 'Start date required for non recurring expense type.';
+          throw err;
+        } else if (this.isEmpty(expenseType.endDate)) {
+          // log error
+          logger.log(2, '_validateExpenseType', 'Expense type is not recurring and missing an end date');
+
+          // throw error
+          err.message = 'End date required for non recurring expense type.';
+          throw err;
+        } else if (moment(expenseType.endDate, ISOFORMAT).isBefore(expenseType.startDate, ISOFORMAT)) {
+          // log error
+          logger.log(2, '_validateExpenseType',
+            `Start date ${expenseType.startDate} is before end date ${expenseType.endDate}`
+          );
+
+          // throw error
+          err.message = 'End date must be after start date.';
+          throw err;
+        }
+      }
+
+      // log success
+      logger.log(2, '_validateExpenseType', `Successfully validated expense type ${expenseType.id}`);
+
+      // return expense on success
+      return Promise.resolve(expenseType);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateExpenseType', `Failed to validate expense type ${expenseType.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateExpenseType
+
+  /**
+   * Validates that an expense type can be updated. Return the expense type if the expense type being updated is valid.
+   *
+   * @param oldExpenseType - ExpenseType being updated from
+   * @param newExpenseType - ExpenseType being updated to
+   * @return ExpenseType - validated expense type
+   */
+  _validateUpdate(oldExpenseType, newExpenseType) {
+    // log method
+    logger.log(2, '_validateUpdate', `Validating update for expense type ${oldExpenseType.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating expense type.'
+      };
+
+      // validate expense type id
+      if (oldExpenseType.id != newExpenseType.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Old expense type id ${oldExpenseType.id} does not match new expense type id ${newExpenseType.id}`
+        );
+
+        // throw error
+        err.message = 'Error validating expense type IDs.';
+        throw err;
+      }
+
+      // validate expense type over draft flag
+      if (oldExpenseType.odFlag != newExpenseType.odFlag) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Expense type odFlag cannot be changed from ${oldExpenseType.odFlag} to ${newExpenseType.odFlag}`
+        );
+
+        // throw error
+        err.message = 'Cannot change expense type overdraft flag.';
+        throw err;
+      }
+
+      // validate expense type recurring flag
+      if (oldExpenseType.recurringFlag != newExpenseType.recurringFlag) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Expense type recurringFlag cannot be changed from ${oldExpenseType.recurringFlag} to`,
+          `${newExpenseType.recurringFlag}`
+        );
+
+        // throw error
+        err.message = 'Cannot change expense type recurring flag.';
+        throw err;
+      }
+      // log success
+      logger.log(2, '_validateUpdate', `Successfully validated update for expense type ${oldExpenseType.id}`);
+
+      // return new expense on success
+      return Promise.resolve(newExpenseType);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateUpdate', `Failed to validate update for expense type ${oldExpenseType.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateUpdate
+} // ExpenseTypeRoutes
+
 module.exports = ExpenseTypeRoutes;

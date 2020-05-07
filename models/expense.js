@@ -48,12 +48,13 @@ class Expense {
   }
 
   /**
-   * Check if the attribute is empty. Returns true if attribute is null or a space holder.
+   * Checks if a value is empty. Returns true if the value is null or a single character space String.
    *
-   * @return boolean - attribute is empty
+   * @param value - value to check
+   * @return boolean - value is empty
    */
-  isEmpty(attribute) {
-    return attribute == null || attribute.trim().length <= 0;
+  isEmpty(value) {
+    return value == null || value == 0;
   } // isEmpty
 
   /**

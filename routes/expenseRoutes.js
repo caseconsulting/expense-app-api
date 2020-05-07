@@ -281,7 +281,7 @@ class ExpenseRoutes extends Crud {
    * Delete an expense. Returns the expense deleted.
    *
    * @param id - id of expense
-   * @return Object - expense deleted
+   * @return Expense - expense deleted
    */
   async _delete(id) {
     // log method
@@ -309,9 +309,7 @@ class ExpenseRoutes extends Crud {
         });
     } catch (err) {
       // log error
-      logger.log(2, '_delete',
-        `Failed to delete expense ${id}`
-      );
+      logger.log(2, '_delete', `Failed to delete expense ${id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -635,9 +633,7 @@ class ExpenseRoutes extends Crud {
       }
     } catch (err) {
       // log error
-      logger.log(2, '_update',
-        `Failed to update expense ${data.id}`
-      );
+      logger.log(2, '_update', `Failed to update expense ${data.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -795,8 +791,12 @@ class ExpenseRoutes extends Crud {
             logger.log(2, '_updateBudgets', `Attempting to delete budget ${sortedBudgets[i].id}`);
 
             await this.budgetDynamo.removeFromDB(sortedBudgets[i].id)
-              .then(data => {
-                logger.log(2, '_updateBudgets', `Successfully deleted budget ${data.id}`);
+              .then(() => {
+                logger.log(2, '_updateBudgets', `Successfully deleted budget ${sortedBudgets[i].id}`);
+              })
+              .catch(err => {
+                logger.log(2, '_updateBudgets', `Failed delete budget ${sortedBudgets[i].id}`);
+                throw err;
               });
 
             // remove budget from sorted budgets
@@ -809,8 +809,12 @@ class ExpenseRoutes extends Crud {
             // update the current budget if it is not empty
             logger.log(2, '_updateBudgets', `Attempting to update budget ${sortedBudgets[i].id}`);
             await this.budgetDynamo.updateEntryInDB(sortedBudgets[i])
-              .then(data => {
-                logger.log(2, '_updateBudgets', `Successfully updated budget ${data.id}`);
+              .then(() => {
+                logger.log(2, '_updateBudgets', `Successfully updated budget ${sortedBudgets[i].id}`);
+              })
+              .catch(err => {
+                logger.log(2, '_updateBudgets', `Failed update budget ${sortedBudgets[i].id}`);
+                throw err;
               });
           }
         }
@@ -907,9 +911,7 @@ class ExpenseRoutes extends Crud {
       // validate expense is not reimbursed
       if (expense.isReimbursed()) {
         // log error
-        logger.log(2, '_validateDelete',
-          `Expense ${expense.id} is reimbursed`
-        );
+        logger.log(2, '_validateDelete', `Expense ${expense.id} is reimbursed`);
 
         // throw error
         err.message = 'Cannot delete a reimbursed expense.';
@@ -1032,13 +1034,13 @@ class ExpenseRoutes extends Crud {
   } // _validateExpense
 
   /**
-   * Updates budgets from old expense to new expense. Returns the budget the new expense was updated to.
+   * Validates that an expense can be updated. Return the expense if the expense being updated is valid.
    *
    * @param oldExpense - Expense being updated from
    * @param newExpense - Expense being updated to
    * @param employee - Employee of expense
    * @param expenseType - Expense Type of expense
-   * @return Budget - budget with added expense
+   * @return Expense - validated expense
    */
   async _validateUpdate(oldExpense, newExpense, employee, expenseType) {
     // log method

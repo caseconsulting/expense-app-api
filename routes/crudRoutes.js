@@ -45,7 +45,7 @@ class Crud {
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
     this.budgetDynamo = new DatabaseModify('budgets');
     this.employeeDynamo = new DatabaseModify('employees');
-    this.expenseDyanamo = new DatabaseModify('expenses');
+    this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
   } // constructor
 
@@ -642,6 +642,30 @@ class Crud {
     // return result
     return result;
   } // isAdmin
+
+  /**
+   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   *
+   * @param value - value to check
+   * @return boolean - value is empty
+   */
+  isEmpty(value) {
+    // log method
+    logger.log(2, 'isEmpty', `Checking if value ${value} is empty`);
+
+    // compute method
+    let result = value == null || value === ' ';
+
+    // log result
+    if (result) {
+      logger.log(2, 'isEmpty', `Value ${value} is empty`);
+    } else {
+      logger.log(2, 'isEmpty', `Value ${value} is not empty`);
+    }
+
+    // return result
+    return result;
+  } // isEmpty
 
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
