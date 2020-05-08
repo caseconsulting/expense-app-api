@@ -139,7 +139,7 @@ describe('expenseTypeRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    expenseDynamo = jasmine.createSpyObj('expenseTypeDynamo', [
+    expenseDynamo = jasmine.createSpyObj('expenseDynamo', [
       'addToDB',
       'getAllEntriesInDB',
       'getEntry',

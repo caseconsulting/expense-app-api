@@ -1,14 +1,14 @@
-const EmployeeRoutes = require('../../routes/employeeRoutes');
-
 const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
-//const Expense = require('../../models/expense');
+const Expense = require('../../models/expense');
+const EmployeeRoutes = require('../../routes/employeeRoutes');
 const ExpenseType = require('../../models/expenseType');
-
-const IsoFormat = 'YYYY-MM-DD';
 const moment = require('moment');
+const _ = require('lodash');
 
-xdescribe('employeeRoutes', () => {
+describe('employeeRoutes', () => {
+  // const ISOFORMAT = 'YYYY-MM-DD';
+
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 
@@ -27,17 +27,17 @@ xdescribe('employeeRoutes', () => {
   const FISCAL_END_DATE = '{fiscalEndDate}';
   const AMOUNT = 0;
 
-  // const PURCHASE_DATE = '{purchaseDate}';
-  // const REIMBURSED_DATE = '{reimbursedDate}';
-  // const NOTE = '{note}';
-  // const URL = '{url}';
-  // const CREATED_AT = '{createdAt}';
-  // const RECEIPT = '{receipt}';
-  // const COST = 0;
-  // const CATEGORY = '{category}';
+  const PURCHASE_DATE = '{purchaseDate}';
+  const REIMBURSED_DATE = '{reimbursedDate}';
+  const NOTE = '{note}';
+  const URL = '{url}';
+  const CREATED_AT = '{createdAt}';
+  const RECEIPT = '{receipt}';
+  const COST = 0;
+  const CATEGORY = '{category}';
 
   const NAME = '{name}';
-  const BUDGET = '{budget}';
+  const BUDGET = 0;
   const START_DATE = '{startDate}';
   const END_DATE = '{endDate}';
   const OD_FLAG = '{odFlag}';
@@ -70,20 +70,20 @@ xdescribe('employeeRoutes', () => {
     amount: AMOUNT
   };
 
-  // const EXPENSE_DATA = {
-  //   id: ID,
-  //   purchaseDate: PURCHASE_DATE,
-  //   reimbursedDate: REIMBURSED_DATE,
-  //   note: NOTE,
-  //   url: URL,
-  //   createdAt: CREATED_AT,
-  //   receipt: RECEIPT,
-  //   cost: COST,
-  //   description: DESCRIPTION,
-  //   employeeId: ID,
-  //   expenseTypeId: ID,
-  //   category: CATEGORY
-  // };
+  const EXPENSE_DATA = {
+    id: ID,
+    purchaseDate: PURCHASE_DATE,
+    reimbursedDate: REIMBURSED_DATE,
+    note: NOTE,
+    url: URL,
+    createdAt: CREATED_AT,
+    receipt: RECEIPT,
+    cost: COST,
+    description: DESCRIPTION,
+    employeeId: ID,
+    expenseTypeId: ID,
+    category: CATEGORY
+  };
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
@@ -100,406 +100,1170 @@ xdescribe('employeeRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let expenseDynamo, budgetDynamo, expenseTypeDynamo, employeeDynamo, employeeRoutes, expenseData;
-  const uuid = 'uuid';
+  let employeeRoutes, budgetDynamo, databaseModify, expenseTypeDynamo, expenseDynamo;
+
   beforeEach(() => {
-    employeeRoutes = new EmployeeRoutes();
-    employeeRoutes.databaseModify = jasmine.createSpyObj('databaseModify', [
-      'findObjectInDB',
-      'removeFromDB',
-      'getAllEntriesInDB'
-    ]);
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
       'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
+      'readFromDB',
+      'readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['findObjectInDB', 'getAllEntriesInDB']);
-    employeeDynamo = jasmine.createSpyObj('employeeDynamo', ['findObjectInDB']);
+    databaseModify = jasmine.createSpyObj('databaseModify', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      'readFromDB',
+      'readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
     expenseDynamo = jasmine.createSpyObj('expenseDynamo', [
       'addToDB',
-      'findObjectInDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      'readFromDB',
+      'readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    expenseData = jasmine.createSpyObj('expenseData', ['querySecondaryIndexInDB']);
+    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      'readFromDB',
+      'readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+
+    employeeRoutes = new EmployeeRoutes();
     employeeRoutes.budgetDynamo = budgetDynamo;
-    employeeRoutes.expenseTypeDynamo = expenseTypeDynamo;
-    employeeRoutes.employeeDynamo = employeeDynamo;
+    employeeRoutes.databaseModify = databaseModify;
     employeeRoutes.expenseDynamo = expenseDynamo;
-    employeeRoutes.expenseData = expenseData;
+    employeeRoutes.expenseTypeDynamo = expenseTypeDynamo;
   });
 
-  describe('_add', () => {
+  describe('_create', () => {
 
-    let expectedEmployee, data;
+    let data, employee;
 
     beforeEach(() => {
-      data = {
-        id: 'uuid',
-        firstName: '{firstName}',
-        middleName: '{middleName}',
-        lastName: '{lastName}',
-        employeeNumber: '{employeeNumber}',
-        hireDate: '{hireDate}',
-        email: '{email}',
-        employeeRole: '{employeeRole}',
-        isInactive: false
-      };
+      data = _.cloneDeep(EMPLOYEE_DATA);
+      employee = new Employee(EMPLOYEE_DATA);
     });
 
-    describe('when successfully adding employee', () => {
+    describe('when successfully creates an employee', () => {
 
       beforeEach(() => {
-        expectedEmployee = new Employee(data);
-
-        spyOn(employeeRoutes, '_createCurrentBudgets').and.returnValue(Promise.resolve(expectedEmployee));
-        spyOn(employeeRoutes, '_isDuplicateEmployee').and.returnValue(false);
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(employee));
+        spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.resolve(employee));
       });
 
-      it('should call _createCurrentBudgets and return the added employee', done => {
-        employeeRoutes._add(uuid, data).then(returnedEmployee => {
-          expect(returnedEmployee).toEqual(expectedEmployee);
-          expect(employeeRoutes._createCurrentBudgets).toHaveBeenCalledWith(expectedEmployee);
-          done();
-        });
-      }); // should call _createCurrentBudgets and return the added employee
-    }); // when successfully adding employee
+      it('should return the employee created', done => {
+        employeeRoutes._create(data)
+          .then(employeeCreated => {
+            expect(employeeCreated).toEqual(employee);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+            expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
+            done();
+          });
+      }); // should return the employee created
+    }); // when successfully creates an employee
 
-    describe('when failed to add employee', () => {
+    describe('when fails to validate employee', () => {
 
-      let error;
+      let err;
 
       beforeEach(() => {
-        error = {
+        err = {
           code: 403,
-          message: 'Employee email already taken. Please enter a new email'
+          message: 'Failed to validate employee.'
         };
-        spyOn(employeeRoutes, '_isDuplicateEmployee').and.returnValue(error);
+
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(employee));
+        spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.reject(err));      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._create(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+            expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when fails to validate employee
+
+    describe('when fails to validate create', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Failed to validate create.'
+        };
+
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.reject(err));
       });
 
-      it('should throw an error', () => {
-        employeeRoutes._add(uuid, data).catch( err => {
-          expect(err).toEqual(error);
-        });
-      }); // should throw an error
-    }); // when failed to add employee
-  }); // _add
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._create(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when fails to validate create
+  }); // _create
 
-  describe('_createCurrentBudgets', () => {
+  describe('_delete', () => {
 
     let employee;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
-      employee.hireDate = '2000-01-02';
     });
 
-    describe('when successfully obtaining expense types', () => {
-
-      let recurringExpenseType, currentExpenseType, oldExpenseType, expenseTypes;
+    describe('when successfully prepares delete for employee', () => {
 
       beforeEach(() => {
-        recurringExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
-        recurringExpenseType.recurringFlag = true;
-        currentExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
-        currentExpenseType.recurringFlag = false;
-        currentExpenseType.startDate = moment().format(IsoFormat);
-        currentExpenseType.endDate = moment().format(IsoFormat);
-        oldExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
-        oldExpenseType.recurringFlag = false;
-        oldExpenseType.startDate = moment().subtract(1, 'd').format(IsoFormat);
-        oldExpenseType.endDate = moment().subtract(1, 'd').format(IsoFormat);
-        expenseTypes = [recurringExpenseType, currentExpenseType, oldExpenseType];
-        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(expenseTypes);
-        spyOn(employeeRoutes, '_getUUID').and.returnValue(ID);
-        budgetDynamo.addToDB.and.returnValue(new Budget(BUDGET_DATA));
+        databaseModify.getEntry.and.returnValue(Promise.resolve(employee));
+        spyOn(employeeRoutes, '_validateDelete').and.returnValue(Promise.resolve(employee));
       });
 
-      afterEach(() => {
-        expect(budgetDynamo.addToDB).toHaveBeenCalledTimes(2);
-      });
-
-      describe('and employee has access to the expense type', () => {
-
-        beforeEach(() => {
-          spyOn(employeeRoutes, '_hasAccess').and.returnValue(true);
-        });
-
-        it('should return the expected list of created budgets', done => {
-          employeeRoutes._createCurrentBudgets(employee).then(results => {
-            expect(results).toEqual([recurringExpenseType, currentExpenseType]);
+      it('should return the employee to be deleted', done => {
+        employeeRoutes._delete(ID)
+          .then(data => {
+            expect(data).toEqual(employee);
             done();
           });
-        }); // should return the expected list of created budgets
-      }); // and employee has access to the expense type
+      }); // should return the employee object to delete
 
-      describe('and employee does not have access to the expense type', () => {
+    }); // when successfully prepares delete for employee
 
-        beforeEach(() => {
-          spyOn(employeeRoutes, '_hasAccess').and.returnValue(false);
-        });
+    describe('when fails to find employee', () => {
 
-        it('should return the expected list of created budgets', done => {
-          employeeRoutes._createCurrentBudgets(employee).then(results => {
-            expect(results).toEqual([recurringExpenseType, currentExpenseType]);
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Failed to find employee.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 403 rejected proimse', done => {
+        employeeRoutes._delete(ID)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
           });
-        }); // should return the expected list of created budgets
-      }); // and employee does not have access to the expense type
-    }); // when successfully obtaining expense types
+      }); // should return a 403 rejected proimse
+    }); // when fails to find employee
 
-    describe('when failing to obtain expense type list', () => {
+    describe('when fails to validate delete', () => {
 
-      beforeEach(() => {
-        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject('Error getting expense type list'));
-      });
-
-      it('should throw an error', () => {
-        employeeRoutes._createCurrentBudgets(employee).catch( err => {
-          expect(err).toEqual('Error getting expense type list');
-        });
-      }); // should throw an error
-    }); // when failing to obtain expense type list
-  }); // _createCurrentBudgets
-
-  describe('_delete', () => {
-
-    let employeeData;
-
-    beforeEach(() => {
-      employeeData = {
-        id: 'empleeId'
-      };
-    });
-
-    describe('when user has no expenses', () => {
+      let err;
 
       beforeEach(() => {
-        expenseData.querySecondaryIndexInDB.and.returnValue([]);
-        employeeRoutes.databaseModify.removeFromDB.and.returnValue(employeeData);
-        budgetDynamo.querySecondaryIndexInDB.and.returnValue([{id: 'budgetId'}]);
-        budgetDynamo.removeFromDB.and.returnValue(Promise.resolve());
+        err = {
+          code: 403,
+          message: 'Failed to validate delete.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.resolve(employee));
+        spyOn(employeeRoutes, '_validateDelete').and.returnValue(Promise.reject(err));
       });
 
-      it('should delete and return the employee', done => {
-        employeeRoutes._delete('id').then( data => {
-          expect(data).toEqual(new Employee(employeeData));
-          done();
-        });
-      }); // should delete and return the employee
-    }); // when user has no expenses
-
-    describe('when user has expenses', () => {
-
-      beforeEach(() => {
-        expenseData.querySecondaryIndexInDB.and.returnValue(['some random expense']);
-      });
-
-      it('should throw an error', done => {
-        employeeRoutes._delete('id').catch( err => {
-          expect(err).toEqual({
-            code: 403,
-            message: 'Employee can not be deleted if they have expenses'
+      it('should return a 403 rejected proimse', done => {
+        employeeRoutes._delete(ID)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateDelete).toHaveBeenCalledWith(employee);
+            done();
           });
-          done();
-        });
-      }); // should throw an error
-    }); // when user has expenses
-
+      }); // should return a 403 rejected proimse
+    }); // when fails to validate delete
   }); // _delete
 
-  describe('_getBudgetDates', () => {
-    const moment = require('moment');
-    let hireDate,
-      expectedObj,
-      expectedAnniversaryMonth,
-      expectedAnniversaryDay,
-      expectedStartDate,
-      expectedEndDate,
-      expectedAnniversaryYear,
-      today;
+  describe('_read', () => {
 
-    describe('when hired in the past and today is before the anniversary date', () => {
+    let params, employee;
 
-      beforeEach(() => {
-        hireDate = moment().subtract(10, 'years').add(1, 'days');
-        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
+    beforeEach(() => {
+      params = {
+        id: ID
+      };
 
-        today = moment();
+      employee = new Employee(EMPLOYEE_DATA);
+    });
 
-        expectedStartDate = moment([today.year() - 1, expectedAnniversaryMonth, expectedAnniversaryDay]);
-        expectedEndDate = moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay])
-          .subtract('1', 'days');
-
-        expectedObj = {
-          startDate: expectedStartDate,
-          endDate: expectedEndDate
-        };
-      });
-
-      it('should return an object with a start and end date', done => {
-        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
-        done();
-      }); // should return an object with a start and end date
-    }); // when hired in the past and today is before the anniversary date
-
-    describe('when hired in the past and today is after the anniversary date', () => {
+    describe('when successfully reads an employee', () => {
 
       beforeEach(() => {
-        hireDate = moment().subtract(10, 'years');
-        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-
-        today = moment();
-
-        expectedStartDate = moment([today.year(), expectedAnniversaryMonth, expectedAnniversaryDay]);
-        expectedEndDate = moment([today.year() + 1, expectedAnniversaryMonth, expectedAnniversaryDay])
-          .subtract('1', 'days');
-
-        expectedObj = {
-          startDate: expectedStartDate,
-          endDate: expectedEndDate
-        };
+        databaseModify.getEntry.and.returnValue(Promise.resolve(employee));
       });
 
-      it('should return an object with a start and end date', done => {
-        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
-        done();
-      }); // should return an object with a start and end date
-    }); // when hired in the past and today is after the anniversary date
-
-    describe('when hire date is in the future', () => {
-
-      beforeEach(() => {
-        hireDate = moment().add(10, 'years');
-        expectedAnniversaryMonth = moment(hireDate, 'YYYY-MM-DD').month(); // form 0-11
-        expectedAnniversaryDay = moment(hireDate, 'YYYY-MM-DD').date(); // from 1 to 31
-        expectedAnniversaryYear = moment(hireDate, 'YYYY-MM-DD').year();
-
-        today = moment();
-
-        expectedStartDate = moment([expectedAnniversaryYear, expectedAnniversaryMonth, expectedAnniversaryDay]);
-        expectedEndDate = moment([expectedAnniversaryYear + 1, expectedAnniversaryMonth, expectedAnniversaryDay])
-          .subtract('1', 'days');
-
-        expectedObj = {
-          startDate: expectedStartDate,
-          endDate: expectedEndDate
-        };
-      });
-
-      it('should return an object with a start and end date', done => {
-        let returnedObj = employeeRoutes._getBudgetDates(hireDate);
-        expect(returnedObj.startDate.format()).toEqual(expectedObj.startDate.format());
-        done();
-      }); // should return an object with a start and end date
-    }); // when hire date is in the future
-  }); // _getBudgetDates
-
-  describe('_getUUID', () => {
-    it('to return a uuid', () => {
-      employeeRoutes._getUUID();
-      expect(employeeRoutes._getUUID()).not.toBe(undefined);
-    }); // to return a uuid
-  }); // _getUUID
-
-  describe('_isDuplicateEmployee', () => {
-
-    describe('when duplicate employee number', () => {
-
-      beforeEach(() => {
-        employeeRoutes.databaseModify.getAllEntriesInDB.and.returnValue([{employeeNumber: 1}]);
-      });
-
-      it('should return an error', () => {
-        employeeRoutes._isDuplicateEmployee({employeeNumber: 1}).catch( err => {
-          expect(err).toEqual({
-            code: 403,
-            message: 'Employee number already taken. Please enter a new Employee number'
+      it('should return the employee read', () => {
+        employeeRoutes._read(params)
+          .then(data => {
+            expect(data).toEqual(employee);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
           });
-        });
-      }); // should return an error
-    }); // when duplicate employee number
+      }); // should return the employee read
+    }); // when successfully reads and employee
 
-    describe('when duplicate employee email', () => {
+    describe('when fails to read employee', () => {
+
+      let err;
 
       beforeEach(() => {
-        employeeRoutes.databaseModify.getAllEntriesInDB.and.returnValue([{email: 'email'}]);
+        err = {
+          code: 404,
+          message: 'Failed to find employee.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return an error', () => {
-        employeeRoutes._isDuplicateEmployee({employeeNumber: 1, email: 'email'}).catch( err => {
-          expect(err).toEqual({
-            code: 403,
-            message: 'Employee email already taken. Please enter a new email'
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._read(params)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            done();
           });
-        });
-      }); // should return an error
-    }); // when duplicate employee email
-
-    describe('is not duplicate employee', () => {
-
-      beforeEach(() => {
-        employeeRoutes.databaseModify.getAllEntriesInDB.and.returnValue([]);
-      });
-
-      it('should return false', () => {
-        employeeRoutes._isDuplicateEmployee({email: 'email'}).then( data => {
-          expect(data).toBe(false);
-        });
-      }); // should return an error
-    }); // when duplicate employee email
-
-  }); // _isDuplicateEmployee
+      }); // should return a 404 rejected promise
+    }); // when fails to read employee
+  }); // _read
 
   describe('_update', () => {
-    let expectedEmployee, data, id;
+
+    let data, oldEmployee, newEmployee;
+
     beforeEach(() => {
-      data = {
-        id: '{id}',
-        firstName: '{firstName}',
-        middleName: '{middleName}',
-        lastName: '{lastName}',
-        employeeNumber: '{employeeNumber}',
-        hireDate: '{hireDate}',
-        email: '{email}',
-        employeeRole: '{employeeRole}',
-        isInactive: '{isInactive}'
-      };
-      id = '{id}';
+      data = _.cloneDeep(EMPLOYEE_DATA);
+      oldEmployee = new Employee(EMPLOYEE_DATA);
+      newEmployee = new Employee(EMPLOYEE_DATA);
     });
-    describe('if promise resolves', () => {
-      beforeEach(() => {
-        expectedEmployee = new Employee(data);
-        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.resolve({ expectedEmployee }));
-      });
 
-      it('should return updated employee object', done => {
-        employeeRoutes._update(id, data).then(returnedEmployee => {
-          expect(returnedEmployee).toEqual(expectedEmployee);
-          expect(employeeRoutes.databaseModify.findObjectInDB).toHaveBeenCalledWith(id);
-          done();
-        });
-      });
-    }); // if promise resolves
-    describe('if the promise is rejected', () => {
+    describe('when successfully prepares to update employee', () => {
 
       beforeEach(() => {
-        employeeRoutes.databaseModify.findObjectInDB.and.returnValue(Promise.reject('Could not find employee'));
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
+        spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newEmployee));
+        spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
       });
 
-      it('should return Could not find employee', done => {
-        employeeRoutes._update(ID, EMPLOYEE_DATA).catch(err => {
-          expect(err).toEqual('Could not find employee');
-          done();
-        });
-      }); // should return Could not find employee
-    }); // if the promise is rejected
+      it('should return the prepared employee', done => {
+        employeeRoutes._update(data)
+          .then(employee => {
+            expect(employee).toEqual(newEmployee);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            done();
+          });
+      }); // should return the prepared employee
+    }); // when successfully prepares to update employee
+
+    describe('when fails to find old employee', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to find employee.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._update(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when fails to find old employee
+
+    describe('when fails to validate new employee', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Failed to validate employee.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._update(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when fails to validate new employee
+
+    describe('when fails to validate update', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Failed to validate update.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
+        spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._update(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when fais to validate update
+
+    describe('when fails to update budgets', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to update budget.'
+        };
+
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
+        spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newEmployee));
+        spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._update(data)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            done();
+          });
+      }); // should return a 404 rejected promise
+    }); // when fails to update budgets
   }); // _update
-}); // employeeRoutes
+
+  describe('_updateBudgets', () => {
+
+    let oldEmployee, newEmployee;
+
+    beforeEach(() => {
+      oldEmployee = new Employee(EMPLOYEE_DATA);
+      newEmployee = new Employee(EMPLOYEE_DATA);
+    });
+
+    describe('when work status is the same', () => {
+
+      beforeEach(() => {
+        oldEmployee.workStatus = 100;
+        newEmployee.workStatus = 100;
+      });
+
+      it ('should return an empty array of budgets', done => {
+        employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+          .then(data => {
+            expect(data).toEqual([]);
+            done();
+          });
+      }); // should return an empty array of budgets
+    }); // when work status is the same
+
+    describe('when work status is changed', () => {
+
+      let expenseType1, expenseType2, expenseTypes, today;
+      let budget1, budget2, budget3, budgets, expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
+
+      beforeEach(() => {
+        expenseType1 = new ExpenseType(EXPENSE_TYPE_DATA);
+        expenseType2 = new ExpenseType(EXPENSE_TYPE_DATA);
+        budget1 = new Budget(BUDGET_DATA);
+        budget2 = new Budget(BUDGET_DATA);
+        budget3 = new Budget(BUDGET_DATA);
+        expectedBudget1 = new Budget(BUDGET_DATA);
+        expectedBudget2 = new Budget(BUDGET_DATA);
+        expectedBudget3 = new Budget(BUDGET_DATA);
+
+        today = moment();
+        oldEmployee.workStatus = 100;
+        newEmployee.workStatus = 50;
+
+        expenseType1.accessibleBy = 'FULL TIME';
+        expenseType1.id = 'expenseType1_ID';
+        expenseType1.budget = 100;
+
+        expenseType2.accessibleBy = 'PART TIME';
+        expenseType2.id = 'expenseType2_ID';
+        expenseType2.budget = 100;
+
+        // inactive budget
+        budget1.fiscalStartDate = '2000-08-18';
+        budget1.fiscalEndDate = '2000-08-18';
+        budget1.expenseTypeId = 'expenseType1_ID';
+        budget1.amount = 100;
+
+        // employee does not have full time access to active budget
+        budget2.fiscalStartDate = today;
+        budget2.fiscalEndDate = today;
+        budget2.expenseTypeId = 'expenseType1_ID';
+        budget2.amount = 100;
+
+        // employee has part time access to active budget
+        budget3.fiscalStartDate = today;
+        budget3.fiscalEndDate = today;
+        budget3.expenseTypeId = 'expenseType2_ID';
+        budget3.amount = 100;
+
+        expectedBudget1.fiscalStartDate = '2000-08-18';
+        expectedBudget1.fiscalEndDate = '2000-08-18';
+        expectedBudget1.expenseTypeId = 'expenseType1_ID';
+        expectedBudget1.amount = 100;
+
+        expectedBudget2.fiscalStartDate = today;
+        expectedBudget2.fiscalEndDate = today;
+        expectedBudget2.expenseTypeId = 'expenseType1_ID';
+        expectedBudget2.amount = 0;
+
+        expectedBudget3.fiscalStartDate = today;
+        expectedBudget3.fiscalEndDate = today;
+        expectedBudget3.expenseTypeId = 'expenseType2_ID';
+        expectedBudget3.amount = 50;
+
+        expenseTypes = [expenseType1, expenseType2];
+        budgets = [budget1, budget2, budget3];
+        expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3];
+      });
+
+      describe('and successfully updates budgets', () => {
+
+        beforeEach(() => {
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
+          budgetDynamo.updateEntryInDB.and.returnValues(
+            Promise.resolve(expectedBudget1),
+            Promise.resolve(expectedBudget2),
+            Promise.resolve(expectedBudget3)
+          );
+        });
+
+        it('should return the employee budgets', done => {
+          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+            .then(data => {
+              expect(data).toEqual(expectedBudgets);
+              expect(budgetDynamo.querySecondaryIndexInDB)
+                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
+              done();
+            });
+        });
+      }); // and successfully updates budgets
+
+      describe('and fails to get budgets', () => {
+
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to get employee budgets.'
+          };
+
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should return a 404 rejected promise', done => {
+          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch(error => {
+              expect(error).toEqual(err);
+              expect(budgetDynamo.querySecondaryIndexInDB)
+                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              done();
+            });
+        }); // should return a 404 rejected promise
+      }); // and fails to get budgets
+
+      describe('and fails to get expense types', () => {
+
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to get expense types.'
+          };
+
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should return a 404 rejected promise', done => {
+          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch(error => {
+              expect(error).toEqual(err);
+              expect(budgetDynamo.querySecondaryIndexInDB)
+                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              done();
+            });
+        }); // should return a 404 rejected promise
+      }); // and fails to get expense types
+
+      describe('and fails to update entry in database', () => {
+
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to update budget.'
+          };
+
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
+          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should return a 404 rejected promise', done => {
+          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch(error => {
+              expect(error).toEqual(err);
+              expect(budgetDynamo.querySecondaryIndexInDB)
+                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
+              done();
+            });
+        }); // should return a 404 rejected promise
+      }); // and fails to update entry in database
+    }); // when work status is changed
+  }); // _updateBudgets
+
+  describe('_validateCreate', () => {
+
+    let employee, employee1, employees;
+
+    beforeEach(() => {
+      employee = new Employee(EMPLOYEE_DATA);
+      employee1 = new Employee(EMPLOYEE_DATA);
+      employees = [employee1];
+    });
+
+    describe('when successfully validates create', () => {
+
+      beforeEach(() => {
+        employee.id = 'OTHER_ID';
+        employee.employeeNumber = 'OTHER_NUBMER';
+        employee.email = 'OTHER_EMAIL';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
+      });
+
+      it('should return the validated employee', done => {
+        employeeRoutes._validateCreate(employee)
+          .then(data => {
+            expect(data).toEqual(employee);
+            done();
+          });
+      }); // should return the validated employee
+    }); // when successfully validates create
+
+    describe('when there is a duplicate employee id', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Unexpected duplicate id created. Please try submitting again.'
+        };
+
+        employee.employeeNumber = 'OTHER_NUBMER';
+        employee.email = 'OTHER_EMAIL';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateCreate(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when there is a duplicate employee id
+
+    describe('when there is a duplicate employee number', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: `Employee number ${EMPLOYEE_NUMBER} already taken. Please enter a new number.`
+        };
+
+        employee.id = 'OTHER_ID';
+        employee.email = 'OTHER_EMAIL';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateCreate(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when there is a duplicate employee number
+
+    describe('when there is a duplicate employee email', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: `Employee email ${EMAIL} already taken. Please enter a new email.`
+        };
+
+        employee.id = 'OTHER_ID';
+        employee.employeeNumber = 'OTHER_NUMBER';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateCreate(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when there is a duplicate employee email
+  }); // _validateCreate
+
+  describe('_validateDelete', () => {
+
+    let employee;
+
+    beforeEach(() => {
+      employee = new Employee(EMPLOYEE_DATA);
+    });
+
+    describe('when successfully validates delete', () => {
+
+      beforeEach(() => {
+        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
+      });
+
+      it('should return the validated employee', done => {
+        employeeRoutes._validateDelete(employee)
+          .then(data => {
+            expect(data).toEqual(employee);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            done();
+          });
+      }); // should return the validated employee
+    }); // when successfully validates delete
+
+    describe('when fails to get expenses', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get expenses.'
+        };
+
+        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._validateDelete(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            done();
+          });
+      }); // should return a 404 rejected promise
+    }); // when fails to get expenses
+
+    describe('when employee has expenses', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Cannot delete an employee with expenses.'
+        };
+
+        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([new Expense(EXPENSE_DATA)]));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._validateDelete(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee has expenses
+  }); // _validateDelete
+
+  describe('_validateEmployee', () => {
+
+    let employee;
+
+    beforeEach(() => {
+      employee = new Employee(EMPLOYEE_DATA);
+    });
+
+    describe('when successfully validates employee', () => {
+
+      it('should return the validated employee', () => {
+        employeeRoutes._validateEmployee(employee)
+          .then(data => {
+            expect(data).toEqual(employee);
+          });
+      }); // should return the validated employee
+    }); // when successfully validates employee
+
+    describe('when employee id is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee id.'
+        };
+
+        employee.id = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee id is missing
+
+    describe('when employee first name is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee first name.'
+        };
+
+        employee.firstName = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee first name is missing
+
+    describe('when employee last name is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee last name.'
+        };
+
+        employee.lastName = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee last name is missing
+
+    describe('when employee number is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee number.'
+        };
+
+        employee.employeeNumber = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee number is missing
+
+    describe('when employee hire date is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee hire date.'
+        };
+
+        employee.hireDate = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee hire date is missing
+
+    describe('when employee email is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee email.'
+        };
+
+        employee.email = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee email is missing
+
+    describe('when employee role is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee role.'
+        };
+
+        employee.employeeRole = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee role is missing
+
+    describe('when employee work status is missing', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid employee work status.'
+        };
+
+        employee.workStatus = ' ';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateEmployee(employee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee work status is missing
+  }); // _validateEmployee
+
+  describe('_validateUpdate', () => {
+
+    let oldEmployee, newEmployee, budget1, budgets;
+
+    beforeEach(() => {
+      oldEmployee = new Employee(EMPLOYEE_DATA);
+      newEmployee = new Employee(EMPLOYEE_DATA);
+      budget1 = new Budget(BUDGET_DATA);
+      budgets = [budget1];
+    });
+
+    describe('when successfully validates update', () => {
+
+      describe('and hire date is the same', () => {
+
+        it('should return the validated employee', done => {
+          employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+            .then(data => {
+              expect(data).toEqual(newEmployee);
+              done();
+            });
+        }); // should return the validated employee
+      }); // and hire date is the same
+
+      describe('and hire date is changed', () => {
+
+        beforeEach(() => {
+          oldEmployee.hireDate = '2000-08-18';
+          newEmployee.hireDate = '2001-08-18';
+
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
+        });
+
+        it('should return the validated employee', done => {
+          employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+            .then(data => {
+              expect(data).toEqual(newEmployee);
+              expect(budgetDynamo.querySecondaryIndexInDB)
+                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              done();
+            });
+        }); // should return the validated employee
+      }); // and hire date is changed
+    }); // when successfully validates update
+
+    describe('when old employee id does not match the new employee id', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Error validating employee IDs.'
+        };
+
+        newEmployee.id = 'OTHER_ID';
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when old employee id does not match the new employee id
+
+    describe('when employee hire date is changed and the employee has budgets', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Cannot change hire date for employees with existing budgets.'
+        };
+
+        oldEmployee.hireDate = '2000-08-18';
+        newEmployee.hireDate = '2001-08-18';
+        budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(budgetDynamo.querySecondaryIndexInDB)
+              .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when employee hire date is changed and the employee has budgets
+  }); // _validateUpdate
+}); //employeeRoutes

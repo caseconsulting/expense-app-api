@@ -1,23 +1,21 @@
-const databaseModify = require('../js/databaseModify');
 const Budget = require('./../models/budget');
 const Crud = require('./crudRoutes');
+const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
 // const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const Moment = require('moment');
-const MomentRange = require('moment-range');
-const moment = MomentRange.extendMoment(Moment);
+const moment = require('moment');
 const _ = require('lodash');
 
-const logger = new Logger('expenseTypeRoutes');
 const ISOFORMAT = 'YYYY-MM-DD';
+const logger = new Logger('expenseTypeRoutes');
 
 class ExpenseTypeRoutes extends Crud {
 
   constructor() {
     super();
-    this.databaseModify = new databaseModify('expense-types');
+    this.databaseModify = new DatabaseModify('expense-types');
   } // constructor
 
   /**
@@ -65,7 +63,7 @@ class ExpenseTypeRoutes extends Crud {
       return this._validateDelete(expenseType)
         .then(() => {
           // log success
-          logger.log(2, '_delete', `Successfully deleted expense expense type ${id}`);
+          logger.log(2, '_delete', `Successfully deleted expense type ${id}`);
 
           // return expense type deleted
           return expenseType;
@@ -142,7 +140,7 @@ class ExpenseTypeRoutes extends Crud {
             );
           }
 
-          // return expense updated
+          // return expense type updated
           return newExpenseType;
         })
         .catch(err => {
@@ -160,7 +158,7 @@ class ExpenseTypeRoutes extends Crud {
   /**
    * Updates budgets when changing an expense type.
    *
-   * @param expenseType - ExpenseType to be updated from
+   * @param oldExpenseType - ExpenseType to be updated from
    * @param newExpenseType - ExpenseType to be updated to
    * @return Array - Array of Budgets updated
    */
@@ -208,8 +206,6 @@ class ExpenseTypeRoutes extends Crud {
           if (diffBudget) {
             // update the budget amount
             let employee = _.find(employees, ['id', budgets[i].employeeId]);
-            console.log(employee);
-            console.log(this.hasAccess(employee, newExpenseType));
             if (this.hasAccess(employee, newExpenseType)) {
               budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
             } else {
@@ -333,8 +329,8 @@ class ExpenseTypeRoutes extends Crud {
   } // _validateDates
 
   /**
-  * Validate that an expense type can be deleted. Returns the expense if the expense type to be deleted is successfully
-  * validated, otherwise returns an error.
+  * Validate that an expense type can be deleted. Returns the expense type to be deleted if successfully validated,
+  * otherwise returns an error.
   *
   * @param expenseType - ExpenseType to validate delete
   * @return ExpenseType - validated expense type
@@ -347,7 +343,7 @@ class ExpenseTypeRoutes extends Crud {
     try {
       let err = {
         code: 403,
-        message: 'Error validating delete for expense.'
+        message: 'Error validating delete for expense type.'
       };
 
       // get all expenses for this expense type
@@ -504,7 +500,7 @@ class ExpenseTypeRoutes extends Crud {
     try {
       let err = {
         code: 403,
-        message: 'Error validating expense type.'
+        message: 'Error validating update for expense type.'
       };
 
       // validate expense type id
@@ -546,7 +542,7 @@ class ExpenseTypeRoutes extends Crud {
       // log success
       logger.log(2, '_validateUpdate', `Successfully validated update for expense type ${oldExpenseType.id}`);
 
-      // return new expense on success
+      // return new expense type on success
       return Promise.resolve(newExpenseType);
     } catch (err) {
       // log error

@@ -9,8 +9,8 @@ const Logger = require('../js/Logger');
 const moment = require('moment');
 const _ = require('lodash');
 
-const logger = new Logger('expenseRoutes');
 const ISOFORMAT = 'YYYY-MM-DD';
+const logger = new Logger('expenseRoutes');
 
 const STAGE = process.env.STAGE;
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;

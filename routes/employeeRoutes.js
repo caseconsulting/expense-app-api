@@ -1,360 +1,515 @@
+const Budget = require('./../models/budget');
 const Crud = require('./crudRoutes');
-const databaseModify = require('../js/databaseModify');
+const DatabaseModify = require('../js/databaseModify');
+const Employee = require('./../models/employee');
+// const Expense = require('./../models/expense');
+const ExpenseType = require('./../models/expenseType');
+const Logger = require('../js/Logger');
 const moment = require('moment');
 const _ = require('lodash');
-const { v4: uuid } = require('uuid');
-const Logger = require('../js/Logger');
-const logger = new Logger('employeeRoutes');
-const Employee = require('./../models/employee');
+
 const IsoFormat = 'YYYY-MM-DD';
+const logger = new Logger('employeeRoutes');
 
 class EmployeeRoutes extends Crud {
+
   constructor() {
     super();
-    this.databaseModify = new databaseModify('employees');
-    this.budgetDynamo = new databaseModify('budgets');
-    this.expenseTypeDynamo = new databaseModify('expense-types');
-    this.expenseDynamo = new databaseModify('expenses');
-  }
+    this.databaseModify = new DatabaseModify('employees');
+  } // constructor
 
+  /**
+   * Prepares an employee to be created. Returns the employee if it an be successfully created.
+   *
+   * @param data - data of employee
+   * @return Employee - employee prepared to create
+   */
   async _create(data) {
-    logger.log(1, '_create', `Attempting create employee ${data.id}`);
+    // log method
+    logger.log(2, '_create', `Preparing to create employee ${data.id}`);
 
     let employee = new Employee(data);
 
-    try {
-      let error = await this._isDuplicateEmployee(employee);
-      if (error) {
-        throw error;
-      }
-      return this._createCurrentBudgets(employee).then(() => {
-        return employee;
-      });
-    } catch (err) {
-      logger.log(1, '_add', `Failed to add employee ${data.id}`);
-      logger.error('_add', `Error code: ${err.code}`);
-      throw err;
-    }
-  }
-
-  _adjustedBudget(expenseType, employee) {
-    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
-  }
-
-  /*
-   * Creates budgets for all active expense types for a given employee.
-   *
-   * @param employee - Employee who is getting new budgets
-   */
-  async _createCurrentBudgets(employee) {
-    logger.log(
-      2,
-      '_createCurrentBudgets',
-      `Creating recurring expenses for user ${employee.id} starting on ${employee.hireDate}`
-    );
-
-    let dates = this.getBudgetDates(employee.hireDate);
-    let expenseTypeList;
-    let startDate;
-    let endDate;
-
-    //get all expense tpes
-    try {
-      expenseTypeList = await this.expenseTypeDynamo.getAllEntriesInDB();
-    } catch (err) {
-      logger.error('_createCurrentBudgets', `Error code: ${err.code}. Failed to get all expense types`);
-      throw err;
-    }
-
-    // filter for expense types active today (recurring and includes today within date range)
-    expenseTypeList = _.filter(expenseTypeList, (exp) => {
-      let start = moment(exp.startDate, IsoFormat);
-      let end = moment(exp.endDate, IsoFormat);
-      return exp.recurringFlag || moment().isBetween(start, end, 'day', '[]');
-    });
-
-    // create budget for each expense type
-    return _.forEach(expenseTypeList, (expenseType) => {
-      let amount;
-
-      // get budget amount
-      if (this._hasAccess(employee, expenseType)) {
-        // if employee has access to the expense type, calculate the adjusted amount
-        amount = this._adjustedBudget(expenseType, employee);
-      } else {
-        // if employee does not have access to the expense type, set the amount to 0
-        amount = 0;
-      }
-
-      // get budget start and end date
-      if (expenseType.recurringFlag) {
-        // if expense type is recurring, set the budget dates to the recurring dates
-        startDate = dates.startDate.format('YYYY-MM-DD');
-        endDate = dates.endDate.format('YYYY-MM-DD');
-      } else {
-        // if expense type is not recurring, set the budget dates to the expense type dates
-        startDate = expenseType.startDate;
-        endDate = expenseType.endDate;
-      }
-
-      // create budget object
-      let newBudget = {
-        id: this._getUUID(),
-        expenseTypeId: expenseType.id,
-        employeeId: employee.id,
-        reimbursedAmount: 0,
-        pendingAmount: 0,
-        fiscalStartDate: startDate,
-        fiscalEndDate: endDate,
-        amount: amount
-      };
-
-      // add budget object to budget table
-      return this.budgetDynamo.addToDB(newBudget);
-    });
-  }
-
-  async _delete(id) {
-    logger.log(1, '_delete', `Attempting to delete employee ${id}`);
-
-    let employee, userExpenses, userBudgets;
-
-    try {
-      userExpenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', id);
-
-      //can only delete a user if they have no expenses
-      if (userExpenses.length === 0) {
-        employee = new Employee(await this.databaseModify.getEntry(id));
-        userBudgets = await this.budgetDynamo.querySecondaryIndexInDB(
-          'employeeId-expenseTypeId-index',
-          'employeeId',
-          id
-        );
-        for (let budget of userBudgets) {
-          await this.budgetDynamo.removeFromDB(budget.id); //deletes all users empty budgets
-        }
-        return employee;
-      } else {
-        let err = {
-          code: 403,
-          message: 'Employee can not be deleted if they have expenses'
-        };
-        throw err;
-      }
-    } catch (err) {
-      logger.error('_delete', `Error code: ${err.code}`);
-
-      throw err;
-    }
-  }
-
-  /**
-   * Get all budgets for an employee with a specific expense type.
-   */
-  async getBudgets(employeeID, expenseTypeID) {
-    logger.log(3, 'getBudgets', `Getting budgets for employee ${employeeID} with expense type ${expenseTypeID}`);
-
-    return await this.budgetDynamo.queryWithTwoIndexesInDB(employeeID, expenseTypeID);
-  }
-
-  /**
-   * Get all expense types.
-   */
-  async getExpenseTypes() {
-    logger.log(2, 'getExpenseTypes', 'Getting all expense types');
-
-    return await this.expenseTypeDynamo.getAllEntriesInDB();
-  }
-
-  _getUUID() {
-    logger.log(4, '_getUUID', 'Getting random uuid');
-    return uuid();
-  }
-
-  _hasAccess(employee, expenseType) {
-    if (employee.workStatus == 0) {
-      return false;
-    } else if (expenseType.accessibleBy == 'ALL') {
-      return true;
-    } else if (expenseType.accessibleBy == 'FULL TIME') {
-      return employee.workStatus == 100;
-    } else if (expenseType.accessibleBy == 'PART TIME') {
-      return employee.workStatus > 0 && employee.workStatus < 100;
-    } else {
-      return expenseType.accessibleBy.includes(employee.id);
-    }
-  }
-
-  /**
-   * Returns error code if an employee number or email is within the employee database. Return false if not.
-   */
-  async _isDuplicateEmployee(employee) {
-    logger.log(2, '_isDuplicateEmployee', `Checking if user ${employee.id} is a duplicate employee`);
-
-    let allEmployees = await this.databaseModify.getAllEntriesInDB();
-
-    if (allEmployees.some((e) => e.id === employee.id)) {
-      let err = {
-        code: 403,
-        message: 'Unexpected duplicate id created. Please try submitting again.'
-      };
-      return err;
-    }
-
-    if (allEmployees.some((e) => e.employeeNumber === employee.employeeNumber)) {
-      let err = {
-        code: 403,
-        message: 'Employee number already taken. Please enter a new Employee number'
-      };
-      return err;
-    }
-
-    if (allEmployees.some((e) => e.email === employee.email)) {
-      let err = {
-        code: 403,
-        message: 'Employee email already taken. Please enter a new email'
-      };
-      return err;
-    }
-    return false;
-  }
-
-  async _read(data) {
-    return this.databaseModify.getEntry(data.id); // read from database
-  }
-
-  /*
-   * Return an array of sorted budgets by fiscal start date
-   */
-  _sortBudgets(budgets) {
-    logger.log(3, '_sortBudgets', 'Sorting budgets');
-
-    return _.sortBy(budgets, [
-      (budget) => {
-        return moment(budget.fiscalStartDate, IsoFormat);
-      }
-    ]);
-  }
-
-  async _update(data) {
-    logger.log(1, '_update', `Attempting to update employee ${data.id}`);
-
-    let newEmployee = new Employee(data);
-
-    let oldEmployee = await this.databaseModify.getEntry(data.id).catch((err) => {
-      throw err;
-    });
-
-    return this._updateBudgetDates(oldEmployee, newEmployee)
-      .then(this._updateBudgetAmount(oldEmployee, newEmployee))
+    return this._validateEmployee(employee) // validate employee
+      .then(() => this._validateCreate(employee)) // validate create
       .then(() => {
-        return newEmployee;
+        // log success
+        logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
+
+        // return created employee
+        return employee;
       })
-      .catch((err) => {
-        throw err;
+      .catch(err => {
+        // log error
+        logger.log(2, '_create', `Failed to prepare create for employee ${data.id}`);
+
+        // return rejected promise
+        return Promise.reject(err);
       });
-  }
-
-  /*
-   * Update the current employees budget amounts if the work status is changed
-   */
-  async _updateBudgetAmount(oldEmployeePromise, newEmployee) {
-    let oldEmployee = await oldEmployeePromise;
-    if (oldEmployee.workStatus == newEmployee.workStatus) {
-      // return if the employee work status was not changed
-      return Promise.resolve(newEmployee);
-    }
-
-    logger.log(
-      2,
-      '_updateBudgetAmount',
-      `Attempting to update current budget amounts for user ${oldEmployee.id} from ${oldEmployee.workStatus}%`,
-      `to ${newEmployee.workStatus}%`
-    );
-
-    // get all employee's budgets
-    let employeeBudgets = await this.budgetDynamo.querySecondaryIndexInDB(
-      'employeeId-expenseTypeId-index',
-      'employeeId',
-      oldEmployee.id
-    );
-    // get all expense types
-    let expenseTypes = await this.getExpenseTypes();
-    // filter for only current budgets
-    let currentBudgets = _.filter(employeeBudgets, (budget) => {
-      let start = moment(budget.fiscalStartDate, IsoFormat);
-      let end = moment(budget.fiscalEndDate, IsoFormat);
-      return moment().isBetween(start, end, 'day', '[]');
-    });
-
-    // update all current budget amounts
-    _.forEach(currentBudgets, (budget) => {
-      let newBudget = budget;
-      let expenseType = _.find(expenseTypes, ['id', newBudget.expenseTypeId]);
-      if (expenseType) {
-        if (this._hasAccess(newEmployee, expenseType)) {
-          // if employee has access to the expense type, set the adjusted amount
-          newBudget.amount = this._adjustedBudget(expenseType, newEmployee);
-        } else {
-          // if employee does not have access to the expense type, set the amount to 0
-          newBudget.amount = 0;
-        }
-        // update entry in dynamo table
-        this.budgetDynamo.updateEntryInDB(newBudget);
-      }
-    });
-
-    return newEmployee;
-  }
+  } // _create
 
   /**
-   * Update budgets when hiring date changes
+   * Prepares an employee to be deleted. Returns the employee if it can be successfully deleted.
+   *
+   * @param id - id of employee
+   * @return Employee - employee prepared to delete
    */
-  async _updateBudgetDates(oldEmployeePromise, newEmployee) {
-    let oldEmployee = await oldEmployeePromise;
+  async _delete(id) {
+    // log method
+    logger.log(2, '_delete', `Preparing to delete employee ${id}`);
 
-    // if hire date is not changed, resolve promise
-    if (oldEmployee.hireDate === newEmployee.hireDate) {
-      return Promise.resolve(newEmployee);
-    }
-
-    logger.log(
-      2,
-      '_updateBudgetDates',
-      `Attempting to Change Hire Date for user ${oldEmployee.id} from ${oldEmployee.hireDate}`,
-      `to ${newEmployee.hireDate}`
-    );
     try {
-      // get all expense types
-      this.getExpenseTypes().then((expenseTypes) => {
-        // filter out non recurring expense types
-        let recurringExpenseTypes = _.filter(expenseTypes, ['recurringFlag', true]);
-        // for each expense type
-        recurringExpenseTypes.forEach((expenseType) => {
-          // get all budgets
-          this.getBudgets(oldEmployee.id, expenseType.id).then((budgets) => {
-            // sort budgets
-            let sortedBudgets = this._sortBudgets(budgets);
-            // loop through sorted budgets and update fiscal start and end date
-            for (let i = 0; i < sortedBudgets.length; i++) {
-              let newBudget = sortedBudgets[i];
-              newBudget.fiscalStartDate = moment(newEmployee.hireDate).add(i, 'years').format(IsoFormat);
-              newBudget.fiscalEndDate = moment(newEmployee.hireDate)
-                .add(i + 1, 'years')
-                .subtract(1, 'days')
-                .format(IsoFormat);
-              this.budgetDynamo.updateEntryInDB(newBudget).catch((err) => {
+      let employee = new Employee(await this.databaseModify.getEntry(id));
+
+      return this._validateDelete(employee)
+        .then(() => {
+          // log success
+          logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
+
+          // return employee deleted
+          return employee;
+        })
+        .catch(err => {
+          throw err;
+        });
+    } catch (err) {
+      // log error
+      logger.log(2, '_delete', `Failed to prepare delete for employee ${id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _delete
+
+  /**
+   * Reads an employee from the database. Returns the employee read.
+   *
+   * @param data - parameters of employee
+   * @return Employee - employee read
+   */
+  async _read(data) {
+    // log method
+    logger.log(2, '_read', `Attempting to read employee ${data.id}`);
+
+    // compute method
+    try {
+      let employee = new Employee(await this.databaseModify.getEntry(data.id)); // read from database
+      // log success
+      logger.log(2, '_read', `Successfully read employee ${data.id}`);
+
+      // return employee
+      return employee;
+    } catch (err) {
+      // log error
+      logger.log(2, '_read', `Failed to read employee ${data.id}`);
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // _read
+
+  /**
+   * Prepares an employee to be updated. Returns the employee if it can be successfully updated.
+   *
+   * @param data - data of employee
+   * @return Employee - employee prepared to update
+   */
+  async _update(data) {
+    // log method
+    logger.log(2, '_update', `Preparing to update employee ${data.id}`);
+
+    // compute method
+    try {
+      let newEmployee = new Employee(data);
+      let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
+
+      return this._validateEmployee(newEmployee)
+        .then(() => this._validateUpdate(oldEmployee, newEmployee))
+        .then(() => this._updateBudgets(oldEmployee, newEmployee))
+        .then(() => {
+          // log success
+          logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+
+          // return employee updated
+          return newEmployee;
+        })
+        .catch(err => {
+          throw err;
+        });
+    } catch (err) {
+      // log error
+      logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _update
+
+  /**
+   * Updates budgets when changing an employee.
+   *
+   * @param oldEmployee - Employee to be updated from
+   * @param newEmployee - Employee to be updated to
+   * @return Array - Array of employee Budgets
+   */
+  async _updateBudgets(oldEmployee, newEmployee) {
+    // log method
+    logger.log(2, '_updateBudgets', `Attempting to update budgets for employee ${oldEmployee.id}`);
+
+    // compute method
+    try {
+      let budgets = [];
+
+      let diffWorkStatus = oldEmployee.workStatus != newEmployee.workStatus;
+
+      if (diffWorkStatus) {
+        // need to update budgets
+        let budgetsData =
+          await this.budgetDynamo.querySecondaryIndexInDB(
+            'employeeId-expenseTypeId-index',
+            'employeeId',
+            oldEmployee.id
+          );
+
+        budgets = _.map(budgetsData, budgetData => {
+          return new Budget(budgetData);
+        });
+
+        let expenseTypes;
+        let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+        expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+          return new ExpenseType(expenseTypeData);
+        });
+
+        let i; // index of budgets
+        for (i = 0; i < budgets.length; i++) {
+          // update budget amount
+          let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
+          let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
+          if (moment().isBetween(start, end, 'day', '[]')) {
+            // only update active budgets
+            let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
+            if (this.hasAccess(newEmployee, expenseType)) {
+              budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
+            } else {
+              budgets[i].amount = 0;
+            }
+
+            // update budget in database
+            await this.budgetDynamo.updateEntryInDB(budgets[i])
+              .then(() => {
+                // log budget update success
+                logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+              })
+              .catch(err => {
+                // log and throw budget update failure
+                logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
                 throw err;
               });
-            }
-          });
-        });
-      });
+          }
+        }
+      }
+
+      // log success
+      logger.log(2, '_updateBudgets', `Successfully updated budgets for employee ${oldEmployee.id}`);
+
+      // return updated bugets
+      return budgets;
     } catch (err) {
-      throw Promise.reject(err);
+      // log error
+      logger.log(2, '_updateBudgets', `Failed to update budgets for employee ${oldEmployee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
     }
-    return Promise.resolve(newEmployee);
-  }
+  } // _updateBudgets
+
+  /**
+   * Validate that an employee can be created. Returns the employee if the employee can be created.
+   *
+   * @param employee - Employee to be created
+   * @return Employee - validated employee
+   */
+  async _validateCreate(employee) {
+    // log method
+    logger.log(2, '_validateCreate', `Validating create for employee ${employee.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating create for employee.'
+      };
+
+      let employees = await this.databaseModify.getAllEntriesInDB();
+
+      // validate duplicate employee id
+      if (employees.some((e) => e.id === employee.id)) {
+        // log error
+        logger.log(2, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
+
+        // throw error
+        err.message = 'Unexpected duplicate id created. Please try submitting again.';
+        throw err;
+      }
+
+      // validateduplicate employee number
+      if (employees.some((e) => e.employeeNumber === employee.employeeNumber)) {
+        // log error
+        logger.log(2, '_validateCreate', `Employee number ${employee.employeeNumber} is duplicated`);
+
+        // throw error
+        err.message = `Employee number ${employee.employeeNumber} already taken. Please enter a new number.`;
+        throw err;
+      }
+
+      // validate duplicate employee email
+      if (employees.some((e) => e.email === employee.email)) {
+        // log error
+        logger.log(2, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
+
+        // throw error
+        err.message = `Employee email ${employee.email} already taken. Please enter a new email.`;
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateCreate', `Successfully validated create for employee ${employee.id}`);
+
+      // return employee on success
+      return Promise.resolve(employee);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateCreate', `Failed to validate create for employee ${employee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateCreate
+
+  /**
+  * Validate that an employee can be deleted. Returns the employee if successfully validated, otherwise returns an
+  * error.
+  *
+  * @param employee - employee to validate delete
+  * @return Employee - validated employee
+  */
+  async _validateDelete(employee) {
+    // log method
+    logger.log(2, '_validateDelete', `Validating delete for employee ${employee.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating delete for employee.'
+      };
+
+      // get all expenses for this employee
+      let expenses =
+        await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
+
+      // validate the employee does not have any expenses
+      if (expenses.length > 0) {
+        // log error
+        logger.log(2, '_validateDelete', `Expenses exist for employee ${employee.id}`);
+
+        // throw error
+        err.message = 'Cannot delete an employee with expenses.';
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateDelete', `Successfully validated delete for employee ${employee.id}`);
+
+      // return employee on success
+      return employee;
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateDelete', `Failed to validate delete for employee ${employee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateDelete
+
+  /**
+   * Validate that an employee is valid. Returns the employee if the employee is successfully validated, otherwise
+   * returns an error.
+   *
+   * @param employee - Employee object to be validated
+   * @return Employee - validated employee
+   */
+  async _validateEmployee(employee) {
+    // log method
+    logger.log(2, '_validateEmployee', `Validating employee ${employee.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating employee.'
+      };
+
+      // validate id
+      if (this.isEmpty(employee.id)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee id is empty');
+
+        // throw error
+        err.message = 'Invalid employee id.';
+        throw err;
+      }
+
+      // validate first name
+      if (this.isEmpty(employee.firstName)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee first name is empty');
+
+        // throw error
+        err.message = 'Invalid employee first name.';
+        throw err;
+      }
+
+      // validate last name
+      if (this.isEmpty(employee.lastName)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee last name is empty');
+
+        // throw error
+        err.message = 'Invalid employee last name.';
+        throw err;
+      }
+
+      // validate employee number
+      if (this.isEmpty(employee.employeeNumber)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee number is empty');
+
+        // throw error
+        err.message = 'Invalid employee number.';
+        throw err;
+      }
+
+      // validate hire date
+      if (this.isEmpty(employee.hireDate)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee hire date is empty');
+
+        // throw error
+        err.message = 'Invalid employee hire date.';
+        throw err;
+      }
+
+      // validate email
+      if (this.isEmpty(employee.email)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee email is empty');
+
+        // throw error
+        err.message = 'Invalid employee email.';
+        throw err;
+      }
+
+      // validate employee role
+      if (this.isEmpty(employee.employeeRole)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee role is empty');
+
+        // throw error
+        err.message = 'Invalid employee role.';
+        throw err;
+      }
+
+      // validate work status
+      if (this.isEmpty(employee.workStatus)) {
+        // log error
+        logger.log(2, '_validateEmployee', 'Employee work status is empty');
+
+        // throw error
+        err.message = 'Invalid employee work status.';
+        throw err;
+      }
+
+      // log success
+      logger.log(2, '_validateEmployee', `Successfully validated employee ${employee.id}`);
+
+      // return employee on success
+      return Promise.resolve(employee);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateEmployee', `Failed to validate employee ${employee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateEmployee
+
+  /**
+   * Validates that an employee can be updated. Return the employee if the employee being updated is valid.
+   *
+   * @param oldEmployee - Employee being updated from
+   * @param newEmployee - Employee being updated to
+   * @return Employee - validated employee
+   */
+  async _validateUpdate(oldEmployee, newEmployee) {
+    // log method
+    logger.log(2, '_validateUpdate', `Validating update for employee ${oldEmployee.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating update for employee.'
+      };
+
+      // validate employee id
+      if (oldEmployee.id != newEmployee.id) {
+        // log error
+        logger.log(2, '_validateUpdate',
+          `Old employee id ${oldEmployee.id} does not match new employee id ${newEmployee.id}`
+        );
+
+        // throw error
+        err.message = 'Error validating employee IDs.';
+        throw err;
+      }
+
+      // validate no budgets exist when changing hire date
+      if (oldEmployee.hireDate != newEmployee.hireDate) {
+        let budgets =
+          await this.budgetDynamo.querySecondaryIndexInDB(
+            'employeeId-expenseTypeId-index',
+            'employeeId',
+            oldEmployee.id
+          );
+          
+        if (budgets.length > 0) {
+          // budgets for employee exist
+          // log error
+          logger.log(2, '_validateUpdate',
+            `Cannot change hire date for employee ${oldEmployee.id} because budgets exist`
+          );
+
+          // throw error
+          err.message = 'Cannot change hire date for employees with existing budgets.';
+          throw err;
+        }
+      }
+
+      // log success
+      logger.log(2, '_validateUpdate', `Successfully validated update for employee ${oldEmployee.id}`);
+
+      // return new employee on success
+      return Promise.resolve(newEmployee);
+    } catch (err) {
+      // log error
+      logger.log(2, '_validateUpdate', `Failed to validate update for employee ${oldEmployee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateUpdate
 }
 
 module.exports = EmployeeRoutes;

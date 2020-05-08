@@ -7,8 +7,8 @@ const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const _ = require('lodash');
 
-const logger = new Logger('budgetRoutes');
 const budgetDynamo = new databaseModify('budgets');
+const logger = new Logger('budgetRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
