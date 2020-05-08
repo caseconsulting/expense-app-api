@@ -6,7 +6,7 @@ Download and install Node.js v12.x from: https://nodejs.org/en/ or https://nodej
 
 Install required Node.js modules:
 
-```
+```bash
 npm ci
 ```
 
@@ -26,7 +26,7 @@ The **dotenv** Node.js module is used to pick up environment variables from a `.
 The `.env` file in the **case-expense-app** S3 bucket in the company AWS account has up-to-date values to run locally.
 Download this file to the project root directory:
 
-```
+```bash
 npm run download:local:env
 ```
 
@@ -34,50 +34,57 @@ npm run download:local:env
 
 To run locally (using pm2 configuration defined in `services.yml`):
 
-```
+```bash
 npm run start
 ```
 
 To stop running locally (using pm2):
 
-```
+```bash
 npm run stop
 ```
 
 To run locally (using pm2 configuration defined in `services.yml`, but on a different port):
 
-```
+```bash
 EXPRESS_PORT=8081 npm run start
 ```
 
 To run locally (using nodemon, with debug enabled):
 
-```
+```bash
 npm run debug
 ```
 
 To stop running locally (using nodemon), press CTRL-C in same window.
 
+To run unit tests, first download the dev environment files:
+
+```bash
+npm run deploy:dev
+```
+
 To run unit tests (with Jasmine):
 
-```
+```bash
 npm run test
 ```
 
 To upgrade to the latest version of a specific Node.js module:
 
-```
+```bash
 npm update --save <module-name>@latest
 ```
 
 To upgrade to the latest version of a specific Node.js module, which is a development dependency only:
 
-```
+```bash
 npm update --save-dev <module-name>@latest
 ```
 
 To sync expense receipt names with S3 bucket file names:
-```
+
+```bash
 npm run receiptSync:dev
 npm run receiptSync:test
 npm run receiptSync:prod
@@ -103,7 +110,7 @@ In the S3 Console:
 
 To download dev .env and claudia.json then deploy to the dev environment using Claudia.js and SAM/CloudFormation:
 
-```
+```bash
 npm run deploy:dev
 ```
 
@@ -111,7 +118,7 @@ npm run deploy:dev
 
 To download test .env and claudia.json then deploy to the test environment using Claudia.js and SAM/CloudFormation:
 
-```
+```bash
 npm run deploy:test
 ```
 
@@ -121,7 +128,7 @@ NOTE: Need to switch AWS credentials to production account.
 
 To download prod .env and claudia.json then deploy to the prod environment using Claudia.js and SAM/CloudFormation:
 
-```
+```bash
 npm run deploy:prod
 ```
 
@@ -158,7 +165,7 @@ Uncomment the 'ChronosFunction' configuration from CloudFormation.yaml
 
 Upload .env to S3 bucket:
 
-```
+```bash
 npm run upload:test:env
 ```
 
@@ -166,7 +173,7 @@ Claudia.js requires a one time initialization after the CloudFormation stack has
 
 Make sure you do not have a claudia.json file and that you do have a .env set up for the environment.
 
-```
+```bash
 npm run package:chronos:test
 npm run deploy:chronos:test
 npm run create:claudia:test
@@ -185,7 +192,7 @@ npm run upload:test:claudia
 
 Run the normal deployment
 
-```
+```bash
 npm run deploy:test
 ```
 
@@ -212,6 +219,6 @@ Add the CNAME record in the Netlify DNS for test.api.consultwithcase.com
 
 To reset for local development, after a deployment:
 
-```
+```bash
 npm run download:local:env
 ```
