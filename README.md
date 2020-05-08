@@ -222,3 +222,28 @@ To reset for local development, after a deployment:
 ```bash
 npm run download:local:env
 ```
+
+## FOR THE NEXT DEPLOYMENT AFTER 5-8-20
+
+1) Open CloudFormation.yaml
+2) Uncomment the userId indexes and attributes for expense and budget tables
+3) Comment out expenseTable attribute and index
+
+      # - AttributeName: expenseType
+      #   AttributeType: S
+
+      # - IndexName: employeeId-expenseType-index
+      #   KeySchema:
+      #     - AttributeName: employeeId
+      #       KeyType: HASH
+      #     - AttributeName: expenseType
+      #       KeyType: RANGE
+      #   Projection:
+      #     ProjectionType: ALL
+
+4) $ npm run package:chronos:dev && npm run deploy:chronos:dev
+5) Comment out the userId indexes and attributes for expense and budget tables from step 2
+6) $ npm run package:chronos:dev && npm run deploy:chronos:dev
+7) Uncomment the expenseTable attribute and index from step 3
+8) $ npm run package:chronos:dev && npm run deploy:chronos:dev
+9) After deploying to production the userId indexes and attributes can be removed from CloudFormation.yaml and these steps from the README
