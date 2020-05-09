@@ -19,7 +19,7 @@ class EmployeeRoutes extends Crud {
   } // constructor
 
   /**
-   * Prepares an employee to be created. Returns the employee if it an be successfully created.
+   * Prepares an employee to be created. Returns the employee if it can be successfully created.
    *
    * @param data - data of employee
    * @return Employee - employee prepared to create
@@ -28,6 +28,7 @@ class EmployeeRoutes extends Crud {
     // log method
     logger.log(2, '_create', `Preparing to create employee ${data.id}`);
 
+    // compute method
     let employee = new Employee(data);
 
     return this._validateEmployee(employee) // validate employee
@@ -36,7 +37,7 @@ class EmployeeRoutes extends Crud {
         // log success
         logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
 
-        // return created employee
+        // return prepared employee
         return employee;
       })
       .catch(err => {
@@ -58,6 +59,7 @@ class EmployeeRoutes extends Crud {
     // log method
     logger.log(2, '_delete', `Preparing to delete employee ${id}`);
 
+    // compute method
     try {
       let employee = new Employee(await this.databaseModify.getEntry(id));
 
@@ -130,7 +132,7 @@ class EmployeeRoutes extends Crud {
           // log success
           logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
 
-          // return employee updated
+          // return employee to update
           return newEmployee;
         })
         .catch(err => {
@@ -334,8 +336,7 @@ class EmployeeRoutes extends Crud {
   } // _validateDelete
 
   /**
-   * Validate that an employee is valid. Returns the employee if the employee is successfully validated, otherwise
-   * returns an error.
+   * Validate that an employee is valid. Returns the employee if successfully validated, otherwise returns an error.
    *
    * @param employee - Employee object to be validated
    * @return Employee - validated employee
@@ -446,7 +447,7 @@ class EmployeeRoutes extends Crud {
   } // _validateEmployee
 
   /**
-   * Validates that an employee can be updated. Return the employee if the employee being updated is valid.
+   * Validates that an employee can be updated. Returns the employee if the employee being updated is valid.
    *
    * @param oldEmployee - Employee being updated from
    * @param newEmployee - Employee being updated to
@@ -483,7 +484,7 @@ class EmployeeRoutes extends Crud {
             'employeeId',
             oldEmployee.id
           );
-          
+
         if (budgets.length > 0) {
           // budgets for employee exist
           // log error

@@ -23,6 +23,10 @@ class TrainingUrls {
     this.logo = data.logo;
     this.publisher = data.publisher;
 
+    if (this.hits == null) {
+      this.hits = 0; // default: 0 hits
+    }
+
     // populate empty fields with a space holder
     for (var propName in this) {
       if (this[propName] == null || this[propName] === '') {
