@@ -8,7 +8,8 @@
 const actions = [
   '0. Cancel',
   '1. Set the amount of all budgets based on employee work status and expense type',
-  '2. Change all budget attributes labeled userId to employeeId'
+  '2. Change all budget attributes labeled userId to employeeId',
+  '3. Delete all empty budgets without any pending or reimbursed amounts'
 ];
 
 // check for stage argument
@@ -140,6 +141,31 @@ async function maxAmount() {
   });
 }
 
+/**
+ * Deletes all budgets that have no pending or reimbursed amounts.
+ */
+async function deleteEmptyBudgets() {
+  let budgets = await getAllEntries();
+  _.forEach(budgets, async budget => {
+    if (budget.reimbursedAmount + budget.pendingAmount == 0) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': budget.id
+        },
+      };
+
+      // update employee
+      ddb.delete(params, function(err) {
+        if (err) {
+          console.error('Unable to delete an item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Deleted Budget ${budget.id}`);
+        }
+      });
+    }
+  });
+} // deleteEmptyBudgets
 
 /**
  * Copies values from old attribute name to new attribute name
@@ -282,6 +308,12 @@ async function main() {
       if (confirmAction('change all budget attributes labeled userId to employeeId?')) {
         console.log('Changing all budget attributes labeled userId to employeeId');
         changeAttributeName('userId', 'employeeId');
+      }
+      break;
+    case 3:
+      if (confirmAction('delete all empty budgets without any pending or reimbursed amounts?')) {
+        console.log('Deleting all empty budgets without any pending or reimbursed amounts');
+        deleteEmptyBudgets();
       }
       break;
     default:
