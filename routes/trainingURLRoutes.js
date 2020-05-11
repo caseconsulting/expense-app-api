@@ -4,7 +4,7 @@ const got = require('got');
 const Logger = require('../js/Logger');
 const TrainingUrl = require('../models/trainingUrls');
 // const moment = require('moment');
-const _ = require('lodash');
+// const _ = require('lodash');
 
 const atob = require('atob');
 const logger = new Logger('trainingURLRoutes');
@@ -139,7 +139,7 @@ class TrainingURLRoutes extends Crud {
       let oldTrainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(data.id, data.category));
 
       return this._validateTrainingUrl(newTrainingUrl)
-        .then(() => _.validateUpdate(oldTrainingUrl, newTrainingUrl))
+        .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl))
         .then(() => {
           // log success
           logger.log(2, '_update',
