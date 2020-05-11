@@ -312,8 +312,6 @@ Resources:
           AttributeType: S
         - AttributeName: purchaseDate
           AttributeType: S
-        - AttributeName: expenseType
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -342,11 +340,11 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-        - IndexName: employeeId-expenseType-index
+        - IndexName: employeeId-expenseTypeId-index
           KeySchema:
             - AttributeName: employeeId
               KeyType: HASH
-            - AttributeName: expenseType
+            - AttributeName: expenseTypeId
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
