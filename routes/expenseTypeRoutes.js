@@ -172,8 +172,9 @@ class ExpenseTypeRoutes extends Crud {
       let diffStart = oldExpenseType.startDate != newExpenseType.startDate;
       let diffEnd = oldExpenseType.endDate != newExpenseType.endDate;
       let diffBudget = oldExpenseType.budget != newExpenseType.budget;
+      let diffAccessibleBy = oldExpenseType.accessibleBy != newExpenseType.accessibleBy;
 
-      if (diffStart || diffEnd || diffBudget) {
+      if (diffStart || diffEnd || diffBudget || diffAccessibleBy) {
         // need to update budgets
         let budgetsData =
           await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', newExpenseType.id);
@@ -183,7 +184,7 @@ class ExpenseTypeRoutes extends Crud {
         });
 
         let employees;
-        if (diffBudget) {
+        if (diffBudget || diffAccessibleBy) {
           // get all employees if changing budget amount
           let employeesData = await this.employeeDynamo.getAllEntriesInDB();
           employees = _.map(employeesData, employeeData => {
@@ -193,6 +194,18 @@ class ExpenseTypeRoutes extends Crud {
 
         let i; // index of budgets
         for (i = 0; i < budgets.length; i++) {
+          if (diffBudget || diffAccessibleBy) {
+            // update the budget amount for current budgets
+            if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(moment().format(ISOFORMAT))) {
+              let employee = _.find(employees, ['id', budgets[i].employeeId]);
+              if (this.hasAccess(employee, newExpenseType)) {
+                budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
+              } else {
+                budgets[i].amount = 0;
+              }
+            }
+          }
+
           if (diffStart) {
             // update the fiscal start date
             budgets[i].fiscalStartDate = newExpenseType.startDate;
@@ -201,16 +214,6 @@ class ExpenseTypeRoutes extends Crud {
           if (diffEnd) {
             // update the fiscal end date
             budgets[i].fiscalEndDate = newExpenseType.endDate;
-          }
-
-          if (diffBudget) {
-            // update the budget amount
-            let employee = _.find(employees, ['id', budgets[i].employeeId]);
-            if (this.hasAccess(employee, newExpenseType)) {
-              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
-            } else {
-              budgets[i].amount = 0;
-            }
           }
 
           // update budget in database

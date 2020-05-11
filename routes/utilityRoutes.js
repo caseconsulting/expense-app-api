@@ -239,7 +239,6 @@ class Utility {
   } // hasAccess
 
   async _getActiveBudget(employee, expenseType) {
-
     let today = moment().format(ISOFORMAT);
 
     // get all budgets for employee and expense type
@@ -273,7 +272,6 @@ class Utility {
         budgetObject.startDate = expenseType.startDate;
         budgetObject.endDate = expenseType.endDate;
       }
-
       if (this.hasAccess(employee, expenseType)) {
         // set the budget amount if the employee has access to the expense type
         budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);

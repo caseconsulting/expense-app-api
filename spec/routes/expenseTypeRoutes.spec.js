@@ -3,12 +3,12 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
 const ExpenseType = require('../../models/expenseType');
-// const moment = require('moment');
+const moment = require('moment');
 const _ = require('lodash');
 
 describe('expenseTypeRoutes', () => {
-  // const ISOFORMAT = 'YYYY-MM-DD';
 
+  const ISOFORMAT = 'YYYY-MM-DD';
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 
@@ -568,73 +568,61 @@ describe('expenseTypeRoutes', () => {
 
   describe('_updateBudgets', () => {
 
-    let oldExpenseType, newExpenseType;
+    let oldExpenseType, newExpenseType, today;
 
     beforeEach(() => {
+      today = moment();
+
       oldExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       newExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
 
-      oldExpenseType.startDate = '2001-08-18';
-      oldExpenseType.endDate = '2002-08-18';
-      oldExpenseType.accessibleBy = 'FULL TIME';
-      newExpenseType.startDate = '2001-08-18';
-      newExpenseType.endDate = '2002-08-18';
-      newExpenseType.accessibleBy = 'FULL TIME';
+      oldExpenseType.recurringFlag = true;
+      oldExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
+      oldExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      oldExpenseType.budget = 100;
+      oldExpenseType.accessibleBy = 'PART TIME';
+
+      newExpenseType.recurringFlag = true;
+      newExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
+      newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      newExpenseType.budget = 100;
+      newExpenseType.accessibleBy = 'PART TIME';
     });
 
-    describe('when start date, end date, and budgets are the same', () => {
+    describe('when start date, end date, budgets, and accessible by are the same', () => {
 
-      describe('and the expense type is not recurring and budget is the same', () => {
-        it('should return an empty array', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual([]);
-              done();
-            });
-        }); // should return an empty array
-      }); // and the expense type is not recurring
+      it('should return an empty array', done => {
+        expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+          .then(data => {
+            expect(data).toEqual([]);
+            done();
+          });
+      }); // should return an empty array
+    }); // when start date, end date, budgets, and accessible by are the same
 
-      describe('and the expense type is recurring and budget is the same', () => {
+    describe('when start date is different', () => {
 
-        beforeEach(() => {
-          oldExpenseType.startDate = ' ';
-          oldExpenseType.endDate = ' ';
-          newExpenseType.startDate = ' ';
-          newExpenseType.endDate = ' ';
-        });
-
-        it('should return an empty array', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual([]);
-              done();
-            });
-        }); // should return an empty array
-      }); // and the expense type is recurring
-    }); // when start date, end date, and budgets are the same
-
-    describe('when start date is changed', () => {
+      let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
-        newExpenseType.startDate = '2000-08-18';
+        newExpenseType.startDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
+
+        budget1 = new Budget(BUDGET_DATA);
+        budget2 = new Budget(BUDGET_DATA);
+
+        expectedBudget1 = new Budget(BUDGET_DATA);
+        expectedBudget2 = new Budget(BUDGET_DATA);
+
+        expectedBudget1.fiscalStartDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
+        expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
+
+        budgets = [budget1, budget2];
+        expectedBudgets = [expectedBudget1, expectedBudget2];
       });
 
       describe('and successfully updates budgets', () => {
 
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-
         beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-
-          expectedBudget1.fiscalStartDate = '2000-08-18';
-          expectedBudget2.fiscalStartDate = '2000-08-18';
-
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
@@ -648,7 +636,7 @@ describe('expenseTypeRoutes', () => {
               expect(data).toEqual(expectedBudgets);
               expect(budgetDynamo.querySecondaryIndexInDB)
                 .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
         }); // should return the array of updated budgets
@@ -684,18 +672,13 @@ describe('expenseTypeRoutes', () => {
 
       describe('and fails to update budget in database', () => {
 
-        let budget1, budget2, budgets, err;
+        let err;
 
         beforeEach(() => {
           err = {
             code: 404,
             message: 'Failed to update entry in database.'
           };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budgets = [budget1, budget2];
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
@@ -711,34 +694,36 @@ describe('expenseTypeRoutes', () => {
               expect(error).toEqual(err);
               expect(budgetDynamo.querySecondaryIndexInDB)
                 .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to update budget in database
-    }); // when start date is changed
+    }); // when start date is different
 
-    describe('when end date is changed', () => {
+    describe('when end date is different', () => {
+
+      let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
-        newExpenseType.endDate = '2003-08-18';
+        newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
+
+        budget1 = new Budget(BUDGET_DATA);
+        budget2 = new Budget(BUDGET_DATA);
+
+        expectedBudget1 = new Budget(BUDGET_DATA);
+        expectedBudget2 = new Budget(BUDGET_DATA);
+
+        expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
+        expectedBudget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
+
+        budgets = [budget1, budget2];
+        expectedBudgets = [expectedBudget1, expectedBudget2];
       });
 
       describe('and successfully updates budgets', () => {
 
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-
         beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-
-          expectedBudget1.fiscalEndDate = '2003-08-18';
-          expectedBudget2.fiscalEndDate = '2003-08-18';
-
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
@@ -752,7 +737,7 @@ describe('expenseTypeRoutes', () => {
               expect(data).toEqual(expectedBudgets);
               expect(budgetDynamo.querySecondaryIndexInDB)
                 .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
         }); // should return the array of updated budgets
@@ -788,18 +773,13 @@ describe('expenseTypeRoutes', () => {
 
       describe('and fails to update budget in database', () => {
 
-        let budget1, budget2, budgets, err;
+        let err;
 
         beforeEach(() => {
           err = {
             code: 404,
             message: 'Failed to update entry in database.'
           };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budgets = [budget1, budget2];
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
@@ -815,69 +795,143 @@ describe('expenseTypeRoutes', () => {
               expect(error).toEqual(err);
               expect(budgetDynamo.querySecondaryIndexInDB)
                 .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to update budget in database
-    }); // when end date is changed
+    }); // when end date is different
 
-    describe('when budget is changed', () => {
+    describe('when budget is different', () => {
+
+      let budget1, budget2, budget3, budgets;
+      let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
+      let employee1, employee2, employees;
 
       beforeEach(() => {
-        newExpenseType.budget = '10';
+        newExpenseType.budget = 10;
+
+        employee1 = new Employee(EMPLOYEE_DATA);
+        employee2 = new Employee(EMPLOYEE_DATA);
+
+        budget1 = new Budget(BUDGET_DATA);
+        budget2 = new Budget(BUDGET_DATA);
+        budget3 = new Budget(BUDGET_DATA);
+
+        expectedBudget1 = new Budget(BUDGET_DATA);
+        expectedBudget2 = new Budget(BUDGET_DATA);
+        expectedBudget3 = new Budget(BUDGET_DATA);
+
+        employee1.id = 'employee1_id';
+        employee1.workStatus = 50;
+
+        employee2.id = 'employee2_id';
+        employee2.workStatus = 100;
+
+        budget1.employeeId = 'employee1_id';
+        budget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+        budget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget1.amount = 50;
+
+        budget2.employeeId = 'employee1_id';
+        budget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+        budget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget2.amount = 50;
+
+        budget3.employeeId = 'employee2_id';
+        budget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+        budget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget3.amount = 0;
+
+        employees = [employee1, employee2];
+        budgets = [budget1, budget2, budget3];
+        expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3];
       });
 
       describe('and successfully updates budgets', () => {
 
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-        let employee1, employee2, employees;
-
         beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          expectedBudget1.employeeId = 'EID_1';
-          expectedBudget1.amount = 10;
-
-          expectedBudget2.employeeId = 'EID_2';
-          expectedBudget2.amount = 0;
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
-            Promise.resolve(expectedBudget2)
+            Promise.resolve(expectedBudget2),
+            Promise.resolve(expectedBudget3)
           );
         });
 
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
-        }); // should return the array of updated budgets
+        describe('and expense type is recurring', () => {
+
+          beforeEach(() => {
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.employeeId = 'employee1_id';
+            expectedBudget1.amount = 5;
+
+            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate =
+              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.employeeId = 'employee1_id';
+            expectedBudget2.amount = 50;
+
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.employeeId = 'employee2_id';
+            expectedBudget3.amount = 0;
+          });
+
+          it('should return the array of updated budgets', done => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+              .then(data => {
+                expect(data).toEqual(expectedBudgets);
+                expect(budgetDynamo.querySecondaryIndexInDB)
+                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+                done();
+              });
+          }); // should return the array of updated budgets
+        }); // and expense type is recurring
+
+        describe('and expense type is not recurring', () => {
+
+          beforeEach(() => {
+            oldExpenseType.recurringFlag = false;
+            oldExpenseType.startDate = ' ';
+            oldExpenseType.endDate = ' ';
+            newExpenseType.recurringFlag = false;
+            newExpenseType.startDate = ' ';
+            newExpenseType.endDate = ' ';
+
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.employeeId = 'employee1_id';
+            expectedBudget1.amount = 5;
+
+            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate =
+              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.employeeId = 'employee1_id';
+            expectedBudget2.amount = 5;
+
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.employeeId = 'employee2_id';
+            expectedBudget3.amount = 0;
+          });
+
+          it('should return the array of updated budgets', done => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+              .then(data => {
+                expect(data).toEqual(expectedBudgets);
+                expect(budgetDynamo.querySecondaryIndexInDB)
+                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+                done();
+              });
+          }); // should return the array of updated budgets
+        }); // and expense type is not recurring
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
@@ -910,21 +964,13 @@ describe('expenseTypeRoutes', () => {
 
       describe('and fails to get employees', () => {
 
-        let budget1, budget2, budgets, err;
+        let err;
 
         beforeEach(() => {
           err = {
             code: 404,
-            message: 'Failed to get entries from database.'
+            message: 'Failed to get employees.'
           };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          budgets = [budget1, budget2];
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
@@ -948,7 +994,7 @@ describe('expenseTypeRoutes', () => {
 
       describe('and fails to update budget in database', () => {
 
-        let budget1, budget2, budgets, employee1, employee2, employees, err;
+        let err;
 
         beforeEach(() => {
           err = {
@@ -956,24 +1002,7 @@ describe('expenseTypeRoutes', () => {
             message: 'Failed to update entry in database.'
           };
 
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
@@ -993,177 +1022,139 @@ describe('expenseTypeRoutes', () => {
               done();
             });
         }); // should return a 404 rejected promise
-      }); // and fails to update budget in database
-    }); // when budget is changed
+      }); // and fails to update budget in database'
+    }); // when budget is different
 
-    describe('when start date and end date are changed', () => {
+    describe('when accessible by is different', () => {
+
+      let budget1, budget2, budget3, budgets;
+      let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
+      let employee1, employee2, employees;
 
       beforeEach(() => {
-        newExpenseType.startDate = '2000-08-18';
-        newExpenseType.endDate = '2003-08-18';
+        newExpenseType.accessibleBy = 'FULL TIME';
+
+        employee1 = new Employee(EMPLOYEE_DATA);
+        employee2 = new Employee(EMPLOYEE_DATA);
+
+        budget1 = new Budget(BUDGET_DATA);
+        budget2 = new Budget(BUDGET_DATA);
+        budget3 = new Budget(BUDGET_DATA);
+
+        expectedBudget1 = new Budget(BUDGET_DATA);
+        expectedBudget2 = new Budget(BUDGET_DATA);
+        expectedBudget3 = new Budget(BUDGET_DATA);
+
+        employee1.id = 'employee1_id';
+        employee1.workStatus = 50;
+
+        employee2.id = 'employee2_id';
+        employee2.workStatus = 100;
+
+        budget1.employeeId = 'employee1_id';
+        budget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+        budget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget1.amount = 50;
+
+        budget2.employeeId = 'employee1_id';
+        budget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+        budget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget2.amount = 50;
+
+        budget3.employeeId = 'employee2_id';
+        budget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+        budget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget3.amount = 0;
+
+        employees = [employee1, employee2];
+        budgets = [budget1, budget2, budget3];
+        expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3];
       });
 
       describe('and successfully updates budgets', () => {
 
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-
         beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-
-          expectedBudget1.fiscalStartDate = '2000-08-18';
-          expectedBudget1.fiscalEndDate = '2003-08-18';
-
-          expectedBudget2.fiscalStartDate = '2000-08-18';
-          expectedBudget2.fiscalEndDate = '2003-08-18';
-
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          budgetDynamo.updateEntryInDB.and.returnValues(
-            Promise.resolve(expectedBudget1),
-            Promise.resolve(expectedBudget2)
-          );
-        });
-
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
-        }); // should return the array of updated budgets
-      }); // and successfully updates budgets
-
-      describe('and fails to get budgets', () => {
-
-        let err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to get budgets.'
-          };
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to get budgets
-
-      describe('and fails to update budget in database', () => {
-
-        let budget1, budget2, budgets, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to update entry in database.'
-          };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to update budget in database
-    }); // when start date and end date are changed
-
-    describe('when start date and buget are changed', () => {
-
-      beforeEach(() => {
-        newExpenseType.startDate = '2000-08-18';
-        newExpenseType.budget = '10';
-      });
-
-      describe('and successfully updates budgets', () => {
-
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-        let employee1, employee2, employees;
-
-        beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          expectedBudget1.fiscalStartDate = '2000-08-18';
-          expectedBudget1.employeeId = 'EID_1';
-          expectedBudget1.amount = 10;
-
-          expectedBudget2.fiscalStartDate = '2000-08-18';
-          expectedBudget2.employeeId = 'EID_2';
-          expectedBudget2.amount = 0;
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
-            Promise.resolve(expectedBudget2)
+            Promise.resolve(expectedBudget2),
+            Promise.resolve(expectedBudget3)
           );
         });
 
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
-        }); // should return the array of updated budgets
+        describe('and expense type is recurring', () => {
+
+          beforeEach(() => {
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.employeeId = 'employee1_id';
+            expectedBudget1.amount = 0;
+
+            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate =
+              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.employeeId = 'employee1_id';
+            expectedBudget2.amount = 50;
+
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.employeeId = 'employee2_id';
+            expectedBudget3.amount = 100;
+          });
+
+          it('should return the array of updated budgets', done => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+              .then(data => {
+                expect(data).toEqual(expectedBudgets);
+                expect(budgetDynamo.querySecondaryIndexInDB)
+                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+                done();
+              });
+          }); // should return the array of updated budgets
+        }); // and expense type is recurring
+
+        describe('and expense type is not recurring', () => {
+
+          beforeEach(() => {
+            oldExpenseType.recurringFlag = false;
+            oldExpenseType.startDate = ' ';
+            oldExpenseType.endDate = ' ';
+            newExpenseType.recurringFlag = false;
+            newExpenseType.startDate = ' ';
+            newExpenseType.endDate = ' ';
+
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.employeeId = 'employee1_id';
+            expectedBudget1.amount = 0;
+
+            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate =
+              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.employeeId = 'employee1_id';
+            expectedBudget2.amount = 0;
+
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
+            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.employeeId = 'employee2_id';
+            expectedBudget3.amount = 100;
+          });
+
+          it('should return the array of updated budgets', done => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+              .then(data => {
+                expect(data).toEqual(expectedBudgets);
+                expect(budgetDynamo.querySecondaryIndexInDB)
+                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+                done();
+              });
+          }); // should return the array of updated budgets
+        }); // and expense type is not recurring
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
@@ -1196,21 +1187,13 @@ describe('expenseTypeRoutes', () => {
 
       describe('and fails to get employees', () => {
 
-        let budget1, budget2, budgets, err;
+        let err;
 
         beforeEach(() => {
           err = {
             code: 404,
-            message: 'Failed to get entries from database.'
+            message: 'Failed to get employees.'
           };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          budgets = [budget1, budget2];
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
@@ -1233,211 +1216,16 @@ describe('expenseTypeRoutes', () => {
       }); // and fails to get employees
 
       describe('and fails to update budget in database', () => {
-
-        let budget1, budget2, budgets, employee1, employee2, employees, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to update entry in database.'
-          };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
-          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to update budget in database
-    }); // when start date and budget are changed
-
-    describe('when end date and budget are changed',() => {
-
-      beforeEach(() => {
-        newExpenseType.endDate = '2003-08-18';
-        newExpenseType.budget = '10';
-      });
-
-      describe('and successfully updates budgets', () => {
-
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-        let employee1, employee2, employees;
-
-        beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          expectedBudget1.fiscalEndDate = '2003-08-18';
-          expectedBudget1.employeeId = 'EID_1';
-          expectedBudget1.amount = 10;
-
-          expectedBudget2.fiscalEndDate = '2003-08-18';
-          expectedBudget2.employeeId = 'EID_2';
-          expectedBudget2.amount = 0;
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
-          budgetDynamo.updateEntryInDB.and.returnValues(
-            Promise.resolve(expectedBudget1),
-            Promise.resolve(expectedBudget2)
-          );
-        });
-
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
-        }); // should return the array of updated budgets
-      }); // and successfully updates budgets
-
-      describe('and fails to get budgets', () => {
 
         let err;
 
         beforeEach(() => {
           err = {
             code: 404,
-            message: 'Failed to get budgets.'
-          };
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to get budgets
-
-      describe('and fails to get employees', () => {
-
-        let budget1, budget2, budgets, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to get entries from database.'
-          };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to get employees
-
-      describe('and fails to update budget in database', () => {
-
-        let budget1, budget2, budgets, employee1, employee2, employees, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
             message: 'Failed to update entry in database.'
           };
 
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
@@ -1457,189 +1245,8 @@ describe('expenseTypeRoutes', () => {
               done();
             });
         }); // should return a 404 rejected promise
-      }); // and fails to update budget in database
-    }); // when end date and budget are changed
-
-    describe('when start date, end date, and budget are changed', () => {
-
-      beforeEach(() => {
-        newExpenseType.startDate = '2000-08-18';
-        newExpenseType.endDate = '2003-08-18';
-        newExpenseType.budget = '10';
-      });
-
-      describe('and successfully updates budgets', () => {
-
-        let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
-        let employee1, employee2, employees;
-
-        beforeEach(() => {
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          expectedBudget1 = new Budget(BUDGET_DATA);
-          expectedBudget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          expectedBudget1.fiscalStartDate = '2000-08-18';
-          expectedBudget1.fiscalEndDate = '2003-08-18';
-          expectedBudget1.employeeId = 'EID_1';
-          expectedBudget1.amount = 10;
-
-          expectedBudget2.fiscalStartDate = '2000-08-18';
-          expectedBudget2.fiscalEndDate = '2003-08-18';
-          expectedBudget2.employeeId = 'EID_2';
-          expectedBudget2.amount = 0;
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-          expectedBudgets = [expectedBudget1, expectedBudget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
-          budgetDynamo.updateEntryInDB.and.returnValues(
-            Promise.resolve(expectedBudget1),
-            Promise.resolve(expectedBudget2)
-          );
-        });
-
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
-        }); // should return the array of updated budgets
-      }); // and successfully updates budgets
-
-      describe('and fails to get budgets', () => {
-
-        let err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to get budgets.'
-          };
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to get budgets
-
-      describe('and fails to get employees', () => {
-
-        let budget1, budget2, budgets, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to get entries from database.'
-          };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to get employees
-
-      describe('and fails to update budget in database', () => {
-
-        let budget1, budget2, budgets, employee1, employee2, employees, err;
-
-        beforeEach(() => {
-          err = {
-            code: 404,
-            message: 'Failed to update entry in database.'
-          };
-
-          budget1 = new Budget(BUDGET_DATA);
-          budget2 = new Budget(BUDGET_DATA);
-          employee1 = new Employee(EMPLOYEE_DATA);
-          employee2 = new Employee(EMPLOYEE_DATA);
-
-          employee1.id = 'EID_1';
-          employee1.workStatus = 100;
-
-          employee2.id = 'EID_2';
-          employee2.workStatus = 0;
-
-          budget1.employeeId = 'EID_1';
-          budget2.employeeId = 'EID_2';
-
-          employees = [employee1, employee2];
-          budgets = [budget1, budget2];
-
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
-          employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
-          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
-        });
-
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch(error => {
-              expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
-              done();
-            });
-        }); // should return a 404 rejected promise
-      }); // and fails to update budget in database
-    }); // when start date, end date, and budget are changed
+      }); // and fails to update budget in database'
+    }); // when budget is different
   }); // _updateBudgets
 
   describe('_validateDates', () => {

@@ -2,7 +2,6 @@ const CrudRoutes = require('../../routes/crudRoutes');
 const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
 const moment = require('moment');
-const ISOFORMAT = 'YYYY-MM-DD';
 
 const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
@@ -11,6 +10,7 @@ const ExpenseType = require('../../models/expenseType');
 
 describe('crudRoutes', () => {
 
+  const ISOFORMAT = 'YYYY-MM-DD';
   const STAGE = 'dev';
   const _ROUTER = '{router}';
 
@@ -1616,7 +1616,7 @@ describe('crudRoutes', () => {
   }); // _readWrapper
 
   describe('router', () => {
-    
+
     it('should return the router', () => {
       expect(crudRoutes.router).toEqual(_ROUTER);
     }); // should return the router
