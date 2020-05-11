@@ -227,16 +227,13 @@ npm run download:local:env
 
 1) Open CloudFormation.yaml
 2) Uncomment the userId indexes and attributes for expense and budget tables
-3) Comment out expenseTable attribute and index
-
-      # - AttributeName: expenseType
-      #   AttributeType: S
+3) Comment out expenseTable index
 
       # - IndexName: employeeId-expenseType-index
       #   KeySchema:
       #     - AttributeName: employeeId
       #       KeyType: HASH
-      #     - AttributeName: expenseType
+      #     - AttributeName: expenseTypeId
       #       KeyType: RANGE
       #   Projection:
       #     ProjectionType: ALL
