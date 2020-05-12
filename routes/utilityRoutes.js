@@ -358,7 +358,10 @@ class Utility {
     try {
       // get employee
       const employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
-      const allExpenseTypes = await this.expenseTypeDynamo.getAllEntriesInDB();
+      const allExpenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      const allExpenseTypes = _.map(allExpenseTypesData, expenseTypeData => {
+        return new ExpenseType(expenseTypeData);
+      });
 
       // get all budgets
       let budgetsData = await budgetDynamo
@@ -370,7 +373,18 @@ class Utility {
 
       // filter budgets within date range
       budgets = _.filter(budgets, budget => {
-        return budget.isDateInRange(req.params.startDate) || budget.isDateInRange(req.params.endDate);
+        let expenseType = _.find(allExpenseTypes, ['id', budget.expenseTypeId]);
+
+        if (expenseType.recurringFlag) {
+          return budget.isDateInRange(req.params.startDate) || budget.isDateInRange(req.params.endDate);
+        } else {
+          let budgetStart = moment(budget.fiscalStartDate, ISOFORMAT);
+          let budgetEnd = moment(budget.fiscalEndDate, ISOFORMAT);
+          let viewStart = moment(req.params.startDate, ISOFORMAT);
+          let viewEnd = moment(req.params.endDate, ISOFORMAT);
+          return budgetStart.isBetween(viewStart, viewEnd, null, '[]')
+            || budgetEnd.isBetween(viewStart, viewEnd, null, '[]');
+        }
       });
 
       budgets = _.map(budgets, budget => {
