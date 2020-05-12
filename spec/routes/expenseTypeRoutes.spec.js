@@ -378,7 +378,7 @@ describe('expenseTypeRoutes', () => {
               expect(updatedExpenseType).toEqual(newExpenseType);
               expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
               expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
               expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
               done();
             });
@@ -402,7 +402,7 @@ describe('expenseTypeRoutes', () => {
               expect(updatedExpenseType).toEqual(newExpenseType);
               expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
               expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
               expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
               done();
             });
@@ -524,7 +524,7 @@ describe('expenseTypeRoutes', () => {
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
             done();
           });
       }); // should return a 404 rejected promise
@@ -558,7 +558,7 @@ describe('expenseTypeRoutes', () => {
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
             done();
           });

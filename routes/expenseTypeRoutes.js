@@ -125,7 +125,7 @@ class ExpenseTypeRoutes extends Crud {
 
       return this._validateExpenseType(newExpenseType)
         .then(() => this._validateUpdate(oldExpenseType, newExpenseType))
-        .then(() => this._validateDates(oldExpenseType, newExpenseType))
+        .then(() => this._validateDates(newExpenseType))
         .then(() => this._updateBudgets(oldExpenseType, newExpenseType))
         .then(() => {
           // log success
@@ -286,7 +286,6 @@ class ExpenseTypeRoutes extends Crud {
               lastPurchaseDate = purchaseDate;
             }
           });
-
 
           if (moment(expenseType.startDate, ISOFORMAT).isAfter(firstPurchaseDate)) {
             // expense type start date is after the first purchase date
