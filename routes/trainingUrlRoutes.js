@@ -9,15 +9,15 @@ const TrainingUrl = require('../models/trainingUrls');
 const atob = require('atob');
 const logger = new Logger('trainingUrlRoutes');
 
-// const metascraper = require('metascraper')([
-//   require('metascraper-description')(),
-//   require('metascraper-image')(),
-//   require('metascraper-logo')(),
-//   require('metascraper-clearbit')(),
-//   require('metascraper-publisher')(),
-//   require('metascraper-title')(),
-//   require('metascraper-url')()
-// ]);
+const metascraper = require('metascraper')([
+  require('metascraper-description')(),
+  require('metascraper-image')(),
+  require('metascraper-logo')(),
+  require('metascraper-clearbit')(),
+  require('metascraper-publisher')(),
+  require('metascraper-title')(),
+  require('metascraper-url')()
+]);
 
 class TrainingUrlRoutes extends Crud {
 
@@ -127,8 +127,8 @@ class TrainingUrlRoutes extends Crud {
     logger.log(2, '_metascraper', `Scraping ${data.url} for metadata`);
 
     // compute method
-    // return metascraper(data);
-    return {};
+    return metascraper(data);
+    // return {};
   } // _metascraper
 
   /**
