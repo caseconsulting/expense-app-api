@@ -28,8 +28,8 @@ const expenseTypeRoutes = new ExpenseTypeRoutes();
 const EmployeeRoutes = require('./routes/employeeRoutes');
 const employeeRoutes = new EmployeeRoutes();
 
-const TrainingURLRoutes = require('./routes/trainingURLRoutes');
-const trainingURLRoutes = new TrainingURLRoutes();
+const TrainingUrlRoutes = require('./routes/trainingUrlRoutes');
+const trainingUrlRoutes = new TrainingUrlRoutes();
 
 const UtilityRoutes = require('./routes/utilityRoutes');
 const utilityRoutes = new UtilityRoutes();
@@ -67,7 +67,7 @@ app.use('/expenses', expenseRoutes.router);
 app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
-app.use('/training-urls', trainingURLRoutes.router);
+app.use('/training-urls', trainingUrlRoutes.router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

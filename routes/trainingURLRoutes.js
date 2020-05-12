@@ -7,19 +7,19 @@ const TrainingUrl = require('../models/trainingUrls');
 // const _ = require('lodash');
 
 const atob = require('atob');
-const logger = new Logger('trainingURLRoutes');
+const logger = new Logger('trainingUrlRoutes');
 
-// const metascraper = require('metascraper')([
-//   require('metascraper-description')(),
-//   require('metascraper-image')(),
-//   require('metascraper-logo')(),
-//   require('metascraper-clearbit')(),
-//   require('metascraper-publisher')(),
-//   require('metascraper-title')(),
-//   require('metascraper-url')()
-// ]);
+const metascraper = require('metascraper')([
+  require('metascraper-description')(),
+  require('metascraper-image')(),
+  require('metascraper-logo')(),
+  require('metascraper-clearbit')(),
+  require('metascraper-publisher')(),
+  require('metascraper-title')(),
+  require('metascraper-url')()
+]);
 
-class TrainingURLRoutes extends Crud {
+class TrainingUrlRoutes extends Crud {
 
   constructor() {
     super();
@@ -64,6 +64,17 @@ class TrainingURLRoutes extends Crud {
   } // _create
 
   /**
+   * Decodes a url. Converts url from ascii to binary.
+   *
+   * @param url - encoded url
+   * @return String - decoded url
+   */
+  async _decodeUrl(id) {
+    // return atob(id.replace(/%2F/g, '/'));
+    return atob(id);
+  }
+
+  /**
    * Scrapes metadata from a website url. Returns the url title, description, image, logo, and publisher.
    *
    * @param id - website url
@@ -74,23 +85,50 @@ class TrainingURLRoutes extends Crud {
     logger.log(2, '_getMetaData', `Attempting to scrape metadata from ${id}`);
 
     // compute method
-    let metadata = {};
+    return this._got(id)
+      .then(data => this._metascraper(data))
+      .then(metaData => {
+        // log success
+        logger.log(2, '_getMetaData', `Successfully scraped metadata from ${id}`);
 
-    await got(id); // remove this line when including commented out metascraper
-
-    // try {
-    //   const { body: html, url } = await got(id);
-    //   metadata = await metascraper({ html, url });
-    //
-    //   // log success
-    //   logger.log(2, '_getMetaData', `Successfully scraped metadata from ${data.id}`);
-    // } catch (err) {
-    //   // log error
-    //   logger.log(2, '_getMetaData', `Failed to scrape metadata from ${data.id}`);
-    // }
-
-    return metadata;
+        return metaData;
+      })
+      .catch(() => {
+        // log error
+        logger.log(2, '_getMetaData', `Failed to scrape metadata from ${id}`);
+        return {};
+      });
   } // _getMetaData
+
+  /**
+   * Executes a http request to a url and returns information about the request. (Helper function for testing)
+   *
+   * @param id - url
+   * @return Object - html request body and url
+   */
+  async _got(id) {
+    // log method
+    logger.log(2, '_got', `Getting http request for ${id}`);
+
+    // compute method
+    const { body: html, url } = await got(id);
+    return {html, url};
+  } // _got
+
+  /**
+   * Scrapes a url http request and returns an object with metadata from the url: title, description, image, logo,
+   * and publisher. (Helper function for testing)
+   *
+   * @param data - object containing the html data and url
+   * @return Object - url metadata
+   */
+  async _metascraper(data) {
+    // log method
+    logger.log(2, '_metascraper', `Scraping ${data.url} for metadata`);
+
+    // compute method
+    return metascraper(data);
+  } // _metascraper
 
   /**
    * Reads a training url from the database. Returns the training url read.
@@ -104,10 +142,9 @@ class TrainingURLRoutes extends Crud {
 
     // compute method
     try {
-      let encodedId = data.id.replace(/%2F/g, '/');
-      let decodedId = atob(encodedId);
+      let decodedUrl = await this._decodeUrl(data.id);
 
-      let trainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(decodedId, data.category));
+      let trainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(decodedUrl, data.category));
 
       // log success
       logger.log(2, '_read', `Successfully read training url ${data.id} with category ${data.category}`);
@@ -138,8 +175,8 @@ class TrainingURLRoutes extends Crud {
       let newTrainingUrl = new TrainingUrl(data);
       let oldTrainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(data.id, data.category));
 
-      return this._validateTrainingUrl(newTrainingUrl)
-        .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl))
+      return this._validateTrainingUrl(newTrainingUrl) // validate training url
+        .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl)) // validate update
         .then(() => {
           // log success
           logger.log(2, '_update',
@@ -271,6 +308,12 @@ class TrainingURLRoutes extends Crud {
         err.message = 'Error validating training url category.';
         throw err;
       }
+
+      // log success
+      logger.log(2, '_validateUpdate', `Successfully validated update for training url ${oldTrainingUrl.id}`);
+
+      // return new training url on success
+      return Promise.resolve(newTrainingUrl);
     } catch (err) {
       // log error
       logger.log(2, '_validateUpdate', `Failed to validate update for training url ${oldTrainingUrl.id}`);
@@ -279,6 +322,6 @@ class TrainingURLRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateUpdate
-} // TrainingURLRoutes
+} // TrainingUrlRoutes
 
-module.exports = TrainingURLRoutes;
+module.exports = TrainingUrlRoutes;

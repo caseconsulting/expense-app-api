@@ -7,6 +7,7 @@ const moment = require('moment');
 const _ = require('lodash');
 
 describe('employeeRoutes', () => {
+
   // const ISOFORMAT = 'YYYY-MM-DD';
 
   const ID = '{id}';
@@ -197,7 +198,8 @@ describe('employeeRoutes', () => {
         };
 
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(employee));
-        spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.reject(err));      });
+        spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.reject(err));
+      });
 
       it('should return a 403 rejected promise', done => {
         employeeRoutes._create(data)
