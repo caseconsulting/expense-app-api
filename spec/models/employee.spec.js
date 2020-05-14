@@ -24,11 +24,38 @@ describe('employee', () => {
     workStatus: WORK_STATUS
   };
 
-  let employee;
+  let employee, blankEmployee;
 
   beforeEach(() => {
     employee = new Employee(EMPLOYEE_DATA);
+    blankEmployee = new Employee({});
   });
+
+  describe('constructor', () => {
+
+    it('should populate empty attribute values with a space character', () => {
+      expect(blankEmployee).toEqual(jasmine.objectContaining({
+        id: ' ',
+        firstName: ' ',
+        middleName: ' ',
+        lastName: ' ',
+        hireDate: ' ',
+        email: ' ',
+        employeeRole: ' ',
+        workStatus: ' ',
+        birthday: ' ',
+        jobRole: ' ',
+        prime: ' ',
+        contract: ' ',
+        github: ' ',
+        twitter: ' ',
+        city: ' ',
+        st: ' ',
+        country: ' ',
+        deptDate: ' '
+      }));
+    }) // should populate empty attribute values with a spcae character
+  }); // constructor
 
   describe('fullName', () => {
 
@@ -61,6 +88,37 @@ describe('employee', () => {
       }); // should return false
     }); // when employee is not an admin
   }); // isAdmin
+
+  describe('_isEmpty', () => {
+
+    describe('when value is undefined', () => {
+
+      it('should return true', () => {
+        expect(employee._isEmpty(undefined)).toBe(true);
+      }); // should return true
+    }); // when value is undefined
+
+    describe('when value is null', () => {
+
+      it('should return true', () => {
+        expect(employee._isEmpty(null)).toBe(true);
+      }); // should return true
+    }); // when value is null
+
+    describe('when value is a space character', () => {
+
+      it('should return true', () => {
+        expect(employee._isEmpty(' ')).toBe(true);
+      }); // should return true
+    }); // when value is a space character
+
+    describe('when value is not empty', () => {
+
+      it('should return false', () => {
+        expect(employee._isEmpty('value')).toBe(false);
+      }); // should return false
+    }); // when value is not empty
+  }); // _isEmpty
 
   describe('isFullTime', () => {
 
@@ -194,4 +252,4 @@ describe('employee', () => {
       }); // should return false
     }); // when employee is not a user
   }); // isUser
-}); // budget
+}); // employee

@@ -25,6 +25,13 @@ class Budget {
     this.fiscalStartDate = data.fiscalStartDate;
     this.fiscalEndDate = data.fiscalEndDate;
     this.amount = Number(Number(data.amount).toFixed(2));
+
+    // populate empty fields with a space holder
+    for (let propName in this) {
+      if (this._isEmpty(this[propName])) {
+        this[propName] = ' ';
+      }
+    }
   } // constructor
 
   /**
@@ -40,6 +47,16 @@ class Budget {
     let end = moment(this.fiscalEndDate, ISOFORMAT);
     return date.isBetween(start, end, null, '[]');
   } // isDateInRange
+
+  /**
+   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   *
+   * @param value - value to check
+   * @return boolean - value is empty
+   */
+  _isEmpty(value) {
+    return value == null || value === ' ';
+  } // isEmpty
 }
 
 module.exports = Budget;

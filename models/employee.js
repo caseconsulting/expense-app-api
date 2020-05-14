@@ -47,8 +47,8 @@ class Employee {
     this.deptDate = data.deptDate;
 
     // populate empty fields with a space holder
-    for (var propName in this) {
-      if (this[propName] == null || this[propName] === '') {
+    for (let propName in this) {
+      if (this._isEmpty(this[propName])) {
         this[propName] = ' ';
       }
     }
@@ -71,6 +71,16 @@ class Employee {
   isAdmin() {
     return this.employeeRole == 'admin';
   } // isAdmin
+
+  /**
+   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   *
+   * @param value - value to check
+   * @return boolean - value is empty
+   */
+  _isEmpty(value) {
+    return value == null || value === ' ';
+  } // isEmpty
 
   /**
    * Check if the employee is full time. Returns true if employee work status is 100, otherwise returns false.

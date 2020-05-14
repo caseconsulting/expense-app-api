@@ -20,11 +20,25 @@ describe('budget', () => {
     amount: AMOUNT
   };
 
-  let budget;
+  let budget, blankBudget;
 
   beforeEach(() => {
     budget = new Budget(BUDGET_DATA);
+    blankBudget = new Budget({});
   });
+
+  describe('constructor', () => {
+
+    it('should populate empty attribute values with a space character', () => {
+      expect(blankBudget).toEqual(jasmine.objectContaining({
+        id: ' ',
+        expenseTypeId: ' ',
+        employeeId: ' ',
+        fiscalStartDate: ' ',
+        fiscalEndDate: ' ',
+      }));
+    }) // should populate empty attribute values with a spcae character
+  }); // constructor
 
   describe('isDateInRange', () => {
 
@@ -90,4 +104,35 @@ describe('budget', () => {
       }); // should return false
     }); // when date is after fiscal end date
   }); // isDateInRange
+
+  describe('_isEmpty', () => {
+
+    describe('when value is undefined', () => {
+
+      it('should return true', () => {
+        expect(budget._isEmpty(undefined)).toBe(true);
+      }); // should return true
+    }); // when value is undefined
+
+    describe('when value is null', () => {
+
+      it('should return true', () => {
+        expect(budget._isEmpty(null)).toBe(true);
+      }); // should return true
+    }); // when value is null
+
+    describe('when value is a space character', () => {
+
+      it('should return true', () => {
+        expect(budget._isEmpty(' ')).toBe(true);
+      }); // should return true
+    }); // when value is a space character
+
+    describe('when value is not empty', () => {
+
+      it('should return false', () => {
+        expect(budget._isEmpty('value')).toBe(false);
+      }); // should return false
+    }); // when value is not empty
+  }); // _isEmpty
 }); // budget

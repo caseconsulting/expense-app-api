@@ -32,7 +32,7 @@ class Expense {
 
     // populate empty fields with a space holder
     for (let propName in this) {
-      if (this[propName] == null || this[propName] === '') {
+      if (this._isEmpty(this[propName])) {
         this[propName] = ' ';
       }
     }
@@ -44,7 +44,7 @@ class Expense {
    * @return boolean - expense has receipt
    */
   hasReceipt() {
-    return !this.isEmpty(this.receipt);
+    return !this._isEmpty(this.receipt);
   }
 
   /**
@@ -53,8 +53,8 @@ class Expense {
    * @param value - value to check
    * @return boolean - value is empty
    */
-  isEmpty(value) {
-    return value == null || value == 0;
+  _isEmpty(value) {
+    return value == null || value === ' ';
   } // isEmpty
 
   /**
@@ -63,7 +63,7 @@ class Expense {
    * @return boolean - expense is reimbursed
    */
   isReimbursed() {
-    return !this.isEmpty(this.reimbursedDate);
+    return !this._isEmpty(this.reimbursedDate);
   } // isReimbursed
 }
 

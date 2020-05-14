@@ -28,12 +28,22 @@ class TrainingUrls {
     }
 
     // populate empty fields with a space holder
-    for (var propName in this) {
-      if (this[propName] == null || this[propName] === '') {
+    for (let propName in this) {
+      if (this._isEmpty(this[propName])) {
         this[propName] = ' ';
       }
     }
   } // constructor
+
+  /**
+   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   *
+   * @param value - value to check
+   * @return boolean - value is empty
+   */
+  _isEmpty(value) {
+    return value == null || value === ' ';
+  } // isEmpty
 }
 
 module.exports = TrainingUrls;
