@@ -29,28 +29,6 @@ class Logger {
       );
     }
   }
-
-  /**
-   * error(caller, description...)
-   *
-   * @priority first argument is the priority level
-   * @caller second argument is the method caller
-   * @description all following arguments make up the description
-   *
-   * [TIMESTAMP] [description] | Processing handled by function [caller]
-   */
-  error (method, ...args) {
-    let fullDescription = '';
-
-    for (let i = 0; i < args.length; i++) {
-      fullDescription += `${args[i]} `;
-    }
-
-    console.log(
-      `[${moment().format()}] ${fullDescription.trim()} | Error logged by function ${this.className}.${method}`
-    );
-
-  }
 }
 
 module.exports = Logger;
