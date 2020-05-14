@@ -130,8 +130,8 @@ describe('budgetRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);

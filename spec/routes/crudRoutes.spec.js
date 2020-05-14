@@ -130,8 +130,8 @@ describe('crudRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -142,8 +142,8 @@ describe('crudRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -793,14 +793,16 @@ describe('crudRoutes', () => {
         budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 404 and error', () => {
+      it('should respond with a 404 and error', done => {
         crudRoutes.createNewBudget(employee, expenseType)
           .then(() => {
             fail('expected error to have been thrown');
+            done();
           })
           .catch(error => {
-            expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
             expect(error).toEqual(err);
+            expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+            done();
           });
       }); // should respond with a 404 and error
     }); // when fails to create a new budget

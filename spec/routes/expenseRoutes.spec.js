@@ -7,6 +7,7 @@ const moment = require('moment');
 const _ = require('lodash');
 
 describe('expenseRoutes', () => {
+
   const ISOFORMAT = 'YYYY-MM-DD';
 
   const ID = '{id}';
@@ -110,8 +111,8 @@ describe('expenseRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -122,8 +123,8 @@ describe('expenseRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -134,8 +135,8 @@ describe('expenseRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -146,8 +147,8 @@ describe('expenseRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);

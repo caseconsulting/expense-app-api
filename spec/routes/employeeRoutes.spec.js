@@ -111,8 +111,8 @@ describe('employeeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -123,8 +123,8 @@ describe('employeeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -135,8 +135,8 @@ describe('employeeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -147,8 +147,8 @@ describe('employeeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);

@@ -1,7 +1,7 @@
 const Budget = require('./../models/budget');
 const DatabaseModify = require('../js/databaseModify');
 const Logger = require('../js/Logger');
-const TrainingUrls = require('../models/trainingUrls');
+const TrainingUrl = require('../models/trainingUrls');
 const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
@@ -385,7 +385,7 @@ class Crud {
         .then(objectValidated => this.databaseModify.addToDB(objectValidated)) // add object to database
         .then(data => {
           // log success
-          if (data instanceof TrainingUrls) {
+          if (data instanceof TrainingUrl) {
             // created a training url
             logger.log(2, '_createWrapper',
               `Successfully created object ${data.id} with category ${data.category} in ${this._getTableName()}`
@@ -737,7 +737,7 @@ class Crud {
           }
 
           // log success
-          if (data instanceof TrainingUrls) {
+          if (data instanceof TrainingUrl) {
             // read a training url
             logger.log(2, '_readWrapper',
               `Successfully read object ${data.id} with category ${data.category} from ${this._getTableName()}`
@@ -900,7 +900,7 @@ class Crud {
         })
         .then(data => {
           // log success
-          if (data instanceof TrainingUrls) {
+          if (data instanceof TrainingUrl) {
             // updated a training url
             logger.log(2, '_updateWrapper',
               `Successfully updated object ${data.id} with category ${data.category} from ${this._getTableName()}`

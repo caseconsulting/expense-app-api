@@ -110,8 +110,8 @@ describe('expenseTypeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -122,8 +122,8 @@ describe('expenseTypeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -134,8 +134,8 @@ describe('expenseTypeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
@@ -146,8 +146,8 @@ describe('expenseTypeRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
-      'readFromDB',
-      'readFromDBUrl',
+      '_readFromDB',
+      '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
