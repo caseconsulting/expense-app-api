@@ -46,10 +46,6 @@ class Employee {
     this.country = data.country;
     this.deptDate = data.deptDate;
 
-    if (this.workStatus == null) {
-      this.workStatus = 0; // default: inactive
-    }
-
     // populate empty fields with a space holder
     for (var propName in this) {
       if (this[propName] == null || this[propName] === '') {
