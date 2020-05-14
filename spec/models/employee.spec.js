@@ -33,7 +33,7 @@ describe('employee', () => {
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values with a space character', () => {
+    it('should populate empty attribute values', () => {
       expect(blankEmployee).toEqual(jasmine.objectContaining({
         id: ' ',
         firstName: ' ',

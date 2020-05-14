@@ -39,7 +39,7 @@ describe('expenseType', () => {
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values with a space character', () => {
+    it('should populate empty attribute values', () => {
       expect(blankExpenseType).toEqual(jasmine.objectContaining({
         id: ' ',
         budgetName: ' ',
