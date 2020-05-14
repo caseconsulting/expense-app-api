@@ -51,7 +51,7 @@ describe('expense', () => {
         expenseTypeId: ' ',
         category: ' '
       }));
-    }) // should populate empty attribute values
+    }); // should populate empty attribute values
   }); // constructor
 
   describe('hasReceipt', () => {

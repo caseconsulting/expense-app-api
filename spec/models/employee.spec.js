@@ -54,7 +54,7 @@ describe('employee', () => {
         country: ' ',
         deptDate: ' '
       }));
-    }) // should populate empty attribute values with a spcae character
+    }); // should populate empty attribute values
   }); // constructor
 
   describe('fullName', () => {
