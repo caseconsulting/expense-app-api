@@ -654,7 +654,7 @@ class Crud {
     logger.log(2, 'isEmpty', `Checking if value ${value} is empty`);
 
     // compute method
-    let result = value == null || value === ' ';
+    let result = value == null || value === ' ' || value === '';
 
     // log result
     if (result) {

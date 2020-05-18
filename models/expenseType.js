@@ -87,7 +87,7 @@ class ExpenseType {
    * @return boolean - value is empty
    */
   _isEmpty(value) {
-    return value == null || value === ' ';
+    return value == null || value === ' ' || value === '';
   } // isEmpty
 }
 
