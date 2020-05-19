@@ -166,38 +166,71 @@ describe('crudRoutes', () => {
       expenseType.budget = 100;
     });
 
-    describe('when employee is inactive', () => {
+    describe('when employee has access', () => {
 
       beforeEach(() => {
-        employee.workStatus = 0;
+        spyOn(crudRoutes, 'hasAccess').and.returnValue(true);
+      });
+
+      describe('and expense type is accessible by All', () => {
+
+        beforeEach(() => {
+          expenseType.accessibleBy = 'ALL';
+          employee.workStatus = 50;
+        });
+
+        it('should return 50% of the budget', () => {
+          expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+        }); // should return 50% of the budget
+      }); // and expense type is accessible by All
+
+      describe('and expense type is accessible by Full', () => {
+
+        beforeEach(() => {
+          expenseType.accessibleBy = 'FULL';
+          employee.workStatus = 50;
+        });
+
+        it('should return 100% of the budget', () => {
+          expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+        }); // should return 100% of the budget
+      }); // and expense type is accessible by Full
+
+      describe('and expense type is accessible by Full Time', () => {
+
+        beforeEach(() => {
+          expenseType.accessibleBy = 'FULL TIME';
+          employee.workStatus = 100;
+        });
+
+        it('should return 100% of the budget', () => {
+          expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+        }); // should return 100% of the budget
+      }); // and expense type is accessible by Full Time
+
+      describe('and expense type is accessible by Custom', () => {
+
+        beforeEach(() => {
+          expenseType.accessibleBy = '{custom}';
+          employee.workStatus = 50;
+        });
+
+        it('should return 50% of the budget', () => {
+          expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+        }); // should return 50% of the budget
+      }); // and expense type is accessible by Custom
+    }); // when employee has access
+
+    describe('when employee does not have access', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, 'hasAccess').and.returnValue(false);
       });
 
       it('should return 0', () => {
         expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(0);
       }); // should return 0
-    }); // when employee is inactive
-
-    describe('when employee is part time', () => {
-
-      beforeEach(() => {
-        employee.workStatus = 50;
-      });
-
-      it('should return a percentage of the expense type budget', () => {
-        expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
-      }); // sshould return a percentage of the expense type budget
-    }); // when employee is part time
-
-    describe('when employee is full time', () => {
-
-      beforeEach(() => {
-        employee.workStatus = 100;
-      });
-
-      it('should return the full expense type budget', () => {
-        expect(crudRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
-      }); // should return the full expense type budget
-    }); // when employee is full time
+    }); // when employee does not have access
   }); // calcAdjustedAmount
 
   describe('_checkPermissionToCreate', () => {
@@ -1210,6 +1243,7 @@ describe('crudRoutes', () => {
 
       beforeEach(() => {
         expenseType.accessibleBy = 'ALL';
+        employee.workStatus = 50;
       });
 
       it('should return true', () => {
@@ -1259,10 +1293,10 @@ describe('crudRoutes', () => {
       }); // and employee work status is 0
     }); // when expense type is accessible by full time employees
 
-    describe('when expense type is accessible by part time employees', () => {
+    describe('when expense type is accessible by Full employees', () => {
 
       beforeEach(() => {
-        expenseType.accessibleBy = 'PART TIME';
+        expenseType.accessibleBy = 'FULL';
       });
 
       describe('and employee work status is 100', () => {
@@ -1271,9 +1305,9 @@ describe('crudRoutes', () => {
           employee.workStatus = 100;
         });
 
-        it('should return false', () => {
-          expect(crudRoutes.hasAccess(employee, expenseType)).toBe(false);
-        }); // should return false;
+        it('should return true', () => {
+          expect(crudRoutes.hasAccess(employee, expenseType)).toBe(true);
+        }); // should return true;
       }); // and employee work status is 100
 
       describe('and employee work status is 50', () => {
@@ -1285,7 +1319,6 @@ describe('crudRoutes', () => {
         it('should return true', () => {
           expect(crudRoutes.hasAccess(employee, expenseType)).toBe(true);
         }); // should return true;
-
       }); // and employee work status is 50
 
       describe('and employee work status is 0', () => {
@@ -1306,6 +1339,7 @@ describe('crudRoutes', () => {
 
         beforeEach(() => {
           expenseType.accessibleBy = [ID];
+          employee.workStatus = 50;
         });
 
         it('should return true', () => {
@@ -1317,6 +1351,7 @@ describe('crudRoutes', () => {
 
         beforeEach(() => {
           expenseType.accessibleBy = [];
+          employee.workStatus = 50;
         });
 
         it('should return false', () => {

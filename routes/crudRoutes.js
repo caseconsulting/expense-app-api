@@ -64,7 +64,17 @@ class Crud {
     );
 
     // compute method
-    let result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+    let result;
+
+    if (this.hasAccess(employee, expenseType)) {
+      if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+        result = expenseType.budget;
+      } else {
+        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+      }
+    } else {
+      result = 0;
+    }
 
     // log result
     logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
@@ -340,9 +350,7 @@ class Crud {
     }
 
     // set the amount of the new budget
-    if (this.hasAccess(employee, expenseType)) {
-      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
-    }
+    budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
 
     let newBudget = new Budget(budgetData);
     return this.budgetDynamo.addToDB(newBudget) // add budget to database
@@ -594,17 +602,13 @@ class Crud {
     // compute method
     let result;
 
-    if (expenseType.accessibleBy == 'ALL') {
-      // accessible by all employees
+    if (employee.workStatus == 0) {
+      result = false;
+    } else if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
       result = true;
     } else if (expenseType.accessibleBy == 'FULL TIME') {
-      // accessible by full time employees
       result = employee.workStatus == 100;
-    } else if (expenseType.accessibleBy == 'PART TIME') {
-      // accessible by part time employees
-      result = employee.workStatus > 0 && employee.workStatus < 100;
     } else {
-      // accessible by custom employees
       result = expenseType.accessibleBy.includes(employee.id);
     }
 

@@ -139,7 +139,16 @@ class Utility {
     // );
 
     // compute method
-    let result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+    let result;
+    if (this.hasAccess(employee, expenseType)) {
+      if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+        result = expenseType.budget;
+      } else {
+        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+      }
+    } else {
+      result = 0;
+    }
 
     // log result
     //logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
@@ -213,17 +222,11 @@ class Utility {
     // compute method
     let result;
 
-    if (expenseType.accessibleBy == 'ALL') {
-      // accessible by all employees
+    if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
       result = true;
     } else if (expenseType.accessibleBy == 'FULL TIME') {
-      // accessible by full time employees
       result = employee.workStatus == 100;
-    } else if (expenseType.accessibleBy == 'PART TIME') {
-      // accessible by part time employees
-      result = employee.workStatus > 0 && employee.workStatus < 100;
     } else {
-      // accessible by custom employees
       result = expenseType.accessibleBy.includes(employee.id);
     }
 
@@ -272,10 +275,9 @@ class Utility {
         budgetObject.startDate = expenseType.startDate;
         budgetObject.endDate = expenseType.endDate;
       }
-      if (this.hasAccess(employee, expenseType)) {
-        // set the budget amount if the employee has access to the expense type
-        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);
-      }
+
+      // set the budget amount based on the employee and expense type
+      budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);
     }
 
     return {

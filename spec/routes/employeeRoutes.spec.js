@@ -582,7 +582,7 @@ describe('employeeRoutes', () => {
         expenseType1.id = 'expenseType1_ID';
         expenseType1.budget = 100;
 
-        expenseType2.accessibleBy = 'PART TIME';
+        expenseType2.accessibleBy = 'ALL';
         expenseType2.id = 'expenseType2_ID';
         expenseType2.budget = 100;
 

@@ -191,11 +191,7 @@ class EmployeeRoutes extends Crud {
           if (moment().isBetween(start, end, 'day', '[]')) {
             // only update active budgets
             let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-            if (this.hasAccess(newEmployee, expenseType)) {
-              budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
-            } else {
-              budgets[i].amount = 0;
-            }
+            budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
 
             // update budget in database
             await this.budgetDynamo.updateEntryInDB(budgets[i])

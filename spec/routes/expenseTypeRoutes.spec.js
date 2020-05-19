@@ -580,13 +580,13 @@ describe('expenseTypeRoutes', () => {
       oldExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
       oldExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
       oldExpenseType.budget = 100;
-      oldExpenseType.accessibleBy = 'PART TIME';
+      oldExpenseType.accessibleBy = 'ALL';
 
       newExpenseType.recurringFlag = true;
       newExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
       newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
       newExpenseType.budget = 100;
-      newExpenseType.accessibleBy = 'PART TIME';
+      newExpenseType.accessibleBy = 'ALL';
     });
 
     describe('when start date, end date, budgets, and accessible by are the same', () => {
@@ -877,7 +877,7 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
             expectedBudget3.employeeId = 'employee2_id';
-            expectedBudget3.amount = 0;
+            expectedBudget3.amount = 10;
           });
 
           it('should return the array of updated budgets', done => {
@@ -917,7 +917,7 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
             expectedBudget3.employeeId = 'employee2_id';
-            expectedBudget3.amount = 0;
+            expectedBudget3.amount = 10;
           });
 
           it('should return the array of updated budgets', done => {

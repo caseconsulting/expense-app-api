@@ -214,14 +214,10 @@ function hasAccess(employee, expenseType) {
 
   let result;
 
-  if (employee.workStatus == 0) {
-    result = false;
-  } else if (expenseType.accessibleBy == 'ALL') {
+  if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
     result = true;
   } else if (expenseType.accessibleBy == 'FULL TIME') {
     result = employee.workStatus == 100;
-  } else if (expenseType.accessibleBy == 'PART TIME') {
-    result = employee.workStatus > 0 && employee.workStatus < 100;
   } else {
     result = expenseType.accessibleBy.includes(employee.id);
   }
@@ -241,7 +237,16 @@ function hasAccess(employee, expenseType) {
 function calcAdjustedAmount(employee, expenseType) {
   console.log(`Calculating adjusted budget amount for employee ${employee.id} and expense type ${expenseType.id}`);
 
-  let result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+  let result;
+  if (hasAccess(employee, expenseType)) {
+    if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+      result = expenseType.budget;
+    } else {
+      result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+    }
+  } else {
+    result = 0;
+  }
 
   console.log(`Adjusted budget amount is $${result}`);
   return result;
@@ -261,11 +266,7 @@ function calcAdjustedAmount(employee, expenseType) {
 //     let employee = _.find(employees, ['id', budget.employeeId]);
 //     let expenseType = _.find(expenseTypes, ['id', budget.expenseTypeId]);
 //     let amount;
-//     if (hasAccess(employee, expenseType)) {
-//       amount = calcAdjustedAmount(employee, expenseType);
-//     } else {
-//       amount = 0;
-//     }
+//     amount = calcAdjustedAmount(employee, expenseType);
 //
 //     let params = {
 //       TableName: BUDGETS_TABLE,
@@ -311,11 +312,7 @@ async function setBudgetAmounts() {
     let end = moment(budget.fiscalEndDate);
     if (moment().isBetween(start, end, undefined, '[]')) {
       let employee = _.find(employees, ['id', budget.employeeId]);
-      if (hasAccess(employee, expenseType)) {
-        amount = calcAdjustedAmount(employee, expenseType);
-      } else {
-        amount = 0;
-      }
+      amount = calcAdjustedAmount(employee, expenseType);
     }
 
     let params = {

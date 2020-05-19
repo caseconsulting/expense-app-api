@@ -56,18 +56,14 @@ function getAllEntries() {
 }
 
 function hasAccess(employee, expenseType) {
-  if (employee.workStatus == 0) {
-    return false;
-  } else if (expenseType.accessibleBy == 'ALL') {
+  if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
     return true;
   } else if (expenseType.accessibleBy == 'FULL TIME') {
     return employee.workStatus == 100;
-  } else if (expenseType.accessibleBy == 'PART TIME') {
-    return employee.workStatus > 0 && employee.workStatus < 100;
   } else {
     return expenseType.accessibleBy.includes(employee.id);
   }
-}
+} // hasAccess
 
 /*
  * Get all expense types
@@ -105,7 +101,11 @@ async function calculateAdjustedBudget(budget) {
   let expenseType = await getExpenseType(budget.expenseTypeId);
   let employee = await getEmployee(budget.employeeId);
   if (expenseType && employee && hasAccess(employee, expenseType)) {
-    return (expenseType.budget * (employee.workStatus / 100.0)).toFixed(2);
+    if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+      return expenseType.budget;
+    } else {
+      return Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+    }
   } else {
     return 0;
   }

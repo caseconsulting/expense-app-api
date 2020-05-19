@@ -198,11 +198,7 @@ class ExpenseTypeRoutes extends Crud {
             // update the budget amount for current budgets
             if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(moment().format(ISOFORMAT))) {
               let employee = _.find(employees, ['id', budgets[i].employeeId]);
-              if (this.hasAccess(employee, newExpenseType)) {
-                budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
-              } else {
-                budgets[i].amount = 0;
-              }
+              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
             }
           }
 
