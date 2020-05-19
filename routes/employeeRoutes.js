@@ -472,6 +472,35 @@ class EmployeeRoutes extends Crud {
         throw err;
       }
 
+      let employeesData = await this.databaseModify.getAllEntriesInDB();
+      let employees = _.map(employeesData, employeeData => {
+        return new Employee(employeeData);
+      });
+
+      employees = _.reject(employees, e => {
+        return _.isEqual(e, oldEmployee);
+      });
+
+      // validateduplicate employee number
+      if (employees.some((e) => e.employeeNumber === newEmployee.employeeNumber)) {
+        // log error
+        logger.log(2, '_validateUpdate', `Employee number ${newEmployee.employeeNumber} is duplicated`);
+
+        // throw error
+        err.message = `Employee number ${newEmployee.employeeNumber} already taken. Please enter a new number.`;
+        throw err;
+      }
+
+      // validate duplicate employee email
+      if (employees.some((e) => e.email === newEmployee.email)) {
+        // log error
+        logger.log(2, '_validateUpdate', `Employee ID ${newEmployee.id} is duplicated`);
+
+        // throw error
+        err.message = `Employee email ${newEmployee.email} already taken. Please enter a new email.`;
+        throw err;
+      }
+
       // validate no budgets exist when changing hire date
       if (oldEmployee.hireDate != newEmployee.hireDate) {
         let budgets =

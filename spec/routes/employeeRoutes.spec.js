@@ -1180,12 +1180,17 @@ describe('employeeRoutes', () => {
 
     describe('when successfully validates update', () => {
 
+      beforeEach(() => {
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee]));
+      });
+
       describe('and hire date is the same', () => {
 
         it('should return the validated employee', done => {
           employeeRoutes._validateUpdate(oldEmployee, newEmployee)
             .then(data => {
               expect(data).toEqual(newEmployee);
+              expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
               done();
             });
         }); // should return the validated employee
@@ -1206,11 +1211,72 @@ describe('employeeRoutes', () => {
               expect(data).toEqual(newEmployee);
               expect(budgetDynamo.querySecondaryIndexInDB)
                 .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
               done();
             });
         }); // should return the validated employee
       }); // and hire date is changed
     }); // when successfully validates update
+
+    describe('when another employee already has the same employee number', () => {
+
+      let err, otherEmployee;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Employee number 0 already taken. Please enter a new number.'
+        };
+
+        otherEmployee = new Employee(EMPLOYEE_DATA);
+        otherEmployee.email = 'OTHER_EMAIL';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when another employee already has the same employee number
+
+    describe('when another employee already has the same employee email', () => {
+
+      let err, otherEmployee;
+
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Employee email {email} already taken. Please enter a new email.'
+        };
+
+        otherEmployee = new Employee(EMPLOYEE_DATA);
+        otherEmployee.employeeNumber = 'OTHER_NUMBER';
+
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
+      });
+
+      it('should return a 403 rejected promise', done => {
+        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 403 rejected promise
+    }); // when another employee already has the same employee email
 
     describe('when old employee id does not match the new employee id', () => {
 
@@ -1223,6 +1289,7 @@ describe('employeeRoutes', () => {
         };
 
         newEmployee.id = 'OTHER_ID';
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee]));
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1250,6 +1317,7 @@ describe('employeeRoutes', () => {
 
         oldEmployee.hireDate = '2000-08-18';
         newEmployee.hireDate = '2001-08-18';
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee]));
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
       });
 
@@ -1263,6 +1331,7 @@ describe('employeeRoutes', () => {
             expect(error).toEqual(err);
             expect(budgetDynamo.querySecondaryIndexInDB)
               .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
           });
       }); // should return a 403 rejected promise
