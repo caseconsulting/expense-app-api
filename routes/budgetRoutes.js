@@ -48,13 +48,13 @@ class Budgets {
    */
   async _getCallerBudgets(req, res) {
     // log method
-    logger.log(2, 'getCallerBudgets', `Attempting to read all budgets for employee caller ${req.employee.id}`);
+    logger.log(1, 'getCallerBudgets', `Attempting to read all budgets for employee caller ${req.employee.id}`);
 
     // compute method
     return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.employee.id)
       .then(budgetsData => {
         // log success
-        logger.log(2, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
+        logger.log(1, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
 
         let budgets = _.map(budgetsData, budgetData => {
           return new Budget(budgetData);
@@ -68,7 +68,7 @@ class Budgets {
       })
       .catch(err => {
         // log error
-        logger.log(2, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.employee.id}`);
+        logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.employee.id}`);
 
         // send error status
         this._sendError(res, err);
@@ -88,13 +88,13 @@ class Budgets {
    */
   async _getEmployeeBudgets(req, res) {
     // log method
-    logger.log(2, 'getEmployeeBudgets', `Attempting to read all budgets for employee ${req.params.id}`);
+    logger.log(1, 'getEmployeeBudgets', `Attempting to read all budgets for employee ${req.params.id}`);
 
     // compute method
     return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
       .then(budgetsData => {
         // log success
-        logger.log(2, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
+        logger.log(1, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
 
         let budgets = _.map(budgetsData, budgetData => {
           return new Budget(budgetData);
@@ -108,7 +108,7 @@ class Budgets {
       })
       .catch(err => {
         // log error
-        logger.log(2, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.params.id}`);
+        logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.params.id}`);
 
         // send error status
         this._sendError(res, err);
@@ -125,7 +125,7 @@ class Budgets {
    */
   get router() {
     // log method
-    logger.log(2, 'router', 'Getting router');
+    logger.log(5, 'router', 'Getting router');
 
     return this._router;
   } // router
@@ -139,7 +139,7 @@ class Budgets {
    */
   _sendError(res, err) {
     // log method
-    logger.log(2, '_sendError', `Sending ${err.code} error status: ${err.message}`);
+    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
     // return error status
     return res.status(err.code).send(err);

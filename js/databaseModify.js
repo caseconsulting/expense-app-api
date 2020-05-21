@@ -52,7 +52,7 @@ class databaseModify {
   async addToDB(newDyanmoObj) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'addToDB', `Attempting to add new entry to ${tableName}`);
+    logger.log(4, 'addToDB', `Attempting to add new entry to ${tableName}`);
 
     // compute method
     if (newDyanmoObj) {
@@ -68,13 +68,13 @@ class databaseModify {
         .promise()
         .then(() => {
           // log success
-          logger.log(2, 'addToDB', `Successfully added ${newDyanmoObj.id} to ${tableName}`);
+          logger.log(4, 'addToDB', `Successfully added ${newDyanmoObj.id} to ${tableName}`);
 
           return newDyanmoObj;
         })
         .catch(function(err) {
           // log error
-          logger.log(2, '_updateWrapper', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
+          logger.log(4, '_updateWrapper', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
 
           // throw error
           throw err;
@@ -87,7 +87,7 @@ class databaseModify {
       };
 
       // log error
-      logger.log(2, 'addToDB', `Invalid object to add to ${tableName}`);
+      logger.log(4, 'addToDB', `Invalid object to add to ${tableName}`);
 
       // return rejected promise
       throw err;
@@ -102,7 +102,7 @@ class databaseModify {
    */
   _buildBudgetUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildBudgetUpdateParams', `Building update params for ${STAGE}-budgets`);
+    logger.log(4, '_buildBudgetUpdateParams', `Building update params for ${STAGE}-budgets`);
 
     // compute method
     return _.assign(
@@ -125,7 +125,7 @@ class databaseModify {
    */
   _buildEmployeeUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildEmployeeUpdateParams', `Building update params for ${STAGE}-employees`);
+    logger.log(4, '_buildEmployeeUpdateParams', `Building update params for ${STAGE}-employees`);
 
     // compute method
     return _.assign(
@@ -148,7 +148,7 @@ class databaseModify {
    */
   _buildExpenseTypeUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildExpenseTypeUpdateParams', `Building update params for ${STAGE}-expense-types`);
+    logger.log(4, '_buildExpenseTypeUpdateParams', `Building update params for ${STAGE}-expense-types`);
 
     // compute method
     return _.assign(
@@ -171,7 +171,7 @@ class databaseModify {
    */
   _buildExpenseUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildExpenseUpdateParams', `Building update params for ${STAGE}-expenses`);
+    logger.log(4, '_buildExpenseUpdateParams', `Building update params for ${STAGE}-expenses`);
 
     // compute method
     return _.assign(
@@ -194,7 +194,7 @@ class databaseModify {
    */
   _buildExpression(data) {
     // log method
-    logger.log(2, '_updateWrapper', `Building table expressions for ${data.id}`);
+    logger.log(4, '_updateWrapper', `Building table expressions for ${data.id}`);
 
     // compute method
     const alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
@@ -241,7 +241,7 @@ class databaseModify {
    */
   _buildTrainingUrlUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildTrainingUrlUpdateParams', `Building update params for ${STAGE}-training-urls`);
+    logger.log(4, '_buildTrainingUrlUpdateParams', `Building update params for ${STAGE}-training-urls`);
 
     // compute method
     return _.assign(
@@ -265,7 +265,7 @@ class databaseModify {
     */
   _buildUpdateParams(objToUpdate) {
     // log method
-    logger.log(2, '_buildUpdateParams', 'Building update params');
+    logger.log(4, '_buildUpdateParams', 'Building update params');
 
     // compute method
     switch (this.tableName) {
@@ -290,7 +290,7 @@ class databaseModify {
   async getAllEntriesInDB() {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'getAllEntriesInDB', `Getting all entries from ${tableName}`);
+    logger.log(4, 'getAllEntriesInDB', `Getting all entries from ${tableName}`);
 
     // compute method
     let params = {
@@ -302,13 +302,13 @@ class databaseModify {
     return scanDB(params, documentClient)
       .then(function(items) {
         // log success
-        logger.log(2, 'getAllEntriesInDB', `Successfully read all ${items.length} entries from ${tableName}`);
+        logger.log(4, 'getAllEntriesInDB', `Successfully read all ${items.length} entries from ${tableName}`);
 
         return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
       .catch(function(err) {
         // log error
-        logger.log(2, 'getAllEntriesInDB', `Failed to read all entries from ${tableName}`);
+        logger.log(4, 'getAllEntriesInDB', `Failed to read all entries from ${tableName}`);
 
         // throw error
         throw err;
@@ -323,7 +323,7 @@ class databaseModify {
    */
   async getEntry(passedID) {
     // log method
-    logger.log(2, 'getEntry', `Attempting to get entry ${passedID} from database`);
+    logger.log(4, 'getEntry', `Attempting to get entry ${passedID} from database`);
 
     // compute method
     return this._readFromDB(passedID)
@@ -331,14 +331,14 @@ class databaseModify {
         if (_.first(data)) {
           // entry found
           // log success
-          logger.log(2, 'getEntry', `Successfully got entry ${passedID} from database`);
+          logger.log(4, 'getEntry', `Successfully got entry ${passedID} from database`);
 
           // return the first entry
           return _.first(data);
         } else {
           // entry not found
           // log error
-          logger.log(2, 'getEntry', `Entry ${passedID} not found`);
+          logger.log(4, 'getEntry', `Entry ${passedID} not found`);
 
           let err = {
             code: 404,
@@ -351,7 +351,7 @@ class databaseModify {
       })
       .catch(function(err) {
         // log error
-        logger.log(2, 'getEntry', `Failed to get entry ${passedID} from database`);
+        logger.log(4, 'getEntry', `Failed to get entry ${passedID} from database`);
 
         // throw error
         throw err;
@@ -367,7 +367,7 @@ class databaseModify {
    */
   async getEntryUrl(passedID, category) {
     // log method
-    logger.log(2, 'getEntryUrl', `Attempting to get entry ${passedID} and ${category} from database`);
+    logger.log(4, 'getEntryUrl', `Attempting to get entry ${passedID} and ${category} from database`);
 
     // compute method
     return this._readFromDBUrl(passedID, category)
@@ -375,14 +375,14 @@ class databaseModify {
         if (_.first(data)) {
           // entry found
           // log success
-          logger.log(2, 'getEntryUrl', `Successfully got entry ${passedID} and ${category} from database`);
+          logger.log(4, 'getEntryUrl', `Successfully got entry ${passedID} and ${category} from database`);
 
           // return the first entry
           return _.first(data);
         } else {
           // entry not found
           // log error
-          logger.log(2, 'getEntryUrl', `Entry ${passedID} and ${category} not found`);
+          logger.log(4, 'getEntryUrl', `Entry ${passedID} and ${category} not found`);
 
           let err = {
             code: 404,
@@ -395,7 +395,7 @@ class databaseModify {
       })
       .catch(function(err) {
         // log error
-        logger.log(2, 'getEntryUrl', `Failed to get entry ${passedID} and ${category} from database`);
+        logger.log(4, 'getEntryUrl', `Failed to get entry ${passedID} and ${category} from database`);
 
         // throw error
         throw err;
@@ -412,7 +412,7 @@ class databaseModify {
   async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'querySecondaryIndexInDB',
+    logger.log(4, 'querySecondaryIndexInDB',
       `Attempting to query ${secondaryIndex} from table ${tableName} with key ${queryKey} and value ${queryParam}`
     );
 
@@ -430,7 +430,7 @@ class databaseModify {
     return queryDB(params, documentClient)
       .then(entries => {
         // log success
-        logger.log(2, 'querySecondaryIndexInDB',
+        logger.log(4, 'querySecondaryIndexInDB',
           `Successfully queried ${entries.length} entries for ${secondaryIndex} from table ${tableName} with key`,
           `${queryKey} and value ${queryParam}`
         );
@@ -440,7 +440,7 @@ class databaseModify {
       })
       .catch(err => {
         // log error
-        logger.log(2, 'querySecondaryIndexInDB',
+        logger.log(4, 'querySecondaryIndexInDB',
           `Failed to query ${secondaryIndex} from table ${tableName} with key ${queryKey} and value ${queryParam}`
         );
 
@@ -459,7 +459,7 @@ class databaseModify {
   async queryWithTwoIndexesInDB(employeeId, expenseTypeId) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'queryWithTwoIndexesInDB',
+    logger.log(4, 'queryWithTwoIndexesInDB',
       `Attempting to query employeeId-expenseTypeId-index for table ${tableName} for employee ${employeeId} and`,
       `expense type ${expenseTypeId}`
     );
@@ -479,7 +479,7 @@ class databaseModify {
     return queryDB(params, documentClient)
       .then(entries => {
         // log success
-        logger.log(2, 'queryWithTwoIndexesInDB',
+        logger.log(4, 'queryWithTwoIndexesInDB',
           `Successfully queried ${entries.length} entries from employeeId-expenseTypeId-index from table`,
           `${tableName} for employee ${employeeId} and expense type ${expenseTypeId}`
         );
@@ -489,7 +489,7 @@ class databaseModify {
       })
       .catch(err => {
         // log error
-        logger.log(2, 'queryWithTwoIndexesInDB',
+        logger.log(4, 'queryWithTwoIndexesInDB',
           `Failed to query employeeId-expenseTypeId-index for table ${tableName} for employee ${employeeId} and`,
           `expense type ${expenseTypeId}`
         );
@@ -508,7 +508,7 @@ class databaseModify {
   async _readFromDB(passedID) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, '_readFromDB', `Attempting to read entries from ${tableName} with ID ${passedID}`);
+    logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ID ${passedID}`);
 
     // compute method
     const params = {
@@ -523,7 +523,7 @@ class databaseModify {
     return queryDB(params, documentClient)
       .then(function(entries) {
         // log success
-        logger.log(2, '_readFromDB',
+        logger.log(4, '_readFromDB',
           `Successfully read ${entries.length} entries from ${tableName} with ID ${passedID}`
         );
 
@@ -532,7 +532,7 @@ class databaseModify {
       })
       .catch(function(err) {
         // log error
-        logger.log(2, '_readFromDB', `Failed to read entries from ${tableName} with ID ${passedID}`);
+        logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ID ${passedID}`);
 
         // throw error
         throw err;
@@ -549,7 +549,7 @@ class databaseModify {
   async _readFromDBUrl(passedID, category) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, '_readFromDBUrl',
+    logger.log(4, '_readFromDBUrl',
       `Attempting to read url entries from ${tableName} with ID ${passedID} and category ${category}`
     );
 
@@ -567,7 +567,7 @@ class databaseModify {
     return queryDB(params, documentClient)
       .then(function(entries) {
         // log success
-        logger.log(2, '_readFromDBUrl',
+        logger.log(4, '_readFromDBUrl',
           `Successfully read ${entries.length} url entries from ${tableName} with ID ${passedID} and category`,
           `${category}`
         );
@@ -576,7 +576,7 @@ class databaseModify {
       })
       .catch(function(err) {
         // log error
-        logger.log(2, '_readFromDBUrl',
+        logger.log(4, '_readFromDBUrl',
           `Failed to read url entries from ${tableName} with ID ${passedID} and category ${category}`
         );
         // throw error
@@ -593,7 +593,7 @@ class databaseModify {
   async removeFromDB(passedID) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
+    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
 
     // compute method
     const params = {
@@ -609,13 +609,13 @@ class databaseModify {
       .promise()
       .then(data => {
         // log success
-        logger.log(2, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
 
         return data.Attributes;
       })
       .catch(function(err) {
         // log error
-        logger.log(2, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
 
         // throw error
         throw err;
@@ -637,7 +637,7 @@ class databaseModify {
   updateEntryInDB(newDyanmoObj) {
     // log method
     let tableName = this.tableName;
-    logger.log(2, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+    logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
     // compute method
     const params = this._buildUpdateParams(newDyanmoObj);
@@ -647,13 +647,13 @@ class databaseModify {
       .promise()
       .then(data => {
         // log success
-        logger.log(2, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
+        logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
         return data.Attributes;
       })
       .catch(function(err) {
         // log error
-        logger.log(2, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+        logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
         // throw error
         throw err;

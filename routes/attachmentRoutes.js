@@ -120,7 +120,7 @@ class Attachment {
    */
   async deleteAttachmentFromS3(req, res) {
     // log method
-    logger.log(2, 'deleteAttachmentFromS3',
+    logger.log(1, 'deleteAttachmentFromS3',
       `Attempting to delete attachment ${req.params.receipt} for expense ${req.params.expenseId}`
     );
 
@@ -133,7 +133,7 @@ class Attachment {
     s3.deleteObject(params, (err, data) => {
       if (err) {
         // log error
-        logger.log(2, 'deleteAttachmentFromS3',
+        logger.log(1, 'deleteAttachmentFromS3',
           `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
 
@@ -150,7 +150,7 @@ class Attachment {
         return error;
       } else {
         // log success
-        logger.log(2, 'deleteAttachmentFromS3',
+        logger.log(1, 'deleteAttachmentFromS3',
           `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
 
@@ -172,7 +172,7 @@ class Attachment {
    */
   async getAttachmentFromS3(req, res) {
     // log method
-    logger.log(2, 'getAttachmentFromS3', `Getting attachment for expense ${req.params.expenseId}`);
+    logger.log(1, 'getAttachmentFromS3', `Getting attachment for expense ${req.params.expenseId}`);
 
     // compute method
     let expense = await this.expenseDynamo.getEntry(req.params.expenseId);
@@ -182,7 +182,7 @@ class Attachment {
     s3.getSignedUrl('getObject', params, (err, data) => {
       if (err) {
         // log error
-        logger.log(2, 'getAttachmentFromS3', 'Failed to read attachment');
+        logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
 
         let error = {
           code: 403,
@@ -197,7 +197,7 @@ class Attachment {
         return error;
       } else {
         // log success
-        logger.log(2, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
+        logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
 
         // send successful 200 status
         res.status(200).send(data);
@@ -215,7 +215,7 @@ class Attachment {
    */
   get router() {
     // log method
-    logger.log(2, 'router', 'Getting router');
+    logger.log(5, 'router', 'Getting router');
 
     return this._router;
   } // router
@@ -229,13 +229,13 @@ class Attachment {
    */
   uploadAttachmentToS3(req, res) {
     // log method
-    logger.log(2, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
+    logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
 
     // compute method
     upload(req, res, (err) => {
       if (err) {
         // log error
-        logger.log(2, 'uploadAttachmentToS3', 'Failed to upload file');
+        logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
 
         let error = {
           code: 403,
@@ -250,7 +250,7 @@ class Attachment {
         return error;
       } else {
         // log success
-        logger.log(2, 'uploadAttachmentToS3',
+        logger.log(1, 'uploadAttachmentToS3',
           `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
           `to S3 bucket ${req.file.bucket}`
         );

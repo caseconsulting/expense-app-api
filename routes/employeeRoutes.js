@@ -230,7 +230,7 @@ class EmployeeRoutes extends Crud {
    */
   async _validateCreate(employee) {
     // log method
-    logger.log(2, '_validateCreate', `Validating create for employee ${employee.id}`);
+    logger.log(3, '_validateCreate', `Validating create for employee ${employee.id}`);
 
     // compute method
     try {
@@ -244,7 +244,7 @@ class EmployeeRoutes extends Crud {
       // validate duplicate employee id
       if (employees.some((e) => e.id === employee.id)) {
         // log error
-        logger.log(2, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
+        logger.log(3, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
 
         // throw error
         err.message = 'Unexpected duplicate id created. Please try submitting again.';
@@ -254,7 +254,7 @@ class EmployeeRoutes extends Crud {
       // validateduplicate employee number
       if (employees.some((e) => e.employeeNumber === employee.employeeNumber)) {
         // log error
-        logger.log(2, '_validateCreate', `Employee number ${employee.employeeNumber} is duplicated`);
+        logger.log(3, '_validateCreate', `Employee number ${employee.employeeNumber} is duplicated`);
 
         // throw error
         err.message = `Employee number ${employee.employeeNumber} already taken. Please enter a new number.`;
@@ -264,7 +264,7 @@ class EmployeeRoutes extends Crud {
       // validate duplicate employee email
       if (employees.some((e) => e.email === employee.email)) {
         // log error
-        logger.log(2, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
+        logger.log(3, '_validateCreate', `Employee ID ${employee.id} is duplicated`);
 
         // throw error
         err.message = `Employee email ${employee.email} already taken. Please enter a new email.`;
@@ -272,13 +272,13 @@ class EmployeeRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateCreate', `Successfully validated create for employee ${employee.id}`);
+      logger.log(3, '_validateCreate', `Successfully validated create for employee ${employee.id}`);
 
       // return employee on success
       return Promise.resolve(employee);
     } catch (err) {
       // log error
-      logger.log(2, '_validateCreate', `Failed to validate create for employee ${employee.id}`);
+      logger.log(3, '_validateCreate', `Failed to validate create for employee ${employee.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -294,7 +294,7 @@ class EmployeeRoutes extends Crud {
   */
   async _validateDelete(employee) {
     // log method
-    logger.log(2, '_validateDelete', `Validating delete for employee ${employee.id}`);
+    logger.log(3, '_validateDelete', `Validating delete for employee ${employee.id}`);
 
     // compute method
     try {
@@ -318,13 +318,13 @@ class EmployeeRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateDelete', `Successfully validated delete for employee ${employee.id}`);
+      logger.log(3, '_validateDelete', `Successfully validated delete for employee ${employee.id}`);
 
       // return employee on success
       return employee;
     } catch (err) {
       // log error
-      logger.log(2, '_validateDelete', `Failed to validate delete for employee ${employee.id}`);
+      logger.log(3, '_validateDelete', `Failed to validate delete for employee ${employee.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -339,7 +339,7 @@ class EmployeeRoutes extends Crud {
    */
   async _validateEmployee(employee) {
     // log method
-    logger.log(2, '_validateEmployee', `Validating employee ${employee.id}`);
+    logger.log(3, '_validateEmployee', `Validating employee ${employee.id}`);
 
     // compute method
     try {
@@ -351,7 +351,7 @@ class EmployeeRoutes extends Crud {
       // validate id
       if (this.isEmpty(employee.id)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee id is empty');
+        logger.log(3, '_validateEmployee', 'Employee id is empty');
 
         // throw error
         err.message = 'Invalid employee id.';
@@ -361,7 +361,7 @@ class EmployeeRoutes extends Crud {
       // validate first name
       if (this.isEmpty(employee.firstName)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee first name is empty');
+        logger.log(3, '_validateEmployee', 'Employee first name is empty');
 
         // throw error
         err.message = 'Invalid employee first name.';
@@ -371,7 +371,7 @@ class EmployeeRoutes extends Crud {
       // validate last name
       if (this.isEmpty(employee.lastName)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee last name is empty');
+        logger.log(3, '_validateEmployee', 'Employee last name is empty');
 
         // throw error
         err.message = 'Invalid employee last name.';
@@ -381,7 +381,7 @@ class EmployeeRoutes extends Crud {
       // validate employee number
       if (this.isEmpty(employee.employeeNumber)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee number is empty');
+        logger.log(3, '_validateEmployee', 'Employee number is empty');
 
         // throw error
         err.message = 'Invalid employee number.';
@@ -391,7 +391,7 @@ class EmployeeRoutes extends Crud {
       // validate hire date
       if (this.isEmpty(employee.hireDate)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee hire date is empty');
+        logger.log(3, '_validateEmployee', 'Employee hire date is empty');
 
         // throw error
         err.message = 'Invalid employee hire date.';
@@ -401,7 +401,7 @@ class EmployeeRoutes extends Crud {
       // validate email
       if (this.isEmpty(employee.email)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee email is empty');
+        logger.log(3, '_validateEmployee', 'Employee email is empty');
 
         // throw error
         err.message = 'Invalid employee email.';
@@ -411,7 +411,7 @@ class EmployeeRoutes extends Crud {
       // validate employee role
       if (this.isEmpty(employee.employeeRole)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee role is empty');
+        logger.log(3, '_validateEmployee', 'Employee role is empty');
 
         // throw error
         err.message = 'Invalid employee role.';
@@ -421,7 +421,7 @@ class EmployeeRoutes extends Crud {
       // validate work status
       if (this.isEmpty(employee.workStatus)) {
         // log error
-        logger.log(2, '_validateEmployee', 'Employee work status is empty');
+        logger.log(3, '_validateEmployee', 'Employee work status is empty');
 
         // throw error
         err.message = 'Invalid employee work status.';
@@ -429,13 +429,13 @@ class EmployeeRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateEmployee', `Successfully validated employee ${employee.id}`);
+      logger.log(3, '_validateEmployee', `Successfully validated employee ${employee.id}`);
 
       // return employee on success
       return Promise.resolve(employee);
     } catch (err) {
       // log error
-      logger.log(2, '_validateEmployee', `Failed to validate employee ${employee.id}`);
+      logger.log(3, '_validateEmployee', `Failed to validate employee ${employee.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -451,7 +451,7 @@ class EmployeeRoutes extends Crud {
    */
   async _validateUpdate(oldEmployee, newEmployee) {
     // log method
-    logger.log(2, '_validateUpdate', `Validating update for employee ${oldEmployee.id}`);
+    logger.log(3, '_validateUpdate', `Validating update for employee ${oldEmployee.id}`);
 
     // compute method
     try {
@@ -463,7 +463,7 @@ class EmployeeRoutes extends Crud {
       // validate employee id
       if (oldEmployee.id != newEmployee.id) {
         // log error
-        logger.log(2, '_validateUpdate',
+        logger.log(3, '_validateUpdate',
           `Old employee id ${oldEmployee.id} does not match new employee id ${newEmployee.id}`
         );
 
@@ -484,7 +484,7 @@ class EmployeeRoutes extends Crud {
       // validateduplicate employee number
       if (employees.some((e) => e.employeeNumber === newEmployee.employeeNumber)) {
         // log error
-        logger.log(2, '_validateUpdate', `Employee number ${newEmployee.employeeNumber} is duplicated`);
+        logger.log(3, '_validateUpdate', `Employee number ${newEmployee.employeeNumber} is duplicated`);
 
         // throw error
         err.message = `Employee number ${newEmployee.employeeNumber} already taken. Please enter a new number.`;
@@ -494,7 +494,7 @@ class EmployeeRoutes extends Crud {
       // validate duplicate employee email
       if (employees.some((e) => e.email === newEmployee.email)) {
         // log error
-        logger.log(2, '_validateUpdate', `Employee ID ${newEmployee.id} is duplicated`);
+        logger.log(3, '_validateUpdate', `Employee ID ${newEmployee.id} is duplicated`);
 
         // throw error
         err.message = `Employee email ${newEmployee.email} already taken. Please enter a new email.`;
@@ -513,7 +513,7 @@ class EmployeeRoutes extends Crud {
         if (budgets.length > 0) {
           // budgets for employee exist
           // log error
-          logger.log(2, '_validateUpdate',
+          logger.log(3, '_validateUpdate',
             `Cannot change hire date for employee ${oldEmployee.id} because budgets exist`
           );
 
@@ -524,13 +524,13 @@ class EmployeeRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateUpdate', `Successfully validated update for employee ${oldEmployee.id}`);
+      logger.log(3, '_validateUpdate', `Successfully validated update for employee ${oldEmployee.id}`);
 
       // return new employee on success
       return Promise.resolve(newEmployee);
     } catch (err) {
       // log error
-      logger.log(2, '_validateUpdate', `Failed to validate update for employee ${oldEmployee.id}`);
+      logger.log(3, '_validateUpdate', `Failed to validate update for employee ${oldEmployee.id}`);
 
       // return rejected promise
       return Promise.reject(err);

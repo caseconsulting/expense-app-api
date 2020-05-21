@@ -95,7 +95,7 @@ class Utility {
    */
   calcAdjustedAmount(employee, expenseType) {
     // log method
-    logger.log(2, 'calcAdjustedAmount',
+    logger.log(4, 'calcAdjustedAmount',
       `Calculating adjusted budget amount for employee ${employee.id} and expense type ${expenseType.id}`
     );
 
@@ -113,7 +113,7 @@ class Utility {
     }
 
     // log result
-    logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
+    logger.log(4, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
 
     // return result
     return result;
@@ -130,7 +130,7 @@ class Utility {
    */
   _convertIdsToNames(expenses, employees, expenseTypes) {
     // log method
-    logger.log(2, '_convertIdsToNames', 'Converting expense employee and expense type IDs to their respective names');
+    logger.log(4, '_convertIdsToNames', 'Converting expense employee and expense type IDs to their respective names');
 
     // compute method
     let aggregateExpenses = _.cloneDeep(expenses);
@@ -145,7 +145,7 @@ class Utility {
         };
 
         // log error
-        logger.log(2, '_convertIdsToNames', `Failed to find expense type or employee for expense ${expense.id}`);
+        logger.log(4, '_convertIdsToNames', `Failed to find expense type or employee for expense ${expense.id}`);
 
         throw err;
       }
@@ -158,7 +158,7 @@ class Utility {
     });
 
     // log complete
-    logger.log(2, '_convertIdsToNames',
+    logger.log(4, '_convertIdsToNames',
       'Finished converting expense employee and expense type IDs to their respective names'
     );
 
@@ -175,7 +175,7 @@ class Utility {
    */
   async _getActiveBudget(employee, expenseType) {
     // log method
-    logger.log(2, '_getActiveBudget',
+    logger.log(3, '_getActiveBudget',
       `Attempting to get the active aggregate budget for employee ${employee.id} and expense type ${expenseType.id}`
     );
 
@@ -228,15 +228,14 @@ class Utility {
       };
 
       // log success
-      logger.log(2, '_getActiveBudget',
-        `Successfully got the active aggregate budget ${aggregateBudget.budgetObject.id} for employee ${employee.id}`,
-        `and expense type ${expenseType.id}`
+      logger.log(3, '_getActiveBudget',
+        `Successfully got the active aggregate budget for employee ${employee.id} and expense type ${expenseType.id}`
       );
 
       return aggregateBudget;
     } catch (err) {
       // log error
-      logger.log(2, '_getActiveBudget',
+      logger.log(3, '_getActiveBudget',
         `Failed to get the active aggregate budget for employee ${employee.id} and expense type ${expenseType.id}`
       );
 
@@ -254,7 +253,7 @@ class Utility {
    */
   async _getAllActiveEmployeeBudgets(req, res) {
     // log method
-    logger.log(2, '_getAllActiveEmployeeBudgets', `Attempting to get all active budgets for employee ${req.params.id}`);
+    logger.log(1, '_getAllActiveEmployeeBudgets', `Attempting to get all active budgets for employee ${req.params.id}`);
 
     // compute method
     try {
@@ -280,7 +279,7 @@ class Utility {
       });
 
       // log success
-      logger.log(2, '_getAllActiveEmployeeBudgets',
+      logger.log(1, '_getAllActiveEmployeeBudgets',
         `Successfully got all active budgets for employee ${req.params.id}`
       );
 
@@ -291,7 +290,7 @@ class Utility {
       return activeBudgets;
     } catch (err) {
       // log error
-      logger.log(2, '_getAllActiveEmployeeBudgets', `Failed to get all active budgets for employee ${req.params.id}`);
+      logger.log(1, '_getAllActiveEmployeeBudgets', `Failed to get all active budgets for employee ${req.params.id}`);
 
       // send error status
       this._sendError(res, err);
@@ -312,7 +311,7 @@ class Utility {
    */
   async _getAllAggregateExpenses(req, res) {
     // log method
-    logger.log(2, '_getAllAggregateExpenses', 'Attempting to get all aggregate expenses');
+    logger.log(1, '_getAllAggregateExpenses', 'Attempting to get all aggregate expenses');
 
     // compute method
     try {
@@ -348,7 +347,7 @@ class Utility {
         let aggregateExpenses = this._convertIdsToNames(expenses, employees, expenseTypes);
 
         // log success
-        logger.log(2, '_getAllAggregateExpenses', 'Successfully got all aggregate expenses');
+        logger.log(1, '_getAllAggregateExpenses', 'Successfully got all aggregate expenses');
 
         // send sucessful 200 status
         res.status(200).send(aggregateExpenses);
@@ -366,7 +365,7 @@ class Utility {
       }
     } catch (err) {
       // log error
-      logger.log(2, '_getAllAggregateExpenses', 'Failed to get all aggregate expenses');
+      logger.log(1, '_getAllAggregateExpenses', 'Failed to get all aggregate expenses');
 
       // send error status
       this._sendError(res, err);
@@ -385,7 +384,7 @@ class Utility {
    */
   async _getAllEmployeeExpenses(req, res) {
     // log method
-    logger.log(2, '_getAllEmployeeExpenses', `Attempting to get all expesnes for employee ${req.params.id}`);
+    logger.log(1, '_getAllEmployeeExpenses', `Attempting to get all expesnes for employee ${req.params.id}`);
 
     // compute method
     try {
@@ -396,7 +395,7 @@ class Utility {
       });
 
       // log success
-      logger.log(2, '_getAllEmployeeExpenses', `Successfully got all expenses for employee ${req.params.id}`);
+      logger.log(1, '_getAllEmployeeExpenses', `Successfully got all expenses for employee ${req.params.id}`);
 
       // send sucessful 200 status
       res.status(200).send(expenses);
@@ -405,7 +404,7 @@ class Utility {
       return expenses;
     } catch (err) {
       // log error
-      logger.log(2, '_getAllEmployeeExpenses', `Failed get all expenses for employee ${req.params.id}`);
+      logger.log(1, '_getAllEmployeeExpenses', `Failed get all expenses for employee ${req.params.id}`);
 
       // send error status
       this._sendError(res, err);
@@ -424,7 +423,7 @@ class Utility {
    */
   async _getAllExpenseTypeExpenses(req, res) {
     // log method
-    logger.log(2, '_getAllExpenseTypeExpenses', `Getting all expenses for expense type ${req.params.id}`);
+    logger.log(1, '_getAllExpenseTypeExpenses', `Getting all expenses for expense type ${req.params.id}`);
 
     // compute method
     try {
@@ -435,7 +434,7 @@ class Utility {
       });
 
       // log success
-      logger.log(2, '_getAllExpenseTypeExpenses', `Successfully got all expenses for expense type ${req.params.id}`);
+      logger.log(1, '_getAllExpenseTypeExpenses', `Successfully got all expenses for expense type ${req.params.id}`);
 
       // send sucessful 200 status
       res.status(200).send(expenses);
@@ -444,7 +443,7 @@ class Utility {
       return expenses;
     } catch (err) {
       // log error
-      logger.log(2, '_getAllExpenseTypeExpenses', `Failed to get all expenses for expense type ${req.params.id}`);
+      logger.log(1, '_getAllExpenseTypeExpenses', `Failed to get all expenses for expense type ${req.params.id}`);
 
       // send error status
       this._sendError(res, err);
@@ -462,7 +461,7 @@ class Utility {
    */
   getBudgetDates(date) {
     // log method
-    logger.log(2, 'getBudgetDates', `Attempting to get current annual budget dates for ${date}`);
+    logger.log(4, 'getBudgetDates', `Attempting to get current annual budget dates for ${date}`);
 
     // compute method
     let startYear;
@@ -496,7 +495,7 @@ class Utility {
     };
 
     // log result
-    logger.log(2, 'getBudgetDates',
+    logger.log(4, 'getBudgetDates',
       `Current annual budget date for ${date} starts on ${startDate.format(ISOFORMAT)} and ends on`,
       `${endDate.format(ISOFORMAT)}`
     );
@@ -515,7 +514,7 @@ class Utility {
    */
   async _getEmployeeBudget(req, res) {
     // log method
-    logger.log(2, '_getEmployeeBudget',
+    logger.log(1, '_getEmployeeBudget',
       `Attempting to get budget for employee ${req.params.id} with expense type ${req.params.expenseTypeId} an`,
       `containing the date ${req.params.date}`
     );
@@ -540,7 +539,7 @@ class Utility {
       });
 
       // log success
-      logger.log(2, '_getEmployeeBudget',
+      logger.log(1, '_getEmployeeBudget',
         `Successfully got budget for employee ${req.params.id} with expense type ${req.params.expenseTypeId} and`,
         `containing the date ${req.params.date}`
       );
@@ -552,7 +551,7 @@ class Utility {
       return budget;
     } catch (err) {
       // log error
-      logger.log(2, '_getEmployeeBudget',
+      logger.log(1, '_getEmployeeBudget',
         `Failed to get budget for employee ${req.params.id} with expense type ${req.params.expenseTypeId} and`,
         `containing the date ${req.params.date}`
       );
@@ -575,7 +574,7 @@ class Utility {
    */
   async _getFiscalDateViewBudgets(req, res) {
     // log method
-    logger.log(2, '_getFiscalDateViewBudgets',
+    logger.log(1, '_getFiscalDateViewBudgets',
       `Attempting to get budgets for employee ${req.params.id} anniversary date ${req.params.fiscalStartDate}`
     );
 
@@ -635,7 +634,7 @@ class Utility {
         };
       });
       // log success
-      logger.log(2, '_getFiscalDateViewBudgets',
+      logger.log(1, '_getFiscalDateViewBudgets',
         `Successfully got budgets for employee ${req.params.id} anniversary date ${req.params.fiscalStartDate}`
       );
 
@@ -646,7 +645,7 @@ class Utility {
       return budgets;
     } catch (err) {
       // log error
-      logger.log(2, '_getFiscalDateViewBudgets',
+      logger.log(1, '_getFiscalDateViewBudgets',
         `Failed to get budgets for employee ${req.params.id} anniversary date ${req.params.fiscalStartDate}`
       );
 
@@ -667,7 +666,7 @@ class Utility {
    */
   hasAccess(employee, expenseType) {
     // log method
-    logger.log(2, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
+    logger.log(3, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
 
     // compute method
     let result;
@@ -684,9 +683,9 @@ class Utility {
 
     // log result
     if (result) {
-      logger.log(2, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
+      logger.log(3, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
     } else {
-      logger.log(2, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
+      logger.log(3, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
     }
 
     // return result
@@ -701,16 +700,16 @@ class Utility {
    */
   isAdmin(employee) {
     // log method
-    logger.log(2, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
+    logger.log(5, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
 
     // compute method
     let result = employee.employeeRole === 'admin';
 
     // log result
     if (result) {
-      logger.log(2, 'isAdmin', `Employee ${employee.id} is an admin`);
+      logger.log(5, 'isAdmin', `Employee ${employee.id} is an admin`);
     } else {
-      logger.log(2, 'isAdmin', `Employee ${employee.id} is not an admin`);
+      logger.log(5, 'isAdmin', `Employee ${employee.id} is not an admin`);
     }
 
     // return result
@@ -725,16 +724,16 @@ class Utility {
    */
   isUser(employee) {
     // log method
-    logger.log(2, 'isUser', `Checking if employee ${employee.id} is a user`);
+    logger.log(5, 'isUser', `Checking if employee ${employee.id} is a user`);
 
     // compute method
     let result = employee.employeeRole === 'user';
 
     // log result
     if (result) {
-      logger.log(2, 'isUser', `Employee ${employee.id} is a user`);
+      logger.log(5, 'isUser', `Employee ${employee.id} is a user`);
     } else {
-      logger.log(2, 'isUser', `Employee ${employee.id} is not a user`);
+      logger.log(5, 'isUser', `Employee ${employee.id} is not a user`);
     }
 
     // return result
@@ -748,7 +747,7 @@ class Utility {
    */
   get router() {
     // log method
-    logger.log(2, 'router', 'Getting router');
+    logger.log(5, 'router', 'Getting router');
 
     return this._router;
   } // router
@@ -762,7 +761,7 @@ class Utility {
    */
   _sendError(res, err) {
     // log method
-    logger.log(2, '_sendError', `Sending ${err.code} error status: ${err.message}`);
+    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
     // return error status
     return res.status(err.code).send(err);

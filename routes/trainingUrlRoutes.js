@@ -82,20 +82,20 @@ class TrainingUrlRoutes extends Crud {
    */
   async _getMetaData(id) {
     // log method
-    logger.log(2, '_getMetaData', `Attempting to scrape metadata from ${id}`);
+    logger.log(3, '_getMetaData', `Attempting to scrape metadata from ${id}`);
 
     // compute method
     return this._got(id)
       .then(data => this._metascraper(data))
       .then(metaData => {
         // log success
-        logger.log(2, '_getMetaData', `Successfully scraped metadata from ${id}`);
+        logger.log(3, '_getMetaData', `Successfully scraped metadata from ${id}`);
 
         return metaData;
       })
       .catch(() => {
         // log error
-        logger.log(2, '_getMetaData', `Failed to scrape metadata from ${id}`);
+        logger.log(3, '_getMetaData', `Failed to scrape metadata from ${id}`);
         return {};
       });
   } // _getMetaData
@@ -108,7 +108,7 @@ class TrainingUrlRoutes extends Crud {
    */
   async _got(id) {
     // log method
-    logger.log(2, '_got', `Getting http request for ${id}`);
+    logger.log(5, '_got', `Getting http request for ${id}`);
 
     // compute method
     const { body: html, url } = await got(id);
@@ -124,7 +124,7 @@ class TrainingUrlRoutes extends Crud {
    */
   async _metascraper(data) {
     // log method
-    logger.log(2, '_metascraper', `Scraping ${data.url} for metadata`);
+    logger.log(5, '_metascraper', `Scraping ${data.url} for metadata`);
 
     // compute method
     return metascraper(data);
@@ -181,7 +181,7 @@ class TrainingUrlRoutes extends Crud {
         .then(() => {
           // log success
           logger.log(2, '_update',
-            `Successfully prepared update for training url ${data.id} with category ${data.category}`
+            `Successfully prepared to update training url ${data.id} with category ${data.category}`
           );
 
           // return training url to update
@@ -208,7 +208,7 @@ class TrainingUrlRoutes extends Crud {
    */
   _validateTrainingUrl(trainingUrl) {
     // log method
-    logger.log(2, '_validateTrainingUrl',
+    logger.log(3, '_validateTrainingUrl',
       `Validating training url ${trainingUrl.id} with category ${trainingUrl.category}`
     );
 
@@ -222,7 +222,7 @@ class TrainingUrlRoutes extends Crud {
       // validate id
       if (this.isEmpty(trainingUrl.id)) {
         // log error
-        logger.log(2, '_validateTrainingUrl', 'Training url id is empty');
+        logger.log(3, '_validateTrainingUrl', 'Training url id is empty');
 
         // throw error
         err.message = 'Invalid training url.';
@@ -232,7 +232,7 @@ class TrainingUrlRoutes extends Crud {
       // validate category
       if (this.isEmpty(trainingUrl.category)) {
         // log error
-        logger.log(2, '_validateTrainingUrl', 'Training url category is empty');
+        logger.log(3, '_validateTrainingUrl', 'Training url category is empty');
 
         // throw error
         err.message = 'Invalid training category.';
@@ -242,7 +242,7 @@ class TrainingUrlRoutes extends Crud {
       // validate hits
       if (trainingUrl.hits < 0) {
         // log error
-        logger.log(2, '_validateTrainingUrl', 'Training url hits is less than 0');
+        logger.log(3, '_validateTrainingUrl', 'Training url hits is less than 0');
 
         // throw error
         err.message = 'Training url hits cannot be less than zero.';
@@ -250,7 +250,7 @@ class TrainingUrlRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateTrainingUrl',
+      logger.log(3, '_validateTrainingUrl',
         `Successfully validated training url ${trainingUrl.id} with category ${trainingUrl.category}`
       );
 
@@ -258,7 +258,7 @@ class TrainingUrlRoutes extends Crud {
       return Promise.resolve(trainingUrl);
     } catch (err) {
       // log error
-      logger.log(2, '_validateTrainingUrl',
+      logger.log(3, '_validateTrainingUrl',
         `Failed to validate training url ${trainingUrl.id} with category ${trainingUrl.category}`
       );
 
@@ -276,7 +276,7 @@ class TrainingUrlRoutes extends Crud {
    */
   async _validateUpdate(oldTrainingUrl, newTrainingUrl) {
     // log method
-    logger.log(2, '_validateUpdate', `Validating update for training url ${oldTrainingUrl.id}`);
+    logger.log(3, '_validateUpdate', `Validating update for training url ${oldTrainingUrl.id}`);
 
     // compute method
     try {
@@ -288,7 +288,7 @@ class TrainingUrlRoutes extends Crud {
       // validate training url
       if (oldTrainingUrl.id != newTrainingUrl.id) {
         // log error
-        logger.log(2, '_validateUpdate',
+        logger.log(3, '_validateUpdate',
           `Old training url id ${oldTrainingUrl.id} does not match new training url id ${newTrainingUrl.id}`
         );
 
@@ -300,7 +300,7 @@ class TrainingUrlRoutes extends Crud {
       // validate training url
       if (oldTrainingUrl.category != newTrainingUrl.category) {
         // log error
-        logger.log(2, '_validateUpdate',
+        logger.log(3, '_validateUpdate',
           `Old training url category ${oldTrainingUrl.category} does not match new training url category`,
           `${newTrainingUrl.category}`
         );
@@ -311,13 +311,13 @@ class TrainingUrlRoutes extends Crud {
       }
 
       // log success
-      logger.log(2, '_validateUpdate', `Successfully validated update for training url ${oldTrainingUrl.id}`);
+      logger.log(3, '_validateUpdate', `Successfully validated update for training url ${oldTrainingUrl.id}`);
 
       // return new training url on success
       return Promise.resolve(newTrainingUrl);
     } catch (err) {
       // log error
-      logger.log(2, '_validateUpdate', `Failed to validate update for training url ${oldTrainingUrl.id}`);
+      logger.log(3, '_validateUpdate', `Failed to validate update for training url ${oldTrainingUrl.id}`);
 
       // return rejected promise
       return Promise.reject(err);

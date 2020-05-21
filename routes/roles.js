@@ -39,7 +39,7 @@ class Roles {
   }
 
   getUserRole(req, res) {
-    logger.log(3, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
+    logger.log(5, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
 
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee.employeeRole);
@@ -49,7 +49,7 @@ class Roles {
   }
 
   getUser(req, res) {
-    logger.log(3, 'getUser', `Getting employee info for user ${req.employee.id}`);
+    logger.log(5, 'getUser', `Getting employee info for user ${req.employee.id}`);
 
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee);

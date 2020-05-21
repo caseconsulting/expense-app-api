@@ -59,7 +59,7 @@ class Crud {
    */
   calcAdjustedAmount(employee, expenseType) {
     // log method
-    logger.log(2, 'calcAdjustedAmount',
+    logger.log(4, 'calcAdjustedAmount',
       `Calculating adjusted budget amount for employee ${employee.id} and expense type ${expenseType.id}`
     );
 
@@ -77,7 +77,7 @@ class Crud {
     }
 
     // log result
-    logger.log(2, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
+    logger.log(4, 'calcAdjustedAmount', `Adjusted budget amount is $${result}`);
 
     // return result
     return result;
@@ -93,7 +93,7 @@ class Crud {
    */
   _checkPermissionToCreate(employee) {
     // log method
-    logger.log(2, '_checkPermissionToCreate',
+    logger.log(3, '_checkPermissionToCreate',
       `Checking if employee ${employee.id} has permission to create to the ${this._getTableName()} table`
     );
 
@@ -106,11 +106,11 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToCreate',
+      logger.log(3, '_checkPermissionToCreate',
         `Employee ${employee.id} has permission to create to the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToCreate',
+      logger.log(3, '_checkPermissionToCreate',
         `Employee ${employee.id} does not have permission to create to the ${this._getTableName()} table`
       );
     }
@@ -129,7 +129,7 @@ class Crud {
    */
   _checkPermissionToDelete(employee) {
   // log method
-    logger.log(2, '_checkPermissionToDelete',
+    logger.log(3, '_checkPermissionToDelete',
       `Checking if employee ${employee.id} has permission to delete from the ${this._getTableName()} table`
     );
 
@@ -141,11 +141,11 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToDelete',
+      logger.log(3, '_checkPermissionToDelete',
         `Employee ${employee.id} has permission to delete from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToDelete',
+      logger.log(3, '_checkPermissionToDelete',
         `Employee ${employee.id} does not have permission to delete from the ${this._getTableName()} table`
       );
     }
@@ -164,7 +164,7 @@ class Crud {
    */
   _checkPermissionToRead(employee) {
     // log method
-    logger.log(2, '_checkPermissionToRead',
+    logger.log(3, '_checkPermissionToRead',
       `Checking if employee ${employee.id} has permission to read from the ${this._getTableName()} table`
     );
 
@@ -177,11 +177,11 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToRead',
+      logger.log(3, '_checkPermissionToRead',
         `Employee ${employee.id} has permission to read from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToRead',
+      logger.log(3, '_checkPermissionToRead',
         `Employee ${employee.id} does not have permission to read from the ${this._getTableName()} table`
       );
     }
@@ -200,7 +200,7 @@ class Crud {
    */
   _checkPermissionToReadAll(employee) {
     // log method
-    logger.log(2, '_checkPermissionToReadAll',
+    logger.log(3, '_checkPermissionToReadAll',
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
@@ -213,11 +213,11 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToReadAll',
+      logger.log(3, '_checkPermissionToReadAll',
         `Employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToReadAll',
+      logger.log(3, '_checkPermissionToReadAll',
         `Employee ${employee.id} does not have permission to read all entries from the ${this._getTableName()} table`
       );
     }
@@ -236,7 +236,7 @@ class Crud {
    */
   _checkPermissionToUpdate(employee) {
     // log method
-    logger.log(2, '_checkPermissionToUpdate',
+    logger.log(3, '_checkPermissionToUpdate',
       `Checking if employee ${employee.id} has permission to update the ${this._getTableName()} table`
     );
 
@@ -249,11 +249,11 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkPermissionToUpdate',
+      logger.log(3, '_checkPermissionToUpdate',
         `Employee ${employee.id} has permission to update the ${this._getTableName()} table`
       );
     } else {
-      logger.log(2, '_checkPermissionToUpdate',
+      logger.log(3, '_checkPermissionToUpdate',
         `Employee ${employee.id} does not have permission to update the ${this._getTableName()} table`
       );
     }
@@ -271,7 +271,7 @@ class Crud {
    */
   _checkTableName(tableNames) {
     // log method
-    logger.log(2, '_checkTableName',
+    logger.log(5, '_checkTableName',
       `Checking if ${this._getTableName()} is in the list of table names [${tableNames}]`
     );
 
@@ -285,9 +285,9 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, '_checkTableName', `${this._getTableName()} is in the list of table names [${tableNames}]`);
+      logger.log(5, '_checkTableName', `${this._getTableName()} is in the list of table names [${tableNames}]`);
     } else {
-      logger.log(2, '_checkTableName', `${this._getTableName()} is not in the list of table names [${tableNames}]`);
+      logger.log(5, '_checkTableName', `${this._getTableName()} is not in the list of table names [${tableNames}]`);
     }
 
     // return result
@@ -383,7 +383,7 @@ class Crud {
    */
   async _createWrapper(req, res) {
     // log method
-    logger.log(2, '_createWrapper', `Attempting to create an object in ${this._getTableName()}`);
+    logger.log(1, '_createWrapper', `Attempting to create an object in ${this._getTableName()}`);
 
     // compute method
     if (this._checkPermissionToCreate(req.employee)) {
@@ -395,12 +395,12 @@ class Crud {
           // log success
           if (data instanceof TrainingUrl) {
             // created a training url
-            logger.log(2, '_createWrapper',
+            logger.log(1, '_createWrapper',
               `Successfully created object ${data.id} with category ${data.category} in ${this._getTableName()}`
             );
           } else {
             // created an expense, expense type, or employee
-            logger.log(2, '_createWrapper',
+            logger.log(1, '_createWrapper',
               `Successfully created object ${data.id} in ${this._getTableName()}`
             );
           }
@@ -413,7 +413,7 @@ class Crud {
         })
         .catch(err => {
           // log error
-          logger.log(2, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
+          logger.log(1, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
 
           // send error status
           this._sendError(res, err);
@@ -429,7 +429,7 @@ class Crud {
       };
 
       // log error
-      logger.log(2, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
+      logger.log(1, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
@@ -462,7 +462,7 @@ class Crud {
    */
   async _deleteWrapper(req, res) {
     // log method
-    logger.log(2, '_deleteWrapper', `Attempting to delete an object from ${this._getTableName()}`);
+    logger.log(1, '_deleteWrapper', `Attempting to delete an object from ${this._getTableName()}`);
 
     // compute method
     if (this._checkPermissionToDelete(req.employee)) {
@@ -471,7 +471,7 @@ class Crud {
         .then(objectDeleted => this.databaseModify.removeFromDB(objectDeleted.id)) // remove from database
         .then(data => {
           // log success
-          logger.log(2, '_deleteWrapper',
+          logger.log(1, '_deleteWrapper',
             `Successfully deleted object ${data.id} from ${this._getTableName()}`
           );
 
@@ -483,7 +483,7 @@ class Crud {
         })
         .catch(err => {
           // log error
-          logger.log(2, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
+          logger.log(1, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
 
           // send error status
           this._sendError(res, err);
@@ -499,7 +499,7 @@ class Crud {
       };
 
       // log error
-      logger.log(2, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
+      logger.log(1, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
@@ -517,7 +517,7 @@ class Crud {
    */
   getBudgetDates(date) {
     // log method
-    logger.log(2, 'getBudgetDates', `Getting current annual budget dates for ${date}`);
+    logger.log(4, 'getBudgetDates', `Getting current annual budget dates for ${date}`);
 
     // compute method
     let startYear;
@@ -551,7 +551,7 @@ class Crud {
     };
 
     // log result
-    logger.log(2, 'getBudgetDates',
+    logger.log(4, 'getBudgetDates',
       `Current annual budget date for ${date} starts on ${startDate.format(ISOFORMAT)} and ends on`,
       `${endDate.format(ISOFORMAT)}`
     );
@@ -567,13 +567,13 @@ class Crud {
    */
   _getTableName() {
     // log method
-    logger.log(2, '_getTableName', 'Getting database table name');
+    logger.log(5, '_getTableName', 'Getting database table name');
 
     // compute method
     let result = this.databaseModify.tableName;
 
     // log result
-    logger.log(2, '_getTableName', `Database table name is ${result}`);
+    logger.log(5, '_getTableName', `Database table name is ${result}`);
 
     // return result
     return result;
@@ -597,7 +597,7 @@ class Crud {
    */
   hasAccess(employee, expenseType) {
     // log method
-    logger.log(2, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
+    logger.log(3, 'hasAccess', `Checking if employee ${employee.id} has access to ${expenseType.id}`);
 
     // compute method
     let result;
@@ -614,9 +614,9 @@ class Crud {
 
     // log result
     if (result) {
-      logger.log(2, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
+      logger.log(3, 'hasAccess', `Employee ${employee.id} has access to ${expenseType.id}`);
     } else {
-      logger.log(2, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
+      logger.log(3, 'hasAccess', `Employee ${employee.id} does not have access to ${expenseType.id}`);
     }
 
     // return result
@@ -631,16 +631,16 @@ class Crud {
    */
   isAdmin(employee) {
     // log method
-    logger.log(2, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
+    logger.log(5, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
 
     // compute method
     let result = employee.employeeRole === 'admin';
 
     // log result
     if (result) {
-      logger.log(2, 'isAdmin', `Employee ${employee.id} is an admin`);
+      logger.log(5, 'isAdmin', `Employee ${employee.id} is an admin`);
     } else {
-      logger.log(2, 'isAdmin', `Employee ${employee.id} is not an admin`);
+      logger.log(5, 'isAdmin', `Employee ${employee.id} is not an admin`);
     }
 
     // return result
@@ -655,16 +655,16 @@ class Crud {
    */
   isEmpty(value) {
     // log method
-    logger.log(2, 'isEmpty', `Checking if value ${value} is empty`);
+    logger.log(5, 'isEmpty', `Checking if value ${value} is empty`);
 
     // compute method
     let result = value == null || value === ' ' || value === '';
 
     // log result
     if (result) {
-      logger.log(2, 'isEmpty', `Value ${value} is empty`);
+      logger.log(5, 'isEmpty', `Value ${value} is empty`);
     } else {
-      logger.log(2, 'isEmpty', `Value ${value} is not empty`);
+      logger.log(5, 'isEmpty', `Value ${value} is not empty`);
     }
 
     // return result
@@ -679,16 +679,16 @@ class Crud {
    */
   isUser(employee) {
     // log method
-    logger.log(2, 'isUser', `Checking if employee ${employee.id} is a user`);
+    logger.log(5, 'isUser', `Checking if employee ${employee.id} is a user`);
 
     // compute method
     let result = employee.employeeRole === 'user';
 
     // log result
     if (result) {
-      logger.log(2, 'isUser', `Employee ${employee.id} is a user`);
+      logger.log(5, 'isUser', `Employee ${employee.id} is a user`);
     } else {
-      logger.log(2, 'isUser', `Employee ${employee.id} is not a user`);
+      logger.log(5, 'isUser', `Employee ${employee.id} is not a user`);
     }
 
     // return result
@@ -718,7 +718,7 @@ class Crud {
    */
   async _readWrapper(req, res) {
     // log method
-    logger.log(2, '_readWrapper', `Attempting to read an object from ${this._getTableName()}`);
+    logger.log(1, '_readWrapper', `Attempting to read an object from ${this._getTableName()}`);
 
     // compute method
     const FORBIDDEN = {
@@ -743,12 +743,12 @@ class Crud {
           // log success
           if (data instanceof TrainingUrl) {
             // read a training url
-            logger.log(2, '_readWrapper',
+            logger.log(1, '_readWrapper',
               `Successfully read object ${data.id} with category ${data.category} from ${this._getTableName()}`
             );
           } else {
             // read an expense, expense-type, or employee
-            logger.log(2, '_readWrapper',
+            logger.log(1, '_readWrapper',
               `Successfully read object ${data.id} from ${this._getTableName()}`
             );
           }
@@ -761,7 +761,7 @@ class Crud {
         })
         .catch(err => {
           // log error
-          logger.log(2, '_readWrapper', `Failed to read object from ${this._getTableName()}`);
+          logger.log(1, '_readWrapper', `Failed to read object from ${this._getTableName()}`);
 
           // send error status
           this._sendError(res, err);
@@ -772,7 +772,7 @@ class Crud {
     } else {
       // employee does not have permission to read
       // log error
-      logger.log(2, '_readWrapper', `Failed to read an object from ${this._getTableName()}`);
+      logger.log(1, '_readWrapper', `Failed to read an object from ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, FORBIDDEN);
@@ -792,7 +792,7 @@ class Crud {
    */
   async _readAllWrapper(req, res) {
     // log method
-    logger.log(2, '_readAllWrapper', `Attempting to read all objects from ${this._getTableName()}`);
+    logger.log(1, '_readAllWrapper', `Attempting to read all objects from ${this._getTableName()}`);
 
     // compute method
     if (this._checkPermissionToReadAll(req.employee)) {
@@ -800,7 +800,7 @@ class Crud {
       return this.databaseModify.getAllEntriesInDB() // read from database
         .then(data => {
           // log success
-          logger.log(2, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
+          logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
 
           // send successful 200 status
           res.status(200).send(data);
@@ -810,7 +810,7 @@ class Crud {
         })
         .catch(err => {
           // log error
-          logger.log(2, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
+          logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
 
           // send error status
           this._sendError(res, err);
@@ -825,7 +825,7 @@ class Crud {
       };
 
       // log error
-      logger.log(2, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
+      logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
@@ -842,7 +842,7 @@ class Crud {
    */
   get router() {
     // log method
-    logger.log(2, 'router', 'Getting router');
+    logger.log(5, 'router', 'Getting router');
 
     return this._router;
   } // router
@@ -856,7 +856,7 @@ class Crud {
    */
   _sendError(res, err) {
     // log method
-    logger.log(2, '_sendError', `Sending ${err.code} error status: ${err.message}`);
+    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
     // return error status
     return res.status(err.code).send(err);
@@ -885,7 +885,7 @@ class Crud {
    */
   async _updateWrapper(req, res) {
     // log method
-    logger.log(2, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
+    logger.log(1, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
 
     // compute method
     if (this._checkPermissionToUpdate(req.employee)) {
@@ -906,12 +906,12 @@ class Crud {
           // log success
           if (data instanceof TrainingUrl) {
             // updated a training url
-            logger.log(2, '_updateWrapper',
+            logger.log(1, '_updateWrapper',
               `Successfully updated object ${data.id} with category ${data.category} from ${this._getTableName()}`
             );
           } else {
             // updated an expense, expense-type, or employee
-            logger.log(2, '_updateWrapper',
+            logger.log(1, '_updateWrapper',
               `Successfully updated object ${data.id} from ${this._getTableName()}`
             );
           }
@@ -924,7 +924,7 @@ class Crud {
         })
         .catch(err => {
           // log error
-          logger.log(2, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+          logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
 
           // send error status
           this._sendError(res, err);
@@ -940,7 +940,7 @@ class Crud {
       };
 
       // log error
-      logger.log(2, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
@@ -959,7 +959,7 @@ class Crud {
    */
   async _validateInputs(object) {
     // log method
-    logger.log(2, '_validateInputs', `Validating inputs for ${this._getTableName()}`);
+    logger.log(3, '_validateInputs', `Validating inputs for ${this._getTableName()}`);
 
     // compute method
     if (object.id) {
@@ -978,14 +978,14 @@ class Crud {
           };
 
           // log error
-          logger.log(2, '_validateInputs', 'Failed to validate inputs');
+          logger.log(3, '_validateInputs', 'Failed to validate inputs');
 
           // reject error
           reject(err);
         }
 
         // log success
-        logger.log(2, '_validateInputs', 'Successfully validated inputs');
+        logger.log(3, '_validateInputs', 'Successfully validated inputs');
 
         // resolve object
         resolve(object);
@@ -998,7 +998,7 @@ class Crud {
       };
 
       // log error
-      logger.log(2, '_validateInputs', `Failed to validate inputs for ${this._getTableName()}`);
+      logger.log(3, '_validateInputs', `Failed to validate inputs for ${this._getTableName()}`);
 
       // return rejected promise
       return Promise.reject(err);
