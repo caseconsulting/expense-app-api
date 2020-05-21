@@ -1293,7 +1293,7 @@ describe('crudRoutes', () => {
       }); // and employee work status is 0
     }); // when expense type is accessible by full time employees
 
-    describe('when expense type is accessible by Full employees', () => {
+    describe('when expense type is accessible by full for employees', () => {
 
       beforeEach(() => {
         expenseType.accessibleBy = 'FULL';
@@ -1331,7 +1331,7 @@ describe('crudRoutes', () => {
           expect(crudRoutes.hasAccess(employee, expenseType)).toBe(false);
         }); // should return false;
       }); // and employee work status is 0
-    }); // when expense type is accessible by part time employees
+    }); // when expense type is accessible by full for employees
 
     describe('when expense type is accessible by custom employees', () => {
 

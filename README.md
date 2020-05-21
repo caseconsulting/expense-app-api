@@ -70,6 +70,12 @@ To run unit tests (with Jasmine):
 npm run test
 ```
 
+To run unit tests coverage (with Jasmine):
+
+```bash
+npm run test-coverage
+```
+
 To upgrade to the latest version of a specific Node.js module:
 
 ```bash
