@@ -1,5 +1,5 @@
 const Budget = require('./../models/budget');
-const DatabaseModify = require('../js/DatabaseModify');
+const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
