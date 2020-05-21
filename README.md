@@ -61,7 +61,7 @@ To stop running locally (using nodemon), press CTRL-C in same window.
 To run unit tests, first download the dev environment files:
 
 ```bash
-npm run deploy:dev
+npm run download:dev
 ```
 
 To run unit tests (with Jasmine):
