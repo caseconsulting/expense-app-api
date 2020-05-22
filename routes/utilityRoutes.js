@@ -73,7 +73,7 @@ class Utility {
     this.trainingDynamo = new DatabaseModify('training-urls');
   } // constructor
 
-  /*
+  /**
    * Async function to loop an array.
    *
    * @param array - Array of elements to iterate over
