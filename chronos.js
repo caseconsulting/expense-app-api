@@ -1,4 +1,5 @@
 const Budget = require('./models/budget');
+const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
 const moment = require('moment');
 const { v4: uuid } = require('uuid');
@@ -49,14 +50,15 @@ async function handler(event) {
 } // handler
 
 /**
- * Prepeares a new budget based on an old budget and expense type.
+ * Prepeares a new budget with overdrafted amounts and updates the old budget.
  *
  * @param oldBudget - old budget to carry into new budget
  * @param expenseType - Expense Type of new budget
  * @return Budget - new budget
  */
-function _makeNewBudget(oldBudget, expenseType) {
-  let newBudget = {
+async function _makeNewBudget(oldBudget, expenseType) {
+  let updatedBudget = _.cloneDeep(oldBudget);
+  let newBudgetData = {
     id: uuid(),
     expenseTypeId: oldBudget.expenseTypeId,
     employeeId: oldBudget.employeeId,
@@ -65,15 +67,29 @@ function _makeNewBudget(oldBudget, expenseType) {
     //increment the budgets fiscal start day by one year
     fiscalStartDate: moment(oldBudget.fiscalStartDate).add(1, 'years').format('YYYY-MM-DD'),
     //increment the budgets fiscal end day by one year
-    fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD')
+    fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD'),
+    amount: expenseType.budget
   };
+  let newBudget = new Budget(newBudgetData); // convert to budget object
   if (oldBudget.reimbursedAmount > expenseType.budget) {
-    let overage = oldBudget.reimbursedAmount - expenseType.budget;
-    newBudget.reimbursedAmount = overage;
-    console.log(`
-    Moving overdrafted amount of ${overage} to new budget: ${newBudget.id} for user ${newBudget.employeeId} 💰💰💰`);
+    // reimburse amount is greater than budget
+    newBudget.reimbursedAmount = oldBudget.reimbursedAmount - expenseType.budget; // set new reimburse amount
+    newBudget.pendingAmount = oldBudget.pendingAmount; // set new pending amount
+    updatedBudget.reimbursedAmount = expenseType.budget; // update old reimbursed amount
+    updatedBudget.pendingAmount = 0; // update old pending amount
+  } else {
+    // set new pending amount
+    newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - expenseType.budget;
+    updatedBudget.pendingAmount = expenseType.budget - oldBudget.reimbursedAmount; // update old pending amount
   }
-  return new Budget(newBudget);
+  return budgetDynamo.updateEntryInDB(updatedBudget) // update old budget in database
+    .then(() => {
+      console.log(
+        `Moving overdrafted amount of $${newBudget.reimbursedAmount} reimbursed and $${newBudget.pendingAmount}`,
+        `pending to new budget: ${newBudget.id} for employee ${newBudget.employeeId} 💰💰💰`
+      );
+      return budgetDynamo.addToDB(newBudget); // add new budget to database
+    }); // add new budget
 } // _makeNewBudget
 
 /**
@@ -87,8 +103,14 @@ async function start() {
   try {
     //budget anniversary date is today
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
-    budgets = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
-    expenseTypes = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
+    let budgetsData = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
+    budgets = _.map(budgetsData, budgetData => {
+      return new Budget(budgetData);
+    });
+    let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
+    expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+      return new ExpenseType(expenseTypeData);
+    });
 
     if (budgets.length != 0) {
       await asyncForEach(budgets, async (oldBudget) => {
@@ -97,12 +119,12 @@ async function start() {
           let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
           if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
             // expense type is recurring and old budget is full time
-            let newBudget = _makeNewBudget(oldBudget, expenseType);
+            let newBudget = await _makeNewBudget(oldBudget, expenseType);
             let msg =
-              `Happy Anniversary user: ${newBudget.employeeId} 🥳 \n created new budget with id: ${newBudget.id}`;
+              `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n created new budget with id: ${newBudget.id}`;
             console.log(msg);
             numberRecurring++;
-            return await budgetDynamo.addToDB(newBudget);
+            return newBudget;
           }
         }
       });

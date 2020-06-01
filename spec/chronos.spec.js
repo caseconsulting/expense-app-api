@@ -46,60 +46,7 @@ describe('chronos', () => {
   }); // _getExpenseType
 
   describe('_makeNewBudget', () => {
-    let oldBudget, expenseType, expectedBudget;
-
-    beforeEach(() => {
-      oldBudget = {
-        id: 'uuid',
-        expenseTypeId: 'expenseTypeId',
-        employeeId: 'employeeId',
-        fiscalStartDate: '2020-03-02',
-        fiscalEndDate: '2021-03-01',
-        reimbursedAmount: 5
-      };
-      expenseType = {
-        budget: 10
-      };
-      expectedBudget = {
-        expenseTypeId: 'expenseTypeId',
-        employeeId: 'employeeId',
-        fiscalStartDate: '2021-03-02',
-        fiscalEndDate: '2022-03-01',
-        reimbursedAmount: 0,
-        pendingAmount: 0
-      };
-    });
-
-    describe('when there is no overage', () => {
-      it('should return a new budget with a reimbursed amount of 0', () => {
-        let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
-        expect(newBudget.id).not.toBe(undefined);
-        expect(newBudget.expenseTypeId).toEqual(expectedBudget.expenseTypeId);
-        expect(newBudget.employeeId).toEqual(expectedBudget.employeeId);
-        expect(newBudget.fiscalStartDate).toEqual(expectedBudget.fiscalStartDate);
-        expect(newBudget.fiscalEndDate).toEqual(expectedBudget.fiscalEndDate);
-        expect(newBudget.reimbursedAmount).toEqual(expectedBudget.reimbursedAmount);
-        expect(newBudget.pendingAmount).toEqual(expectedBudget.pendingAmount);
-      }); // should return a new budget with a reimbursed amount of 0
-    }); // when there is no overage
-
-    describe('when there is overage', () => {
-      beforeEach(() => {
-        oldBudget.reimbursedAmount = 15;
-        expectedBudget.reimbursedAmount = 5;
-      });
-
-      it('should return a new budget with a reimbursed amount of 5', () => {
-        let newBudget = chronos._makeNewBudget(oldBudget, expenseType);
-        expect(newBudget.id).not.toBe(undefined);
-        expect(newBudget.expenseTypeId).toEqual(expectedBudget.expenseTypeId);
-        expect(newBudget.employeeId).toEqual(expectedBudget.employeeId);
-        expect(newBudget.fiscalStartDate).toEqual(expectedBudget.fiscalStartDate);
-        expect(newBudget.fiscalEndDate).toEqual(expectedBudget.fiscalEndDate);
-        expect(newBudget.reimbursedAmount).toEqual(expectedBudget.reimbursedAmount);
-        expect(newBudget.pendingAmount).toEqual(expectedBudget.pendingAmount);
-      }); // should return a new budget with a reimbursed amount of 5
-    }); // when there is overage
+    
   }); // _makeNewBudget
 
   describe('start', () => {
