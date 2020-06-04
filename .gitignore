@@ -1,3 +1,13 @@
 node_modules
+coverage
 .DS_Store
+.env
+.env.*
+.env_*
 *.log
+/logs
+.nyc_output
+*.pid
+.vscode
+claudia.json
+packaged.yaml

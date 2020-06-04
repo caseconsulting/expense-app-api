@@ -1,0 +1,476 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: CloudFormation for expense app
+
+Parameters:
+  Stage:
+    Type: String
+    Description: Deployment environment (e.g., dev, test, or prod)
+    AllowedValues:
+      - dev
+      - test
+      - prod
+  AppCertificate:
+    Description: The ARN for the app certificate saved in ACM
+    Type: String
+    ConstraintDescription: must be the name of an existing certificate.
+  ApiCertificate:
+    Description: The ARN for the api certificate saved in ACM
+    Type: String
+    ConstraintDescription: must be the name of an existing certificate.
+  AppDomain:
+    Description: The domain name for the front end app
+    Type: String
+    ConstraintDescription: Must match app certificate name
+    AllowedValues:
+      - dev.app.consultwithcase.com
+      - test.app.consultwithcase.com
+      - app.consultwithcase.com
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Tags:
+      Application: expense-app
+      Stage: !Ref Stage
+
+Resources:
+  cloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Join
+          - ''
+          - - expense-app-oai-
+            - !Ref Stage
+  cloudFrontDistribution:
+    DependsOn:
+      - s3FrontEndBucketPolicy
+      - s3Logs
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt
+              - s3FrontEnd
+              - DomainName
+            Id: !Join
+              - ''
+              - - S3-case-consulting-expense-app-
+                - !Ref Stage
+            S3OriginConfig:
+              OriginAccessIdentity: !Join
+                - ''
+                - - origin-access-identity/cloudfront/
+                  - !Ref cloudFrontOriginAccessIdentity
+        Enabled: 'true'
+        Comment: Expense App
+        DefaultRootObject: index.html
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: !GetAtt
+            - s3Logs
+            - DomainName
+          Prefix: cf-logs/
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: !Join
+            - ''
+            - - S3-case-consulting-expense-app-
+              - !Ref Stage
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        HttpVersion: http2
+        CustomErrorResponses:
+          - ErrorCode: '404'
+            ResponsePagePath: '/index.html'
+            ResponseCode: '200'
+            ErrorCachingMinTTL: '300'
+          - ErrorCode: '403'
+            ResponsePagePath: '/index.html'
+            ResponseCode: '200'
+            ErrorCachingMinTTL: '300'
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AppCertificate
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+        Aliases:
+          - !Ref AppDomain
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  s3FrontEnd:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-
+          - !Ref Stage
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/app/
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  s3FrontEndBucketPolicy:
+    DependsOn:
+      - s3FrontEnd
+      - cloudFrontOriginAccessIdentity
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref s3FrontEnd
+      PolicyDocument:
+        Statement:
+          - Sid: >-
+              Grant a CloudFront Origin Identity access to support private
+              content
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref s3FrontEnd
+                - /*
+            Principal:
+              CanonicalUser: !GetAtt
+                - cloudFrontOriginAccessIdentity
+                - S3CanonicalUserId
+  s3Resources:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-resources-
+          - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/resources/
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  s3Attachments:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-attachments-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove Deleted Expense Attachments
+            NoncurrentVersionExpirationInDays: 30
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/attachments/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  s3Logs:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-logs-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Purge old log files
+            ExpirationInDays: 30
+            Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  employeeTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - employees
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  expenseTypeTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - expense-types
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  trainingURLTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - training-urls
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: category
+          KeyType: RANGE
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  expenseTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - expenses
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: expenseTypeId
+          AttributeType: S
+        # - AttributeName: userId
+        #   AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: purchaseDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        # - IndexName: userId-index
+        #   KeySchema:
+        #     - AttributeName: userId
+        #       KeyType: HASH
+        #     - AttributeName: purchaseDate
+        #       KeyType: RANGE
+        #   Projection:
+        #     ProjectionType: ALL
+        - IndexName: employeeId-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: purchaseDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: expenseTypeId-index
+          KeySchema:
+            - AttributeName: expenseTypeId
+              KeyType: HASH
+            - AttributeName: purchaseDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: employeeId-expenseTypeId-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: expenseTypeId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  budgetsTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - budgets
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: expenseTypeId
+          AttributeType: S
+        # - AttributeName: userId
+        #   AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: fiscalEndDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: expenseTypeId-index
+          KeySchema:
+            - AttributeName: expenseTypeId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        # - IndexName: userId-expenseTypeId-index
+        #   KeySchema:
+        #     - AttributeName: userId
+        #       KeyType: HASH
+        #     - AttributeName: expenseTypeId
+        #       KeyType: RANGE
+        #   Projection:
+        #     ProjectionType: ALL
+        - IndexName: employeeId-expenseTypeId-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: expenseTypeId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: fiscalEndDate-index
+          KeySchema:
+            - AttributeName: fiscalEndDate
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  ExpenseAppApiLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: S3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  ChronosFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Provides the nightly update to employee budgets.
+      Handler: chronos.handler
+      Timeout: 900
+      CodeUri: ./
+      Events:
+        ChronosSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn
