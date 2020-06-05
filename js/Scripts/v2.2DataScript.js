@@ -432,56 +432,6 @@ async function setAccessibleBy() {
 } // setAccessibleBy
 
 /**
- * Replaces null receipt, note, url, or category fields with a place holder.
- */
-async function removeNullExpenseFields() {
-  console.log('Removing null expense fields');
-
-  let expenses = await getAllEntries(EXPENSES_TABLE);
-
-  await asyncForEach(expenses, async (expense) => {
-    if (expense.receipt == null || expense.note == null || expense.url == null || expense.category == null) {
-
-      let newReceipt = expense.receipt ? expense.receipt : ' ';
-      let newNote = expense.note ? expense.note : ' ';
-      let newUrl = expense.url ? expense.url : ' ';
-      let newCategory = expense.category ? expense.category : ' ';
-
-      let params = {
-        TableName: EXPENSES_TABLE,
-        Key: {
-          'id': expense.id
-        },
-        UpdateExpression: 'set receipt = :r, note = :n, #url = :u, category = :c',
-        ExpressionAttributeNames: {
-          '#url': 'url'
-        },
-        ExpressionAttributeValues: {
-          ':r': newReceipt,
-          ':n': newNote,
-          ':u': newUrl,
-          ':c': newCategory
-        },
-        ReturnValues: 'ALL_NEW'
-      };
-
-      await ddb.update(params)
-        .promise()
-        .then(data => {
-          console.log(`Successfully removed null fields from expense ${data.id}`);
-        })
-        .catch(err => {
-          console.log(`Failed to remove null fields from expense ${expense.id}.`,
-            'Error JSON:', JSON.stringify(err, null, 2)
-          );
-        });
-    }
-  });
-
-  console.log('Finished removing null expense field');
-} // removeNullExpenseFields
-
-/**
  * Removes budgets and expenses from database with an employee id not found in the employees table or an expense type
  * id not found in the expense type table.
  */
@@ -564,6 +514,44 @@ async function removeInvalidData() {
           }
         }
       });
+    } else {
+      // remove null attributes
+      if (expense.receipt == null || expense.note == null || expense.url == null || expense.category == null) {
+
+        let newReceipt = expense.receipt ? expense.receipt : ' ';
+        let newNote = expense.note ? expense.note : ' ';
+        let newUrl = expense.url ? expense.url : ' ';
+        let newCategory = expense.category ? expense.category : ' ';
+
+        let params = {
+          TableName: EXPENSES_TABLE,
+          Key: {
+            'id': expense.id
+          },
+          UpdateExpression: 'set receipt = :r, note = :n, #url = :u, category = :c',
+          ExpressionAttributeNames: {
+            '#url': 'url'
+          },
+          ExpressionAttributeValues: {
+            ':r': newReceipt,
+            ':n': newNote,
+            ':u': newUrl,
+            ':c': newCategory
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+
+        await ddb.update(params)
+          .promise()
+          .then(() => {
+            console.log(`Successfully removed null fields from expense ${expense.id}`);
+          })
+          .catch(err => {
+            console.log(`Failed to remove null fields from expense ${expense.id}.`,
+              'Error JSON:', JSON.stringify(err, null, 2)
+            );
+          });
+      }
     }
   });
 
@@ -582,7 +570,6 @@ async function main() {
     await changeAttributeName(EXPENSES_TABLE, 'categories', 'category'); // change expense categories name to category
     await changeAttributeName(EXPENSES_TABLE, 'userId', 'employeeId'); // change expense userId name to employeeId
     await removeInvalidData(); // remove invalid data
-    await removeNullExpenseFields(); // replace null expense receipt and note values with a space character
   } else {
     console.log('Canceled Update');
   }

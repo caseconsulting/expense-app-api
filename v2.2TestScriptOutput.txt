@@ -1,0 +1,906 @@
+Deleting empty budgets
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Successfully deleted budget 868b7623-ebaf-40d5-8a44-51ed404ffe5e
+Successfully deleted budget 69ac6a98-3b07-4c91-b823-63f0edf1c6af
+Successfully deleted budget 131eb5d1-38b7-4ca5-a209-8b52f58184a1
+Successfully deleted budget da40a5dc-6e62-4b03-9ec9-d8c30d8e3bf4
+Successfully deleted budget a4f0653b-61cd-4c7a-870f-7cd17eb26547
+Successfully deleted budget 8a1d27db-2391-4c55-a50e-a6c30b96c48a
+Successfully deleted budget d362cdfe-281f-4054-889e-1560d8fd6581
+Successfully deleted budget 7804ff1c-f30b-468c-bb29-64a6a903dd6b
+Successfully deleted budget 0d19e705-1256-48d6-b86f-ce96530d5fa8
+Successfully deleted budget 96490f7e-c040-4be8-9528-b003df23164f
+Successfully deleted budget bdc0008b-7a11-417a-863f-4436466ad0ee
+Successfully deleted budget 19dee549-7b9d-449f-974c-e266cab5700e
+Successfully deleted budget bb264948-3e18-4224-aeb5-ec061babcf11
+Successfully deleted budget a60eac4d-59cd-46f3-a3d8-b49be59707bb
+Successfully deleted budget 0ce3470e-0217-4b88-a1e3-4b06d642f2c2
+Successfully deleted budget f69d2c9e-0a33-4f70-b015-ee2a9c12dec2
+Successfully deleted budget f1baca44-42fe-452c-a339-2346cadf7aa8
+Successfully deleted budget 1778cea5-8193-4994-a36a-a7b69f10e36a
+Successfully deleted budget ae899f9f-8881-4732-a805-3a3022da30a8
+Successfully deleted budget 50c4674b-f597-416b-bc9c-df7b0b2e5b3d
+Successfully deleted budget 21b28700-c23f-4855-aae9-280e589388d1
+Successfully deleted budget 122c7e51-cae6-419f-8aca-bc441b97db5b
+Successfully deleted budget 6a6cdb8d-eb6e-4e6d-a0ed-2060fe8ce2e3
+Successfully deleted budget 1de13116-5662-4afa-94e3-3b0b56c53001
+Successfully deleted budget 06cf844c-bdba-456c-b2dc-1c1b2ddb4efc
+Successfully deleted budget ce6161c2-680f-45f9-ba4c-ab93e9132939
+Successfully deleted budget 8ae416f0-4f8d-4091-acbc-82e1215a3987
+Successfully deleted budget 56891125-27a4-4d27-ba25-3fdec49f7f7d
+Successfully deleted budget 9cbeb2a5-3d4f-4941-8c0d-8a56df362b4f
+Successfully deleted budget c76bba2a-85f9-4f16-929d-eadfa3f4cb85
+Successfully deleted budget 7aaa096f-37cd-4712-bdef-6ecb12debca6
+Successfully deleted budget f1e3e30c-cb56-4898-b09c-beff4b344598
+Successfully deleted budget 0bd30c47-4317-414d-bcf4-8b980376a1dc
+Successfully deleted budget 0aa054a2-9247-47ab-992c-55402cb4c0b0
+Successfully deleted budget ef260d28-db35-404e-b006-b6c03f99f1e3
+Successfully deleted budget 2b7ffb0f-e3d3-4070-b4af-9a08c506449a
+Successfully deleted budget dd7b4e57-8921-46dc-b136-619788cbbf09
+Successfully deleted budget 58b6d97c-0abe-477e-b2e7-f2ae558a810f
+Successfully deleted budget c53edbe0-0b9a-4679-bf1a-65b86ef258d9
+Successfully deleted budget f6031e14-97e4-42e8-811b-919cfcf439ce
+Successfully deleted budget 1ccf739e-f914-40b4-9f96-f612de7a8a19
+Successfully deleted budget f3bad00a-90c6-4b88-a445-9d911bc0aae1
+Successfully deleted budget 73784a0f-750f-4036-a177-ee179e1c71e7
+Successfully deleted budget cd44057b-0fde-4c6c-ae6c-20c2f9cdc8b1
+Successfully deleted budget 29995ba8-a1fe-4ea0-b132-0f58f611ca0d
+Successfully deleted budget 7100ec96-0ed7-485f-beae-4e85c00f988a
+Successfully deleted budget 53ee35b8-d73e-4b3b-946d-b3b4f30063b0
+Successfully deleted budget 74d958fe-802b-4239-9eb6-2abbe171fa70
+Successfully deleted budget ace528bf-1777-49a1-835c-e5231265986e
+Successfully deleted budget 5e3d1f16-edff-4431-ba42-e3d7ac109d32
+Successfully deleted budget 4e7c097f-5390-4749-bcd9-0f60bbbcbea6
+Successfully deleted budget bc991816-34c2-45eb-b38a-da816bc5025f
+Successfully deleted budget c5cedcca-df85-4aa3-be84-1d7bea4fdf90
+Successfully deleted budget 6f58ed8d-c688-41cf-9329-6846abbcc5cf
+Successfully deleted budget 78b877ee-cb7b-491d-bbb5-20d92c7dd65b
+Successfully deleted budget b9143f76-500b-4a66-940e-637adebdea34
+Successfully deleted budget a996d6be-7762-4bce-819c-a65c1731998d
+Successfully deleted budget 22e054be-bdcf-452c-8cf2-e39c58b6de9d
+Successfully deleted budget a1cd7b00-e79f-44a7-914c-98ebdb8cc861
+Successfully deleted budget 9b9fb843-8f59-472e-b047-7a1994b68199
+Successfully deleted budget 6ff6a15c-2bb3-4a84-b965-ac47e83023e8
+Successfully deleted budget b0955658-e23e-4884-be20-0c4d57fa1211
+Successfully deleted budget 8e249835-d4a2-4b39-addd-96345c795cd3
+Successfully deleted budget 0f229699-a54b-422d-8e44-372eb640a366
+Successfully deleted budget 6ba0c08a-5379-4b51-988f-73aa36c5ee6b
+Successfully deleted budget 8b1bf467-b92f-45c3-b7ee-e94d60d843cb
+Successfully deleted budget 60732508-968a-4aca-8ebb-4c40b920931a
+Successfully deleted budget 316f9bd5-e546-4f8c-ae57-bca21a837a30
+Successfully deleted budget 73858a93-d6ab-4cb2-a608-26c4e05ddbb1
+Successfully deleted budget bbdea2ef-3f51-4f6b-891b-d49ce18f70d0
+Successfully deleted budget 85694a3c-9b64-4f9c-a0ba-ee597ffc4819
+Successfully deleted budget 95f005f0-7f89-41fc-ba23-46ee258bdb71
+Successfully deleted budget c92d3ba4-da25-4576-b9b3-fa4e6f166ecb
+Successfully deleted budget 1afb8f09-c7a7-4eb4-b854-0c87ba7d0313
+Successfully deleted budget 4dfea90f-e529-419f-b487-a4382ef8acb7
+Successfully deleted budget 6f4b6609-378b-47f5-ad90-d14f975c1652
+Successfully deleted budget 8184ac45-2477-4b23-93e8-5f0374783e6a
+Successfully deleted budget 64df910f-a840-48f0-be63-0151ecbd4a4b
+Successfully deleted budget 1638fefa-e72e-4e6c-8840-beda37a72b44
+Successfully deleted budget a822675f-57e3-40c9-9905-2629dbcccec8
+Successfully deleted budget 880a6cff-7d76-4a15-b1d6-c364db61d468
+Successfully deleted budget 15d458d3-4d2b-476a-85cb-cb54bfae3c46
+Successfully deleted budget 121ae716-5014-43f7-9312-99400e10928d
+Successfully deleted budget 6eb210c9-6239-4b68-8052-5882474cf0f6
+Successfully deleted budget 191b9f41-7cda-47ca-8b92-ff434ed823a7
+Successfully deleted budget efe6901b-e360-4f9d-b1d4-01d94007b333
+Successfully deleted budget c2a1af50-6cd2-42c5-9bc0-c85b979e770e
+Successfully deleted budget c4dcbd54-7041-44e8-99f0-65fc0a0e10c1
+Successfully deleted budget 36dfc287-bd86-490e-80fb-4b3b0e8ecca1
+Successfully deleted budget 5c6e6ff5-a92e-457d-9ac2-9d9688448555
+Successfully deleted budget 32d1d82c-849b-4ad5-bfcf-3caeba5fee10
+Successfully deleted budget 454e4b9e-3c77-4380-9631-a2f251b33e90
+Successfully deleted budget fd1a2fd1-fae1-4708-a3ca-09a55b5fd677
+Successfully deleted budget 1bdebb58-303b-4d0a-bb59-67a6c377c237
+Successfully deleted budget e2ade968-911d-43c8-ac46-a6a58f03b8e0
+Successfully deleted budget 0e0d2745-5576-4546-bd51-e0f8bac58c4b
+Successfully deleted budget 7290fd78-f4f7-45fb-9fb7-27e28d830425
+Successfully deleted budget 9ed7bb16-2524-4c51-9a1c-1196b08495ea
+Successfully deleted budget 032a694d-9549-47d5-8914-aa721b28e0f9
+Successfully deleted budget 4b767184-6062-4665-b4d7-3a1a9ef9adeb
+Successfully deleted budget 4d29c194-1b9b-4d22-8cf0-b5073afb70fb
+Successfully deleted budget 44dc9805-471a-42dc-bfc5-fdd135b562fa
+Successfully deleted budget a414326c-718e-4b93-b133-f34d1d3bd7d0
+Successfully deleted budget 7af6bbbe-c095-482a-b9db-752d8b56552f
+Successfully deleted budget ad126c06-708c-4dc6-b733-f52f8b7f45d4
+Successfully deleted budget 2f7ebc64-fed5-4335-b740-d89624d4b3fb
+Successfully deleted budget 99f25ac6-49cc-476a-b413-5b8c3e7a0972
+Successfully deleted budget adc61e36-9dd9-4b9a-865c-ce3359c126b1
+Successfully deleted budget d5fbfd2c-cf21-4a5f-88ee-077b840e24fe
+Successfully deleted budget 0e655247-f27c-4caf-8b82-de82a1fbc2a9
+Successfully deleted budget 77a3e5cd-df25-4d55-8626-e9da4b7ae1f8
+Successfully deleted budget 31059830-e926-45e4-a69f-f79ce303ee7d
+Successfully deleted budget d902f451-8440-476b-8413-f60492bde2aa
+Successfully deleted budget f3202289-c034-4c5d-a1b5-cfd72ce7fc80
+Successfully deleted budget ef736441-378b-4324-8b18-f6e803ff1055
+Successfully deleted budget 80e743b8-79f5-4754-bee3-660e360ae039
+Successfully deleted budget 341dce7b-b71f-4788-83fe-d7419d059cf7
+Successfully deleted budget 609f6736-3aec-4bda-822f-ccfe5cf2237b
+Successfully deleted budget 87bdcd01-ae4b-46ef-a90c-b64c497c82e9
+Successfully deleted budget d6d23b53-c148-4e8b-9520-fb2073e80bf9
+Successfully deleted budget 9a883373-f987-47df-88c9-229f92932688
+Successfully deleted budget b49013bc-5c50-4acb-8e9f-b2818eb8d179
+Successfully deleted budget cf73ccef-21b8-4075-84c9-9c0bf2896bab
+Successfully deleted budget 6abf2829-e4cf-4d2f-80fc-2f692a3bbebc
+Successfully deleted budget 9ffddd8e-9e86-42a1-beb6-e05f4bbb2c02
+Successfully deleted budget 1cf037de-7e2a-4729-b754-0a13da672e11
+Successfully deleted budget c280a4a5-ed12-4406-ab51-560b3470f421
+Successfully deleted budget 3544afe9-b6a7-48fa-a2e1-396c8cf81793
+Successfully deleted budget 34172760-ed3e-4557-a4bb-a89fd227e8ec
+Successfully deleted budget dd598449-3319-4688-98cb-f25524a79eba
+Successfully deleted budget b4c87092-71f3-4b23-aef6-187e2feefadb
+Successfully deleted budget 50af06ba-8ed3-4eac-84cc-60fb9569ceff
+Successfully deleted budget 59bfc829-b8ba-4242-83cd-c4349f9e39ee
+Successfully deleted budget 0686f564-02cb-447b-b186-1c67550b0979
+Successfully deleted budget 6de01d6f-ef0f-4f35-9809-90eac49d8e0e
+Successfully deleted budget be7c953b-ad68-4d18-b237-e0a9daeefbe6
+Successfully deleted budget 7f416e6e-d5a0-4f5d-91bc-d0e5e1241fa8
+Successfully deleted budget 63d870b5-ace9-48db-a2a6-59e399c2b1b8
+Successfully deleted budget a7b236cb-3ba1-4e0a-820f-8caf08648d1b
+Successfully deleted budget f83ec61f-a2c3-4677-b902-b5147ed81e90
+Successfully deleted budget 945318c3-5d51-4e07-8e38-137ba62dbef4
+Successfully deleted budget add6b01b-da0f-4a80-9449-e42a2f089fbb
+Successfully deleted budget 2b223a8e-55ba-462e-9e52-85a3196334df
+Successfully deleted budget 73bf1fef-7c68-42e6-9dec-fd573c7d7a22
+Successfully deleted budget f29972c1-1343-4172-8e85-4e3d63daf434
+Successfully deleted budget ed73c368-6d5c-4612-9ca7-88d553a318d8
+Successfully deleted budget f78cb6de-df26-4b1e-9fb8-59afd26a9127
+Successfully deleted budget 1d111da2-c3e8-47e6-bd09-286e27803aa5
+Successfully deleted budget 3212dcfe-5af1-4ddc-b0d4-ff000be670e2
+Successfully deleted budget 48eedaf3-aec8-407b-b4fa-ee0c3ba15171
+Successfully deleted budget 0e5c4b57-e4b3-4785-a3fc-3f2f034d3bdf
+Successfully deleted budget 50fa7b1a-49ea-4bf6-be0e-5dca1bc4e41b
+Successfully deleted budget fadcc807-eea5-4fda-af6f-903d4ef67648
+Successfully deleted budget abc3169c-7d72-4a90-b1fd-1b6a6313570e
+Successfully deleted budget 2c378317-11ff-41a9-8f5c-6974ac57b8b2
+Successfully deleted budget 9af2ce35-0f8d-45a0-9069-91cc2ce5b264
+Successfully deleted budget 041f8b6b-949d-47d5-a3de-0a852ee6de3e
+Successfully deleted budget 03dc3153-5558-400e-bbdb-dc3e14dd644c
+Successfully deleted budget 51a29df3-5f16-4da1-9cc8-e83262eb72d3
+Successfully deleted budget 142d1995-4147-47d9-ac28-f4314113da98
+Successfully deleted budget 315707af-893d-4bda-a038-200a95a2a843
+Successfully deleted budget 79bf5c10-3927-42b6-a15a-c01b3f1d2c23
+Successfully deleted budget 0d558c34-facb-400a-90a2-92261918e091
+Successfully deleted budget ca8ee633-23fb-4e50-8334-2dcdadb9fcef
+Successfully deleted budget 0f9d2dc7-38f3-4fb7-89c6-7c0e80d03f8c
+Successfully deleted budget a46828f0-df58-4ad2-8119-6235fd5a1f01
+Successfully deleted budget 6c3523f6-4fbe-43e7-a295-7b29aa02e1a1
+Successfully deleted budget 8a7438c2-5a51-4641-9e52-917ed824bbd5
+Successfully deleted budget 47b6cd53-6fed-4303-bc7d-a7d622d11a71
+Successfully deleted budget d0dfb3e5-ffb9-4310-871f-8943f4f821bf
+Successfully deleted budget sadfasd987df98sa7d7f6sd9087f9
+Successfully deleted budget 796b0c96-270f-4ef2-b65b-78d64b3c2aa7
+Successfully deleted budget 05393922-e9a5-49b2-ae09-7900d77ade02
+Successfully deleted budget d66a2f62-ed6a-4d1a-936e-c8e749a4a26a
+Successfully deleted budget d4c4c796-6a53-4def-b3c6-455f8de4ff45
+Successfully deleted budget 19ae4c08-ce48-4454-b207-fafe76422bf0
+Successfully deleted budget 34a4a7b6-8702-4cf2-97c4-9120ae69e1eb
+Successfully deleted budget c73ca70b-9359-4d48-b4b0-d9160bd31e5e
+Successfully deleted budget a594b6d7-3089-43c2-9b03-d914ae8dbece
+Successfully deleted budget de4e6beb-098a-4678-bb73-9430c5edb397
+Successfully deleted budget a4b965fd-bc0a-4628-be2a-eed66cae910a
+Successfully deleted budget 13ff9d82-5f95-40d1-a425-3cbdb0e5af98
+Successfully deleted budget a6425a0c-092c-4328-866c-dfeade5b0cad
+Successfully deleted budget 18570c35-6451-43be-a9e1-e131c796b75f
+Successfully deleted budget dcafaa4b-7e59-46f2-9735-6f140094f873
+Successfully deleted budget 85193a85-344d-4005-8de0-286ad735fb00
+Successfully deleted budget 8053c300-0958-44ea-a821-a9182b3a09d5
+Successfully deleted budget 1d232e71-3aab-49ca-aaea-f04227666464
+Successfully deleted budget d55336f7-81c0-4763-abcf-ebe23c09aca4
+Successfully deleted budget 9a3ca8e8-416f-44c7-b6cf-546ec363f7d9
+Successfully deleted budget 17a6d1e3-b371-4f9f-a9df-1f96873784bd
+Successfully deleted budget 9536ce9d-a1aa-41b3-9037-9de33f0ff5b1
+Successfully deleted budget b3e279d4-1cbe-4e01-981d-552b9e10f50e
+Successfully deleted budget 2fc8ef58-6c6e-41bd-a80c-8b2a6c62e8d7
+Successfully deleted budget cbd52222-030f-4517-bc6b-f147dbef2f2d
+Successfully deleted budget c153fdcd-fac6-44bb-bd7c-1d9ac702ff60
+Successfully deleted budget bc719f8c-80c1-4fe5-8bfd-da43fe023b8a
+Successfully deleted budget 7c7f26de-9fb6-4baf-8e5e-3edb55ecbde8
+Successfully deleted budget 4d538238-e8a3-456f-8f59-7d8c228935d5
+Successfully deleted budget cb976e79-33f1-4377-b758-d73a9a6e75b2
+Successfully deleted budget d6f46781-cae4-496a-b485-b73c520024b2
+Successfully deleted budget 7696525c-a646-4055-bfc4-3d02bc5faa01
+Successfully deleted budget 251474bc-6685-4782-bf7c-6dfadd8ac8a9
+Successfully deleted budget 5ab2b5f4-3b3b-4fcb-b6a2-7a11e8235818
+Successfully deleted budget 395d12f1-1047-44fc-8969-348149cb9fdc
+Successfully deleted budget b0447a2e-9302-4c49-82a0-bdf0453ea647
+Successfully deleted budget bea2adb2-e688-4a3f-a0cd-5e478dc6c143
+Successfully deleted budget dcdbcfb4-bbfe-4b5b-b637-dd10ca61ad5c
+Successfully deleted budget ac1d6596-8186-44ff-83ff-fe43a4e18bd7
+Successfully deleted budget 94e98a97-e37d-4b24-894f-9ef37e173197
+Successfully deleted budget 6de2a108-5fb3-4921-8c25-22c3dfcf18a4
+Successfully deleted budget 6d75a81f-4b47-4098-8565-d2ce63b488db
+Successfully deleted budget 3eb73f7b-6c9d-4e3a-97b8-54c573e2df1e
+Successfully deleted budget 2f49e07c-223d-4a68-ba2c-697f3fc0cad2
+Successfully deleted budget 518bb2b1-1488-4fb5-b23b-8ebfa5fe23e3
+Successfully deleted budget 5657290d-5263-4726-99eb-e4c0c3487761
+Successfully deleted budget 9ade9249-3b5b-408d-8a62-56c31d2f5d3d
+Successfully deleted budget 3a8216e8-8e01-4b74-a1b0-7c1a6f672956
+Successfully deleted budget 232b5eac-3f7f-4ed4-922f-3a66e1f9b55a
+Successfully deleted budget 9c2f66d3-5c7c-45d6-bdfa-c277dce4ac58
+Successfully deleted budget 38629eba-e2c8-49a2-953e-56b5e4971493
+Successfully deleted budget 26ae26c0-ad59-46ff-8105-0dd44f4dcb54
+Successfully deleted budget a801aaf7-246c-4903-bbb8-46e839528d25
+Successfully deleted budget 961406d1-5b00-4f37-89a2-8631886ed4ca
+Successfully deleted budget 4e1e78d7-750e-44b3-be5a-5b10dae64d84
+Successfully deleted budget fd16852d-3c81-4919-aacb-e99a6b9be90e
+Successfully deleted budget 437119a4-63dc-40fe-bc8f-931cadc4af22
+Successfully deleted budget 32b80b4e-30cf-4ddd-9787-0737d26fd53c
+Successfully deleted budget d5881424-af8f-4c20-8112-e3b5735b4083
+Successfully deleted budget dd6be7c8-7b3d-401a-8584-feaf5b112312
+Successfully deleted budget 29bad48b-0f52-4b72-b184-df93d88fa0da
+Successfully deleted budget 2af96be0-7b68-4579-9134-52bcd61110e7
+Successfully deleted budget 25076c19-4d3d-44ae-aa62-aeab81d3dc77
+Successfully deleted budget 16b27669-e051-4d69-8303-d26eb4e9aad1
+Successfully deleted budget 61502eeb-90b2-41a4-b328-27eef7430bcc
+Successfully deleted budget 5e4e2d11-a72d-45b1-a0b5-912b22d3a8ee
+Successfully deleted budget c1377771-5580-4c5d-b750-85099fd3b222
+Successfully deleted budget fe774022-9baf-466b-aea7-15ba1f1b3c68
+Successfully deleted budget d7f57281-9d7f-4305-9970-429aa802a041
+Successfully deleted budget ccb45063-4859-40b5-ba3f-e612c8efda51
+Successfully deleted budget 4749da7b-19ed-4f97-bda1-d927e8692697
+Successfully deleted budget f6f550ff-f485-4737-b661-cbfbeeeddba0
+Successfully deleted budget fded762d-0934-4930-b7a5-467c591a6c01
+Successfully deleted budget 8799216a-df9f-4914-a53d-0e5cf57d8d24
+Successfully deleted budget a87b9dc6-982a-4ce2-9c20-0146874d4319
+Successfully deleted budget 162a6a7d-35bf-48dd-b7c8-7c533889928c
+Successfully deleted budget e68df979-9d5c-429c-922f-cf7048475102
+Successfully deleted budget cf4362e7-f510-4a83-bce4-9d070b3c3f2c
+Successfully deleted budget e0247539-ac17-472c-bae7-c7c2c56dd0e7
+Successfully deleted budget 41bd10c7-cd8d-4bd1-bdfb-7cff2a20f51c
+Successfully deleted budget ea5ac543-97d2-4788-a34d-0173e9a3ceb5
+Successfully deleted budget b1b6919e-2426-40e2-9898-77decc8dbb1b
+Successfully deleted budget bc81820b-6f04-4d0f-bf1a-b573740007fe
+Successfully deleted budget 6bc20904-008c-4a52-a844-8d9adc73f16e
+Successfully deleted budget b4f8f626-db81-4493-a6e5-e04640cd8d78
+Successfully deleted budget 18c03572-02e2-4746-8838-7cb4b0ddee7c
+Successfully deleted budget 12075825-0fe8-4c28-b6d4-7604660ae1fb
+Successfully deleted budget 72d5a540-6e7d-44c5-b192-f5f57805a8ea
+Successfully deleted budget abc39980-1c9e-461e-87ff-fb0ae89d4730
+Successfully deleted budget 5561293b-b873-4591-a6d8-ed5f83db1f66
+Successfully deleted budget 7555bddd-cb0d-4151-89ea-c5a9142470dc
+Successfully deleted budget 990d0870-4218-464d-bb36-fe170b9cb930
+Successfully deleted budget de6ab55c-d4c2-4fa1-b0d3-0ef18015249a
+Successfully deleted budget bb3600d2-5e5f-462b-b0ac-e84733a83206
+Successfully deleted budget 069fe4f7-691f-4064-a5fc-c2c31110031c
+Successfully deleted budget 1636aa82-fe6d-49d4-bdc1-85a1e1ce6761
+Successfully deleted budget 831bb9df-9fce-4f11-b8fc-27200fd5b8af
+Successfully deleted budget 3f8fea1d-1bf3-46b7-a59e-258029fde0df
+Successfully deleted budget cc4597d5-2119-4384-bfbc-fced27883d12
+Successfully deleted budget 2b104641-438d-4015-9348-fc143d917ada
+Successfully deleted budget 439a98a5-ca20-4827-bd9f-af31cc25dc45
+Successfully deleted budget 3d21c819-066a-4009-93d5-f7cd9a149e6d
+Successfully deleted budget 401914f6-7dcc-481c-a208-d061fc59aaed
+Successfully deleted budget 092d289a-c6e3-4189-8032-d623aa79b679
+Successfully deleted budget 437c27f7-d9be-4f35-80ec-30fabd0c87be
+Successfully deleted budget 15ac81ef-8c6c-4c38-88dc-3bba080024e5
+Successfully deleted budget 4fbef376-f2a8-4a28-838d-90237642bc25
+Successfully deleted budget 8e20d07b-10b3-4ac0-b0c2-d7d5ad1b68df
+Successfully deleted budget 4375848c-dc63-4dc5-962b-460565f34bb7
+Successfully deleted budget 1226f1df-64fa-4030-be2d-523a6b1904d1
+Successfully deleted budget bfae8788-4cd5-40ec-a98c-839b498fe94b
+Successfully deleted budget e89615c1-f358-4318-8881-3907d0ce45b1
+Successfully deleted budget f776d90b-acc3-4805-9533-ab14414a9a86
+Successfully deleted budget 96647850-ea8e-4d4f-9e55-34ce932742db
+Successfully deleted budget 2f38627e-c43b-43bf-9013-c5cec11ea268
+Successfully deleted budget c086de2a-094c-4a12-a389-66f1efd9703d
+Successfully deleted budget b51bcb60-3587-4253-92b4-2ddc778e3dc4
+Successfully deleted budget 51c82f6e-d607-4175-825f-9ba0ba6c2fd2
+Successfully deleted budget 729858bf-7d40-4903-b1e1-ee05d2fbb9f8
+Successfully deleted budget 71ec1451-c390-4f47-a0c8-8f4159553a08
+Successfully deleted budget c671cd72-10be-4d14-9492-19e62e866d5c
+Successfully deleted budget 9dbd522c-435f-4eb2-b9ab-0c4ffe235b5d
+Successfully deleted budget b1b819e7-2a42-4f1d-8f18-daa97630029c
+Successfully deleted budget 59191472-f4de-4156-93b5-7095085c14a7
+Successfully deleted budget 69888d89-f9df-4420-803a-f93496622578
+Successfully deleted budget 96620147-2ad1-4b60-a683-2f0356c9a9e7
+Successfully deleted budget c03aa7fd-3cf9-4713-b1ca-0ffb4989d98f
+Successfully deleted budget c15337f7-22f4-4e9c-a3ce-0ab522c55f41
+Successfully deleted budget fee74c6e-457d-4ac5-b033-407a71e6562f
+Successfully deleted budget f58d67f1-e9ff-4353-b2a7-e2b2efeef13b
+Successfully deleted budget d64e6c09-4a3e-4564-a249-f39900a1a2b1
+Successfully deleted budget b785a72d-fb16-4d1b-bd1c-c78263948197
+Successfully deleted budget a2aa8d93-f89c-49d8-8e4b-26c32f53e9cc
+Successfully deleted budget e13db0d0-c51f-4ee3-be5a-eebdaa66cf73
+Finished Deleting empty budgets
+Changing attribute name from userId to employeeId in table test-budgets
+Copying values from userId to employeeId in table test-budgets
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Successfully copied value from userId to employeeId in table test-budgets for entry 0a1f5ddc-3df1-4381-87b6-7cab43c70299. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully copied value from userId to employeeId in table test-budgets for entry a960ac94-340c-45a1-ae58-acb112bac6e0. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry 0c1854c4-d4c9-4674-980c-4040503ba7e5. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully copied value from userId to employeeId in table test-budgets for entry d4968075-0b64-4476-9f6f-07a2d8704265. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry d021b28b-ebb9-4b70-b72d-ff1e19c6363d. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry c6be5e58-7202-4938-9835-4b8102921e05. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry 879s8d7f90a8sd7f098asd7. Value: 9fdfc168-13c1-492e-9b8c-4e213e04660d
+Successfully copied value from userId to employeeId in table test-budgets for entry 837c81f3-9f20-4b94-9561-8601cb84ee49. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry ad1346fe-019c-40f8-ad7b-0af9a0b66b1f. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry 957ee9ae-b24f-445e-ba67-4d137159b549. Value: d4789382-07ae-45dc-af61-4fb948546801
+Successfully copied value from userId to employeeId in table test-budgets for entry 72b802ff-6f60-4688-8452-480c2ec1c6e0. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-budgets for entry fadf8a89-6a57-49c6-83d2-def015123581. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry b662401b-1faf-4728-b2cc-7d55fc29c12a. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully copied value from userId to employeeId in table test-budgets for entry a48c499b-ee84-43be-8735-cda4fef9e179. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-budgets for entry da4328b1-f99f-4ab8-8b88-23334986a555. Value: d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
+Successfully copied value from userId to employeeId in table test-budgets for entry 2821b3b2-bf79-49a2-9986-e717881ecf2f. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully copied value from userId to employeeId in table test-budgets for entry 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry af772f84-b26a-4db1-a035-da4840379c1b. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry 6054f616-1ea6-4fa3-a1a0-812737084717. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-budgets for entry a6c40314-ff55-41c6-9ef1-3693df36c663. Value: d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
+Successfully copied value from userId to employeeId in table test-budgets for entry ee563652-1e27-4086-a8c7-06f04297ee30. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-budgets for entry 17c596f5-fe9e-494e-ad2f-e60ed9dbe424. Value: d3505b35-ca34-4c28-b7b3-ce80b93b9480
+Successfully copied value from userId to employeeId in table test-budgets for entry a0ff2fdb-0f28-40cc-b142-d81ec20b2178. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-budgets for entry b790ccf2-fbb7-45b4-a5d8-cae05924299d. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-budgets for entry a655e379-ec70-431a-8915-b758d5964d25. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully copied value from userId to employeeId in table test-budgets for entry da965ee7-7423-4dc0-82e3-1c30c7b09c95. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-budgets for entry 60806be7-3c35-4144-8f94-e900e1afc55a. Value: d9617cc3-7824-4e41-b438-a0de46cdd1c7
+Successfully copied value from userId to employeeId in table test-budgets for entry c39f9f95-7fa7-45c4-a039-51aa3e5852e4. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry 51040053-a4d2-49d6-bc7f-ad89b07abfb0. Value: 97789f2a-606e-488f-9d14-a8e243350086
+Successfully copied value from userId to employeeId in table test-budgets for entry bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully copied value from userId to employeeId in table test-budgets for entry ab3300c5-c4ae-46e4-bd44-ce0873c02501. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully copied value from userId to employeeId in table test-budgets for entry 1ff0f1eb-80b4-4797-beba-60f7f86dee08. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-budgets for entry a86ebd4c-8b1d-4cc5-b594-67daa99f3aef. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully copied value from userId to employeeId in table test-budgets for entry 69b777a9-ee02-4f3c-ab54-327e669241a4. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry 03256230-fde0-4d8d-8c0f-79376a9e30e5. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-budgets for entry 9d6950a9-59a7-4c9e-8d8b-4de0402b5282. Value: 55b29ff7-d686-4d4a-80c6-efe61fd06d8c
+Successfully copied value from userId to employeeId in table test-budgets for entry 46828ddb-ce4d-4c35-a0f4-3c75946e566c. Value: ea7f1933-df6b-408b-b4ee-ad9987379f7e
+Successfully copied value from userId to employeeId in table test-budgets for entry 9ff11189-70c7-415d-8027-7cda986f9523. Value: e515672c-638d-473f-9dc9-ee2d991d94d2
+Successfully copied value from userId to employeeId in table test-budgets for entry 84ffd87e-7feb-4b0f-8734-56d44b37e17a. Value: c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
+Finished copying values from userId to employeeId in table test-budgets
+Removing attributes userId from table test-budgets
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Successfully removed attribute userId from table test-budgets for entry 0a1f5ddc-3df1-4381-87b6-7cab43c70299
+Successfully removed attribute userId from table test-budgets for entry a960ac94-340c-45a1-ae58-acb112bac6e0
+Successfully removed attribute userId from table test-budgets for entry 0c1854c4-d4c9-4674-980c-4040503ba7e5
+Successfully removed attribute userId from table test-budgets for entry d4968075-0b64-4476-9f6f-07a2d8704265
+Successfully removed attribute userId from table test-budgets for entry d021b28b-ebb9-4b70-b72d-ff1e19c6363d
+Successfully removed attribute userId from table test-budgets for entry c6be5e58-7202-4938-9835-4b8102921e05
+Successfully removed attribute userId from table test-budgets for entry 879s8d7f90a8sd7f098asd7
+Successfully removed attribute userId from table test-budgets for entry 837c81f3-9f20-4b94-9561-8601cb84ee49
+Successfully removed attribute userId from table test-budgets for entry ad1346fe-019c-40f8-ad7b-0af9a0b66b1f
+Successfully removed attribute userId from table test-budgets for entry 957ee9ae-b24f-445e-ba67-4d137159b549
+Successfully removed attribute userId from table test-budgets for entry 72b802ff-6f60-4688-8452-480c2ec1c6e0
+Successfully removed attribute userId from table test-budgets for entry fadf8a89-6a57-49c6-83d2-def015123581
+Successfully removed attribute userId from table test-budgets for entry b662401b-1faf-4728-b2cc-7d55fc29c12a
+Successfully removed attribute userId from table test-budgets for entry a48c499b-ee84-43be-8735-cda4fef9e179
+Successfully removed attribute userId from table test-budgets for entry da4328b1-f99f-4ab8-8b88-23334986a555
+Successfully removed attribute userId from table test-budgets for entry 2821b3b2-bf79-49a2-9986-e717881ecf2f
+Successfully removed attribute userId from table test-budgets for entry 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a
+Successfully removed attribute userId from table test-budgets for entry af772f84-b26a-4db1-a035-da4840379c1b
+Successfully removed attribute userId from table test-budgets for entry 6054f616-1ea6-4fa3-a1a0-812737084717
+Successfully removed attribute userId from table test-budgets for entry a6c40314-ff55-41c6-9ef1-3693df36c663
+Successfully removed attribute userId from table test-budgets for entry ee563652-1e27-4086-a8c7-06f04297ee30
+Successfully removed attribute userId from table test-budgets for entry 17c596f5-fe9e-494e-ad2f-e60ed9dbe424
+Successfully removed attribute userId from table test-budgets for entry a0ff2fdb-0f28-40cc-b142-d81ec20b2178
+Successfully removed attribute userId from table test-budgets for entry b790ccf2-fbb7-45b4-a5d8-cae05924299d
+Successfully removed attribute userId from table test-budgets for entry a655e379-ec70-431a-8915-b758d5964d25
+Successfully removed attribute userId from table test-budgets for entry da965ee7-7423-4dc0-82e3-1c30c7b09c95
+Successfully removed attribute userId from table test-budgets for entry 60806be7-3c35-4144-8f94-e900e1afc55a
+Successfully removed attribute userId from table test-budgets for entry c39f9f95-7fa7-45c4-a039-51aa3e5852e4
+Successfully removed attribute userId from table test-budgets for entry 51040053-a4d2-49d6-bc7f-ad89b07abfb0
+Successfully removed attribute userId from table test-budgets for entry bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560
+Successfully removed attribute userId from table test-budgets for entry ab3300c5-c4ae-46e4-bd44-ce0873c02501
+Successfully removed attribute userId from table test-budgets for entry 1ff0f1eb-80b4-4797-beba-60f7f86dee08
+Successfully removed attribute userId from table test-budgets for entry a86ebd4c-8b1d-4cc5-b594-67daa99f3aef
+Successfully removed attribute userId from table test-budgets for entry 69b777a9-ee02-4f3c-ab54-327e669241a4
+Successfully removed attribute userId from table test-budgets for entry 03256230-fde0-4d8d-8c0f-79376a9e30e5
+Successfully removed attribute userId from table test-budgets for entry 9d6950a9-59a7-4c9e-8d8b-4de0402b5282
+Successfully removed attribute userId from table test-budgets for entry 46828ddb-ce4d-4c35-a0f4-3c75946e566c
+Successfully removed attribute userId from table test-budgets for entry 9ff11189-70c7-415d-8027-7cda986f9523
+Successfully removed attribute userId from table test-budgets for entry 84ffd87e-7feb-4b0f-8734-56d44b37e17a
+Finished removing attributes userId from table test-budgets
+Finished changing attribute name from userId to employeeId in table test-budgets
+Setting all expense types accessible by to ALL
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+Successfully set accessibleBy to ALL for expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Successfully set accessibleBy to ALL for expense type 2caab45c-4122-43f8-94c5-0221d5033ad1
+Successfully set accessibleBy to ALL for expense type 9cbee856-d1de-420f-badd-4754663948fa
+Successfully set accessibleBy to ALL for expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully set accessibleBy to ALL for expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Successfully set accessibleBy to ALL for expense type 741ff729-b869-4fdd-8999-02831e05b4c7
+Successfully set accessibleBy to ALL for expense type 31cbc67a-0b5e-49b6-9b61-e769a0d2ef32
+Finished setting all expense types accessible by to ALL
+Setting all employee work status to 100 if active or 0 if inactive
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Successfully set employee work status to 100 for employee bd8294a1-3da9-4994-b776-9d94688aa8e5
+Successfully set employee work status to 100 for employee ca0390f2-51ba-4901-944c-b4cbb0203f1e
+Successfully set employee work status to 100 for employee 2994e2aa-e144-4a59-9ca1-084a407486a1
+Successfully set employee work status to 100 for employee 97789f2a-606e-488f-9d14-a8e243350086
+Successfully set employee work status to 100 for employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully set employee work status to 100 for employee 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully set employee work status to 100 for employee d0a1f858-b140-4e65-bbfd-e5efbdfd6ef3
+Successfully set employee work status to 100 for employee 5296dfdd-3901-43eb-b9a1-471cfe6197ce
+Successfully set employee work status to 100 for employee 55897576-2826-48a2-986d-0da7fd967bad
+Successfully set employee work status to 100 for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully set employee work status to 100 for employee ea7f1933-df6b-408b-b4ee-ad9987379f7e
+Successfully set employee work status to 100 for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully set employee work status to 100 for employee 2f7bec3a-5687-4c0a-926a-aea775f59e5c
+Successfully set employee work status to 100 for employee f8d511ae-2416-4eb2-89a0-738562dc173f
+Successfully set employee work status to 100 for employee 9d017ca0-4a2f-483b-af91-502efeeec931
+Successfully set employee work status to 100 for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully set employee work status to 100 for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully set employee work status to 100 for employee 4b6392b4-0c8a-4e3c-b546-4a516393f17d
+Successfully set employee work status to 0 for employee 5a74396b-3e6d-403b-b9e6-edb85085e64b
+Successfully set employee work status to 100 for employee d4a48546-c40d-4a93-a00b-fb980bf56d83
+Successfully set employee work status to 100 for employee 375ecbbf-dfdd-4313-994b-7f8f0bdce87d
+Successfully set employee work status to 100 for employee d913c6a7-64db-4133-9b08-d7196a0e8c47
+Successfully set employee work status to 100 for employee 722dd504-b3a0-4948-ae25-4c520249e4fc
+Successfully set employee work status to 100 for employee b92fa017-e480-4e72-b919-62d8bca88798
+Successfully set employee work status to 100 for employee d602a354-945c-4fff-bb5a-d141e52a02bf
+Successfully set employee work status to 100 for employee 047c67da-b9cf-47fb-8a28-81c35466d9c1
+Successfully set employee work status to 0 for employee d0b44f88-0ade-42cc-b1ec-dbc1314cbeae
+Successfully set employee work status to 100 for employee 9fdfc168-13c1-492e-9b8c-4e213e04660d
+Successfully set employee work status to 100 for employee 3eb00078-729c-426f-a4b5-f2dfe7389cb3
+Successfully set employee work status to 100 for employee e515672c-638d-473f-9dc9-ee2d991d94d2
+Successfully set employee work status to 100 for employee 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully set employee work status to 100 for employee 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully set employee work status to 100 for employee 55b29ff7-d686-4d4a-80c6-efe61fd06d8c
+Successfully set employee work status to 100 for employee 626ff6e5-2a31-412d-90f6-98a966025aa9
+Successfully set employee work status to 100 for employee e012bf65-3450-499a-9836-295379b4524c
+Successfully set employee work status to 100 for employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully set employee work status to 100 for employee baf2ba47-4b59-4b98-92a7-97befe810041
+Successfully set employee work status to 100 for employee 5eb4e8e2-c384-409d-8db7-32902c5cea96
+Successfully set employee work status to 100 for employee bd971814-0c4b-4264-b0ac-6f5ea0583a07
+Successfully set employee work status to 100 for employee 5a86d57c-bd51-4c32-b858-9a6a583d519a
+Successfully set employee work status to 100 for employee ed6494e0-6332-43dd-ac10-f93ac4fe61d8
+Successfully set employee work status to 100 for employee c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
+Successfully set employee work status to 100 for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
+Finished setting all employee work status
+Setting full budget amounts
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Successfully set budget amount 3500.00 for budget 0a1f5ddc-3df1-4381-87b6-7cab43c70299
+Successfully set budget amount 100.00 for budget a960ac94-340c-45a1-ae58-acb112bac6e0
+Calculating adjusted budget amount for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Checking if employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Adjusted budget amount is $3500
+Successfully set budget amount 3500 for budget 0c1854c4-d4c9-4674-980c-4040503ba7e5
+Successfully set budget amount 1000.00 for budget d021b28b-ebb9-4b70-b72d-ff1e19c6363d
+Successfully set budget amount 1800.00 for budget 879s8d7f90a8sd7f098asd7
+Successfully set budget amount 1800.00 for budget 837c81f3-9f20-4b94-9561-8601cb84ee49
+Successfully set budget amount 3500.00 for budget ad1346fe-019c-40f8-ad7b-0af9a0b66b1f
+Successfully set budget amount 100.00 for budget 72b802ff-6f60-4688-8452-480c2ec1c6e0
+Successfully set budget amount 100.00 for budget fadf8a89-6a57-49c6-83d2-def015123581
+Successfully set budget amount 100.00 for budget b662401b-1faf-4728-b2cc-7d55fc29c12a
+Successfully set budget amount 1250.00 for budget a48c499b-ee84-43be-8735-cda4fef9e179
+Calculating adjusted budget amount for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully set budget amount 1800 for budget da4328b1-f99f-4ab8-8b88-23334986a555
+Successfully set budget amount 3500.00 for budget 2821b3b2-bf79-49a2-9986-e717881ecf2f
+Successfully set budget amount 3500.00 for budget 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a
+Successfully set budget amount 3500.00 for budget af772f84-b26a-4db1-a035-da4840379c1b
+Successfully set budget amount 3500.00 for budget 6054f616-1ea6-4fa3-a1a0-812737084717
+Successfully set budget amount 1250.00 for budget a6c40314-ff55-41c6-9ef1-3693df36c663
+Successfully set budget amount 100.00 for budget ee563652-1e27-4086-a8c7-06f04297ee30
+Successfully set budget amount 1800.00 for budget a0ff2fdb-0f28-40cc-b142-d81ec20b2178
+Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully set budget amount 1800 for budget b790ccf2-fbb7-45b4-a5d8-cae05924299d
+Successfully set budget amount 3500.00 for budget a655e379-ec70-431a-8915-b758d5964d25
+Successfully set budget amount 1800.00 for budget da965ee7-7423-4dc0-82e3-1c30c7b09c95
+Successfully set budget amount 3500.00 for budget c39f9f95-7fa7-45c4-a039-51aa3e5852e4
+Successfully set budget amount 1800.00 for budget 51040053-a4d2-49d6-bc7f-ad89b07abfb0
+Successfully set budget amount 1800.00 for budget bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560
+Successfully set budget amount 1800.00 for budget ab3300c5-c4ae-46e4-bd44-ce0873c02501
+Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Adjusted budget amount is $3500
+Successfully set budget amount 3500 for budget 1ff0f1eb-80b4-4797-beba-60f7f86dee08
+Calculating adjusted budget amount for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully set budget amount 1800 for budget a86ebd4c-8b1d-4cc5-b594-67daa99f3aef
+Successfully set budget amount 1800.00 for budget 03256230-fde0-4d8d-8c0f-79376a9e30e5
+Successfully set budget amount 100.00 for budget 9d6950a9-59a7-4c9e-8d8b-4de0402b5282
+Successfully set budget amount 100.00 for budget 46828ddb-ce4d-4c35-a0f4-3c75946e566c
+Successfully set budget amount 1800.00 for budget 9ff11189-70c7-415d-8027-7cda986f9523
+Successfully set budget amount 3500.00 for budget 84ffd87e-7feb-4b0f-8734-56d44b37e17a
+Finished setting full budget amounts
+Removing attributes isInactive from table test-employees
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Successfully removed attribute isInactive from table test-employees for entry bd8294a1-3da9-4994-b776-9d94688aa8e5
+Successfully removed attribute isInactive from table test-employees for entry ca0390f2-51ba-4901-944c-b4cbb0203f1e
+Successfully removed attribute isInactive from table test-employees for entry 2994e2aa-e144-4a59-9ca1-084a407486a1
+Successfully removed attribute isInactive from table test-employees for entry 97789f2a-606e-488f-9d14-a8e243350086
+Successfully removed attribute isInactive from table test-employees for entry f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully removed attribute isInactive from table test-employees for entry 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully removed attribute isInactive from table test-employees for entry d0a1f858-b140-4e65-bbfd-e5efbdfd6ef3
+Successfully removed attribute isInactive from table test-employees for entry 5296dfdd-3901-43eb-b9a1-471cfe6197ce
+Successfully removed attribute isInactive from table test-employees for entry 55897576-2826-48a2-986d-0da7fd967bad
+Successfully removed attribute isInactive from table test-employees for entry dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully removed attribute isInactive from table test-employees for entry ea7f1933-df6b-408b-b4ee-ad9987379f7e
+Successfully removed attribute isInactive from table test-employees for entry f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully removed attribute isInactive from table test-employees for entry 2f7bec3a-5687-4c0a-926a-aea775f59e5c
+Successfully removed attribute isInactive from table test-employees for entry f8d511ae-2416-4eb2-89a0-738562dc173f
+Successfully removed attribute isInactive from table test-employees for entry 9d017ca0-4a2f-483b-af91-502efeeec931
+Successfully removed attribute isInactive from table test-employees for entry 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully removed attribute isInactive from table test-employees for entry 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully removed attribute isInactive from table test-employees for entry 4b6392b4-0c8a-4e3c-b546-4a516393f17d
+Successfully removed attribute isInactive from table test-employees for entry 5a74396b-3e6d-403b-b9e6-edb85085e64b
+Successfully removed attribute isInactive from table test-employees for entry d4a48546-c40d-4a93-a00b-fb980bf56d83
+Successfully removed attribute isInactive from table test-employees for entry 375ecbbf-dfdd-4313-994b-7f8f0bdce87d
+Successfully removed attribute isInactive from table test-employees for entry d913c6a7-64db-4133-9b08-d7196a0e8c47
+Successfully removed attribute isInactive from table test-employees for entry 722dd504-b3a0-4948-ae25-4c520249e4fc
+Successfully removed attribute isInactive from table test-employees for entry b92fa017-e480-4e72-b919-62d8bca88798
+Successfully removed attribute isInactive from table test-employees for entry d602a354-945c-4fff-bb5a-d141e52a02bf
+Successfully removed attribute isInactive from table test-employees for entry 047c67da-b9cf-47fb-8a28-81c35466d9c1
+Successfully removed attribute isInactive from table test-employees for entry d0b44f88-0ade-42cc-b1ec-dbc1314cbeae
+Successfully removed attribute isInactive from table test-employees for entry 9fdfc168-13c1-492e-9b8c-4e213e04660d
+Successfully removed attribute isInactive from table test-employees for entry 3eb00078-729c-426f-a4b5-f2dfe7389cb3
+Successfully removed attribute isInactive from table test-employees for entry e515672c-638d-473f-9dc9-ee2d991d94d2
+Successfully removed attribute isInactive from table test-employees for entry 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully removed attribute isInactive from table test-employees for entry 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully removed attribute isInactive from table test-employees for entry 55b29ff7-d686-4d4a-80c6-efe61fd06d8c
+Successfully removed attribute isInactive from table test-employees for entry 626ff6e5-2a31-412d-90f6-98a966025aa9
+Successfully removed attribute isInactive from table test-employees for entry e012bf65-3450-499a-9836-295379b4524c
+Successfully removed attribute isInactive from table test-employees for entry 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully removed attribute isInactive from table test-employees for entry baf2ba47-4b59-4b98-92a7-97befe810041
+Successfully removed attribute isInactive from table test-employees for entry 5eb4e8e2-c384-409d-8db7-32902c5cea96
+Successfully removed attribute isInactive from table test-employees for entry bd971814-0c4b-4264-b0ac-6f5ea0583a07
+Successfully removed attribute isInactive from table test-employees for entry 5a86d57c-bd51-4c32-b858-9a6a583d519a
+Successfully removed attribute isInactive from table test-employees for entry ed6494e0-6332-43dd-ac10-f93ac4fe61d8
+Successfully removed attribute isInactive from table test-employees for entry c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
+Successfully removed attribute isInactive from table test-employees for entry d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
+Finished removing attributes isInactive from table test-employees
+Changing attribute name from categories to category in table test-expenses
+Copying values from categories to category in table test-expenses
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Successfully copied value from categories to category in table test-expenses for entry facfb83c-340e-455a-89cc-aa6ed90c41a9. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 7667a2c1-00c4-4a60-a78d-42abc262ede2. Value:  
+Successfully copied value from categories to category in table test-expenses for entry bc04bbe8-456e-4b6e-80f7-e5b35c8511b9. Value:  
+Successfully copied value from categories to category in table test-expenses for entry c732f6e0-0ecd-49b6-b090-1b57b99ba390. Value:  
+Successfully copied value from categories to category in table test-expenses for entry adabc528-5c33-4bef-9319-36097e5ff9e5. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 666895bb-c879-48d0-827b-e28c6633019a. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 5bab8444-9c6d-4d1c-aa60-211d223f5f36. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 6ee23ceb-6001-477a-b6ec-229a75e6dbee. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 529148e4-0a60-4427-9bbe-4f2c3a76825c. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 5b393ac8-9b44-425d-8733-19a23535631c. Value:  
+Successfully copied value from categories to category in table test-expenses for entry a20009cc-3b87-424d-9bb6-c165497a23a3. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 33d5c8f9-6e14-4572-b53f-68f09000678b. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 9a9c6827-bd1a-43e6-9c12-6d33ad536255. Value:  
+Successfully copied value from categories to category in table test-expenses for entry dc6f809c-e2ff-4ec3-b54d-2cf552052c76. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 7b537056-906b-43a6-a1db-21c7de688575. Value:  
+Successfully copied value from categories to category in table test-expenses for entry deef1019-591d-4c3e-badb-7820dab20be0. Value:  
+Successfully copied value from categories to category in table test-expenses for entry a3b50794-b69f-4ff5-8044-4873e3320f2c. Value: hello
+Successfully copied value from categories to category in table test-expenses for entry 75e91d2d-311f-4879-beaa-f44fc4cd3eac. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 904483bc-4839-4d94-8ca9-70b3e1386ce5. Value:  
+Successfully copied value from categories to category in table test-expenses for entry c38abf6f-ee1b-411b-90ab-41699190d035. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 441015e6-1d0a-4296-b078-68e6fc92a546. Value: certification
+Successfully copied value from categories to category in table test-expenses for entry d60f1150-fb29-46fd-b2a6-8a675a89cacd. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 5e829cae-0232-4521-8830-6294f0e49cb7. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 64bf9a3c-4f8c-4de3-a061-2112f873e97b. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 084023e0-a941-4747-81a1-91dbdcd48fa6. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 1f544388-9ded-40c3-a74a-42eec8dc6c48. Value:  
+Successfully copied value from categories to category in table test-expenses for entry d154579c-6a3a-40fd-af1f-69a6b66fc09b. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 42c45e3e-9da6-411a-9ee0-71e0b2660855. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 3f4e2a7c-505e-4683-af83-b71ded86f486. Value:  
+Successfully copied value from categories to category in table test-expenses for entry a45643dd-f9f4-43dd-831a-8d87a7bf355a. Value:  
+Successfully copied value from categories to category in table test-expenses for entry e627a988-09f5-4385-bdf3-46189751a1e1. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 858ebbda-aa61-4ae7-92d2-da19c4c7b867. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 0bfd449d-8c94-404d-84e8-7bfcab7c0e92. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 55444eb2-835f-4547-bbb0-c2c48457d497. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 6782ee81-135f-45cd-8cd9-088c6a99aa7c. Value:  
+Successfully copied value from categories to category in table test-expenses for entry 4103b591-fb9d-4052-bd26-3252f099d522. Value:  
+Finished copying values from categories to category in table test-expenses
+Removing attributes categories from table test-expenses
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Successfully removed attribute categories from table test-expenses for entry f82e172d-ea3d-497f-b764-18404a77eb62
+Successfully removed attribute categories from table test-expenses for entry facfb83c-340e-455a-89cc-aa6ed90c41a9
+Successfully removed attribute categories from table test-expenses for entry 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb
+Successfully removed attribute categories from table test-expenses for entry 7667a2c1-00c4-4a60-a78d-42abc262ede2
+Successfully removed attribute categories from table test-expenses for entry bc04bbe8-456e-4b6e-80f7-e5b35c8511b9
+Successfully removed attribute categories from table test-expenses for entry 40885992-69fa-485e-b16e-8cc39bad4dc6
+Successfully removed attribute categories from table test-expenses for entry 5b92b39c-5ba6-4624-b565-d7477c5abbc2
+Successfully removed attribute categories from table test-expenses for entry dd2511ed-8884-4880-adf5-c767a93a2d6d
+Successfully removed attribute categories from table test-expenses for entry bc21f631-b458-47fe-b01e-19bbe4202807
+Successfully removed attribute categories from table test-expenses for entry c732f6e0-0ecd-49b6-b090-1b57b99ba390
+Successfully removed attribute categories from table test-expenses for entry bf06f7b5-f6c8-482d-bfc7-34de421e2bfe
+Successfully removed attribute categories from table test-expenses for entry f06be40f-6e3f-4de6-be02-92832a4243f3
+Successfully removed attribute categories from table test-expenses for entry adabc528-5c33-4bef-9319-36097e5ff9e5
+Successfully removed attribute categories from table test-expenses for entry d1a45691-cad1-400f-89ef-88e649d42738
+Successfully removed attribute categories from table test-expenses for entry 666895bb-c879-48d0-827b-e28c6633019a
+Successfully removed attribute categories from table test-expenses for entry e18fe717-d439-4818-af1d-a2dbdd59050c
+Successfully removed attribute categories from table test-expenses for entry 9e10fc59-a4d0-4bb0-a428-438641aaa1eb
+Successfully removed attribute categories from table test-expenses for entry bf11e569-44fb-487d-93a3-eab4c87165dc
+Successfully removed attribute categories from table test-expenses for entry 5bab8444-9c6d-4d1c-aa60-211d223f5f36
+Successfully removed attribute categories from table test-expenses for entry 0fd161df-239d-4516-b10d-2b92af9c0b12
+Successfully removed attribute categories from table test-expenses for entry 0590bc2f-14a6-44d4-b708-9e18cb2982c3
+Successfully removed attribute categories from table test-expenses for entry 6ee23ceb-6001-477a-b6ec-229a75e6dbee
+Successfully removed attribute categories from table test-expenses for entry 0b55c8e0-7398-437b-a23b-633e8547a06f
+Successfully removed attribute categories from table test-expenses for entry 529148e4-0a60-4427-9bbe-4f2c3a76825c
+Successfully removed attribute categories from table test-expenses for entry 5b393ac8-9b44-425d-8733-19a23535631c
+Successfully removed attribute categories from table test-expenses for entry a20009cc-3b87-424d-9bb6-c165497a23a3
+Successfully removed attribute categories from table test-expenses for entry dedaa8f6-c10a-4ddf-b131-333caa46efcd
+Successfully removed attribute categories from table test-expenses for entry 33d5c8f9-6e14-4572-b53f-68f09000678b
+Successfully removed attribute categories from table test-expenses for entry 103b7512-d8ec-49b2-865a-3b7191bb2412
+Successfully removed attribute categories from table test-expenses for entry 9a9c6827-bd1a-43e6-9c12-6d33ad536255
+Successfully removed attribute categories from table test-expenses for entry a947bdeb-ac29-49b9-bc7d-55b5766a07fa
+Successfully removed attribute categories from table test-expenses for entry dc6f809c-e2ff-4ec3-b54d-2cf552052c76
+Successfully removed attribute categories from table test-expenses for entry 7b537056-906b-43a6-a1db-21c7de688575
+Successfully removed attribute categories from table test-expenses for entry deef1019-591d-4c3e-badb-7820dab20be0
+Successfully removed attribute categories from table test-expenses for entry 7e55c772-6173-4545-b3e5-9dd774e40602
+Successfully removed attribute categories from table test-expenses for entry a3b50794-b69f-4ff5-8044-4873e3320f2c
+Successfully removed attribute categories from table test-expenses for entry 75e91d2d-311f-4879-beaa-f44fc4cd3eac
+Successfully removed attribute categories from table test-expenses for entry cfe79964-d9b8-4831-98bf-288bef0c4d87
+Successfully removed attribute categories from table test-expenses for entry bf5112cb-28ff-4ba3-9a3d-66adeb0f90a6
+Successfully removed attribute categories from table test-expenses for entry 904483bc-4839-4d94-8ca9-70b3e1386ce5
+Successfully removed attribute categories from table test-expenses for entry fae1bda1-0092-4349-bb0d-36d3a5c878f3
+Successfully removed attribute categories from table test-expenses for entry c38abf6f-ee1b-411b-90ab-41699190d035
+Successfully removed attribute categories from table test-expenses for entry f7c76be5-5ad6-4001-9d5b-428149d31d82
+Successfully removed attribute categories from table test-expenses for entry f49c4971-8607-4348-9605-c28cd1ea7e29
+Successfully removed attribute categories from table test-expenses for entry a90a0909-1e8f-4d07-b271-b27fdc05560f
+Successfully removed attribute categories from table test-expenses for entry 441015e6-1d0a-4296-b078-68e6fc92a546
+Successfully removed attribute categories from table test-expenses for entry 64258fad-3d6c-4d01-89f9-18fa83ff0b13
+Successfully removed attribute categories from table test-expenses for entry d60f1150-fb29-46fd-b2a6-8a675a89cacd
+Successfully removed attribute categories from table test-expenses for entry 3fe8a819-1ee7-4163-91c1-3b0515ca8834
+Successfully removed attribute categories from table test-expenses for entry 5e829cae-0232-4521-8830-6294f0e49cb7
+Successfully removed attribute categories from table test-expenses for entry 64bf9a3c-4f8c-4de3-a061-2112f873e97b
+Successfully removed attribute categories from table test-expenses for entry 084023e0-a941-4747-81a1-91dbdcd48fa6
+Successfully removed attribute categories from table test-expenses for entry 54b8127e-cc44-4aba-9a47-f2ec33f64c4d
+Successfully removed attribute categories from table test-expenses for entry bc4e0b8a-0bec-4091-be89-f5b0751749c1
+Successfully removed attribute categories from table test-expenses for entry 1f544388-9ded-40c3-a74a-42eec8dc6c48
+Successfully removed attribute categories from table test-expenses for entry 609e531d-6849-4ef3-9827-bb19e2c20c8a
+Successfully removed attribute categories from table test-expenses for entry 8bc20f59-2924-4d43-8319-6c4c16af8abc
+Successfully removed attribute categories from table test-expenses for entry 33fd5815-3237-4f83-a321-206e3386fade
+Successfully removed attribute categories from table test-expenses for entry d154579c-6a3a-40fd-af1f-69a6b66fc09b
+Successfully removed attribute categories from table test-expenses for entry 42c45e3e-9da6-411a-9ee0-71e0b2660855
+Successfully removed attribute categories from table test-expenses for entry 3f4e2a7c-505e-4683-af83-b71ded86f486
+Successfully removed attribute categories from table test-expenses for entry a45643dd-f9f4-43dd-831a-8d87a7bf355a
+Successfully removed attribute categories from table test-expenses for entry fce25f6d-d628-4b2c-a220-c26782899d3d
+Successfully removed attribute categories from table test-expenses for entry e627a988-09f5-4385-bdf3-46189751a1e1
+Successfully removed attribute categories from table test-expenses for entry 858ebbda-aa61-4ae7-92d2-da19c4c7b867
+Successfully removed attribute categories from table test-expenses for entry be0cd20e-25c8-4576-8931-9a61073f9d73
+Successfully removed attribute categories from table test-expenses for entry 0527bf9b-3b24-4f51-8f89-14cba2c132ff
+Successfully removed attribute categories from table test-expenses for entry ca2362f5-565e-4e78-bf49-496eadc98e87
+Successfully removed attribute categories from table test-expenses for entry 5e5c3cfd-0c4f-454e-b872-ed228db08b1b
+Successfully removed attribute categories from table test-expenses for entry 0bfd449d-8c94-404d-84e8-7bfcab7c0e92
+Successfully removed attribute categories from table test-expenses for entry 9d0c2f96-6752-4b85-ad43-dd92c0ae4c11
+Successfully removed attribute categories from table test-expenses for entry 0f9f48f8-999b-4669-883e-4ce0557e21bd
+Successfully removed attribute categories from table test-expenses for entry 37247656-b9f1-4598-96b7-06319f52ed48
+Successfully removed attribute categories from table test-expenses for entry 55444eb2-835f-4547-bbb0-c2c48457d497
+Successfully removed attribute categories from table test-expenses for entry 6782ee81-135f-45cd-8cd9-088c6a99aa7c
+Successfully removed attribute categories from table test-expenses for entry 4103b591-fb9d-4052-bd26-3252f099d522
+Successfully removed attribute categories from table test-expenses for entry bee7ea02-0b7f-420e-a536-ff140e8e3e4d
+Finished removing attributes categories from table test-expenses
+Finished changing attribute name from categories to category in table test-expenses
+Changing attribute name from userId to employeeId in table test-expenses
+Copying values from userId to employeeId in table test-expenses
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Successfully copied value from userId to employeeId in table test-expenses for entry f82e172d-ea3d-497f-b764-18404a77eb62. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry facfb83c-340e-455a-89cc-aa6ed90c41a9. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-expenses for entry 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 7667a2c1-00c4-4a60-a78d-42abc262ede2. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry bc04bbe8-456e-4b6e-80f7-e5b35c8511b9. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 40885992-69fa-485e-b16e-8cc39bad4dc6. Value: ea7f1933-df6b-408b-b4ee-ad9987379f7e
+Successfully copied value from userId to employeeId in table test-expenses for entry 5b92b39c-5ba6-4624-b565-d7477c5abbc2. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-expenses for entry dd2511ed-8884-4880-adf5-c767a93a2d6d. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully copied value from userId to employeeId in table test-expenses for entry bc21f631-b458-47fe-b01e-19bbe4202807. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry c732f6e0-0ecd-49b6-b090-1b57b99ba390. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully copied value from userId to employeeId in table test-expenses for entry bf06f7b5-f6c8-482d-bfc7-34de421e2bfe. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry f06be40f-6e3f-4de6-be02-92832a4243f3. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully copied value from userId to employeeId in table test-expenses for entry adabc528-5c33-4bef-9319-36097e5ff9e5. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry d1a45691-cad1-400f-89ef-88e649d42738. Value: 97789f2a-606e-488f-9d14-a8e243350086
+Successfully copied value from userId to employeeId in table test-expenses for entry 666895bb-c879-48d0-827b-e28c6633019a. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry e18fe717-d439-4818-af1d-a2dbdd59050c. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 9e10fc59-a4d0-4bb0-a428-438641aaa1eb. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry bf11e569-44fb-487d-93a3-eab4c87165dc. Value: e515672c-638d-473f-9dc9-ee2d991d94d2
+Successfully copied value from userId to employeeId in table test-expenses for entry 5bab8444-9c6d-4d1c-aa60-211d223f5f36. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 0fd161df-239d-4516-b10d-2b92af9c0b12. Value: d4789382-07ae-45dc-af61-4fb948546801
+Successfully copied value from userId to employeeId in table test-expenses for entry 0590bc2f-14a6-44d4-b708-9e18cb2982c3. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 6ee23ceb-6001-477a-b6ec-229a75e6dbee. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 0b55c8e0-7398-437b-a23b-633e8547a06f. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 529148e4-0a60-4427-9bbe-4f2c3a76825c. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-expenses for entry 5b393ac8-9b44-425d-8733-19a23535631c. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry a20009cc-3b87-424d-9bb6-c165497a23a3. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully copied value from userId to employeeId in table test-expenses for entry dedaa8f6-c10a-4ddf-b131-333caa46efcd. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-expenses for entry 33d5c8f9-6e14-4572-b53f-68f09000678b. Value: d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
+Successfully copied value from userId to employeeId in table test-expenses for entry 103b7512-d8ec-49b2-865a-3b7191bb2412. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 9a9c6827-bd1a-43e6-9c12-6d33ad536255. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-expenses for entry a947bdeb-ac29-49b9-bc7d-55b5766a07fa. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry dc6f809c-e2ff-4ec3-b54d-2cf552052c76. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 7b537056-906b-43a6-a1db-21c7de688575. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry deef1019-591d-4c3e-badb-7820dab20be0. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 7e55c772-6173-4545-b3e5-9dd774e40602. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry a3b50794-b69f-4ff5-8044-4873e3320f2c. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 75e91d2d-311f-4879-beaa-f44fc4cd3eac. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry cfe79964-d9b8-4831-98bf-288bef0c4d87. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-expenses for entry bf5112cb-28ff-4ba3-9a3d-66adeb0f90a6. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 904483bc-4839-4d94-8ca9-70b3e1386ce5. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
+Successfully copied value from userId to employeeId in table test-expenses for entry fae1bda1-0092-4349-bb0d-36d3a5c878f3. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
+Successfully copied value from userId to employeeId in table test-expenses for entry c38abf6f-ee1b-411b-90ab-41699190d035. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
+Successfully copied value from userId to employeeId in table test-expenses for entry f7c76be5-5ad6-4001-9d5b-428149d31d82. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry f49c4971-8607-4348-9605-c28cd1ea7e29. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry a90a0909-1e8f-4d07-b271-b27fdc05560f. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 441015e6-1d0a-4296-b078-68e6fc92a546. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-expenses for entry 64258fad-3d6c-4d01-89f9-18fa83ff0b13. Value: 9fdfc168-13c1-492e-9b8c-4e213e04660d
+Successfully copied value from userId to employeeId in table test-expenses for entry d60f1150-fb29-46fd-b2a6-8a675a89cacd. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 3fe8a819-1ee7-4163-91c1-3b0515ca8834. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-expenses for entry 5e829cae-0232-4521-8830-6294f0e49cb7. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 64bf9a3c-4f8c-4de3-a061-2112f873e97b. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 084023e0-a941-4747-81a1-91dbdcd48fa6. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 54b8127e-cc44-4aba-9a47-f2ec33f64c4d. Value: 55b29ff7-d686-4d4a-80c6-efe61fd06d8c
+Successfully copied value from userId to employeeId in table test-expenses for entry bc4e0b8a-0bec-4091-be89-f5b0751749c1. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 1f544388-9ded-40c3-a74a-42eec8dc6c48. Value: c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
+Successfully copied value from userId to employeeId in table test-expenses for entry 609e531d-6849-4ef3-9827-bb19e2c20c8a. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 8bc20f59-2924-4d43-8319-6c4c16af8abc. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
+Successfully copied value from userId to employeeId in table test-expenses for entry 33fd5815-3237-4f83-a321-206e3386fade. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry d154579c-6a3a-40fd-af1f-69a6b66fc09b. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 42c45e3e-9da6-411a-9ee0-71e0b2660855. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 3f4e2a7c-505e-4683-af83-b71ded86f486. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry a45643dd-f9f4-43dd-831a-8d87a7bf355a. Value: 9fdfc168-13c1-492e-9b8c-4e213e04660d
+Successfully copied value from userId to employeeId in table test-expenses for entry fce25f6d-d628-4b2c-a220-c26782899d3d. Value: e515672c-638d-473f-9dc9-ee2d991d94d2
+Successfully copied value from userId to employeeId in table test-expenses for entry e627a988-09f5-4385-bdf3-46189751a1e1. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
+Successfully copied value from userId to employeeId in table test-expenses for entry 858ebbda-aa61-4ae7-92d2-da19c4c7b867. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry be0cd20e-25c8-4576-8931-9a61073f9d73. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 0527bf9b-3b24-4f51-8f89-14cba2c132ff. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry ca2362f5-565e-4e78-bf49-496eadc98e87. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
+Successfully copied value from userId to employeeId in table test-expenses for entry 5e5c3cfd-0c4f-454e-b872-ed228db08b1b. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 0bfd449d-8c94-404d-84e8-7bfcab7c0e92. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 9d0c2f96-6752-4b85-ad43-dd92c0ae4c11. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
+Successfully copied value from userId to employeeId in table test-expenses for entry 0f9f48f8-999b-4669-883e-4ce0557e21bd. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 37247656-b9f1-4598-96b7-06319f52ed48. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
+Successfully copied value from userId to employeeId in table test-expenses for entry 55444eb2-835f-4547-bbb0-c2c48457d497. Value: c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
+Successfully copied value from userId to employeeId in table test-expenses for entry 6782ee81-135f-45cd-8cd9-088c6a99aa7c. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry 4103b591-fb9d-4052-bd26-3252f099d522. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Successfully copied value from userId to employeeId in table test-expenses for entry bee7ea02-0b7f-420e-a536-ff140e8e3e4d. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
+Finished copying values from userId to employeeId in table test-expenses
+Removing attributes userId from table test-expenses
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Successfully removed attribute userId from table test-expenses for entry f82e172d-ea3d-497f-b764-18404a77eb62
+Successfully removed attribute userId from table test-expenses for entry facfb83c-340e-455a-89cc-aa6ed90c41a9
+Successfully removed attribute userId from table test-expenses for entry 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb
+Successfully removed attribute userId from table test-expenses for entry 7667a2c1-00c4-4a60-a78d-42abc262ede2
+Successfully removed attribute userId from table test-expenses for entry bc04bbe8-456e-4b6e-80f7-e5b35c8511b9
+Successfully removed attribute userId from table test-expenses for entry 40885992-69fa-485e-b16e-8cc39bad4dc6
+Successfully removed attribute userId from table test-expenses for entry 5b92b39c-5ba6-4624-b565-d7477c5abbc2
+Successfully removed attribute userId from table test-expenses for entry dd2511ed-8884-4880-adf5-c767a93a2d6d
+Successfully removed attribute userId from table test-expenses for entry bc21f631-b458-47fe-b01e-19bbe4202807
+Successfully removed attribute userId from table test-expenses for entry c732f6e0-0ecd-49b6-b090-1b57b99ba390
+Successfully removed attribute userId from table test-expenses for entry bf06f7b5-f6c8-482d-bfc7-34de421e2bfe
+Successfully removed attribute userId from table test-expenses for entry f06be40f-6e3f-4de6-be02-92832a4243f3
+Successfully removed attribute userId from table test-expenses for entry adabc528-5c33-4bef-9319-36097e5ff9e5
+Successfully removed attribute userId from table test-expenses for entry d1a45691-cad1-400f-89ef-88e649d42738
+Successfully removed attribute userId from table test-expenses for entry 666895bb-c879-48d0-827b-e28c6633019a
+Successfully removed attribute userId from table test-expenses for entry e18fe717-d439-4818-af1d-a2dbdd59050c
+Successfully removed attribute userId from table test-expenses for entry 9e10fc59-a4d0-4bb0-a428-438641aaa1eb
+Successfully removed attribute userId from table test-expenses for entry bf11e569-44fb-487d-93a3-eab4c87165dc
+Successfully removed attribute userId from table test-expenses for entry 5bab8444-9c6d-4d1c-aa60-211d223f5f36
+Successfully removed attribute userId from table test-expenses for entry 0fd161df-239d-4516-b10d-2b92af9c0b12
+Successfully removed attribute userId from table test-expenses for entry 0590bc2f-14a6-44d4-b708-9e18cb2982c3
+Successfully removed attribute userId from table test-expenses for entry 6ee23ceb-6001-477a-b6ec-229a75e6dbee
+Successfully removed attribute userId from table test-expenses for entry 0b55c8e0-7398-437b-a23b-633e8547a06f
+Successfully removed attribute userId from table test-expenses for entry 529148e4-0a60-4427-9bbe-4f2c3a76825c
+Successfully removed attribute userId from table test-expenses for entry 5b393ac8-9b44-425d-8733-19a23535631c
+Successfully removed attribute userId from table test-expenses for entry a20009cc-3b87-424d-9bb6-c165497a23a3
+Successfully removed attribute userId from table test-expenses for entry dedaa8f6-c10a-4ddf-b131-333caa46efcd
+Successfully removed attribute userId from table test-expenses for entry 33d5c8f9-6e14-4572-b53f-68f09000678b
+Successfully removed attribute userId from table test-expenses for entry 103b7512-d8ec-49b2-865a-3b7191bb2412
+Successfully removed attribute userId from table test-expenses for entry 9a9c6827-bd1a-43e6-9c12-6d33ad536255
+Successfully removed attribute userId from table test-expenses for entry a947bdeb-ac29-49b9-bc7d-55b5766a07fa
+Successfully removed attribute userId from table test-expenses for entry dc6f809c-e2ff-4ec3-b54d-2cf552052c76
+Successfully removed attribute userId from table test-expenses for entry 7b537056-906b-43a6-a1db-21c7de688575
+Successfully removed attribute userId from table test-expenses for entry deef1019-591d-4c3e-badb-7820dab20be0
+Successfully removed attribute userId from table test-expenses for entry 7e55c772-6173-4545-b3e5-9dd774e40602
+Successfully removed attribute userId from table test-expenses for entry a3b50794-b69f-4ff5-8044-4873e3320f2c
+Successfully removed attribute userId from table test-expenses for entry 75e91d2d-311f-4879-beaa-f44fc4cd3eac
+Successfully removed attribute userId from table test-expenses for entry cfe79964-d9b8-4831-98bf-288bef0c4d87
+Successfully removed attribute userId from table test-expenses for entry bf5112cb-28ff-4ba3-9a3d-66adeb0f90a6
+Successfully removed attribute userId from table test-expenses for entry 904483bc-4839-4d94-8ca9-70b3e1386ce5
+Successfully removed attribute userId from table test-expenses for entry fae1bda1-0092-4349-bb0d-36d3a5c878f3
+Successfully removed attribute userId from table test-expenses for entry c38abf6f-ee1b-411b-90ab-41699190d035
+Successfully removed attribute userId from table test-expenses for entry f7c76be5-5ad6-4001-9d5b-428149d31d82
+Successfully removed attribute userId from table test-expenses for entry f49c4971-8607-4348-9605-c28cd1ea7e29
+Successfully removed attribute userId from table test-expenses for entry a90a0909-1e8f-4d07-b271-b27fdc05560f
+Successfully removed attribute userId from table test-expenses for entry 441015e6-1d0a-4296-b078-68e6fc92a546
+Successfully removed attribute userId from table test-expenses for entry 64258fad-3d6c-4d01-89f9-18fa83ff0b13
+Successfully removed attribute userId from table test-expenses for entry d60f1150-fb29-46fd-b2a6-8a675a89cacd
+Successfully removed attribute userId from table test-expenses for entry 3fe8a819-1ee7-4163-91c1-3b0515ca8834
+Successfully removed attribute userId from table test-expenses for entry 5e829cae-0232-4521-8830-6294f0e49cb7
+Successfully removed attribute userId from table test-expenses for entry 64bf9a3c-4f8c-4de3-a061-2112f873e97b
+Successfully removed attribute userId from table test-expenses for entry 084023e0-a941-4747-81a1-91dbdcd48fa6
+Successfully removed attribute userId from table test-expenses for entry 54b8127e-cc44-4aba-9a47-f2ec33f64c4d
+Successfully removed attribute userId from table test-expenses for entry bc4e0b8a-0bec-4091-be89-f5b0751749c1
+Successfully removed attribute userId from table test-expenses for entry 1f544388-9ded-40c3-a74a-42eec8dc6c48
+Successfully removed attribute userId from table test-expenses for entry 609e531d-6849-4ef3-9827-bb19e2c20c8a
+Successfully removed attribute userId from table test-expenses for entry 8bc20f59-2924-4d43-8319-6c4c16af8abc
+Successfully removed attribute userId from table test-expenses for entry 33fd5815-3237-4f83-a321-206e3386fade
+Successfully removed attribute userId from table test-expenses for entry d154579c-6a3a-40fd-af1f-69a6b66fc09b
+Successfully removed attribute userId from table test-expenses for entry 42c45e3e-9da6-411a-9ee0-71e0b2660855
+Successfully removed attribute userId from table test-expenses for entry 3f4e2a7c-505e-4683-af83-b71ded86f486
+Successfully removed attribute userId from table test-expenses for entry a45643dd-f9f4-43dd-831a-8d87a7bf355a
+Successfully removed attribute userId from table test-expenses for entry fce25f6d-d628-4b2c-a220-c26782899d3d
+Successfully removed attribute userId from table test-expenses for entry e627a988-09f5-4385-bdf3-46189751a1e1
+Successfully removed attribute userId from table test-expenses for entry 858ebbda-aa61-4ae7-92d2-da19c4c7b867
+Successfully removed attribute userId from table test-expenses for entry be0cd20e-25c8-4576-8931-9a61073f9d73
+Successfully removed attribute userId from table test-expenses for entry 0527bf9b-3b24-4f51-8f89-14cba2c132ff
+Successfully removed attribute userId from table test-expenses for entry ca2362f5-565e-4e78-bf49-496eadc98e87
+Successfully removed attribute userId from table test-expenses for entry 5e5c3cfd-0c4f-454e-b872-ed228db08b1b
+Successfully removed attribute userId from table test-expenses for entry 0bfd449d-8c94-404d-84e8-7bfcab7c0e92
+Successfully removed attribute userId from table test-expenses for entry 9d0c2f96-6752-4b85-ad43-dd92c0ae4c11
+Successfully removed attribute userId from table test-expenses for entry 0f9f48f8-999b-4669-883e-4ce0557e21bd
+Successfully removed attribute userId from table test-expenses for entry 37247656-b9f1-4598-96b7-06319f52ed48
+Successfully removed attribute userId from table test-expenses for entry 55444eb2-835f-4547-bbb0-c2c48457d497
+Successfully removed attribute userId from table test-expenses for entry 6782ee81-135f-45cd-8cd9-088c6a99aa7c
+Successfully removed attribute userId from table test-expenses for entry 4103b591-fb9d-4052-bd26-3252f099d522
+Successfully removed attribute userId from table test-expenses for entry bee7ea02-0b7f-420e-a536-ff140e8e3e4d
+Finished removing attributes userId from table test-expenses
+Finished changing attribute name from userId to employeeId in table test-expenses
+Removing invalid data
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Deleted budget 957ee9ae-b24f-445e-ba67-4d137159b549 because employee ID d4789382-07ae-45dc-af61-4fb948546801 does not exist
+Deleted budget 69b777a9-ee02-4f3c-ab54-327e669241a4 because expense type ID 88545e98-c4a4-489a-902c-bfd23e94dd9d does not exist
+Deleted budget 17c596f5-fe9e-494e-ad2f-e60ed9dbe424 because employee ID d3505b35-ca34-4c28-b7b3-ce80b93b9480 does not exist
+Deleted budget d4968075-0b64-4476-9f6f-07a2d8704265 because expense type ID d678c948-cbce-4e24-88e5-b629eba85335 does not exist
+Deleted budget c6be5e58-7202-4938-9835-4b8102921e05 because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
+Successfully removed null fields from expense f82e172d-ea3d-497f-b764-18404a77eb62
+Deleted budget 60806be7-3c35-4144-8f94-e900e1afc55a because employee ID d9617cc3-7824-4e41-b438-a0de46cdd1c7 does not exist
+Successfully removed null fields from expense 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb
+Successfully removed null fields from expense 40885992-69fa-485e-b16e-8cc39bad4dc6
+Successfully removed null fields from expense 5b92b39c-5ba6-4624-b565-d7477c5abbc2
+Successfully removed null fields from expense dd2511ed-8884-4880-adf5-c767a93a2d6d
+Successfully removed null fields from expense bc21f631-b458-47fe-b01e-19bbe4202807
+Successfully removed null fields from expense bf06f7b5-f6c8-482d-bfc7-34de421e2bfe
+Successfully removed null fields from expense f06be40f-6e3f-4de6-be02-92832a4243f3
+Successfully removed null fields from expense d1a45691-cad1-400f-89ef-88e649d42738
+Deleted expense e18fe717-d439-4818-af1d-a2dbdd59050c because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
+Successfully removed null fields from expense 9e10fc59-a4d0-4bb0-a428-438641aaa1eb
+Successfully removed null fields from expense bf11e569-44fb-487d-93a3-eab4c87165dc
+Deleted expense 0fd161df-239d-4516-b10d-2b92af9c0b12 because employee ID d4789382-07ae-45dc-af61-4fb948546801 does not exist
+Successfully removed null fields from expense 0590bc2f-14a6-44d4-b708-9e18cb2982c3
+Successfully removed null fields from expense 0b55c8e0-7398-437b-a23b-633e8547a06f
+Successfully removed null fields from expense dedaa8f6-c10a-4ddf-b131-333caa46efcd
+Successfully removed null fields from expense 103b7512-d8ec-49b2-865a-3b7191bb2412
+Successfully removed null fields from expense a947bdeb-ac29-49b9-bc7d-55b5766a07fa
+Successfully removed null fields from expense 7e55c772-6173-4545-b3e5-9dd774e40602
+Successfully removed null fields from expense cfe79964-d9b8-4831-98bf-288bef0c4d87
+Successfully removed null fields from expense bf5112cb-28ff-4ba3-9a3d-66adeb0f90a6
+Successfully removed null fields from expense fae1bda1-0092-4349-bb0d-36d3a5c878f3
+Successfully removed null fields from expense f7c76be5-5ad6-4001-9d5b-428149d31d82
+Successfully removed null fields from expense f49c4971-8607-4348-9605-c28cd1ea7e29
+Successfully removed null fields from expense a90a0909-1e8f-4d07-b271-b27fdc05560f
+Successfully removed null fields from expense 64258fad-3d6c-4d01-89f9-18fa83ff0b13
+Successfully removed null fields from expense 3fe8a819-1ee7-4163-91c1-3b0515ca8834
+Successfully removed null fields from expense 54b8127e-cc44-4aba-9a47-f2ec33f64c4d
+Successfully removed null fields from expense bc4e0b8a-0bec-4091-be89-f5b0751749c1
+Successfully removed null fields from expense 609e531d-6849-4ef3-9827-bb19e2c20c8a
+Successfully removed null fields from expense 8bc20f59-2924-4d43-8319-6c4c16af8abc
+Successfully removed null fields from expense 33fd5815-3237-4f83-a321-206e3386fade
+Successfully removed null fields from expense fce25f6d-d628-4b2c-a220-c26782899d3d
+Successfully removed null fields from expense be0cd20e-25c8-4576-8931-9a61073f9d73
+Successfully removed null fields from expense 0527bf9b-3b24-4f51-8f89-14cba2c132ff
+Successfully removed null fields from expense ca2362f5-565e-4e78-bf49-496eadc98e87
+Successfully removed null fields from expense 5e5c3cfd-0c4f-454e-b872-ed228db08b1b
+Successfully removed null fields from expense 9d0c2f96-6752-4b85-ad43-dd92c0ae4c11
+Successfully removed null fields from expense 37247656-b9f1-4598-96b7-06319f52ed48
+Deleted expense 0f9f48f8-999b-4669-883e-4ce0557e21bd because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
+Successfully removed null fields from expense bee7ea02-0b7f-420e-a536-ff140e8e3e4d
+Finished removing invalid data
