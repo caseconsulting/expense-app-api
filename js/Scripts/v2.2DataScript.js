@@ -123,37 +123,39 @@ async function copyValues(table, oldName, newName) {
   let entries = await getAllEntries(table);
 
   await asyncForEach(entries, async (entry) => {
-    let params = {
-      TableName: table,
-      Key: {
-        id: entry.id
-      },
-      UpdateExpression: `set ${newName} = :e`,
-      ExpressionAttributeValues: {
-        ':e': entry[oldName]
-      },
-      ReturnValues: 'ALL_NEW'
-    };
-
-    if (entry[newName]) {
-      params.ExpressionAttributeValues = {
-        ':e': entry[newName]
+    if (entry[oldName]) {
+      let params = {
+        TableName: table,
+        Key: {
+          id: entry.id
+        },
+        UpdateExpression: `set ${newName} = :e`,
+        ExpressionAttributeValues: {
+          ':e': entry[oldName]
+        },
+        ReturnValues: 'ALL_NEW'
       };
-    }
 
-    // update entry
-    await ddb.update(params)
-      .promise()
-      .then(data => {
-        console.log(`Successfully copied value from ${oldName} to ${newName} in table ${table}`,
-          `for entry ${data.Attributes.id}. Value: ${data.Attributes[newName]}`
-        );
-      })
-      .catch(err => {
-        console.error(`Failed to copy value from ${oldName} to ${newName} in table ${table} for entry ${entry.id}.`,
-          'Error JSON:', JSON.stringify(err, null, 2)
-        );
-      });
+      if (entry[newName]) {
+        params.ExpressionAttributeValues = {
+          ':e': entry[newName]
+        };
+      }
+
+      // update entry
+      await ddb.update(params)
+        .promise()
+        .then(data => {
+          console.log(`Successfully copied value from ${oldName} to ${newName} in table ${table}`,
+            `for entry ${data.Attributes.id}. Value: ${data.Attributes[newName]}`
+          );
+        })
+        .catch(err => {
+          console.error(`Failed to copy value from ${oldName} to ${newName} in table ${table} for entry ${entry.id}.`,
+            'Error JSON:', JSON.stringify(err, null, 2)
+          );
+        });
+    }
   });
 
   console.log(`Finished copying values from ${oldName} to ${newName} in table ${table}`);
@@ -204,7 +206,6 @@ async function changeAttributeName(table, oldName, newName) {
 
   console.log(`Finished changing attribute name from ${oldName} to ${newName} in table ${table}`);
 } // changeAttributeName
-
 
 /**
  * Checks if an employee has access to an expense type
@@ -295,7 +296,8 @@ function calcAdjustedAmount(employee, expenseType) {
 // } // setBudgetAmounts
 
 /**
- * Sets the amount of all budgets to full expense type budget
+ * Sets the amount of all budgets to full expense type budget. Deletes budget if employee or expense type does not
+ * exist.
  */
 async function setBudgetAmounts() {
   console.log('Setting full budget amounts');
@@ -306,38 +308,40 @@ async function setBudgetAmounts() {
 
   await asyncForEach(budgets, async (budget) => {
     let expenseType = _.find(expenseTypes, ['id', budget.expenseTypeId]);
-    let amount = expenseType.budget;
+    let employee = _.find(employees, ['id', budget.employeeId]);
+    if (expenseType && employee) {
+      let amount = expenseType.budget;
 
-    let start = moment(budget.fiscalStartDate);
-    let end = moment(budget.fiscalEndDate);
-    if (moment().isBetween(start, end, undefined, '[]')) {
-      let employee = _.find(employees, ['id', budget.employeeId]);
-      amount = calcAdjustedAmount(employee, expenseType);
+      let start = moment(budget.fiscalStartDate);
+      let end = moment(budget.fiscalEndDate);
+      if (moment().isBetween(start, end, undefined, '[]')) {
+        amount = calcAdjustedAmount(employee, expenseType);
+      }
+
+      let params = {
+        TableName: BUDGETS_TABLE,
+        Key: {
+          'id': budget.id
+        },
+        UpdateExpression: 'set amount = :a',
+        ExpressionAttributeValues: {
+          ':a': amount
+        },
+        ReturnValues: 'ALL_NEW'
+      };
+
+      // update bugets
+      await ddb.update(params)
+        .promise()
+        .then(data => {
+          console.log(`Successfully set budget amount ${data.Attributes.amount} for budget ${budget.id}`);
+        })
+        .catch(err => {
+          console.error(`Failed to set budget amount for budget ${budget.id}.`,
+            'Error JSON:', JSON.stringify(err, null, 2)
+          );
+        });
     }
-
-    let params = {
-      TableName: BUDGETS_TABLE,
-      Key: {
-        'id': budget.id
-      },
-      UpdateExpression: 'set amount = :a',
-      ExpressionAttributeValues: {
-        ':a': amount
-      },
-      ReturnValues: 'ALL_NEW'
-    };
-
-    // update bugets
-    await ddb.update(params)
-      .promise()
-      .then(data => {
-        console.log(`Successfully set budget amount ${data.Attributes.amount} for budget ${budget.id}`);
-      })
-      .catch(err => {
-        console.error(`Failed to set budget amount for budget ${budget.id}.`,
-          'Error JSON:', JSON.stringify(err, null, 2)
-        );
-      });
   });
 
   console.log('Finished setting full budget amounts');
@@ -428,68 +432,157 @@ async function setAccessibleBy() {
 } // setAccessibleBy
 
 /**
- * Removed null receipt or null note fields from expenses
+ * Replaces null receipt, note, url, or category fields with a place holder.
  */
-async function removeNullExpenseReceiptAndNote() {
-  console.log('Removing null receipt and note fields from expenses');
+async function removeNullExpenseFields() {
+  console.log('Removing null expense fields');
 
   let expenses = await getAllEntries(EXPENSES_TABLE);
 
   await asyncForEach(expenses, async (expense) => {
-    if (expense.receipt == null || expense.note == null) {
+    if (expense.receipt == null || expense.note == null || expense.url == null || expense.category == null) {
+
+      let newReceipt = expense.receipt ? expense.receipt : ' ';
+      let newNote = expense.note ? expense.note : ' ';
+      let newUrl = expense.url ? expense.url : ' ';
+      let newCategory = expense.category ? expense.category : ' ';
+
       let params = {
         TableName: EXPENSES_TABLE,
         Key: {
           'id': expense.id
         },
-        UpdateExpression: 'set receipt = :r, note = :n',
+        UpdateExpression: 'set receipt = :r, note = :n, #url = :u, category = :c',
+        ExpressionAttributeNames: {
+          '#url': 'url'
+        },
         ExpressionAttributeValues: {
-          ':r': ' ',
-          ':n': ' '
+          ':r': newReceipt,
+          ':n': newNote,
+          ':u': newUrl,
+          ':c': newCategory
         },
         ReturnValues: 'ALL_NEW'
       };
 
-      if (expense.receipt == null && expense.note != null) {
-        params.ExpressionAttributeValues = {
-          ':r': ' ',
-          ':n': expense.note
-        };
-      } else if (expense.receipt != null && expense.note == null) {
-        params.ExpressionAttributeValues = {
-          ':r': expense.receipt,
-          ':n': ' '
-        };
-      }
-
       await ddb.update(params)
         .promise()
         .then(data => {
-          console.log(`Successfully removed null receipt or note from expense ${data.id}`);
+          console.log(`Successfully removed null fields from expense ${data.id}`);
         })
         .catch(err => {
-          console.log(`Failed to remove null receipt or note from expense ${expense.id}.`,
+          console.log(`Failed to remove null fields from expense ${expense.id}.`,
             'Error JSON:', JSON.stringify(err, null, 2)
           );
         });
     }
   });
 
-  console.log('Finished removing null receipt and note fields from expenses');
-} // removeNullExpenseReceiptAndNote
+  console.log('Finished removing null expense field');
+} // removeNullExpenseFields
+
+/**
+ * Removes budgets and expenses from database with an employee id not found in the employees table or an expense type
+ * id not found in the expense type table.
+ */
+async function removeInvalidData() {
+  console.log('Removing invalid data');
+
+  let expenseTypes = await getAllEntries(EXPENSE_TYPES_TABLE);
+  let employees = await getAllEntries(EMPLOYEES_TABLE);
+  let budgets = await getAllEntries(BUDGETS_TABLE);
+  let expenses = await getAllEntries(EXPENSES_TABLE);
+
+  await asyncForEach(budgets, async (budget) => {
+    // remove invalid budgets
+    let expenseType = _.find(expenseTypes, ['id', budget.expenseTypeId]);
+    let employee = _.find(employees, ['id', budget.employeeId]);
+
+    if (expenseType == null || employee == null) {
+      // delete the budget if employee or expense type does not exist
+      let params = {
+        TableName: BUDGETS_TABLE,
+        Key: {
+          id: budget.id
+        }
+      };
+
+      await ddb.delete(params, function (err) {
+        if (err) {
+          console.error('Unable to delete item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          if (expenseType == null && employee == null) {
+            console.log(
+              `Deleted budget ${budget.id} because employee ID ${budget.employeeId} and expense type ID`,
+              `${budget.expenseTypeId} do not exist`
+            );
+          } else if (expenseType == null) {
+            console.log(
+              `Deleted budget ${budget.id} because expense type ID ${budget.expenseTypeId} does not exist`
+            );
+          } else {
+            console.log(
+              `Deleted budget ${budget.id} because employee ID ${budget.employeeId} does not exist`
+            );
+          }
+        }
+      });
+    }
+  });
+
+  await asyncForEach(expenses, async (expense) => {
+    // remove invalid expenses
+    let expenseType = _.find(expenseTypes, ['id', expense.expenseTypeId]);
+    let employee = _.find(employees, ['id', expense.employeeId]);
+
+    if (expenseType == null || employee == null) {
+      // delete the expense if employee or expense type does not exist
+      let params = {
+        TableName: EXPENSES_TABLE,
+        Key: {
+          id: expense.id
+        }
+      };
+
+      await ddb.delete(params, function (err) {
+        if (err) {
+          console.error('Unable to delete item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          if (expenseType == null && employee == null) {
+            console.log(
+              `Deleted expense ${expense.id} because employee ID ${expense.employeeId} and expense type ID`,
+              `${expense.expenseTypeId} do not exist`
+            );
+          } else if (expenseType == null) {
+            console.log(
+              `Deleted expense ${expense.id} because expense type ID ${expense.expenseTypeId} does not exist`
+            );
+          } else {
+            console.log(
+              `Deleted expense ${expense.id} because employee ID ${expense.employeeId} does not exist`
+            );
+          }
+        }
+      });
+    }
+  });
+
+  console.log('Finished removing invalid data');
+} // removeInvalidData
 
 async function main() {
   if (confirmAction('update expense app dynamodb data for v2.2?')) {
     await deleteEmptyBudgets(); // delete empty budgets
     // change budget userId attribute name to employeeId
     await changeAttributeName(BUDGETS_TABLE, 'userId', 'employeeId');
+    await setAccessibleBy(); // set expense type accessible by to 'ALL'
     await setWorkStatus(); // set employee work status to 100 or 0
     await setBudgetAmounts(); // set budget amounts based on employee and expense type
     await removeAttribute(EMPLOYEES_TABLE, 'isInactive'); // remove employee isInactive attribute
-    await setAccessibleBy(); // set expense type accessible by to 'ALL'
     await changeAttributeName(EXPENSES_TABLE, 'categories', 'category'); // change expense categories name to category
     await changeAttributeName(EXPENSES_TABLE, 'userId', 'employeeId'); // change expense userId name to employeeId
-    await removeNullExpenseReceiptAndNote(); // replace null expense receipt and note values with a space character
+    await removeInvalidData(); // remove invalid data
+    await removeNullExpenseFields(); // replace null expense receipt and note values with a space character
   } else {
     console.log('Canceled Update');
   }
