@@ -1,399 +1,3 @@
-Deleting empty budgets
-Getting all entries from dynamodb test-budgets table
-Finished getting all entries from test-budgets
-Successfully deleted budget 868b7623-ebaf-40d5-8a44-51ed404ffe5e
-Successfully deleted budget 69ac6a98-3b07-4c91-b823-63f0edf1c6af
-Successfully deleted budget 131eb5d1-38b7-4ca5-a209-8b52f58184a1
-Successfully deleted budget da40a5dc-6e62-4b03-9ec9-d8c30d8e3bf4
-Successfully deleted budget a4f0653b-61cd-4c7a-870f-7cd17eb26547
-Successfully deleted budget 8a1d27db-2391-4c55-a50e-a6c30b96c48a
-Successfully deleted budget d362cdfe-281f-4054-889e-1560d8fd6581
-Successfully deleted budget 7804ff1c-f30b-468c-bb29-64a6a903dd6b
-Successfully deleted budget 0d19e705-1256-48d6-b86f-ce96530d5fa8
-Successfully deleted budget 96490f7e-c040-4be8-9528-b003df23164f
-Successfully deleted budget bdc0008b-7a11-417a-863f-4436466ad0ee
-Successfully deleted budget 19dee549-7b9d-449f-974c-e266cab5700e
-Successfully deleted budget bb264948-3e18-4224-aeb5-ec061babcf11
-Successfully deleted budget a60eac4d-59cd-46f3-a3d8-b49be59707bb
-Successfully deleted budget 0ce3470e-0217-4b88-a1e3-4b06d642f2c2
-Successfully deleted budget f69d2c9e-0a33-4f70-b015-ee2a9c12dec2
-Successfully deleted budget f1baca44-42fe-452c-a339-2346cadf7aa8
-Successfully deleted budget 1778cea5-8193-4994-a36a-a7b69f10e36a
-Successfully deleted budget ae899f9f-8881-4732-a805-3a3022da30a8
-Successfully deleted budget 50c4674b-f597-416b-bc9c-df7b0b2e5b3d
-Successfully deleted budget 21b28700-c23f-4855-aae9-280e589388d1
-Successfully deleted budget 122c7e51-cae6-419f-8aca-bc441b97db5b
-Successfully deleted budget 6a6cdb8d-eb6e-4e6d-a0ed-2060fe8ce2e3
-Successfully deleted budget 1de13116-5662-4afa-94e3-3b0b56c53001
-Successfully deleted budget 06cf844c-bdba-456c-b2dc-1c1b2ddb4efc
-Successfully deleted budget ce6161c2-680f-45f9-ba4c-ab93e9132939
-Successfully deleted budget 8ae416f0-4f8d-4091-acbc-82e1215a3987
-Successfully deleted budget 56891125-27a4-4d27-ba25-3fdec49f7f7d
-Successfully deleted budget 9cbeb2a5-3d4f-4941-8c0d-8a56df362b4f
-Successfully deleted budget c76bba2a-85f9-4f16-929d-eadfa3f4cb85
-Successfully deleted budget 7aaa096f-37cd-4712-bdef-6ecb12debca6
-Successfully deleted budget f1e3e30c-cb56-4898-b09c-beff4b344598
-Successfully deleted budget 0bd30c47-4317-414d-bcf4-8b980376a1dc
-Successfully deleted budget 0aa054a2-9247-47ab-992c-55402cb4c0b0
-Successfully deleted budget ef260d28-db35-404e-b006-b6c03f99f1e3
-Successfully deleted budget 2b7ffb0f-e3d3-4070-b4af-9a08c506449a
-Successfully deleted budget dd7b4e57-8921-46dc-b136-619788cbbf09
-Successfully deleted budget 58b6d97c-0abe-477e-b2e7-f2ae558a810f
-Successfully deleted budget c53edbe0-0b9a-4679-bf1a-65b86ef258d9
-Successfully deleted budget f6031e14-97e4-42e8-811b-919cfcf439ce
-Successfully deleted budget 1ccf739e-f914-40b4-9f96-f612de7a8a19
-Successfully deleted budget f3bad00a-90c6-4b88-a445-9d911bc0aae1
-Successfully deleted budget 73784a0f-750f-4036-a177-ee179e1c71e7
-Successfully deleted budget cd44057b-0fde-4c6c-ae6c-20c2f9cdc8b1
-Successfully deleted budget 29995ba8-a1fe-4ea0-b132-0f58f611ca0d
-Successfully deleted budget 7100ec96-0ed7-485f-beae-4e85c00f988a
-Successfully deleted budget 53ee35b8-d73e-4b3b-946d-b3b4f30063b0
-Successfully deleted budget 74d958fe-802b-4239-9eb6-2abbe171fa70
-Successfully deleted budget ace528bf-1777-49a1-835c-e5231265986e
-Successfully deleted budget 5e3d1f16-edff-4431-ba42-e3d7ac109d32
-Successfully deleted budget 4e7c097f-5390-4749-bcd9-0f60bbbcbea6
-Successfully deleted budget bc991816-34c2-45eb-b38a-da816bc5025f
-Successfully deleted budget c5cedcca-df85-4aa3-be84-1d7bea4fdf90
-Successfully deleted budget 6f58ed8d-c688-41cf-9329-6846abbcc5cf
-Successfully deleted budget 78b877ee-cb7b-491d-bbb5-20d92c7dd65b
-Successfully deleted budget b9143f76-500b-4a66-940e-637adebdea34
-Successfully deleted budget a996d6be-7762-4bce-819c-a65c1731998d
-Successfully deleted budget 22e054be-bdcf-452c-8cf2-e39c58b6de9d
-Successfully deleted budget a1cd7b00-e79f-44a7-914c-98ebdb8cc861
-Successfully deleted budget 9b9fb843-8f59-472e-b047-7a1994b68199
-Successfully deleted budget 6ff6a15c-2bb3-4a84-b965-ac47e83023e8
-Successfully deleted budget b0955658-e23e-4884-be20-0c4d57fa1211
-Successfully deleted budget 8e249835-d4a2-4b39-addd-96345c795cd3
-Successfully deleted budget 0f229699-a54b-422d-8e44-372eb640a366
-Successfully deleted budget 6ba0c08a-5379-4b51-988f-73aa36c5ee6b
-Successfully deleted budget 8b1bf467-b92f-45c3-b7ee-e94d60d843cb
-Successfully deleted budget 60732508-968a-4aca-8ebb-4c40b920931a
-Successfully deleted budget 316f9bd5-e546-4f8c-ae57-bca21a837a30
-Successfully deleted budget 73858a93-d6ab-4cb2-a608-26c4e05ddbb1
-Successfully deleted budget bbdea2ef-3f51-4f6b-891b-d49ce18f70d0
-Successfully deleted budget 85694a3c-9b64-4f9c-a0ba-ee597ffc4819
-Successfully deleted budget 95f005f0-7f89-41fc-ba23-46ee258bdb71
-Successfully deleted budget c92d3ba4-da25-4576-b9b3-fa4e6f166ecb
-Successfully deleted budget 1afb8f09-c7a7-4eb4-b854-0c87ba7d0313
-Successfully deleted budget 4dfea90f-e529-419f-b487-a4382ef8acb7
-Successfully deleted budget 6f4b6609-378b-47f5-ad90-d14f975c1652
-Successfully deleted budget 8184ac45-2477-4b23-93e8-5f0374783e6a
-Successfully deleted budget 64df910f-a840-48f0-be63-0151ecbd4a4b
-Successfully deleted budget 1638fefa-e72e-4e6c-8840-beda37a72b44
-Successfully deleted budget a822675f-57e3-40c9-9905-2629dbcccec8
-Successfully deleted budget 880a6cff-7d76-4a15-b1d6-c364db61d468
-Successfully deleted budget 15d458d3-4d2b-476a-85cb-cb54bfae3c46
-Successfully deleted budget 121ae716-5014-43f7-9312-99400e10928d
-Successfully deleted budget 6eb210c9-6239-4b68-8052-5882474cf0f6
-Successfully deleted budget 191b9f41-7cda-47ca-8b92-ff434ed823a7
-Successfully deleted budget efe6901b-e360-4f9d-b1d4-01d94007b333
-Successfully deleted budget c2a1af50-6cd2-42c5-9bc0-c85b979e770e
-Successfully deleted budget c4dcbd54-7041-44e8-99f0-65fc0a0e10c1
-Successfully deleted budget 36dfc287-bd86-490e-80fb-4b3b0e8ecca1
-Successfully deleted budget 5c6e6ff5-a92e-457d-9ac2-9d9688448555
-Successfully deleted budget 32d1d82c-849b-4ad5-bfcf-3caeba5fee10
-Successfully deleted budget 454e4b9e-3c77-4380-9631-a2f251b33e90
-Successfully deleted budget fd1a2fd1-fae1-4708-a3ca-09a55b5fd677
-Successfully deleted budget 1bdebb58-303b-4d0a-bb59-67a6c377c237
-Successfully deleted budget e2ade968-911d-43c8-ac46-a6a58f03b8e0
-Successfully deleted budget 0e0d2745-5576-4546-bd51-e0f8bac58c4b
-Successfully deleted budget 7290fd78-f4f7-45fb-9fb7-27e28d830425
-Successfully deleted budget 9ed7bb16-2524-4c51-9a1c-1196b08495ea
-Successfully deleted budget 032a694d-9549-47d5-8914-aa721b28e0f9
-Successfully deleted budget 4b767184-6062-4665-b4d7-3a1a9ef9adeb
-Successfully deleted budget 4d29c194-1b9b-4d22-8cf0-b5073afb70fb
-Successfully deleted budget 44dc9805-471a-42dc-bfc5-fdd135b562fa
-Successfully deleted budget a414326c-718e-4b93-b133-f34d1d3bd7d0
-Successfully deleted budget 7af6bbbe-c095-482a-b9db-752d8b56552f
-Successfully deleted budget ad126c06-708c-4dc6-b733-f52f8b7f45d4
-Successfully deleted budget 2f7ebc64-fed5-4335-b740-d89624d4b3fb
-Successfully deleted budget 99f25ac6-49cc-476a-b413-5b8c3e7a0972
-Successfully deleted budget adc61e36-9dd9-4b9a-865c-ce3359c126b1
-Successfully deleted budget d5fbfd2c-cf21-4a5f-88ee-077b840e24fe
-Successfully deleted budget 0e655247-f27c-4caf-8b82-de82a1fbc2a9
-Successfully deleted budget 77a3e5cd-df25-4d55-8626-e9da4b7ae1f8
-Successfully deleted budget 31059830-e926-45e4-a69f-f79ce303ee7d
-Successfully deleted budget d902f451-8440-476b-8413-f60492bde2aa
-Successfully deleted budget f3202289-c034-4c5d-a1b5-cfd72ce7fc80
-Successfully deleted budget ef736441-378b-4324-8b18-f6e803ff1055
-Successfully deleted budget 80e743b8-79f5-4754-bee3-660e360ae039
-Successfully deleted budget 341dce7b-b71f-4788-83fe-d7419d059cf7
-Successfully deleted budget 609f6736-3aec-4bda-822f-ccfe5cf2237b
-Successfully deleted budget 87bdcd01-ae4b-46ef-a90c-b64c497c82e9
-Successfully deleted budget d6d23b53-c148-4e8b-9520-fb2073e80bf9
-Successfully deleted budget 9a883373-f987-47df-88c9-229f92932688
-Successfully deleted budget b49013bc-5c50-4acb-8e9f-b2818eb8d179
-Successfully deleted budget cf73ccef-21b8-4075-84c9-9c0bf2896bab
-Successfully deleted budget 6abf2829-e4cf-4d2f-80fc-2f692a3bbebc
-Successfully deleted budget 9ffddd8e-9e86-42a1-beb6-e05f4bbb2c02
-Successfully deleted budget 1cf037de-7e2a-4729-b754-0a13da672e11
-Successfully deleted budget c280a4a5-ed12-4406-ab51-560b3470f421
-Successfully deleted budget 3544afe9-b6a7-48fa-a2e1-396c8cf81793
-Successfully deleted budget 34172760-ed3e-4557-a4bb-a89fd227e8ec
-Successfully deleted budget dd598449-3319-4688-98cb-f25524a79eba
-Successfully deleted budget b4c87092-71f3-4b23-aef6-187e2feefadb
-Successfully deleted budget 50af06ba-8ed3-4eac-84cc-60fb9569ceff
-Successfully deleted budget 59bfc829-b8ba-4242-83cd-c4349f9e39ee
-Successfully deleted budget 0686f564-02cb-447b-b186-1c67550b0979
-Successfully deleted budget 6de01d6f-ef0f-4f35-9809-90eac49d8e0e
-Successfully deleted budget be7c953b-ad68-4d18-b237-e0a9daeefbe6
-Successfully deleted budget 7f416e6e-d5a0-4f5d-91bc-d0e5e1241fa8
-Successfully deleted budget 63d870b5-ace9-48db-a2a6-59e399c2b1b8
-Successfully deleted budget a7b236cb-3ba1-4e0a-820f-8caf08648d1b
-Successfully deleted budget f83ec61f-a2c3-4677-b902-b5147ed81e90
-Successfully deleted budget 945318c3-5d51-4e07-8e38-137ba62dbef4
-Successfully deleted budget add6b01b-da0f-4a80-9449-e42a2f089fbb
-Successfully deleted budget 2b223a8e-55ba-462e-9e52-85a3196334df
-Successfully deleted budget 73bf1fef-7c68-42e6-9dec-fd573c7d7a22
-Successfully deleted budget f29972c1-1343-4172-8e85-4e3d63daf434
-Successfully deleted budget ed73c368-6d5c-4612-9ca7-88d553a318d8
-Successfully deleted budget f78cb6de-df26-4b1e-9fb8-59afd26a9127
-Successfully deleted budget 1d111da2-c3e8-47e6-bd09-286e27803aa5
-Successfully deleted budget 3212dcfe-5af1-4ddc-b0d4-ff000be670e2
-Successfully deleted budget 48eedaf3-aec8-407b-b4fa-ee0c3ba15171
-Successfully deleted budget 0e5c4b57-e4b3-4785-a3fc-3f2f034d3bdf
-Successfully deleted budget 50fa7b1a-49ea-4bf6-be0e-5dca1bc4e41b
-Successfully deleted budget fadcc807-eea5-4fda-af6f-903d4ef67648
-Successfully deleted budget abc3169c-7d72-4a90-b1fd-1b6a6313570e
-Successfully deleted budget 2c378317-11ff-41a9-8f5c-6974ac57b8b2
-Successfully deleted budget 9af2ce35-0f8d-45a0-9069-91cc2ce5b264
-Successfully deleted budget 041f8b6b-949d-47d5-a3de-0a852ee6de3e
-Successfully deleted budget 03dc3153-5558-400e-bbdb-dc3e14dd644c
-Successfully deleted budget 51a29df3-5f16-4da1-9cc8-e83262eb72d3
-Successfully deleted budget 142d1995-4147-47d9-ac28-f4314113da98
-Successfully deleted budget 315707af-893d-4bda-a038-200a95a2a843
-Successfully deleted budget 79bf5c10-3927-42b6-a15a-c01b3f1d2c23
-Successfully deleted budget 0d558c34-facb-400a-90a2-92261918e091
-Successfully deleted budget ca8ee633-23fb-4e50-8334-2dcdadb9fcef
-Successfully deleted budget 0f9d2dc7-38f3-4fb7-89c6-7c0e80d03f8c
-Successfully deleted budget a46828f0-df58-4ad2-8119-6235fd5a1f01
-Successfully deleted budget 6c3523f6-4fbe-43e7-a295-7b29aa02e1a1
-Successfully deleted budget 8a7438c2-5a51-4641-9e52-917ed824bbd5
-Successfully deleted budget 47b6cd53-6fed-4303-bc7d-a7d622d11a71
-Successfully deleted budget d0dfb3e5-ffb9-4310-871f-8943f4f821bf
-Successfully deleted budget sadfasd987df98sa7d7f6sd9087f9
-Successfully deleted budget 796b0c96-270f-4ef2-b65b-78d64b3c2aa7
-Successfully deleted budget 05393922-e9a5-49b2-ae09-7900d77ade02
-Successfully deleted budget d66a2f62-ed6a-4d1a-936e-c8e749a4a26a
-Successfully deleted budget d4c4c796-6a53-4def-b3c6-455f8de4ff45
-Successfully deleted budget 19ae4c08-ce48-4454-b207-fafe76422bf0
-Successfully deleted budget 34a4a7b6-8702-4cf2-97c4-9120ae69e1eb
-Successfully deleted budget c73ca70b-9359-4d48-b4b0-d9160bd31e5e
-Successfully deleted budget a594b6d7-3089-43c2-9b03-d914ae8dbece
-Successfully deleted budget de4e6beb-098a-4678-bb73-9430c5edb397
-Successfully deleted budget a4b965fd-bc0a-4628-be2a-eed66cae910a
-Successfully deleted budget 13ff9d82-5f95-40d1-a425-3cbdb0e5af98
-Successfully deleted budget a6425a0c-092c-4328-866c-dfeade5b0cad
-Successfully deleted budget 18570c35-6451-43be-a9e1-e131c796b75f
-Successfully deleted budget dcafaa4b-7e59-46f2-9735-6f140094f873
-Successfully deleted budget 85193a85-344d-4005-8de0-286ad735fb00
-Successfully deleted budget 8053c300-0958-44ea-a821-a9182b3a09d5
-Successfully deleted budget 1d232e71-3aab-49ca-aaea-f04227666464
-Successfully deleted budget d55336f7-81c0-4763-abcf-ebe23c09aca4
-Successfully deleted budget 9a3ca8e8-416f-44c7-b6cf-546ec363f7d9
-Successfully deleted budget 17a6d1e3-b371-4f9f-a9df-1f96873784bd
-Successfully deleted budget 9536ce9d-a1aa-41b3-9037-9de33f0ff5b1
-Successfully deleted budget b3e279d4-1cbe-4e01-981d-552b9e10f50e
-Successfully deleted budget 2fc8ef58-6c6e-41bd-a80c-8b2a6c62e8d7
-Successfully deleted budget cbd52222-030f-4517-bc6b-f147dbef2f2d
-Successfully deleted budget c153fdcd-fac6-44bb-bd7c-1d9ac702ff60
-Successfully deleted budget bc719f8c-80c1-4fe5-8bfd-da43fe023b8a
-Successfully deleted budget 7c7f26de-9fb6-4baf-8e5e-3edb55ecbde8
-Successfully deleted budget 4d538238-e8a3-456f-8f59-7d8c228935d5
-Successfully deleted budget cb976e79-33f1-4377-b758-d73a9a6e75b2
-Successfully deleted budget d6f46781-cae4-496a-b485-b73c520024b2
-Successfully deleted budget 7696525c-a646-4055-bfc4-3d02bc5faa01
-Successfully deleted budget 251474bc-6685-4782-bf7c-6dfadd8ac8a9
-Successfully deleted budget 5ab2b5f4-3b3b-4fcb-b6a2-7a11e8235818
-Successfully deleted budget 395d12f1-1047-44fc-8969-348149cb9fdc
-Successfully deleted budget b0447a2e-9302-4c49-82a0-bdf0453ea647
-Successfully deleted budget bea2adb2-e688-4a3f-a0cd-5e478dc6c143
-Successfully deleted budget dcdbcfb4-bbfe-4b5b-b637-dd10ca61ad5c
-Successfully deleted budget ac1d6596-8186-44ff-83ff-fe43a4e18bd7
-Successfully deleted budget 94e98a97-e37d-4b24-894f-9ef37e173197
-Successfully deleted budget 6de2a108-5fb3-4921-8c25-22c3dfcf18a4
-Successfully deleted budget 6d75a81f-4b47-4098-8565-d2ce63b488db
-Successfully deleted budget 3eb73f7b-6c9d-4e3a-97b8-54c573e2df1e
-Successfully deleted budget 2f49e07c-223d-4a68-ba2c-697f3fc0cad2
-Successfully deleted budget 518bb2b1-1488-4fb5-b23b-8ebfa5fe23e3
-Successfully deleted budget 5657290d-5263-4726-99eb-e4c0c3487761
-Successfully deleted budget 9ade9249-3b5b-408d-8a62-56c31d2f5d3d
-Successfully deleted budget 3a8216e8-8e01-4b74-a1b0-7c1a6f672956
-Successfully deleted budget 232b5eac-3f7f-4ed4-922f-3a66e1f9b55a
-Successfully deleted budget 9c2f66d3-5c7c-45d6-bdfa-c277dce4ac58
-Successfully deleted budget 38629eba-e2c8-49a2-953e-56b5e4971493
-Successfully deleted budget 26ae26c0-ad59-46ff-8105-0dd44f4dcb54
-Successfully deleted budget a801aaf7-246c-4903-bbb8-46e839528d25
-Successfully deleted budget 961406d1-5b00-4f37-89a2-8631886ed4ca
-Successfully deleted budget 4e1e78d7-750e-44b3-be5a-5b10dae64d84
-Successfully deleted budget fd16852d-3c81-4919-aacb-e99a6b9be90e
-Successfully deleted budget 437119a4-63dc-40fe-bc8f-931cadc4af22
-Successfully deleted budget 32b80b4e-30cf-4ddd-9787-0737d26fd53c
-Successfully deleted budget d5881424-af8f-4c20-8112-e3b5735b4083
-Successfully deleted budget dd6be7c8-7b3d-401a-8584-feaf5b112312
-Successfully deleted budget 29bad48b-0f52-4b72-b184-df93d88fa0da
-Successfully deleted budget 2af96be0-7b68-4579-9134-52bcd61110e7
-Successfully deleted budget 25076c19-4d3d-44ae-aa62-aeab81d3dc77
-Successfully deleted budget 16b27669-e051-4d69-8303-d26eb4e9aad1
-Successfully deleted budget 61502eeb-90b2-41a4-b328-27eef7430bcc
-Successfully deleted budget 5e4e2d11-a72d-45b1-a0b5-912b22d3a8ee
-Successfully deleted budget c1377771-5580-4c5d-b750-85099fd3b222
-Successfully deleted budget fe774022-9baf-466b-aea7-15ba1f1b3c68
-Successfully deleted budget d7f57281-9d7f-4305-9970-429aa802a041
-Successfully deleted budget ccb45063-4859-40b5-ba3f-e612c8efda51
-Successfully deleted budget 4749da7b-19ed-4f97-bda1-d927e8692697
-Successfully deleted budget f6f550ff-f485-4737-b661-cbfbeeeddba0
-Successfully deleted budget fded762d-0934-4930-b7a5-467c591a6c01
-Successfully deleted budget 8799216a-df9f-4914-a53d-0e5cf57d8d24
-Successfully deleted budget a87b9dc6-982a-4ce2-9c20-0146874d4319
-Successfully deleted budget 162a6a7d-35bf-48dd-b7c8-7c533889928c
-Successfully deleted budget e68df979-9d5c-429c-922f-cf7048475102
-Successfully deleted budget cf4362e7-f510-4a83-bce4-9d070b3c3f2c
-Successfully deleted budget e0247539-ac17-472c-bae7-c7c2c56dd0e7
-Successfully deleted budget 41bd10c7-cd8d-4bd1-bdfb-7cff2a20f51c
-Successfully deleted budget ea5ac543-97d2-4788-a34d-0173e9a3ceb5
-Successfully deleted budget b1b6919e-2426-40e2-9898-77decc8dbb1b
-Successfully deleted budget bc81820b-6f04-4d0f-bf1a-b573740007fe
-Successfully deleted budget 6bc20904-008c-4a52-a844-8d9adc73f16e
-Successfully deleted budget b4f8f626-db81-4493-a6e5-e04640cd8d78
-Successfully deleted budget 18c03572-02e2-4746-8838-7cb4b0ddee7c
-Successfully deleted budget 12075825-0fe8-4c28-b6d4-7604660ae1fb
-Successfully deleted budget 72d5a540-6e7d-44c5-b192-f5f57805a8ea
-Successfully deleted budget abc39980-1c9e-461e-87ff-fb0ae89d4730
-Successfully deleted budget 5561293b-b873-4591-a6d8-ed5f83db1f66
-Successfully deleted budget 7555bddd-cb0d-4151-89ea-c5a9142470dc
-Successfully deleted budget 990d0870-4218-464d-bb36-fe170b9cb930
-Successfully deleted budget de6ab55c-d4c2-4fa1-b0d3-0ef18015249a
-Successfully deleted budget bb3600d2-5e5f-462b-b0ac-e84733a83206
-Successfully deleted budget 069fe4f7-691f-4064-a5fc-c2c31110031c
-Successfully deleted budget 1636aa82-fe6d-49d4-bdc1-85a1e1ce6761
-Successfully deleted budget 831bb9df-9fce-4f11-b8fc-27200fd5b8af
-Successfully deleted budget 3f8fea1d-1bf3-46b7-a59e-258029fde0df
-Successfully deleted budget cc4597d5-2119-4384-bfbc-fced27883d12
-Successfully deleted budget 2b104641-438d-4015-9348-fc143d917ada
-Successfully deleted budget 439a98a5-ca20-4827-bd9f-af31cc25dc45
-Successfully deleted budget 3d21c819-066a-4009-93d5-f7cd9a149e6d
-Successfully deleted budget 401914f6-7dcc-481c-a208-d061fc59aaed
-Successfully deleted budget 092d289a-c6e3-4189-8032-d623aa79b679
-Successfully deleted budget 437c27f7-d9be-4f35-80ec-30fabd0c87be
-Successfully deleted budget 15ac81ef-8c6c-4c38-88dc-3bba080024e5
-Successfully deleted budget 4fbef376-f2a8-4a28-838d-90237642bc25
-Successfully deleted budget 8e20d07b-10b3-4ac0-b0c2-d7d5ad1b68df
-Successfully deleted budget 4375848c-dc63-4dc5-962b-460565f34bb7
-Successfully deleted budget 1226f1df-64fa-4030-be2d-523a6b1904d1
-Successfully deleted budget bfae8788-4cd5-40ec-a98c-839b498fe94b
-Successfully deleted budget e89615c1-f358-4318-8881-3907d0ce45b1
-Successfully deleted budget f776d90b-acc3-4805-9533-ab14414a9a86
-Successfully deleted budget 96647850-ea8e-4d4f-9e55-34ce932742db
-Successfully deleted budget 2f38627e-c43b-43bf-9013-c5cec11ea268
-Successfully deleted budget c086de2a-094c-4a12-a389-66f1efd9703d
-Successfully deleted budget b51bcb60-3587-4253-92b4-2ddc778e3dc4
-Successfully deleted budget 51c82f6e-d607-4175-825f-9ba0ba6c2fd2
-Successfully deleted budget 729858bf-7d40-4903-b1e1-ee05d2fbb9f8
-Successfully deleted budget 71ec1451-c390-4f47-a0c8-8f4159553a08
-Successfully deleted budget c671cd72-10be-4d14-9492-19e62e866d5c
-Successfully deleted budget 9dbd522c-435f-4eb2-b9ab-0c4ffe235b5d
-Successfully deleted budget b1b819e7-2a42-4f1d-8f18-daa97630029c
-Successfully deleted budget 59191472-f4de-4156-93b5-7095085c14a7
-Successfully deleted budget 69888d89-f9df-4420-803a-f93496622578
-Successfully deleted budget 96620147-2ad1-4b60-a683-2f0356c9a9e7
-Successfully deleted budget c03aa7fd-3cf9-4713-b1ca-0ffb4989d98f
-Successfully deleted budget c15337f7-22f4-4e9c-a3ce-0ab522c55f41
-Successfully deleted budget fee74c6e-457d-4ac5-b033-407a71e6562f
-Successfully deleted budget f58d67f1-e9ff-4353-b2a7-e2b2efeef13b
-Successfully deleted budget d64e6c09-4a3e-4564-a249-f39900a1a2b1
-Successfully deleted budget b785a72d-fb16-4d1b-bd1c-c78263948197
-Successfully deleted budget a2aa8d93-f89c-49d8-8e4b-26c32f53e9cc
-Successfully deleted budget e13db0d0-c51f-4ee3-be5a-eebdaa66cf73
-Finished Deleting empty budgets
-Changing attribute name from userId to employeeId in table test-budgets
-Copying values from userId to employeeId in table test-budgets
-Getting all entries from dynamodb test-budgets table
-Finished getting all entries from test-budgets
-Successfully copied value from userId to employeeId in table test-budgets for entry 0a1f5ddc-3df1-4381-87b6-7cab43c70299. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
-Successfully copied value from userId to employeeId in table test-budgets for entry a960ac94-340c-45a1-ae58-acb112bac6e0. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry 0c1854c4-d4c9-4674-980c-4040503ba7e5. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
-Successfully copied value from userId to employeeId in table test-budgets for entry d4968075-0b64-4476-9f6f-07a2d8704265. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry d021b28b-ebb9-4b70-b72d-ff1e19c6363d. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry c6be5e58-7202-4938-9835-4b8102921e05. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry 879s8d7f90a8sd7f098asd7. Value: 9fdfc168-13c1-492e-9b8c-4e213e04660d
-Successfully copied value from userId to employeeId in table test-budgets for entry 837c81f3-9f20-4b94-9561-8601cb84ee49. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry ad1346fe-019c-40f8-ad7b-0af9a0b66b1f. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry 957ee9ae-b24f-445e-ba67-4d137159b549. Value: d4789382-07ae-45dc-af61-4fb948546801
-Successfully copied value from userId to employeeId in table test-budgets for entry 72b802ff-6f60-4688-8452-480c2ec1c6e0. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
-Successfully copied value from userId to employeeId in table test-budgets for entry fadf8a89-6a57-49c6-83d2-def015123581. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry b662401b-1faf-4728-b2cc-7d55fc29c12a. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
-Successfully copied value from userId to employeeId in table test-budgets for entry a48c499b-ee84-43be-8735-cda4fef9e179. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
-Successfully copied value from userId to employeeId in table test-budgets for entry da4328b1-f99f-4ab8-8b88-23334986a555. Value: d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
-Successfully copied value from userId to employeeId in table test-budgets for entry 2821b3b2-bf79-49a2-9986-e717881ecf2f. Value: 0b9838b1-a2fd-470f-96ba-4413e6a54de7
-Successfully copied value from userId to employeeId in table test-budgets for entry 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry af772f84-b26a-4db1-a035-da4840379c1b. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry 6054f616-1ea6-4fa3-a1a0-812737084717. Value: 5737df82-0e34-4dfa-a26c-1d6257ef2670
-Successfully copied value from userId to employeeId in table test-budgets for entry a6c40314-ff55-41c6-9ef1-3693df36c663. Value: d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
-Successfully copied value from userId to employeeId in table test-budgets for entry ee563652-1e27-4086-a8c7-06f04297ee30. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
-Successfully copied value from userId to employeeId in table test-budgets for entry 17c596f5-fe9e-494e-ad2f-e60ed9dbe424. Value: d3505b35-ca34-4c28-b7b3-ce80b93b9480
-Successfully copied value from userId to employeeId in table test-budgets for entry a0ff2fdb-0f28-40cc-b142-d81ec20b2178. Value: f9c4ecc3-8801-40e7-ba35-d10568ac21bd
-Successfully copied value from userId to employeeId in table test-budgets for entry b790ccf2-fbb7-45b4-a5d8-cae05924299d. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
-Successfully copied value from userId to employeeId in table test-budgets for entry a655e379-ec70-431a-8915-b758d5964d25. Value: 10182e5b-1060-4e8a-a205-0b4ed3049f9d
-Successfully copied value from userId to employeeId in table test-budgets for entry da965ee7-7423-4dc0-82e3-1c30c7b09c95. Value: f83ee1b0-e12a-46e9-b705-fde7d71119c8
-Successfully copied value from userId to employeeId in table test-budgets for entry 60806be7-3c35-4144-8f94-e900e1afc55a. Value: d9617cc3-7824-4e41-b438-a0de46cdd1c7
-Successfully copied value from userId to employeeId in table test-budgets for entry c39f9f95-7fa7-45c4-a039-51aa3e5852e4. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry 51040053-a4d2-49d6-bc7f-ad89b07abfb0. Value: 97789f2a-606e-488f-9d14-a8e243350086
-Successfully copied value from userId to employeeId in table test-budgets for entry bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
-Successfully copied value from userId to employeeId in table test-budgets for entry ab3300c5-c4ae-46e4-bd44-ce0873c02501. Value: 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01
-Successfully copied value from userId to employeeId in table test-budgets for entry 1ff0f1eb-80b4-4797-beba-60f7f86dee08. Value: 360fb71d-4e80-40d2-ae8f-086fd4905646
-Successfully copied value from userId to employeeId in table test-budgets for entry a86ebd4c-8b1d-4cc5-b594-67daa99f3aef. Value: 11841ad8-e38f-4aab-99d9-8a5108a55076
-Successfully copied value from userId to employeeId in table test-budgets for entry 69b777a9-ee02-4f3c-ab54-327e669241a4. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry 03256230-fde0-4d8d-8c0f-79376a9e30e5. Value: dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f
-Successfully copied value from userId to employeeId in table test-budgets for entry 9d6950a9-59a7-4c9e-8d8b-4de0402b5282. Value: 55b29ff7-d686-4d4a-80c6-efe61fd06d8c
-Successfully copied value from userId to employeeId in table test-budgets for entry 46828ddb-ce4d-4c35-a0f4-3c75946e566c. Value: ea7f1933-df6b-408b-b4ee-ad9987379f7e
-Successfully copied value from userId to employeeId in table test-budgets for entry 9ff11189-70c7-415d-8027-7cda986f9523. Value: e515672c-638d-473f-9dc9-ee2d991d94d2
-Successfully copied value from userId to employeeId in table test-budgets for entry 84ffd87e-7feb-4b0f-8734-56d44b37e17a. Value: c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
-Finished copying values from userId to employeeId in table test-budgets
-Removing attributes userId from table test-budgets
-Getting all entries from dynamodb test-budgets table
-Finished getting all entries from test-budgets
-Successfully removed attribute userId from table test-budgets for entry 0a1f5ddc-3df1-4381-87b6-7cab43c70299
-Successfully removed attribute userId from table test-budgets for entry a960ac94-340c-45a1-ae58-acb112bac6e0
-Successfully removed attribute userId from table test-budgets for entry 0c1854c4-d4c9-4674-980c-4040503ba7e5
-Successfully removed attribute userId from table test-budgets for entry d4968075-0b64-4476-9f6f-07a2d8704265
-Successfully removed attribute userId from table test-budgets for entry d021b28b-ebb9-4b70-b72d-ff1e19c6363d
-Successfully removed attribute userId from table test-budgets for entry c6be5e58-7202-4938-9835-4b8102921e05
-Successfully removed attribute userId from table test-budgets for entry 879s8d7f90a8sd7f098asd7
-Successfully removed attribute userId from table test-budgets for entry 837c81f3-9f20-4b94-9561-8601cb84ee49
-Successfully removed attribute userId from table test-budgets for entry ad1346fe-019c-40f8-ad7b-0af9a0b66b1f
-Successfully removed attribute userId from table test-budgets for entry 957ee9ae-b24f-445e-ba67-4d137159b549
-Successfully removed attribute userId from table test-budgets for entry 72b802ff-6f60-4688-8452-480c2ec1c6e0
-Successfully removed attribute userId from table test-budgets for entry fadf8a89-6a57-49c6-83d2-def015123581
-Successfully removed attribute userId from table test-budgets for entry b662401b-1faf-4728-b2cc-7d55fc29c12a
-Successfully removed attribute userId from table test-budgets for entry a48c499b-ee84-43be-8735-cda4fef9e179
-Successfully removed attribute userId from table test-budgets for entry da4328b1-f99f-4ab8-8b88-23334986a555
-Successfully removed attribute userId from table test-budgets for entry 2821b3b2-bf79-49a2-9986-e717881ecf2f
-Successfully removed attribute userId from table test-budgets for entry 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a
-Successfully removed attribute userId from table test-budgets for entry af772f84-b26a-4db1-a035-da4840379c1b
-Successfully removed attribute userId from table test-budgets for entry 6054f616-1ea6-4fa3-a1a0-812737084717
-Successfully removed attribute userId from table test-budgets for entry a6c40314-ff55-41c6-9ef1-3693df36c663
-Successfully removed attribute userId from table test-budgets for entry ee563652-1e27-4086-a8c7-06f04297ee30
-Successfully removed attribute userId from table test-budgets for entry 17c596f5-fe9e-494e-ad2f-e60ed9dbe424
-Successfully removed attribute userId from table test-budgets for entry a0ff2fdb-0f28-40cc-b142-d81ec20b2178
-Successfully removed attribute userId from table test-budgets for entry b790ccf2-fbb7-45b4-a5d8-cae05924299d
-Successfully removed attribute userId from table test-budgets for entry a655e379-ec70-431a-8915-b758d5964d25
-Successfully removed attribute userId from table test-budgets for entry da965ee7-7423-4dc0-82e3-1c30c7b09c95
-Successfully removed attribute userId from table test-budgets for entry 60806be7-3c35-4144-8f94-e900e1afc55a
-Successfully removed attribute userId from table test-budgets for entry c39f9f95-7fa7-45c4-a039-51aa3e5852e4
-Successfully removed attribute userId from table test-budgets for entry 51040053-a4d2-49d6-bc7f-ad89b07abfb0
-Successfully removed attribute userId from table test-budgets for entry bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560
-Successfully removed attribute userId from table test-budgets for entry ab3300c5-c4ae-46e4-bd44-ce0873c02501
-Successfully removed attribute userId from table test-budgets for entry 1ff0f1eb-80b4-4797-beba-60f7f86dee08
-Successfully removed attribute userId from table test-budgets for entry a86ebd4c-8b1d-4cc5-b594-67daa99f3aef
-Successfully removed attribute userId from table test-budgets for entry 69b777a9-ee02-4f3c-ab54-327e669241a4
-Successfully removed attribute userId from table test-budgets for entry 03256230-fde0-4d8d-8c0f-79376a9e30e5
-Successfully removed attribute userId from table test-budgets for entry 9d6950a9-59a7-4c9e-8d8b-4de0402b5282
-Successfully removed attribute userId from table test-budgets for entry 46828ddb-ce4d-4c35-a0f4-3c75946e566c
-Successfully removed attribute userId from table test-budgets for entry 9ff11189-70c7-415d-8027-7cda986f9523
-Successfully removed attribute userId from table test-budgets for entry 84ffd87e-7feb-4b0f-8734-56d44b37e17a
-Finished removing attributes userId from table test-budgets
-Finished changing attribute name from userId to employeeId in table test-budgets
 Setting all expense types accessible by to ALL
 Getting all entries from dynamodb test-expense-types table
 Finished getting all entries from test-expense-types
@@ -452,67 +56,6 @@ Successfully set employee work status to 100 for employee ed6494e0-6332-43dd-ac1
 Successfully set employee work status to 100 for employee c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2
 Successfully set employee work status to 100 for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd
 Finished setting all employee work status
-Setting full budget amounts
-Getting all entries from dynamodb test-budgets table
-Finished getting all entries from test-budgets
-Getting all entries from dynamodb test-expense-types table
-Finished getting all entries from test-expense-types
-Getting all entries from dynamodb test-employees table
-Finished getting all entries from test-employees
-Successfully set budget amount 3500.00 for budget 0a1f5ddc-3df1-4381-87b6-7cab43c70299
-Successfully set budget amount 100.00 for budget a960ac94-340c-45a1-ae58-acb112bac6e0
-Calculating adjusted budget amount for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Checking if employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Adjusted budget amount is $3500
-Successfully set budget amount 3500 for budget 0c1854c4-d4c9-4674-980c-4040503ba7e5
-Successfully set budget amount 1000.00 for budget d021b28b-ebb9-4b70-b72d-ff1e19c6363d
-Successfully set budget amount 1800.00 for budget 879s8d7f90a8sd7f098asd7
-Successfully set budget amount 1800.00 for budget 837c81f3-9f20-4b94-9561-8601cb84ee49
-Successfully set budget amount 3500.00 for budget ad1346fe-019c-40f8-ad7b-0af9a0b66b1f
-Successfully set budget amount 100.00 for budget 72b802ff-6f60-4688-8452-480c2ec1c6e0
-Successfully set budget amount 100.00 for budget fadf8a89-6a57-49c6-83d2-def015123581
-Successfully set budget amount 100.00 for budget b662401b-1faf-4728-b2cc-7d55fc29c12a
-Successfully set budget amount 1250.00 for budget a48c499b-ee84-43be-8735-cda4fef9e179
-Calculating adjusted budget amount for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd and expense type 9cbee856-d1de-420f-badd-4754663948fa
-Checking if employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
-Employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to 9cbee856-d1de-420f-badd-4754663948fa
-Adjusted budget amount is $1800
-Successfully set budget amount 1800 for budget da4328b1-f99f-4ab8-8b88-23334986a555
-Successfully set budget amount 3500.00 for budget 2821b3b2-bf79-49a2-9986-e717881ecf2f
-Successfully set budget amount 3500.00 for budget 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a
-Successfully set budget amount 3500.00 for budget af772f84-b26a-4db1-a035-da4840379c1b
-Successfully set budget amount 3500.00 for budget 6054f616-1ea6-4fa3-a1a0-812737084717
-Successfully set budget amount 1250.00 for budget a6c40314-ff55-41c6-9ef1-3693df36c663
-Successfully set budget amount 100.00 for budget ee563652-1e27-4086-a8c7-06f04297ee30
-Successfully set budget amount 1800.00 for budget a0ff2fdb-0f28-40cc-b142-d81ec20b2178
-Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9cbee856-d1de-420f-badd-4754663948fa
-Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
-Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9cbee856-d1de-420f-badd-4754663948fa
-Adjusted budget amount is $1800
-Successfully set budget amount 1800 for budget b790ccf2-fbb7-45b4-a5d8-cae05924299d
-Successfully set budget amount 3500.00 for budget a655e379-ec70-431a-8915-b758d5964d25
-Successfully set budget amount 1800.00 for budget da965ee7-7423-4dc0-82e3-1c30c7b09c95
-Successfully set budget amount 3500.00 for budget c39f9f95-7fa7-45c4-a039-51aa3e5852e4
-Successfully set budget amount 1800.00 for budget 51040053-a4d2-49d6-bc7f-ad89b07abfb0
-Successfully set budget amount 1800.00 for budget bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560
-Successfully set budget amount 1800.00 for budget ab3300c5-c4ae-46e4-bd44-ce0873c02501
-Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
-Adjusted budget amount is $3500
-Successfully set budget amount 3500 for budget 1ff0f1eb-80b4-4797-beba-60f7f86dee08
-Calculating adjusted budget amount for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type 9cbee856-d1de-420f-badd-4754663948fa
-Checking if employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
-Employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to 9cbee856-d1de-420f-badd-4754663948fa
-Adjusted budget amount is $1800
-Successfully set budget amount 1800 for budget a86ebd4c-8b1d-4cc5-b594-67daa99f3aef
-Successfully set budget amount 1800.00 for budget 03256230-fde0-4d8d-8c0f-79376a9e30e5
-Successfully set budget amount 100.00 for budget 9d6950a9-59a7-4c9e-8d8b-4de0402b5282
-Successfully set budget amount 100.00 for budget 46828ddb-ce4d-4c35-a0f4-3c75946e566c
-Successfully set budget amount 1800.00 for budget 9ff11189-70c7-415d-8027-7cda986f9523
-Successfully set budget amount 3500.00 for budget 84ffd87e-7feb-4b0f-8734-56d44b37e17a
-Finished setting full budget amounts
 Removing attributes isInactive from table test-employees
 Getting all entries from dynamodb test-employees table
 Finished getting all entries from test-employees
@@ -847,22 +390,14 @@ Successfully removed attribute userId from table test-expenses for entry 4103b59
 Successfully removed attribute userId from table test-expenses for entry bee7ea02-0b7f-420e-a536-ff140e8e3e4d
 Finished removing attributes userId from table test-expenses
 Finished changing attribute name from userId to employeeId in table test-expenses
-Removing invalid data
+Cleaning up expense data
 Getting all entries from dynamodb test-expense-types table
 Finished getting all entries from test-expense-types
 Getting all entries from dynamodb test-employees table
 Finished getting all entries from test-employees
-Getting all entries from dynamodb test-budgets table
-Finished getting all entries from test-budgets
 Getting all entries from dynamodb test-expenses table
 Finished getting all entries from test-expenses
-Deleted budget 957ee9ae-b24f-445e-ba67-4d137159b549 because employee ID d4789382-07ae-45dc-af61-4fb948546801 does not exist
-Deleted budget 69b777a9-ee02-4f3c-ab54-327e669241a4 because expense type ID 88545e98-c4a4-489a-902c-bfd23e94dd9d does not exist
-Deleted budget 17c596f5-fe9e-494e-ad2f-e60ed9dbe424 because employee ID d3505b35-ca34-4c28-b7b3-ce80b93b9480 does not exist
-Deleted budget d4968075-0b64-4476-9f6f-07a2d8704265 because expense type ID d678c948-cbce-4e24-88e5-b629eba85335 does not exist
-Deleted budget c6be5e58-7202-4938-9835-4b8102921e05 because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
 Successfully removed null fields from expense f82e172d-ea3d-497f-b764-18404a77eb62
-Deleted budget 60806be7-3c35-4144-8f94-e900e1afc55a because employee ID d9617cc3-7824-4e41-b438-a0de46cdd1c7 does not exist
 Successfully removed null fields from expense 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb
 Successfully removed null fields from expense 40885992-69fa-485e-b16e-8cc39bad4dc6
 Successfully removed null fields from expense 5b92b39c-5ba6-4624-b565-d7477c5abbc2
@@ -871,8 +406,8 @@ Successfully removed null fields from expense bc21f631-b458-47fe-b01e-19bbe42028
 Successfully removed null fields from expense bf06f7b5-f6c8-482d-bfc7-34de421e2bfe
 Successfully removed null fields from expense f06be40f-6e3f-4de6-be02-92832a4243f3
 Successfully removed null fields from expense d1a45691-cad1-400f-89ef-88e649d42738
-Deleted expense e18fe717-d439-4818-af1d-a2dbdd59050c because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
 Successfully removed null fields from expense 9e10fc59-a4d0-4bb0-a428-438641aaa1eb
+Deleted expense e18fe717-d439-4818-af1d-a2dbdd59050c because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
 Successfully removed null fields from expense bf11e569-44fb-487d-93a3-eab4c87165dc
 Deleted expense 0fd161df-239d-4516-b10d-2b92af9c0b12 because employee ID d4789382-07ae-45dc-af61-4fb948546801 does not exist
 Successfully removed null fields from expense 0590bc2f-14a6-44d4-b708-9e18cb2982c3
@@ -900,7 +435,484 @@ Successfully removed null fields from expense 0527bf9b-3b24-4f51-8f89-14cba2c132
 Successfully removed null fields from expense ca2362f5-565e-4e78-bf49-496eadc98e87
 Successfully removed null fields from expense 5e5c3cfd-0c4f-454e-b872-ed228db08b1b
 Successfully removed null fields from expense 9d0c2f96-6752-4b85-ad43-dd92c0ae4c11
-Successfully removed null fields from expense 37247656-b9f1-4598-96b7-06319f52ed48
 Deleted expense 0f9f48f8-999b-4669-883e-4ce0557e21bd because expense type ID dd858cf3-1f0e-437f-859e-419331d81e12 does not exist
+Successfully removed null fields from expense 37247656-b9f1-4598-96b7-06319f52ed48
 Successfully removed null fields from expense bee7ea02-0b7f-420e-a536-ff140e8e3e4d
-Finished removing invalid data
+Finished cleaning up expense data
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+
+
+
+
+
+
+Manually correct the following data in the aws console below
+expense 049a9f1c-866d-4a7d-ad3e-f4adc88d0acb has an invalid reimbursedDate: 08.5.19
+expense 3fe8a819-1ee7-4163-91c1-3b0515ca8834 has an invalid reimbursedDate: 07
+2 data error(s). Mannually correct errors in the aws console before continuing.
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+No data errors to correct
+Refreshing budgets
+Deleting all entries in test-budgets
+Getting all entries from dynamodb test-budgets table
+Finished getting all entries from test-budgets
+Successfully deleted entry 868b7623-ebaf-40d5-8a44-51ed404ffe5e from test-budgets
+Successfully deleted entry 69ac6a98-3b07-4c91-b823-63f0edf1c6af from test-budgets
+Successfully deleted entry 131eb5d1-38b7-4ca5-a209-8b52f58184a1 from test-budgets
+Successfully deleted entry da40a5dc-6e62-4b03-9ec9-d8c30d8e3bf4 from test-budgets
+Successfully deleted entry a4f0653b-61cd-4c7a-870f-7cd17eb26547 from test-budgets
+Successfully deleted entry 8a1d27db-2391-4c55-a50e-a6c30b96c48a from test-budgets
+Successfully deleted entry d362cdfe-281f-4054-889e-1560d8fd6581 from test-budgets
+Successfully deleted entry 7804ff1c-f30b-468c-bb29-64a6a903dd6b from test-budgets
+Successfully deleted entry 0d19e705-1256-48d6-b86f-ce96530d5fa8 from test-budgets
+Successfully deleted entry 96490f7e-c040-4be8-9528-b003df23164f from test-budgets
+Successfully deleted entry bdc0008b-7a11-417a-863f-4436466ad0ee from test-budgets
+Successfully deleted entry 19dee549-7b9d-449f-974c-e266cab5700e from test-budgets
+Successfully deleted entry bb264948-3e18-4224-aeb5-ec061babcf11 from test-budgets
+Successfully deleted entry a60eac4d-59cd-46f3-a3d8-b49be59707bb from test-budgets
+Successfully deleted entry 0ce3470e-0217-4b88-a1e3-4b06d642f2c2 from test-budgets
+Successfully deleted entry f69d2c9e-0a33-4f70-b015-ee2a9c12dec2 from test-budgets
+Successfully deleted entry f1baca44-42fe-452c-a339-2346cadf7aa8 from test-budgets
+Successfully deleted entry 1778cea5-8193-4994-a36a-a7b69f10e36a from test-budgets
+Successfully deleted entry ae899f9f-8881-4732-a805-3a3022da30a8 from test-budgets
+Successfully deleted entry 50c4674b-f597-416b-bc9c-df7b0b2e5b3d from test-budgets
+Successfully deleted entry 0a1f5ddc-3df1-4381-87b6-7cab43c70299 from test-budgets
+Successfully deleted entry 21b28700-c23f-4855-aae9-280e589388d1 from test-budgets
+Successfully deleted entry 122c7e51-cae6-419f-8aca-bc441b97db5b from test-budgets
+Successfully deleted entry 6a6cdb8d-eb6e-4e6d-a0ed-2060fe8ce2e3 from test-budgets
+Successfully deleted entry 1de13116-5662-4afa-94e3-3b0b56c53001 from test-budgets
+Successfully deleted entry 06cf844c-bdba-456c-b2dc-1c1b2ddb4efc from test-budgets
+Successfully deleted entry a960ac94-340c-45a1-ae58-acb112bac6e0 from test-budgets
+Successfully deleted entry ce6161c2-680f-45f9-ba4c-ab93e9132939 from test-budgets
+Successfully deleted entry 8ae416f0-4f8d-4091-acbc-82e1215a3987 from test-budgets
+Successfully deleted entry 56891125-27a4-4d27-ba25-3fdec49f7f7d from test-budgets
+Successfully deleted entry 9cbeb2a5-3d4f-4941-8c0d-8a56df362b4f from test-budgets
+Successfully deleted entry c76bba2a-85f9-4f16-929d-eadfa3f4cb85 from test-budgets
+Successfully deleted entry 0c1854c4-d4c9-4674-980c-4040503ba7e5 from test-budgets
+Successfully deleted entry 7aaa096f-37cd-4712-bdef-6ecb12debca6 from test-budgets
+Successfully deleted entry f1e3e30c-cb56-4898-b09c-beff4b344598 from test-budgets
+Successfully deleted entry 0bd30c47-4317-414d-bcf4-8b980376a1dc from test-budgets
+Successfully deleted entry 0aa054a2-9247-47ab-992c-55402cb4c0b0 from test-budgets
+Successfully deleted entry d4968075-0b64-4476-9f6f-07a2d8704265 from test-budgets
+Successfully deleted entry ef260d28-db35-404e-b006-b6c03f99f1e3 from test-budgets
+Successfully deleted entry 2b7ffb0f-e3d3-4070-b4af-9a08c506449a from test-budgets
+Successfully deleted entry dd7b4e57-8921-46dc-b136-619788cbbf09 from test-budgets
+Successfully deleted entry 58b6d97c-0abe-477e-b2e7-f2ae558a810f from test-budgets
+Successfully deleted entry c53edbe0-0b9a-4679-bf1a-65b86ef258d9 from test-budgets
+Successfully deleted entry f6031e14-97e4-42e8-811b-919cfcf439ce from test-budgets
+Successfully deleted entry 1ccf739e-f914-40b4-9f96-f612de7a8a19 from test-budgets
+Successfully deleted entry f3bad00a-90c6-4b88-a445-9d911bc0aae1 from test-budgets
+Successfully deleted entry 73784a0f-750f-4036-a177-ee179e1c71e7 from test-budgets
+Successfully deleted entry cd44057b-0fde-4c6c-ae6c-20c2f9cdc8b1 from test-budgets
+Successfully deleted entry 29995ba8-a1fe-4ea0-b132-0f58f611ca0d from test-budgets
+Successfully deleted entry d021b28b-ebb9-4b70-b72d-ff1e19c6363d from test-budgets
+Successfully deleted entry 7100ec96-0ed7-485f-beae-4e85c00f988a from test-budgets
+Successfully deleted entry 53ee35b8-d73e-4b3b-946d-b3b4f30063b0 from test-budgets
+Successfully deleted entry 74d958fe-802b-4239-9eb6-2abbe171fa70 from test-budgets
+Successfully deleted entry ace528bf-1777-49a1-835c-e5231265986e from test-budgets
+Successfully deleted entry 5e3d1f16-edff-4431-ba42-e3d7ac109d32 from test-budgets
+Successfully deleted entry 4e7c097f-5390-4749-bcd9-0f60bbbcbea6 from test-budgets
+Successfully deleted entry c6be5e58-7202-4938-9835-4b8102921e05 from test-budgets
+Successfully deleted entry bc991816-34c2-45eb-b38a-da816bc5025f from test-budgets
+Successfully deleted entry c5cedcca-df85-4aa3-be84-1d7bea4fdf90 from test-budgets
+Successfully deleted entry 6f58ed8d-c688-41cf-9329-6846abbcc5cf from test-budgets
+Successfully deleted entry 78b877ee-cb7b-491d-bbb5-20d92c7dd65b from test-budgets
+Successfully deleted entry b9143f76-500b-4a66-940e-637adebdea34 from test-budgets
+Successfully deleted entry a996d6be-7762-4bce-819c-a65c1731998d from test-budgets
+Successfully deleted entry 22e054be-bdcf-452c-8cf2-e39c58b6de9d from test-budgets
+Successfully deleted entry a1cd7b00-e79f-44a7-914c-98ebdb8cc861 from test-budgets
+Successfully deleted entry 9b9fb843-8f59-472e-b047-7a1994b68199 from test-budgets
+Successfully deleted entry 6ff6a15c-2bb3-4a84-b965-ac47e83023e8 from test-budgets
+Successfully deleted entry b0955658-e23e-4884-be20-0c4d57fa1211 from test-budgets
+Successfully deleted entry 8e249835-d4a2-4b39-addd-96345c795cd3 from test-budgets
+Successfully deleted entry 0f229699-a54b-422d-8e44-372eb640a366 from test-budgets
+Successfully deleted entry 6ba0c08a-5379-4b51-988f-73aa36c5ee6b from test-budgets
+Successfully deleted entry 8b1bf467-b92f-45c3-b7ee-e94d60d843cb from test-budgets
+Successfully deleted entry 60732508-968a-4aca-8ebb-4c40b920931a from test-budgets
+Successfully deleted entry 316f9bd5-e546-4f8c-ae57-bca21a837a30 from test-budgets
+Successfully deleted entry 73858a93-d6ab-4cb2-a608-26c4e05ddbb1 from test-budgets
+Successfully deleted entry bbdea2ef-3f51-4f6b-891b-d49ce18f70d0 from test-budgets
+Successfully deleted entry 85694a3c-9b64-4f9c-a0ba-ee597ffc4819 from test-budgets
+Successfully deleted entry 95f005f0-7f89-41fc-ba23-46ee258bdb71 from test-budgets
+Successfully deleted entry c92d3ba4-da25-4576-b9b3-fa4e6f166ecb from test-budgets
+Successfully deleted entry 1afb8f09-c7a7-4eb4-b854-0c87ba7d0313 from test-budgets
+Successfully deleted entry 879s8d7f90a8sd7f098asd7 from test-budgets
+Successfully deleted entry 4dfea90f-e529-419f-b487-a4382ef8acb7 from test-budgets
+Successfully deleted entry 6f4b6609-378b-47f5-ad90-d14f975c1652 from test-budgets
+Successfully deleted entry 8184ac45-2477-4b23-93e8-5f0374783e6a from test-budgets
+Successfully deleted entry 64df910f-a840-48f0-be63-0151ecbd4a4b from test-budgets
+Successfully deleted entry 1638fefa-e72e-4e6c-8840-beda37a72b44 from test-budgets
+Successfully deleted entry a822675f-57e3-40c9-9905-2629dbcccec8 from test-budgets
+Successfully deleted entry 880a6cff-7d76-4a15-b1d6-c364db61d468 from test-budgets
+Successfully deleted entry 15d458d3-4d2b-476a-85cb-cb54bfae3c46 from test-budgets
+Successfully deleted entry 121ae716-5014-43f7-9312-99400e10928d from test-budgets
+Successfully deleted entry 6eb210c9-6239-4b68-8052-5882474cf0f6 from test-budgets
+Successfully deleted entry 837c81f3-9f20-4b94-9561-8601cb84ee49 from test-budgets
+Successfully deleted entry ad1346fe-019c-40f8-ad7b-0af9a0b66b1f from test-budgets
+Successfully deleted entry 191b9f41-7cda-47ca-8b92-ff434ed823a7 from test-budgets
+Successfully deleted entry efe6901b-e360-4f9d-b1d4-01d94007b333 from test-budgets
+Successfully deleted entry c2a1af50-6cd2-42c5-9bc0-c85b979e770e from test-budgets
+Successfully deleted entry c4dcbd54-7041-44e8-99f0-65fc0a0e10c1 from test-budgets
+Successfully deleted entry 36dfc287-bd86-490e-80fb-4b3b0e8ecca1 from test-budgets
+Successfully deleted entry 5c6e6ff5-a92e-457d-9ac2-9d9688448555 from test-budgets
+Successfully deleted entry 32d1d82c-849b-4ad5-bfcf-3caeba5fee10 from test-budgets
+Successfully deleted entry 454e4b9e-3c77-4380-9631-a2f251b33e90 from test-budgets
+Successfully deleted entry fd1a2fd1-fae1-4708-a3ca-09a55b5fd677 from test-budgets
+Successfully deleted entry 1bdebb58-303b-4d0a-bb59-67a6c377c237 from test-budgets
+Successfully deleted entry e2ade968-911d-43c8-ac46-a6a58f03b8e0 from test-budgets
+Successfully deleted entry 0e0d2745-5576-4546-bd51-e0f8bac58c4b from test-budgets
+Successfully deleted entry 957ee9ae-b24f-445e-ba67-4d137159b549 from test-budgets
+Successfully deleted entry 7290fd78-f4f7-45fb-9fb7-27e28d830425 from test-budgets
+Successfully deleted entry 9ed7bb16-2524-4c51-9a1c-1196b08495ea from test-budgets
+Successfully deleted entry 032a694d-9549-47d5-8914-aa721b28e0f9 from test-budgets
+Successfully deleted entry 4b767184-6062-4665-b4d7-3a1a9ef9adeb from test-budgets
+Successfully deleted entry 4d29c194-1b9b-4d22-8cf0-b5073afb70fb from test-budgets
+Successfully deleted entry 44dc9805-471a-42dc-bfc5-fdd135b562fa from test-budgets
+Successfully deleted entry 72b802ff-6f60-4688-8452-480c2ec1c6e0 from test-budgets
+Successfully deleted entry a414326c-718e-4b93-b133-f34d1d3bd7d0 from test-budgets
+Successfully deleted entry 7af6bbbe-c095-482a-b9db-752d8b56552f from test-budgets
+Successfully deleted entry ad126c06-708c-4dc6-b733-f52f8b7f45d4 from test-budgets
+Successfully deleted entry 2f7ebc64-fed5-4335-b740-d89624d4b3fb from test-budgets
+Successfully deleted entry 99f25ac6-49cc-476a-b413-5b8c3e7a0972 from test-budgets
+Successfully deleted entry adc61e36-9dd9-4b9a-865c-ce3359c126b1 from test-budgets
+Successfully deleted entry d5fbfd2c-cf21-4a5f-88ee-077b840e24fe from test-budgets
+Successfully deleted entry fadf8a89-6a57-49c6-83d2-def015123581 from test-budgets
+Successfully deleted entry 0e655247-f27c-4caf-8b82-de82a1fbc2a9 from test-budgets
+Successfully deleted entry 77a3e5cd-df25-4d55-8626-e9da4b7ae1f8 from test-budgets
+Successfully deleted entry b662401b-1faf-4728-b2cc-7d55fc29c12a from test-budgets
+Successfully deleted entry 31059830-e926-45e4-a69f-f79ce303ee7d from test-budgets
+Successfully deleted entry a48c499b-ee84-43be-8735-cda4fef9e179 from test-budgets
+Successfully deleted entry d902f451-8440-476b-8413-f60492bde2aa from test-budgets
+Successfully deleted entry f3202289-c034-4c5d-a1b5-cfd72ce7fc80 from test-budgets
+Successfully deleted entry ef736441-378b-4324-8b18-f6e803ff1055 from test-budgets
+Successfully deleted entry 80e743b8-79f5-4754-bee3-660e360ae039 from test-budgets
+Successfully deleted entry 341dce7b-b71f-4788-83fe-d7419d059cf7 from test-budgets
+Successfully deleted entry da4328b1-f99f-4ab8-8b88-23334986a555 from test-budgets
+Successfully deleted entry 609f6736-3aec-4bda-822f-ccfe5cf2237b from test-budgets
+Successfully deleted entry 87bdcd01-ae4b-46ef-a90c-b64c497c82e9 from test-budgets
+Successfully deleted entry d6d23b53-c148-4e8b-9520-fb2073e80bf9 from test-budgets
+Successfully deleted entry 9a883373-f987-47df-88c9-229f92932688 from test-budgets
+Successfully deleted entry b49013bc-5c50-4acb-8e9f-b2818eb8d179 from test-budgets
+Successfully deleted entry cf73ccef-21b8-4075-84c9-9c0bf2896bab from test-budgets
+Successfully deleted entry 2821b3b2-bf79-49a2-9986-e717881ecf2f from test-budgets
+Successfully deleted entry 6abf2829-e4cf-4d2f-80fc-2f692a3bbebc from test-budgets
+Successfully deleted entry 9ffddd8e-9e86-42a1-beb6-e05f4bbb2c02 from test-budgets
+Successfully deleted entry 1cf037de-7e2a-4729-b754-0a13da672e11 from test-budgets
+Successfully deleted entry c280a4a5-ed12-4406-ab51-560b3470f421 from test-budgets
+Successfully deleted entry 3544afe9-b6a7-48fa-a2e1-396c8cf81793 from test-budgets
+Successfully deleted entry 34172760-ed3e-4557-a4bb-a89fd227e8ec from test-budgets
+Successfully deleted entry dd598449-3319-4688-98cb-f25524a79eba from test-budgets
+Successfully deleted entry b4c87092-71f3-4b23-aef6-187e2feefadb from test-budgets
+Successfully deleted entry 50af06ba-8ed3-4eac-84cc-60fb9569ceff from test-budgets
+Successfully deleted entry 59bfc829-b8ba-4242-83cd-c4349f9e39ee from test-budgets
+Successfully deleted entry 2b69e2a4-c3b6-44d8-b4ff-34281fdd884a from test-budgets
+Successfully deleted entry 0686f564-02cb-447b-b186-1c67550b0979 from test-budgets
+Successfully deleted entry 6de01d6f-ef0f-4f35-9809-90eac49d8e0e from test-budgets
+Successfully deleted entry be7c953b-ad68-4d18-b237-e0a9daeefbe6 from test-budgets
+Successfully deleted entry 7f416e6e-d5a0-4f5d-91bc-d0e5e1241fa8 from test-budgets
+Successfully deleted entry 63d870b5-ace9-48db-a2a6-59e399c2b1b8 from test-budgets
+Successfully deleted entry a7b236cb-3ba1-4e0a-820f-8caf08648d1b from test-budgets
+Successfully deleted entry f83ec61f-a2c3-4677-b902-b5147ed81e90 from test-budgets
+Successfully deleted entry 945318c3-5d51-4e07-8e38-137ba62dbef4 from test-budgets
+Successfully deleted entry add6b01b-da0f-4a80-9449-e42a2f089fbb from test-budgets
+Successfully deleted entry 2b223a8e-55ba-462e-9e52-85a3196334df from test-budgets
+Successfully deleted entry 73bf1fef-7c68-42e6-9dec-fd573c7d7a22 from test-budgets
+Successfully deleted entry af772f84-b26a-4db1-a035-da4840379c1b from test-budgets
+Successfully deleted entry 6054f616-1ea6-4fa3-a1a0-812737084717 from test-budgets
+Successfully deleted entry f29972c1-1343-4172-8e85-4e3d63daf434 from test-budgets
+Successfully deleted entry ed73c368-6d5c-4612-9ca7-88d553a318d8 from test-budgets
+Successfully deleted entry f78cb6de-df26-4b1e-9fb8-59afd26a9127 from test-budgets
+Successfully deleted entry 1d111da2-c3e8-47e6-bd09-286e27803aa5 from test-budgets
+Successfully deleted entry 3212dcfe-5af1-4ddc-b0d4-ff000be670e2 from test-budgets
+Successfully deleted entry 48eedaf3-aec8-407b-b4fa-ee0c3ba15171 from test-budgets
+Successfully deleted entry a6c40314-ff55-41c6-9ef1-3693df36c663 from test-budgets
+Successfully deleted entry 0e5c4b57-e4b3-4785-a3fc-3f2f034d3bdf from test-budgets
+Successfully deleted entry ee563652-1e27-4086-a8c7-06f04297ee30 from test-budgets
+Successfully deleted entry 50fa7b1a-49ea-4bf6-be0e-5dca1bc4e41b from test-budgets
+Successfully deleted entry 17c596f5-fe9e-494e-ad2f-e60ed9dbe424 from test-budgets
+Successfully deleted entry fadcc807-eea5-4fda-af6f-903d4ef67648 from test-budgets
+Successfully deleted entry abc3169c-7d72-4a90-b1fd-1b6a6313570e from test-budgets
+Successfully deleted entry 2c378317-11ff-41a9-8f5c-6974ac57b8b2 from test-budgets
+Successfully deleted entry 9af2ce35-0f8d-45a0-9069-91cc2ce5b264 from test-budgets
+Successfully deleted entry 041f8b6b-949d-47d5-a3de-0a852ee6de3e from test-budgets
+Successfully deleted entry 03dc3153-5558-400e-bbdb-dc3e14dd644c from test-budgets
+Successfully deleted entry 51a29df3-5f16-4da1-9cc8-e83262eb72d3 from test-budgets
+Successfully deleted entry a0ff2fdb-0f28-40cc-b142-d81ec20b2178 from test-budgets
+Successfully deleted entry b790ccf2-fbb7-45b4-a5d8-cae05924299d from test-budgets
+Successfully deleted entry 142d1995-4147-47d9-ac28-f4314113da98 from test-budgets
+Successfully deleted entry 315707af-893d-4bda-a038-200a95a2a843 from test-budgets
+Successfully deleted entry 79bf5c10-3927-42b6-a15a-c01b3f1d2c23 from test-budgets
+Successfully deleted entry 0d558c34-facb-400a-90a2-92261918e091 from test-budgets
+Successfully deleted entry ca8ee633-23fb-4e50-8334-2dcdadb9fcef from test-budgets
+Successfully deleted entry 0f9d2dc7-38f3-4fb7-89c6-7c0e80d03f8c from test-budgets
+Successfully deleted entry a46828f0-df58-4ad2-8119-6235fd5a1f01 from test-budgets
+Successfully deleted entry 6c3523f6-4fbe-43e7-a295-7b29aa02e1a1 from test-budgets
+Successfully deleted entry 8a7438c2-5a51-4641-9e52-917ed824bbd5 from test-budgets
+Successfully deleted entry 47b6cd53-6fed-4303-bc7d-a7d622d11a71 from test-budgets
+Successfully deleted entry d0dfb3e5-ffb9-4310-871f-8943f4f821bf from test-budgets
+Successfully deleted entry sadfasd987df98sa7d7f6sd9087f9 from test-budgets
+Successfully deleted entry 796b0c96-270f-4ef2-b65b-78d64b3c2aa7 from test-budgets
+Successfully deleted entry 05393922-e9a5-49b2-ae09-7900d77ade02 from test-budgets
+Successfully deleted entry d66a2f62-ed6a-4d1a-936e-c8e749a4a26a from test-budgets
+Successfully deleted entry d4c4c796-6a53-4def-b3c6-455f8de4ff45 from test-budgets
+Successfully deleted entry 19ae4c08-ce48-4454-b207-fafe76422bf0 from test-budgets
+Successfully deleted entry 34a4a7b6-8702-4cf2-97c4-9120ae69e1eb from test-budgets
+Successfully deleted entry c73ca70b-9359-4d48-b4b0-d9160bd31e5e from test-budgets
+Successfully deleted entry a594b6d7-3089-43c2-9b03-d914ae8dbece from test-budgets
+Successfully deleted entry de4e6beb-098a-4678-bb73-9430c5edb397 from test-budgets
+Successfully deleted entry a655e379-ec70-431a-8915-b758d5964d25 from test-budgets
+Successfully deleted entry a4b965fd-bc0a-4628-be2a-eed66cae910a from test-budgets
+Successfully deleted entry da965ee7-7423-4dc0-82e3-1c30c7b09c95 from test-budgets
+Successfully deleted entry 13ff9d82-5f95-40d1-a425-3cbdb0e5af98 from test-budgets
+Successfully deleted entry a6425a0c-092c-4328-866c-dfeade5b0cad from test-budgets
+Successfully deleted entry 18570c35-6451-43be-a9e1-e131c796b75f from test-budgets
+Successfully deleted entry dcafaa4b-7e59-46f2-9735-6f140094f873 from test-budgets
+Successfully deleted entry 85193a85-344d-4005-8de0-286ad735fb00 from test-budgets
+Successfully deleted entry 8053c300-0958-44ea-a821-a9182b3a09d5 from test-budgets
+Successfully deleted entry 1d232e71-3aab-49ca-aaea-f04227666464 from test-budgets
+Successfully deleted entry 60806be7-3c35-4144-8f94-e900e1afc55a from test-budgets
+Successfully deleted entry d55336f7-81c0-4763-abcf-ebe23c09aca4 from test-budgets
+Successfully deleted entry 9a3ca8e8-416f-44c7-b6cf-546ec363f7d9 from test-budgets
+Successfully deleted entry 17a6d1e3-b371-4f9f-a9df-1f96873784bd from test-budgets
+Successfully deleted entry 9536ce9d-a1aa-41b3-9037-9de33f0ff5b1 from test-budgets
+Successfully deleted entry b3e279d4-1cbe-4e01-981d-552b9e10f50e from test-budgets
+Successfully deleted entry 2fc8ef58-6c6e-41bd-a80c-8b2a6c62e8d7 from test-budgets
+Successfully deleted entry c39f9f95-7fa7-45c4-a039-51aa3e5852e4 from test-budgets
+Successfully deleted entry cbd52222-030f-4517-bc6b-f147dbef2f2d from test-budgets
+Successfully deleted entry c153fdcd-fac6-44bb-bd7c-1d9ac702ff60 from test-budgets
+Successfully deleted entry bc719f8c-80c1-4fe5-8bfd-da43fe023b8a from test-budgets
+Successfully deleted entry 7c7f26de-9fb6-4baf-8e5e-3edb55ecbde8 from test-budgets
+Successfully deleted entry 4d538238-e8a3-456f-8f59-7d8c228935d5 from test-budgets
+Successfully deleted entry cb976e79-33f1-4377-b758-d73a9a6e75b2 from test-budgets
+Successfully deleted entry d6f46781-cae4-496a-b485-b73c520024b2 from test-budgets
+Successfully deleted entry 51040053-a4d2-49d6-bc7f-ad89b07abfb0 from test-budgets
+Successfully deleted entry 7696525c-a646-4055-bfc4-3d02bc5faa01 from test-budgets
+Successfully deleted entry 251474bc-6685-4782-bf7c-6dfadd8ac8a9 from test-budgets
+Successfully deleted entry 5ab2b5f4-3b3b-4fcb-b6a2-7a11e8235818 from test-budgets
+Successfully deleted entry 395d12f1-1047-44fc-8969-348149cb9fdc from test-budgets
+Successfully deleted entry bf4dc4e0-9a7b-46b9-81a5-a8d0ac86d560 from test-budgets
+Successfully deleted entry b0447a2e-9302-4c49-82a0-bdf0453ea647 from test-budgets
+Successfully deleted entry ab3300c5-c4ae-46e4-bd44-ce0873c02501 from test-budgets
+Successfully deleted entry bea2adb2-e688-4a3f-a0cd-5e478dc6c143 from test-budgets
+Successfully deleted entry dcdbcfb4-bbfe-4b5b-b637-dd10ca61ad5c from test-budgets
+Successfully deleted entry ac1d6596-8186-44ff-83ff-fe43a4e18bd7 from test-budgets
+Successfully deleted entry 94e98a97-e37d-4b24-894f-9ef37e173197 from test-budgets
+Successfully deleted entry 6de2a108-5fb3-4921-8c25-22c3dfcf18a4 from test-budgets
+Successfully deleted entry 6d75a81f-4b47-4098-8565-d2ce63b488db from test-budgets
+Successfully deleted entry 3eb73f7b-6c9d-4e3a-97b8-54c573e2df1e from test-budgets
+Successfully deleted entry 2f49e07c-223d-4a68-ba2c-697f3fc0cad2 from test-budgets
+Successfully deleted entry 1ff0f1eb-80b4-4797-beba-60f7f86dee08 from test-budgets
+Successfully deleted entry 518bb2b1-1488-4fb5-b23b-8ebfa5fe23e3 from test-budgets
+Successfully deleted entry 5657290d-5263-4726-99eb-e4c0c3487761 from test-budgets
+Successfully deleted entry 9ade9249-3b5b-408d-8a62-56c31d2f5d3d from test-budgets
+Successfully deleted entry 3a8216e8-8e01-4b74-a1b0-7c1a6f672956 from test-budgets
+Successfully deleted entry 232b5eac-3f7f-4ed4-922f-3a66e1f9b55a from test-budgets
+Successfully deleted entry 9c2f66d3-5c7c-45d6-bdfa-c277dce4ac58 from test-budgets
+Successfully deleted entry 38629eba-e2c8-49a2-953e-56b5e4971493 from test-budgets
+Successfully deleted entry 26ae26c0-ad59-46ff-8105-0dd44f4dcb54 from test-budgets
+Successfully deleted entry a801aaf7-246c-4903-bbb8-46e839528d25 from test-budgets
+Successfully deleted entry 961406d1-5b00-4f37-89a2-8631886ed4ca from test-budgets
+Successfully deleted entry 4e1e78d7-750e-44b3-be5a-5b10dae64d84 from test-budgets
+Successfully deleted entry fd16852d-3c81-4919-aacb-e99a6b9be90e from test-budgets
+Successfully deleted entry 437119a4-63dc-40fe-bc8f-931cadc4af22 from test-budgets
+Successfully deleted entry 32b80b4e-30cf-4ddd-9787-0737d26fd53c from test-budgets
+Successfully deleted entry d5881424-af8f-4c20-8112-e3b5735b4083 from test-budgets
+Successfully deleted entry dd6be7c8-7b3d-401a-8584-feaf5b112312 from test-budgets
+Successfully deleted entry 29bad48b-0f52-4b72-b184-df93d88fa0da from test-budgets
+Successfully deleted entry 2af96be0-7b68-4579-9134-52bcd61110e7 from test-budgets
+Successfully deleted entry 25076c19-4d3d-44ae-aa62-aeab81d3dc77 from test-budgets
+Successfully deleted entry 16b27669-e051-4d69-8303-d26eb4e9aad1 from test-budgets
+Successfully deleted entry 61502eeb-90b2-41a4-b328-27eef7430bcc from test-budgets
+Successfully deleted entry 5e4e2d11-a72d-45b1-a0b5-912b22d3a8ee from test-budgets
+Successfully deleted entry c1377771-5580-4c5d-b750-85099fd3b222 from test-budgets
+Successfully deleted entry fe774022-9baf-466b-aea7-15ba1f1b3c68 from test-budgets
+Successfully deleted entry d7f57281-9d7f-4305-9970-429aa802a041 from test-budgets
+Successfully deleted entry ccb45063-4859-40b5-ba3f-e612c8efda51 from test-budgets
+Successfully deleted entry 4749da7b-19ed-4f97-bda1-d927e8692697 from test-budgets
+Successfully deleted entry f6f550ff-f485-4737-b661-cbfbeeeddba0 from test-budgets
+Successfully deleted entry fded762d-0934-4930-b7a5-467c591a6c01 from test-budgets
+Successfully deleted entry 8799216a-df9f-4914-a53d-0e5cf57d8d24 from test-budgets
+Successfully deleted entry a87b9dc6-982a-4ce2-9c20-0146874d4319 from test-budgets
+Successfully deleted entry 162a6a7d-35bf-48dd-b7c8-7c533889928c from test-budgets
+Successfully deleted entry e68df979-9d5c-429c-922f-cf7048475102 from test-budgets
+Successfully deleted entry cf4362e7-f510-4a83-bce4-9d070b3c3f2c from test-budgets
+Successfully deleted entry e0247539-ac17-472c-bae7-c7c2c56dd0e7 from test-budgets
+Successfully deleted entry 41bd10c7-cd8d-4bd1-bdfb-7cff2a20f51c from test-budgets
+Successfully deleted entry ea5ac543-97d2-4788-a34d-0173e9a3ceb5 from test-budgets
+Successfully deleted entry b1b6919e-2426-40e2-9898-77decc8dbb1b from test-budgets
+Successfully deleted entry a86ebd4c-8b1d-4cc5-b594-67daa99f3aef from test-budgets
+Successfully deleted entry bc81820b-6f04-4d0f-bf1a-b573740007fe from test-budgets
+Successfully deleted entry 6bc20904-008c-4a52-a844-8d9adc73f16e from test-budgets
+Successfully deleted entry b4f8f626-db81-4493-a6e5-e04640cd8d78 from test-budgets
+Successfully deleted entry 18c03572-02e2-4746-8838-7cb4b0ddee7c from test-budgets
+Successfully deleted entry 12075825-0fe8-4c28-b6d4-7604660ae1fb from test-budgets
+Successfully deleted entry 72d5a540-6e7d-44c5-b192-f5f57805a8ea from test-budgets
+Successfully deleted entry abc39980-1c9e-461e-87ff-fb0ae89d4730 from test-budgets
+Successfully deleted entry 5561293b-b873-4591-a6d8-ed5f83db1f66 from test-budgets
+Successfully deleted entry 7555bddd-cb0d-4151-89ea-c5a9142470dc from test-budgets
+Successfully deleted entry 990d0870-4218-464d-bb36-fe170b9cb930 from test-budgets
+Successfully deleted entry de6ab55c-d4c2-4fa1-b0d3-0ef18015249a from test-budgets
+Successfully deleted entry 69b777a9-ee02-4f3c-ab54-327e669241a4 from test-budgets
+Successfully deleted entry 03256230-fde0-4d8d-8c0f-79376a9e30e5 from test-budgets
+Successfully deleted entry bb3600d2-5e5f-462b-b0ac-e84733a83206 from test-budgets
+Successfully deleted entry 069fe4f7-691f-4064-a5fc-c2c31110031c from test-budgets
+Successfully deleted entry 1636aa82-fe6d-49d4-bdc1-85a1e1ce6761 from test-budgets
+Successfully deleted entry 831bb9df-9fce-4f11-b8fc-27200fd5b8af from test-budgets
+Successfully deleted entry 3f8fea1d-1bf3-46b7-a59e-258029fde0df from test-budgets
+Successfully deleted entry 9d6950a9-59a7-4c9e-8d8b-4de0402b5282 from test-budgets
+Successfully deleted entry cc4597d5-2119-4384-bfbc-fced27883d12 from test-budgets
+Successfully deleted entry 2b104641-438d-4015-9348-fc143d917ada from test-budgets
+Successfully deleted entry 439a98a5-ca20-4827-bd9f-af31cc25dc45 from test-budgets
+Successfully deleted entry 3d21c819-066a-4009-93d5-f7cd9a149e6d from test-budgets
+Successfully deleted entry 46828ddb-ce4d-4c35-a0f4-3c75946e566c from test-budgets
+Successfully deleted entry 401914f6-7dcc-481c-a208-d061fc59aaed from test-budgets
+Successfully deleted entry 9ff11189-70c7-415d-8027-7cda986f9523 from test-budgets
+Successfully deleted entry 092d289a-c6e3-4189-8032-d623aa79b679 from test-budgets
+Successfully deleted entry 437c27f7-d9be-4f35-80ec-30fabd0c87be from test-budgets
+Successfully deleted entry 15ac81ef-8c6c-4c38-88dc-3bba080024e5 from test-budgets
+Successfully deleted entry 4fbef376-f2a8-4a28-838d-90237642bc25 from test-budgets
+Successfully deleted entry 8e20d07b-10b3-4ac0-b0c2-d7d5ad1b68df from test-budgets
+Successfully deleted entry 4375848c-dc63-4dc5-962b-460565f34bb7 from test-budgets
+Successfully deleted entry 1226f1df-64fa-4030-be2d-523a6b1904d1 from test-budgets
+Successfully deleted entry bfae8788-4cd5-40ec-a98c-839b498fe94b from test-budgets
+Successfully deleted entry e89615c1-f358-4318-8881-3907d0ce45b1 from test-budgets
+Successfully deleted entry f776d90b-acc3-4805-9533-ab14414a9a86 from test-budgets
+Successfully deleted entry 96647850-ea8e-4d4f-9e55-34ce932742db from test-budgets
+Successfully deleted entry 2f38627e-c43b-43bf-9013-c5cec11ea268 from test-budgets
+Successfully deleted entry c086de2a-094c-4a12-a389-66f1efd9703d from test-budgets
+Successfully deleted entry b51bcb60-3587-4253-92b4-2ddc778e3dc4 from test-budgets
+Successfully deleted entry 51c82f6e-d607-4175-825f-9ba0ba6c2fd2 from test-budgets
+Successfully deleted entry 729858bf-7d40-4903-b1e1-ee05d2fbb9f8 from test-budgets
+Successfully deleted entry 84ffd87e-7feb-4b0f-8734-56d44b37e17a from test-budgets
+Successfully deleted entry 71ec1451-c390-4f47-a0c8-8f4159553a08 from test-budgets
+Successfully deleted entry c671cd72-10be-4d14-9492-19e62e866d5c from test-budgets
+Successfully deleted entry 9dbd522c-435f-4eb2-b9ab-0c4ffe235b5d from test-budgets
+Successfully deleted entry b1b819e7-2a42-4f1d-8f18-daa97630029c from test-budgets
+Successfully deleted entry 59191472-f4de-4156-93b5-7095085c14a7 from test-budgets
+Successfully deleted entry 69888d89-f9df-4420-803a-f93496622578 from test-budgets
+Successfully deleted entry 96620147-2ad1-4b60-a683-2f0356c9a9e7 from test-budgets
+Successfully deleted entry c03aa7fd-3cf9-4713-b1ca-0ffb4989d98f from test-budgets
+Successfully deleted entry c15337f7-22f4-4e9c-a3ce-0ab522c55f41 from test-budgets
+Successfully deleted entry fee74c6e-457d-4ac5-b033-407a71e6562f from test-budgets
+Successfully deleted entry f58d67f1-e9ff-4353-b2a7-e2b2efeef13b from test-budgets
+Successfully deleted entry d64e6c09-4a3e-4564-a249-f39900a1a2b1 from test-budgets
+Successfully deleted entry b785a72d-fb16-4d1b-bd1c-c78263948197 from test-budgets
+Successfully deleted entry a2aa8d93-f89c-49d8-8e4b-26c32f53e9cc from test-budgets
+Successfully deleted entry e13db0d0-c51f-4ee3-be5a-eebdaa66cf73 from test-budgets
+Finished deleting all entries in test-budgets
+Getting all entries from dynamodb test-expenses table
+Finished getting all entries from test-expenses
+Getting all entries from dynamodb test-employees table
+Finished getting all entries from test-employees
+Getting all entries from dynamodb test-expense-types table
+Finished getting all entries from test-expense-types
+Successfully created recurring budget 8173aa11-6fb3-46d4-bb89-fe43c35ce229 for employee 97789f2a-606e-488f-9d14-a8e243350086 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Successfully created recurring budget b469f45f-7bfb-4154-a4d9-cf7fdea8d10e for employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget ad0a21e8-22a6-4e5a-bf79-94389008e7ba for employee f9c4ecc3-8801-40e7-ba35-d10568ac21bd and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully created recurring budget af25c2ea-b331-4904-98ae-a462d0584897 for employee 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Successfully created recurring budget 1ed2cef8-52dd-4f5f-9290-4f303ab6cf8e for employee 89640ae8-6ca5-40bf-b9fb-3ad8f4e96e01 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Checking if employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f has access to expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f has access to e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Adjusted budget amount is $3500
+Successfully created non-recurring budget c979cddf-f2ed-4a96-b6be-73d99320a7cb for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Successfully created recurring budget 4fda1ce0-1166-46db-9c8d-ff15c6131119 for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget 677e85df-2659-4d4f-939e-22638b007b97 for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully created recurring budget 3902c309-b31b-407e-976b-db30bf7599fb for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Successfully created recurring budget 8a8178c7-7b02-48a7-9790-99a03ba50533 for employee dd2c4fef-e8eb-44e9-8cfe-d506deb20e1f and expense type 741ff729-b869-4fdd-8999-02831e05b4c7
+Calculating adjusted budget amount for employee ea7f1933-df6b-408b-b4ee-ad9987379f7e and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee ea7f1933-df6b-408b-b4ee-ad9987379f7e has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee ea7f1933-df6b-408b-b4ee-ad9987379f7e has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget 1e63233e-92b5-4a81-9f17-b67233b8318b for employee ea7f1933-df6b-408b-b4ee-ad9987379f7e and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully created recurring budget 6f623c24-115b-4e9f-8fce-9985eef532cd for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget 25c0735f-a501-4669-aa58-0591cc7c8b9c for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Calculating adjusted budget amount for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 and expense type 31cbc67a-0b5e-49b6-9b61-e769a0d2ef32
+Checking if employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 has access to expense type 31cbc67a-0b5e-49b6-9b61-e769a0d2ef32
+Employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 has access to 31cbc67a-0b5e-49b6-9b61-e769a0d2ef32
+Adjusted budget amount is $1250
+Successfully created non-recurring budget 220d92fa-3770-4bff-948e-8cbce5e3060b for employee f83ee1b0-e12a-46e9-b705-fde7d71119c8 and expense type 31cbc67a-0b5e-49b6-9b61-e769a0d2ef32
+Successfully created recurring budget 94ff82fa-4598-42ca-9ae4-c582eb8e9674 for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Calculating adjusted budget amount for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Checking if employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Adjusted budget amount is $3500
+Successfully created recurring budget ff937f63-fb75-45a6-b84a-9c9695a6dec9 for employee 10182e5b-1060-4e8a-a205-0b4ed3049f9d and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Calculating adjusted budget amount for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Checking if employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 has access to expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 has access to e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Adjusted budget amount is $3500
+Successfully created non-recurring budget fd07efd9-ca8e-4075-b9fe-a991779887d9 for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Successfully created recurring budget 62648452-a49a-4afa-bd62-efb9adb35f08 for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget c7a5751f-edf4-47f4-a358-36afb81016b9 for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully created recurring budget ae96c14b-ae9d-4698-a581-b1aca803736a for employee 5737df82-0e34-4dfa-a26c-1d6257ef2670 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Successfully created recurring budget e47d60c1-8170-4307-bb61-ed0641f021dc for employee 9fdfc168-13c1-492e-9b8c-4e213e04660d and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Successfully created recurring budget 253d210c-67be-41d9-8d32-7fbbe3679eb3 for employee e515672c-638d-473f-9dc9-ee2d991d94d2 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Checking if employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Adjusted budget amount is $3500
+Successfully created non-recurring budget 3e33a81e-e30e-4050-aaf9-76fa36a37a00 for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Calculating adjusted budget amount for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee 11841ad8-e38f-4aab-99d9-8a5108a55076 has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully created recurring budget c8250c68-5a39-4f4a-abfb-c9b0657995b3 for employee 11841ad8-e38f-4aab-99d9-8a5108a55076 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully created recurring budget ea7a4d4a-0d95-4ac5-86ad-7599dc9b7b94 for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Calculating adjusted budget amount for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Checking if employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Employee 360fb71d-4e80-40d2-ae8f-086fd4905646 has access to 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Adjusted budget amount is $3500
+Successfully created recurring budget e828fa81-ccde-4b53-a401-a37940e1f59d for employee 360fb71d-4e80-40d2-ae8f-086fd4905646 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Calculating adjusted budget amount for employee 55b29ff7-d686-4d4a-80c6-efe61fd06d8c and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee 55b29ff7-d686-4d4a-80c6-efe61fd06d8c has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee 55b29ff7-d686-4d4a-80c6-efe61fd06d8c has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget 40db1d2c-bbdc-4598-80dc-131a7142478c for employee 55b29ff7-d686-4d4a-80c6-efe61fd06d8c and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Calculating adjusted budget amount for employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Checking if employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 has access to expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 has access to e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Adjusted budget amount is $3500
+Successfully created non-recurring budget db08f39a-2059-416a-b387-2550607507d3 for employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 and expense type e7ac542e-e389-4bea-810e-ccd3ea5b157c
+Calculating adjusted budget amount for employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Checking if employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 has access to expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 has access to 4773f51d-6030-4547-a857-f2db9de7f0d9
+Adjusted budget amount is $100
+Successfully created non-recurring budget b7b06070-3dc4-4aca-84a5-8083f4de7f48 for employee 0b9838b1-a2fd-470f-96ba-4413e6a54de7 and expense type 4773f51d-6030-4547-a857-f2db9de7f0d9
+Successfully created recurring budget 05943024-402e-4c8f-b802-91fce901504a for employee c4ed66d8-5fcb-47f0-9e92-f8d20b1f16a2 and expense type 9d6a74f1-c36b-4a96-93e3-6a0bf83770bf
+Calculating adjusted budget amount for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Checking if employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to expense type 9cbee856-d1de-420f-badd-4754663948fa
+Employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd has access to 9cbee856-d1de-420f-badd-4754663948fa
+Adjusted budget amount is $1800
+Successfully created recurring budget aea4cbf4-4c0a-4927-a06b-579059ac9ab4 for employee d6aa5035-0c4d-4ecc-a0e8-1c7c433cbefd and expense type 9cbee856-d1de-420f-badd-4754663948fa
+Finished refreshing budgets
