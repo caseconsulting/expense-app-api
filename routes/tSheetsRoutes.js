@@ -63,7 +63,8 @@ class TSheetsRoutes {
   } // asyncForEach
 
   /**
-   * Gets an employee's paid time off (PTO) balances, given an employee number.
+   * Gets an employee's paid time off (PTO) balances, given an employee number. If the employee number is 0, PTO
+   * balances of ALL employees will be returned.
    *
    * @param req - api request
    * @param res - api response
@@ -116,7 +117,8 @@ class TSheetsRoutes {
   } // _getPTOBalances
 
   /**
-   * Gets an employee's time sheets, given an employee number, a start date, and end date in iso-format.
+   * Gets an employee's time sheets, given an employee number, a start date, and end date in iso-format. If the
+   * employee number is 0, time sheets for ALL employees between the date range will be returned.
    *
    * @param req - api request
    * @param res - api response
