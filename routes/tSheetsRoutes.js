@@ -9,7 +9,7 @@ const Logger = require('../js/Logger');
 
 // const ISOFORMAT = 'YYYY-MM-DD';
 const lambda = new AWS.Lambda();
-const logger = new Logger('utilityRoutes');
+const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
