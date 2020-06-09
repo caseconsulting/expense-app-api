@@ -37,6 +37,9 @@ const utilityRoutes = new UtilityRoutes();
 const AttachmentRoutes = require('./routes/attachmentRoutes');
 const attachmentRoutes = new AttachmentRoutes();
 
+const TSheetsRoutes = require('./routes/tSheetsRoutes');
+const tSheetsRoutes = new TSheetsRoutes();
+
 var app = express();
 
 // view engine setup
@@ -68,6 +71,7 @@ app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
+app.use('/tSheets', tSheetsRoutes.router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
