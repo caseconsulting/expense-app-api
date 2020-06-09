@@ -29,7 +29,7 @@ const checkJwt = jwt({
   algorithms: ['RS256']
 });
 
-class Utility {
+class TSheetsRoutes {
 
   constructor() {
     this._router = express.Router();
@@ -249,6 +249,6 @@ class Utility {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
-} // Utility
+} // TSheetsRoutes
 
-module.exports = Utility;
+module.exports = TSheetsRoutes;
