@@ -271,7 +271,7 @@ class Utility {
 
       // loop all expense types
       await this.asyncForEach(expenseTypes, async expenseType => {
-        if (expenseType.isDateInRange(today)) {
+        if (expenseType.isDateInRange(today) && this.hasAccess(employee, expenseType)) {
           // expense type is active today
           // push the current active budget
           activeBudgets.push(await this._getActiveBudget(employee, expenseType));

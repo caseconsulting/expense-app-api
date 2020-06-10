@@ -609,6 +609,7 @@ describe('utilityRoutes', () => {
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
         spyOn(utilityRoutes, '_getActiveBudget').and.returnValue('{activeBudget}');
+        spyOn(utilityRoutes, 'hasAccess').and.returnValue(true);
       });
 
       it('should respond with a 200 and the 2 active aggregated expenses', done => {
@@ -690,6 +691,7 @@ describe('utilityRoutes', () => {
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
         spyOn(utilityRoutes, '_getActiveBudget').and.returnValue(Promise.reject(err));
+        spyOn(utilityRoutes, 'hasAccess').and.returnValue(true);
       });
 
       it('should respond with a 404 and error', done => {
