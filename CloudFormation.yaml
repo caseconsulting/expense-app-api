@@ -432,7 +432,7 @@ Resources:
       Policies:
         - PolicyName: TextExtract
           PolicyDocument:
-            Version: 2018-06-27
+            Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action: 'textract:*'
