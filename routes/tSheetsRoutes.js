@@ -4,10 +4,10 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
-// const moment = require('moment');
+const moment = require('moment');
 // const _ = require('lodash');
 
-// const ISOFORMAT = 'YYYY-MM-DD';
+const ISOFORMAT = 'YYYY-MM-DD';
 const lambda = new AWS.Lambda();
 const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
@@ -83,7 +83,7 @@ class TSheetsRoutes {
       };
 
       // lambda invoke parameters
-      var params = {
+      let params = {
         FunctionName: `mysterio-pto-balances-${STAGE}`,
         Payload: JSON.stringify(payload),
         Qualifier: '$LATEST'
@@ -91,19 +91,27 @@ class TSheetsRoutes {
 
       let result = await lambda.invoke(params).promise();
 
-      // log success
-      logger.log(1, '_getPTOBalances',
-        `Successfully got PTO balances for employee number ${req.params.employeeNumber}`
-      );
-
       // invoke mysterio pto balances lambda function
-      let ptoBalances = JSON.parse(result.Payload).body;
+      let resultPayload = JSON.parse(result.Payload);
 
-      // send successful 200 status
-      res.status(200).send(ptoBalances);
+      if (resultPayload.body) {
+        // log success
+        logger.log(1, '_getPTOBalances',
+          `Successfully got PTO balances for employee number ${req.params.employeeNumber}`
+        );
 
-      // return employee pto balances
-      return ptoBalances;
+        let ptoBalances = resultPayload.body;
+        // send successful 200 status
+        res.status(200).send(ptoBalances);
+
+        // return employee pto balances
+        return ptoBalances;
+      } else {
+        throw {
+          code: 404,
+          message: resultPayload.errorMessage
+        }
+      }
     } catch (err) {
       // log error
       logger.log(1, '_getPTOBalances', `Failed to get PTO balances for employee number ${req.params.employeeNumber}`);
@@ -132,6 +140,15 @@ class TSheetsRoutes {
     );
 
     try {
+      let startDate = moment(req.params.startDate, ISOFORMAT);
+      let endDate = moment(req.params.endDate, ISOFORMAT);
+      if (startDate.isAfter(endDate)) {
+        throw {
+          code: 400,
+          message: `Start date must be before end date.`
+        };
+      }
+
       // mysterio function parameters
       let payload = {
         employeeNumber: req.params.employeeNumber,
@@ -140,7 +157,7 @@ class TSheetsRoutes {
       };
 
       // lambda invoke parameters
-      var params = {
+      let params = {
         FunctionName: `mysterio-time-sheets-${STAGE}`,
         Payload: JSON.stringify(payload),
         Qualifier: '$LATEST'
@@ -149,19 +166,29 @@ class TSheetsRoutes {
       // invoke mysterio time sheets lambda function
       let result = await lambda.invoke(params).promise();
 
-      // log success
-      logger.log(1, '_getTimeSheets',
-        `Successfully got time sheets for employee number ${req.params.employeeNumber} between`,
-        `${req.params.startDate} and ${req.params.endDate}`
-      );
+      // invoke mysterio pto balances lambda function
+      let resultPayload = JSON.parse(result.Payload);
 
-      let timeSheets = JSON.parse(result.Payload).body;
+      if (resultPayload.body) {
+        // log success
+        logger.log(1, '_getTimeSheets',
+          `Successfully got time sheets for employee number ${req.params.employeeNumber} between`,
+          `${req.params.startDate} and ${req.params.endDate}`
+        );
 
-      // send successful 200 status
-      res.status(200).send(timeSheets);
+        let timeSheets = resultPayload.body;
 
-      // return employee time sheets
-      return timeSheets;
+        // send successful 200 status
+        res.status(200).send(timeSheets);
+
+        // return employee pto balances
+        return timeSheets;
+      } else {
+        throw {
+          code: 404,
+          message: resultPayload.errorMessage
+        }
+      }
     } catch (err) {
       // log error
       logger.log(1, '_getTimeSheets',
