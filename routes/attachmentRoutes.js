@@ -32,6 +32,7 @@ const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
+const textract = new AWS.Textract({apiVersion: '2018-06-27'});
 
 const storage = multerS3({
   s3: s3,
@@ -95,19 +96,20 @@ class Attachment {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    this._router.post(
-      '/:employeeId/:expenseId',
-      this._checkJwt,
-      this._getUserInfo,
-      this.uploadAttachmentToS3.bind(this)
-    );
-    this._router.get('/:employeeId/:expenseId', this._checkJwt, this._getUserInfo, this.getAttachmentFromS3.bind(this));
     this._router.delete(
       '/:employeeId/:expenseId/:receipt',
       this._checkJwt,
       this._getUserInfo,
       this.deleteAttachmentFromS3.bind(this)
     );
+    this._router.get('/:employeeId/:expenseId', this._checkJwt, this._getUserInfo, this.getAttachmentFromS3.bind(this));
+    this._router.post(
+      '/:employeeId/:expenseId',
+      this._checkJwt,
+      this._getUserInfo,
+      this.uploadAttachmentToS3.bind(this)
+    );
+    this._router.put('/:fileName', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
     this.expenseDynamo = expenseDynamo;
   } // constructor
 
@@ -162,6 +164,105 @@ class Attachment {
       }
     });
   } // deleteAttachmentFromS3
+
+  /**
+   * Extracts text from a file using AWS Textract.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - text data
+   */
+  async extractText(req, res) {
+    // log method
+    logger.log(2, 'extractText', `Attempting to extract text from ${req.params.fileName}`);
+
+    // compute method
+    // file limits
+    let mLimits = {
+      files: 1, // allow only 1 file per request
+      fileSize: 5 * 1024 * 1024 // 5 MB (max file size)
+    };
+
+    // filter valid mimetypes
+    let mFileFilter = function(req, file, cb) {
+      // log method
+      logger.log(2, 'fileFilter', `Attempting to validate ${file.originalname} for text extraction`);
+
+      // compute method
+      // Content types that can be text extracted
+      const ALLOWED_CONTENT_TYPES = [
+        'image/jpeg', //.jpeg
+        'image/png', //.png
+      ];
+
+      if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
+        // valid file type
+        logger.log(2, 'fileFilter',
+          `Successfully validated Mimetype ${file.mimetype} of attachment ${file.originalname}`
+        );
+
+        cb(null, true);
+      } else {
+        // invalid file type
+        logger.log(2, 'fileFilter', `Failed to validate Mimetype ${file.mimetype} of attachment ${file.originalname}`);
+
+        cb(new Error(`Invalid file type ${file.mimetype}. Text can only be extracted from jpg or png files.`));
+      }
+    };
+
+    let mStorage = multer.memoryStorage();
+    let mUpload = multer({
+      storage: mStorage,
+      limits: mLimits,
+      fileFilter: mFileFilter
+    }).single('receipt');
+
+    mUpload(req, res, async (err) => {
+      if (err) {
+        // failed to get file bytes
+        logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}`);
+
+        let error = {
+          code: 404,
+          message: err.message
+        };
+
+        // send and return error
+        res.status(error.code).send(error);
+        return error;
+      } else {
+        // successfully got file bytes
+        try {
+          let params = {
+            Document: { /* required */
+              Bytes: req.file.buffer
+            }
+          };
+
+          let text = await textract.detectDocumentText(params).promise();
+          logger.log(2, 'extractText', `Successfully extracted text from ${req.params.fileName}`);
+
+          // send successful 200 status with the uploaded file and text
+          res.status(200).send(text);
+
+          // return text
+          return text;
+        } catch (err) {
+          // failed to extract text
+          logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}`);
+
+          let error = {
+            code: 404,
+            message: err.message
+          };
+
+          // send and return error
+          res.status(error.code).send(error);
+          return error;
+        }
+      }
+    });
+  } // extractText
 
   /**
    * Gets an attachment from S3.
@@ -232,7 +333,7 @@ class Attachment {
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
 
     // compute method
-    upload(req, res, (err) => {
+    upload(req, res, async (err) => {
       if (err) {
         // log error
         logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
@@ -255,7 +356,7 @@ class Attachment {
           `to S3 bucket ${req.file.bucket}`
         );
 
-        // send successful 200 status
+        // set a successful 200 response with uploaded file
         res.status(200).send(req.file);
 
         // return file uploaded
