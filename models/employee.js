@@ -14,6 +14,7 @@
  * - workStatus
  *
  * - birthday
+ * - birthdayFeed
  * - jobRole
  * - prime
  * - contract
@@ -36,6 +37,7 @@ class Employee {
     this.employeeRole = data.employeeRole;
     this.workStatus = data.workStatus;
     this.birthday = data.birthday;
+    this.birthdayFeed = data.birthdayFeed;
     this.jobRole = data.jobRole;
     this.prime = data.prime;
     this.contract = data.contract;
