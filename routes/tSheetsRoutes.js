@@ -140,6 +140,18 @@ class TSheetsRoutes {
     );
 
     try {
+      if (!this.isIsoFormat(req.params.startDate)) {
+        throw {
+          code: 400,
+          message: 'Invalid start date. Start date must be in iso-format.'
+        };
+      } else if (!this.isIsoFormat(req.params.endDate)) {
+        throw {
+          code: 400,
+          message: 'Invalid end date. End date must be in iso-format.'
+        };
+      }
+
       let startDate = moment(req.params.startDate, ISOFORMAT);
       let endDate = moment(req.params.endDate, ISOFORMAT);
       if (startDate.isAfter(endDate)) {
@@ -227,6 +239,17 @@ class TSheetsRoutes {
     // return result
     return result;
   } // isAdmin
+
+  /**
+   * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
+   * false.
+   *
+   * @param value - value to check
+   * @return boolean - value is in iso-format
+   */
+  isIsoFormat(value) {
+    return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
+  } // isIsoFormat
 
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
