@@ -220,7 +220,7 @@ class Attachment {
     mUpload(req, res, async (err) => {
       if (err) {
         // failed to get file bytes
-        logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}`);
+        logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}. ${err.message}`);
 
         let error = {
           code: 404,
@@ -249,7 +249,7 @@ class Attachment {
           return text;
         } catch (err) {
           // failed to extract text
-          logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}`);
+          logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}. ${err.message}`);
 
           let error = {
             code: 404,
