@@ -248,7 +248,8 @@ class TSheetsRoutes {
    * @return boolean - value is in iso-format
    */
   isIsoFormat(value) {
-    return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
+    let dateRegex = RegExp('[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$');
+    return dateRegex.test(value);
   } // isIsoFormat
 
   /**
