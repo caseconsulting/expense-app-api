@@ -110,7 +110,7 @@ class TSheetsRoutes {
         throw {
           code: 404,
           message: resultPayload.errorMessage
-        }
+        };
       }
     } catch (err) {
       // log error
@@ -145,7 +145,7 @@ class TSheetsRoutes {
       if (startDate.isAfter(endDate)) {
         throw {
           code: 400,
-          message: `Start date must be before end date.`
+          message: 'Start date must be before end date.'
         };
       }
 
@@ -187,7 +187,7 @@ class TSheetsRoutes {
         throw {
           code: 404,
           message: resultPayload.errorMessage
-        }
+        };
       }
     } catch (err) {
       // log error
