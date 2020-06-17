@@ -40,6 +40,9 @@ const attachmentRoutes = new AttachmentRoutes();
 const TSheetsRoutes = require('./routes/tSheetsRoutes');
 const tSheetsRoutes = new TSheetsRoutes();
 
+const TwitterRoutes = require('./routes/twitterRoutes');
+const twitterRoutes = new TwitterRoutes();
+
 var app = express();
 
 // view engine setup
@@ -72,6 +75,7 @@ app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
+app.use('/twitter', twitterRoutes.router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
