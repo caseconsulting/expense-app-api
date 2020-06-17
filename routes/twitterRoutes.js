@@ -100,6 +100,18 @@ class TwitterRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
+
+  /**
+   * Returns the instace express router.
+   *
+   * @return Router Object - express router
+   */
+  get router() {
+    // log method
+    logger.log(5, 'router', 'Getting router');
+
+    return this._router;
+  } // router
 }
 
 module.exports = TwitterRoutes;
