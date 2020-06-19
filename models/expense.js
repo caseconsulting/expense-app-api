@@ -29,6 +29,7 @@ class Expense {
     this.employeeId = data.employeeId;
     this.expenseTypeId = data.expenseTypeId;
     this.category = data.category;
+    this.showOnFeed = data.showOnFeed;
 
     // populate empty fields with a space holder
     for (let propName in this) {

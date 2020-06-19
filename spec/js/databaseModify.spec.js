@@ -38,6 +38,7 @@ describe('databaseModify', () => {
   const RECEIPT = '{receipt}';
   const COST = 0;
   const CATEGORY = '{category}';
+  const SHOWONFEED = '{showOnFeed}';
 
   const NAME = '{name}';
   const BUDGET = '{budget}';
@@ -87,7 +88,8 @@ describe('databaseModify', () => {
     description: DESCRIPTION,
     employeeId: ID,
     expenseTypeId: ID,
-    category: CATEGORY
+    category: CATEGORY,
+    showOnFeed: SHOWONFEED
   };
 
   const EXPENSE_TYPE_DATA = {
@@ -320,7 +322,8 @@ describe('databaseModify', () => {
           ':h': '{description}',
           ':i': '{id}',
           ':j': '{id}',
-          ':k': '{category}'
+          ':k': '{category}',
+          ':l': '{showOnFeed}'
         };
 
         expectedUpdateExpression = 'set'
@@ -334,7 +337,8 @@ describe('databaseModify', () => {
           + 'description = :h,'
           + 'employeeId = :i,'
           + 'expenseTypeId = :j,'
-          + 'category = :k';
+          + 'category = :k,'
+          + 'showOnFeed = :l';
 
         expectedExpressionAttributeNames = { '#url': 'url' };
       });
@@ -365,7 +369,7 @@ describe('databaseModify', () => {
           description: DESCRIPTION,
           employeeId: ID,
           expenseTypeId: ID,
-          category: null
+          category: null,
         };
 
         expectedExpressionAttributeValues = {
