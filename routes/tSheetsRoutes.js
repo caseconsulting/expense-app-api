@@ -160,6 +160,12 @@ class TSheetsRoutes {
           message: 'Start date must be before end date.'
         };
       }
+      if (!startDate.isValid() || !endDate.isValid()) {
+        throw {
+          code: 400,
+          message: 'Dates must be valid.'
+        };
+      }
 
       // mysterio function parameters
       let payload = {
