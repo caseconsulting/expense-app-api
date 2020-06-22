@@ -94,7 +94,7 @@ async function deleteAllTrainingUrls() {
           5,
           'deleteAllTrainingUrls',
           `Failed to delete training url ${entry.id} with category ${entry.category} from ${TRAINING_TABLE}. Error`,
-          `JSON:`,
+          'JSON:',
           JSON.stringify(err, null, 2)
         );
       });
