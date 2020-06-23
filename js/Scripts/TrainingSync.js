@@ -31,6 +31,7 @@ const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 const logger = new Logger('TrainingSync');
 const EXPENSE_TABLE = `${STAGE}-expenses`;
 const TRAINING_TABLE = `${STAGE}-training-urls`;
+const EXPENSE_TYPE_TABLE = `${STAGE}-expense-types`;
 
 // get all the entries in dynamo the given table
 const getAllEntries = (params, out = []) =>
@@ -63,7 +64,7 @@ async function asyncForEach(array, callback) {
  * Deletes all training urls from the training table.
  */
 async function deleteAllTrainingUrls() {
-  logger.log(5, 'deleteAllTrainingUrls', `Deleting all entries in ${TRAINING_TABLE}`);
+  logger.log(2, 'deleteAllTrainingUrls', `Deleting all entries in ${TRAINING_TABLE}`);
 
   let entries = await getAllEntriesInDB(TRAINING_TABLE);
 
@@ -83,7 +84,7 @@ async function deleteAllTrainingUrls() {
       .promise()
       .then((data) => {
         logger.log(
-          5,
+          2,
           'deleteAllTrainingUrls',
           `Successfully deleted training url ${data.Attributes.id} with category ${data.Attributes.category} from`,
           `${TRAINING_TABLE}`
@@ -91,7 +92,7 @@ async function deleteAllTrainingUrls() {
       })
       .catch((err) => {
         logger.log(
-          5,
+          2,
           'deleteAllTrainingUrls',
           `Failed to delete training url ${entry.id} with category ${entry.category} from ${TRAINING_TABLE}. Error`,
           'JSON:',
@@ -99,7 +100,7 @@ async function deleteAllTrainingUrls() {
         );
       });
   });
-  logger.log(5, 'deleteAllTrainingUrls', `Finished deleting all entries in ${TRAINING_TABLE}`);
+  logger.log(2, 'deleteAllTrainingUrls', `Finished deleting all entries in ${TRAINING_TABLE}`);
 } // deleteAllTrainingUrls
 
 /*
@@ -109,7 +110,7 @@ async function deleteAllTrainingUrls() {
  * @return Array - List of entries in table
  */
 function getAllEntriesInDB(table) {
-  logger.log(5, 'getAllEntriesInDB', `Getting all entries in table ${table}`);
+  logger.log(2, 'getAllEntriesInDB', `Getting all entries in table ${table}`);
 
   let params = {
     TableName: table
@@ -135,20 +136,20 @@ function _isEmpty(value) {
  */
 async function _getMetaData(id) {
   // log method
-  logger.log(5, '_getMetaData', `Attempting to scrape metadata from ${id}`);
+  logger.log(2, '_getMetaData', `Attempting to scrape metadata from ${id}`);
 
   // compute method
   return _got(id)
     .then((data) => _metascraper(data))
     .then((metaData) => {
       // log success
-      logger.log(5, '_getMetaData', `Successfully scraped metadata from ${id}`);
+      logger.log(2, '_getMetaData', `Successfully scraped metadata from ${id}`);
 
       return metaData;
     })
     .catch(() => {
       // log error
-      logger.log(5, '_getMetaData', `Failed to scrape metadata from ${id}`);
+      logger.log(2, '_getMetaData', `Failed to scrape metadata from ${id}`);
 
       return {};
     });
@@ -162,7 +163,7 @@ async function _getMetaData(id) {
  */
 async function _got(id) {
   // log method
-  logger.log(5, '_got', `Getting http request for ${id}`);
+  logger.log(2, '_got', `Getting http request for ${id}`);
 
   // compute method
   const { body: html, url } = await got(id);
@@ -178,7 +179,7 @@ async function _got(id) {
  */
 async function _metascraper(data) {
   // log method
-  logger.log(5, '_metascraper', `Scraping ${data.url} for metadata`);
+  logger.log(2, '_metascraper', `Scraping ${data.url} for metadata`);
 
   // compute method
   return metascraper(data);
@@ -187,15 +188,21 @@ async function _metascraper(data) {
 
 // repopulate all expense training urls
 async function getAllTrainingUrls() {
-  logger.log(5, 'getAllTrainingUrls', 'Attempting to update all Training Urls');
+  logger.log(2, 'getAllTrainingUrls', 'Attempting to update all Training Urls');
   // delete all old entries in training table
   await deleteAllTrainingUrls();
+
+  // get training expense type
+  let expenseTypes = await getAllEntriesInDB(EXPENSE_TYPE_TABLE);
+  let trainingET = _.find(expenseTypes, (expenseType) => {
+    return expenseType.budgetName === 'Training';
+  });
 
   // generate training hits from expenses
   let expenses = await getAllEntriesInDB(EXPENSE_TABLE);
   let keys = [];
   for (let i = 0; i < expenses.length; i++) {
-    if (!_isEmpty(expenses[i].url) && !_isEmpty(expenses[i].category)) {
+    if (expenses[i].expenseTypeId === trainingET.id && !_isEmpty(expenses[i].url) && !_isEmpty(expenses[i].category)) {
       let key = {
         url: expenses[i].url,
         category: expenses[i].category
@@ -231,21 +238,22 @@ async function getAllTrainingUrls() {
       .promise()
       .then(() => {
         logger.log(
-          5,
+          1,
           'getAllTrainingUrls',
-          `Successfully created ${key.hits} hit(s) for training url ${key.url} with category ${key.category}`
+          `Successfully created ${key.hits} hit(s) for training url '${key.url}' with category '${key.category}'`
         );
       })
       .catch((err) => {
         logger.log(
-          5,
+          1,
           'getAllTrainingUrls',
-          `Unable to create ${key.hits} hit(s) for training url ${key.url} with category ${key.category}. Error JSON:`,
+          `Unable to create ${key.hits} hit(s) for training url '${key.url}' with category '${key.category}'. Erro`,
+          `JSON:`,
           JSON.stringify(err, null, 2)
         );
       });
   });
-  logger.log(5, 'getAllTrainingUrls', 'Finished updating all Training Urls');
+  logger.log(2, 'getAllTrainingUrls', 'Finished updating all Training Urls');
 }
 
 getAllTrainingUrls();
