@@ -306,8 +306,6 @@ Resources:
           AttributeType: S
         - AttributeName: expenseTypeId
           AttributeType: S
-        # - AttributeName: userId
-        #   AttributeType: S
         - AttributeName: employeeId
           AttributeType: S
         - AttributeName: purchaseDate
@@ -316,14 +314,6 @@ Resources:
         - AttributeName: id
           KeyType: HASH
       GlobalSecondaryIndexes:
-        # - IndexName: userId-index
-        #   KeySchema:
-        #     - AttributeName: userId
-        #       KeyType: HASH
-        #     - AttributeName: purchaseDate
-        #       KeyType: RANGE
-        #   Projection:
-        #     ProjectionType: ALL
         - IndexName: employeeId-index
           KeySchema:
             - AttributeName: employeeId
@@ -369,8 +359,6 @@ Resources:
           AttributeType: S
         - AttributeName: expenseTypeId
           AttributeType: S
-        # - AttributeName: userId
-        #   AttributeType: S
         - AttributeName: employeeId
           AttributeType: S
         - AttributeName: fiscalEndDate
@@ -385,14 +373,6 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-        # - IndexName: userId-expenseTypeId-index
-        #   KeySchema:
-        #     - AttributeName: userId
-        #       KeyType: HASH
-        #     - AttributeName: expenseTypeId
-        #       KeyType: RANGE
-        #   Projection:
-        #     ProjectionType: ALL
         - IndexName: employeeId-expenseTypeId-index
           KeySchema:
             - AttributeName: employeeId
