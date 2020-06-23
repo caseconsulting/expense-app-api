@@ -4,6 +4,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
+const axios = require('axios');
 
 const lambda = new AWS.Lambda();
 const logger = new Logger('twitterRoutes');
@@ -37,6 +38,13 @@ class TwitterRoutes {
       this._checkJwt,
       this._getUserInfo,
       this._getTwitterToken.bind(this)
+    );
+
+    this._router.get(
+      '/getCaseTimeline',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getCaseTimeline.bind(this)
     );
   }
 
@@ -86,6 +94,57 @@ class TwitterRoutes {
       return err;
     }
   }
+
+  async _getCaseTimeline(req, res) {
+    //log the attempt
+    logger.log(1, '_getCaseTimeline', 'Attempting to get Case Consulting timeline');
+
+    try{
+      // info for twitter get
+      let info = {
+        method: 'GET',
+        url: 'https://api.twitter.com/1.1/statuses/user_timeline.json',
+        params: {
+          screen_name: 'ConsultwithCase',
+          count: 10,
+          exclude_replies: true,
+          include_rts: false
+        },
+        headers: {
+          Authorization: 
+        }
+      };
+
+      // call twitter api with axios
+      let result = await axios(info);
+
+      // parse out the result
+      let resultPayload = result.data.results;
+
+      if (resultPayload.body) {
+        logger.log(1, '_getCaseTimeline', 'Successfully acquired Case Consulting timeline');
+
+        
+        let token = resultPayload.body;
+
+        res.status(200).send(token);
+
+        return token;
+      } else {
+        throw {
+          code: 404,
+          message: 'Failed to acquire the Case Consulting timeline'
+        };
+      }
+    } catch(err) {
+      logger.log(1, '_getCaseTimeline', `${err.code}: ${err.message}`);
+
+      this._sendError(res, err);
+
+      return err;
+    }
+  }
+
   /**
    * Send api response error status.
    *
