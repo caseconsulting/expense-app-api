@@ -43,6 +43,9 @@ const tSheetsRoutes = new TSheetsRoutes();
 const TwitterRoutes = require('./routes/twitterRoutes');
 const twitterRoutes = new TwitterRoutes();
 
+const BasecampRoutes = require('./routes/basecampRoutes');
+const basecampRoutes = new BasecampRoutes();
+
 var app = express();
 
 // view engine setup
@@ -76,6 +79,7 @@ app.use('/attachment', attachmentRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
+app.use('/basecamp', basecampRoutes.router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
