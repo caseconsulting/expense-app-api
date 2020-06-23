@@ -248,7 +248,7 @@ async function getAllTrainingUrls() {
           1,
           'getAllTrainingUrls',
           `Unable to create ${key.hits} hit(s) for training url '${key.url}' with category '${key.category}'. Erro`,
-          `JSON:`,
+          'JSON:',
           JSON.stringify(err, null, 2)
         );
       });
