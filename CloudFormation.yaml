@@ -211,6 +211,30 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  # s3TextractAttachments:
+  #   DependsOn: s3Logs
+  #   Type: 'AWS::S3::Bucket'
+  #   Properties:
+  #     AccessControl: Private
+  #     BucketName: !Join
+  #       - ''
+  #       - - case-consulting-portal-app-textract-attachments-
+  #         - !Ref Stage
+  #     LifecycleConfiguration:
+  #       Rules:
+  #         - Id: Remove Textract Attachments After a Week
+  #           ExpirationInDays: 7
+  #           Status: Enabled
+  #     LoggingConfiguration:
+  #       DestinationBucketName: !Ref s3Logs
+  #       LogFilePrefix: s3-logs/textract-attachments/
+  #     VersioningConfiguration:
+  #       Status: Enabled
+  #     Tags:
+  #       - Key: Application
+  #         Value: portal-app
+  #       - Key: Stage
+  #         Value: !Ref Stage
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain

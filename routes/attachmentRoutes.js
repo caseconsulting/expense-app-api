@@ -32,7 +32,10 @@ const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
-const textract = new AWS.Textract({apiVersion: '2018-06-27'});
+// const TEXTRACT_BUCKET = `case-consulting-portal-app-textract-attachments-${STAGE}`;
+const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
+const comprehend = new AWS.Comprehend({apiVersion: '2017-11-27'});
+
 
 const storage = multerS3({
   s3: s3,
@@ -40,7 +43,7 @@ const storage = multerS3({
   acl: 'bucket-owner-full-control',
   contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
-  key: function(req, file, cb) {
+  key: function (req, file, cb) {
     cb(null, `${req.params.employeeId}/${req.params.expenseId}/${file.originalname}`);
   }
 });
@@ -52,7 +55,7 @@ const limits = {
 };
 
 // filter valid mimetypes
-const fileFilter = function(req, file, cb) {
+const fileFilter = function (req, file, cb) {
   // log method
   logger.log(2, 'fileFilter', `Attempting to validate type of attachment ${file.originalname}`);
 
@@ -91,7 +94,6 @@ const upload = multer({
 }).single('receipt');
 
 class Attachment {
-
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
@@ -122,27 +124,30 @@ class Attachment {
    */
   async deleteAttachmentFromS3(req, res) {
     // log method
-    logger.log(1, 'deleteAttachmentFromS3',
+    logger.log(
+      1,
+      'deleteAttachmentFromS3',
       `Attempting to delete attachment ${req.params.receipt} for expense ${req.params.expenseId}`
     );
 
     // set up params
     let fileExt = req.params.receipt;
     let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
-    let params = { Bucket: BUCKET, Key: filePath};
+    let params = { Bucket: BUCKET, Key: filePath };
 
     // make delete call to s3
     s3.deleteObject(params, (err, data) => {
       if (err) {
         // log error
-        logger.log(1, 'deleteAttachmentFromS3',
+        logger.log(
+          1,
+          'deleteAttachmentFromS3',
           `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
 
         let error = {
           code: 403,
-          message:
-            `${err.message}`
+          message: `${err.message}`
         };
 
         // send error status
@@ -152,7 +157,9 @@ class Attachment {
         return error;
       } else {
         // log success
-        logger.log(1, 'deleteAttachmentFromS3',
+        logger.log(
+          1,
+          'deleteAttachmentFromS3',
           `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
         );
 
@@ -164,6 +171,166 @@ class Attachment {
       }
     });
   } // deleteAttachmentFromS3
+
+  timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Extracts text from a file using AWS Textract.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - text data
+   */
+  // async extractText(req, res) {
+  //   // log method
+  //   logger.log(1, 'extractText', `Attempting to upload attachment and extract text`);
+  //
+  //   const textractStorage = multerS3({
+  //     s3: s3,
+  //     bucket: TEXTRACT_BUCKET,
+  //     acl: 'bucket-owner-full-control',
+  //     contentType: multerS3.AUTO_CONTENT_TYPE,
+  //     serverSideEncryption: 'AES256',
+  //     key: function (req, file, cb) {
+  //       cb(null, `${req.params.employeeId}/${file.originalname}`);
+  //     }
+  //   });
+  //
+  //   // s3 fild upload multer
+  //   const textractUpload = multer({
+  //     storage: textractStorage,
+  //     limits: limits,
+  //     fileFilter: fileFilter
+  //   }).single('receipt');
+  //
+  //   // compute method
+  //   try {
+  //     textractUpload(req, res, async (err) => {
+  //       if (err) {
+  //         // log error
+  //         logger.log(2, 'extractText', 'Failed to upload file');
+  //
+  //         throw err;
+  //       } else {
+  //         // log success
+  //         logger.log(
+  //           1,
+  //           'extractText',
+  //           `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
+  //           `to S3 bucket ${req.file.bucket}`
+  //         );
+  //
+  //         //////
+  //         ////// Asynchronous Document Analysis
+  //         ////// Supports pdf, takes ~25 seconds
+  //         //////
+  //
+  //         // let startAnalysisParams = {
+  //         //   DocumentLocation: {
+  //         //     /* required */
+  //         //     S3Object: {
+  //         //       Bucket: req.file.bucket,
+  //         //       Name: req.file.key
+  //         //     }
+  //         //   },
+  //         //   FeatureTypes: [
+  //         //     'FORMS'
+  //         //   ]
+  //         // };
+  //         //
+  //         // let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
+  //         // let jobId = startAnalysisData.JobId;
+  //         //
+  //         // console.log('startAnalysisData');
+  //         // console.log(startAnalysisData);
+  //         //
+  //         // let getAnalysisParams = {
+  //         //   JobId: jobId
+  //         // };
+  //         //
+  //         //
+  //         // let textExtracted;
+  //         //
+  //         // do {
+  //         //   await this.timeout(5000);
+  //         //   textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
+  //         //   console.log('getAnalysisData');
+  //         //   console.log(textExtracted);
+  //         // } while (textExtracted.JobStatus === 'IN_PROGRESS');
+  //
+  //         //////
+  //         ////// End Asynchronous Document Analysis
+  //         //////
+  //
+  //
+  //         //////
+  //         ////// Synchronous Document Analysis
+  //         ////// Does not support pdf, takes ~5 seconds
+  //         //////
+  //
+  //         let params = {
+  //           Document: {
+  //             S3Object: {
+  //               Bucket: req.file.bucket,
+  //               Name: req.file.key
+  //             }
+  //           },
+  //           FeatureTypes: ['TABLES', 'FORMS']
+  //         };
+  //
+  //         let textExtracted = await textract.analyzeDocument(params).promise();
+  //
+  //         //let textExtracted = "hello world";
+  //         console.log('textExtracted');
+  //         console.log(textExtracted);
+  //
+  //         //////
+  //         ////// End Synchronous Document Analysis
+  //         //////
+  //
+  //         logger.log(1, 'extractText', `Successfully uploaded and extracted text from ${req.file.originalname}`);
+  //
+  //         // set a successful 200 response with uploaded file
+  //         res.status(200).send(textExtracted);
+  //
+  //         // return text extracted from attachment
+  //         return textExtracted;
+  //       }
+  //     });
+  //   } catch (err) {
+  //     logger.log(1, 'extractText', `Failed to upload attachment and extract text`);
+  //
+  //     let error = {
+  //       code: 403,
+  //       message: `${err.message}`
+  //     };
+  //
+  //     res.status(error.code).send(error);
+  //   }
+  // } // extractText
+
+  /**
+   *
+   */
+  async comprehendText(textExtracted) {
+    let text = '';
+
+    _.forEach(textExtracted.Blocks, (block) => {
+      if (block.BlockType === 'LINE') {
+        text += block.Text + '\n';
+      }
+    });
+
+    let comprehendParams = {
+      LanguageCode: 'en',
+      Text: text
+    };
+
+    return comprehend.detectEntities(comprehendParams).promise();
+  } // comprehendText
+
 
   /**
    * Extracts text from a file using AWS Textract.
@@ -177,14 +344,9 @@ class Attachment {
     logger.log(2, 'extractText', `Attempting to extract text from ${req.params.fileName}`);
 
     // compute method
-    // file limits
-    let mLimits = {
-      files: 1, // allow only 1 file per request
-      fileSize: 5 * 1024 * 1024 // 5 MB (max file size)
-    };
 
     // filter valid mimetypes
-    let mFileFilter = function(req, file, cb) {
+    let mFileFilter = function (req, file, cb) {
       // log method
       logger.log(2, 'fileFilter', `Attempting to validate ${file.originalname} for text extraction`);
 
@@ -192,12 +354,14 @@ class Attachment {
       // Content types that can be text extracted
       const ALLOWED_CONTENT_TYPES = [
         'image/jpeg', //.jpeg
-        'image/png', //.png
+        'image/png' //.png
       ];
 
       if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
         // valid file type
-        logger.log(2, 'fileFilter',
+        logger.log(
+          2,
+          'fileFilter',
           `Successfully validated Mimetype ${file.mimetype} of attachment ${file.originalname}`
         );
 
@@ -213,7 +377,7 @@ class Attachment {
     let mStorage = multer.memoryStorage();
     let mUpload = multer({
       storage: mStorage,
-      limits: mLimits,
+      limits: limits,
       fileFilter: mFileFilter
     }).single('receipt');
 
@@ -234,19 +398,22 @@ class Attachment {
         // successfully got file bytes
         try {
           let params = {
-            Document: { /* required */
+            Document: {
               Bytes: req.file.buffer
-            }
+            },
+            FeatureTypes: ['TABLES', 'FORMS']
           };
 
-          let text = await textract.detectDocumentText(params).promise();
+          let textExtracted = await textract.analyzeDocument(params).promise();
+
           logger.log(2, 'extractText', `Successfully extracted text from ${req.params.fileName}`);
+          let textEntities = await this.comprehendText(textExtracted);
 
           // send successful 200 status with the uploaded file and text
-          res.status(200).send(text);
+          res.status(200).send(textEntities);
 
-          // return text
-          return text;
+          // return text entries
+          return textEntities;
         } catch (err) {
           // failed to extract text
           logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}. ${err.message}`);
@@ -263,6 +430,7 @@ class Attachment {
       }
     });
   } // extractText
+
 
   /**
    * Gets an attachment from S3.
@@ -287,8 +455,7 @@ class Attachment {
 
         let error = {
           code: 403,
-          message:
-            `${err.message}`
+          message: `${err.message}`
         };
 
         // send error status
@@ -340,8 +507,7 @@ class Attachment {
 
         let error = {
           code: 403,
-          message:
-            `${err.message}`
+          message: `${err.message}`
         };
 
         // send error status
@@ -351,7 +517,9 @@ class Attachment {
         return error;
       } else {
         // log success
-        logger.log(1, 'uploadAttachmentToS3',
+        logger.log(
+          1,
+          'uploadAttachmentToS3',
           `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
           `to S3 bucket ${req.file.bucket}`
         );
