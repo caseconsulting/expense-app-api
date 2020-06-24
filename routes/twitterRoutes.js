@@ -103,9 +103,8 @@ class TwitterRoutes {
         url: 'https://api.twitter.com/1.1/statuses/user_timeline.json',
         params: {
           screen_name: 'ConsultwithCase',
-          count: 10,
-          exclude_replies: true,
-          include_rts: false
+          count: 25,
+          tweet_mode: 'extended'
         },
         headers: {
           Authorization: `Bearer ${token}`
