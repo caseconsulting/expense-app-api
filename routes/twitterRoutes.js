@@ -53,10 +53,6 @@ class TwitterRoutes {
     logger.log(1, '_getTwitterToken', 'Attempting to get Twitter Token');
 
     try{
-      // mysterio function parameters
-      // let payload = {
-      //   //nothing needed i think
-      // };
 
       // lambda invoke parameters
       let params = {
@@ -76,8 +72,6 @@ class TwitterRoutes {
 
         
         let token = resultPayload.body;
-
-        res.status(200).send(token);
 
         return token;
       } else {
@@ -100,7 +94,10 @@ class TwitterRoutes {
     logger.log(1, '_getCaseTimeline', 'Attempting to get Case Consulting timeline');
 
     try{
-      // info for twitter get
+      // auth token for twitter get
+      let token = await this._getTwitterToken();
+
+      // format request info for axios
       let info = {
         method: 'GET',
         url: 'https://api.twitter.com/1.1/statuses/user_timeline.json',
@@ -111,21 +108,17 @@ class TwitterRoutes {
           include_rts: false
         },
         headers: {
-          Authorization: 
+          Authorization: `Bearer ${token}`
         }
       };
 
-      // call twitter api with axios
+      // call twitter api with axios and get json object as response
       let result = await axios(info);
 
-      // parse out the result
-      let resultPayload = result.data.results;
-
-      if (resultPayload.body) {
+      if (result.data) {
         logger.log(1, '_getCaseTimeline', 'Successfully acquired Case Consulting timeline');
-
         
-        let token = resultPayload.body;
+        let token = result.data;
 
         res.status(200).send(token);
 
