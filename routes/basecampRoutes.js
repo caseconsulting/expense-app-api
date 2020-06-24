@@ -115,7 +115,6 @@ class BasecampRoutes {
         }
       };
       let basecampResponse = await axios(options);
-      console.log(basecampResponse.data);
       return basecampResponse.data;
       
     } catch(err) {
@@ -133,7 +132,6 @@ class BasecampRoutes {
       for (let proj in BASECAMP_PROJECTS) {
         entries.push(await this._getScheduleEntries(accessToken, BASECAMP_PROJECTS[proj]));
       }
-      console.log(entries);
 
       res.status(200).send(entries);
 
