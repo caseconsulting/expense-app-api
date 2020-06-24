@@ -125,7 +125,7 @@ class BasecampRoutes {
     }
   }
   
-  async _getFeedEvents() {
+  async _getFeedEvents(req, res) {
     logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
     try{
       let entries = [];
@@ -134,15 +134,15 @@ class BasecampRoutes {
         entries.push(await this._getScheduleEntries(accessToken, BASECAMP_PROJECTS[proj]));
       }
       console.log(entries);
+
+      res.status(200).send(entries);
+
       return entries;
       
     } catch(err) {
       logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
       return err;
     }
-    
-
-    
   }
   
   /**
