@@ -10,28 +10,35 @@ require('dotenv').config({
 const logger = new Logger('databaseModify');
 const STAGE = process.env.STAGE;
 
-const scanDB = (params, documentClient, out = []) => new Promise((resolve, reject) => {
-  documentClient.scan(params).promise()
-    .then(({Items, LastEvaluatedKey}) => {
-      out.push(...Items);
-      !LastEvaluatedKey ? resolve(out)
-        : resolve(scanDB(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), documentClient, out));
-    })
-    .catch(reject);
-});
+const scanDB = (params, documentClient, out = []) =>
+  new Promise((resolve, reject) => {
+    documentClient
+      .scan(params)
+      .promise()
+      .then(({ Items, LastEvaluatedKey }) => {
+        out.push(...Items);
+        !LastEvaluatedKey
+          ? resolve(out)
+          : resolve(scanDB(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), documentClient, out));
+      })
+      .catch(reject);
+  });
 
-const queryDB = (params, documentClient, out = []) => new Promise((resolve, reject) => {
-  documentClient.query(params).promise()
-    .then(({Items, LastEvaluatedKey}) => {
-      out.push(...Items);
-      !LastEvaluatedKey ? resolve(out)
-        : resolve(queryDB(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), documentClient, out));
-    })
-    .catch(reject);
-});
+const queryDB = (params, documentClient, out = []) =>
+  new Promise((resolve, reject) => {
+    documentClient
+      .query(params)
+      .promise()
+      .then(({ Items, LastEvaluatedKey }) => {
+        out.push(...Items);
+        !LastEvaluatedKey
+          ? resolve(out)
+          : resolve(queryDB(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), documentClient, out));
+      })
+      .catch(reject);
+  });
 
 class databaseModify {
-
   constructor(name) {
     this.tableName = `${STAGE}-${name}`;
     AWS.config.apiVersions = {
@@ -64,7 +71,8 @@ class databaseModify {
 
       const documentClient = new AWS.DynamoDB.DocumentClient();
 
-      return documentClient.put(params)
+      return documentClient
+        .put(params)
         .promise()
         .then(() => {
           // log success
@@ -72,7 +80,7 @@ class databaseModify {
 
           return newDyanmoObj;
         })
-        .catch(function(err) {
+        .catch(function (err) {
           // log error
           logger.log(4, '_updateWrapper', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
 
@@ -218,7 +226,9 @@ class databaseModify {
         let expressionAttribute = `:${alpha[index]}`;
         ExpressionAttributeValues[expressionAttribute] = value;
 
-        if (attribute === 'url') { // what is this case for? - austin
+        if (attribute === 'url') {
+          // NOTE: 'url' is a DynamoDB reserved word, so we have to define an expression attribute name for it
+          // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
           UpdateExpression += `#url = ${expressionAttribute},`;
           _.assign(ExpressionAttributeNames, { '#url': 'url' });
         } else {
@@ -258,11 +268,11 @@ class databaseModify {
   } // _buildTrainingUrlUpdateParams
 
   /**
-    * Builds table params to update an entry in the dynamodb table.
-    *
-    * @param objToUpdate - entry to be updated
-    * @return Object - update table parameters
-    */
+   * Builds table params to update an entry in the dynamodb table.
+   *
+   * @param objToUpdate - entry to be updated
+   * @return Object - update table parameters
+   */
   _buildUpdateParams(objToUpdate) {
     // log method
     logger.log(4, '_buildUpdateParams', 'Building update params');
@@ -300,13 +310,13 @@ class databaseModify {
     const documentClient = new AWS.DynamoDB.DocumentClient();
 
     return scanDB(params, documentClient)
-      .then(function(items) {
+      .then(function (items) {
         // log success
         logger.log(4, 'getAllEntriesInDB', `Successfully read all ${items.length} entries from ${tableName}`);
 
         return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, 'getAllEntriesInDB', `Failed to read all entries from ${tableName}`);
 
@@ -327,7 +337,7 @@ class databaseModify {
 
     // compute method
     return this._readFromDB(passedID)
-      .then(function(data) {
+      .then(function (data) {
         if (_.first(data)) {
           // entry found
           // log success
@@ -349,7 +359,7 @@ class databaseModify {
           throw err;
         }
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, 'getEntry', `Failed to get entry ${passedID} from database`);
 
@@ -371,7 +381,7 @@ class databaseModify {
 
     // compute method
     return this._readFromDBUrl(passedID, category)
-      .then(function(data) {
+      .then(function (data) {
         if (_.first(data)) {
           // entry found
           // log success
@@ -393,7 +403,7 @@ class databaseModify {
           throw err;
         }
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, 'getEntryUrl', `Failed to get entry ${passedID} and ${category} from database`);
 
@@ -412,7 +422,9 @@ class databaseModify {
   async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'querySecondaryIndexInDB',
+    logger.log(
+      4,
+      'querySecondaryIndexInDB',
       `Attempting to query ${secondaryIndex} from table ${tableName} with key ${queryKey} and value ${queryParam}`
     );
 
@@ -428,9 +440,11 @@ class databaseModify {
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
-      .then(entries => {
+      .then((entries) => {
         // log success
-        logger.log(4, 'querySecondaryIndexInDB',
+        logger.log(
+          4,
+          'querySecondaryIndexInDB',
           `Successfully queried ${entries.length} entries for ${secondaryIndex} from table ${tableName} with key`,
           `${queryKey} and value ${queryParam}`
         );
@@ -438,9 +452,11 @@ class databaseModify {
         // return entries
         return entries;
       })
-      .catch(err => {
+      .catch((err) => {
         // log error
-        logger.log(4, 'querySecondaryIndexInDB',
+        logger.log(
+          4,
+          'querySecondaryIndexInDB',
           `Failed to query ${secondaryIndex} from table ${tableName} with key ${queryKey} and value ${queryParam}`
         );
 
@@ -459,7 +475,9 @@ class databaseModify {
   async queryWithTwoIndexesInDB(employeeId, expenseTypeId) {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'queryWithTwoIndexesInDB',
+    logger.log(
+      4,
+      'queryWithTwoIndexesInDB',
       `Attempting to query employeeId-expenseTypeId-index for table ${tableName} for employee ${employeeId} and`,
       `expense type ${expenseTypeId}`
     );
@@ -477,9 +495,11 @@ class databaseModify {
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
-      .then(entries => {
+      .then((entries) => {
         // log success
-        logger.log(4, 'queryWithTwoIndexesInDB',
+        logger.log(
+          4,
+          'queryWithTwoIndexesInDB',
           `Successfully queried ${entries.length} entries from employeeId-expenseTypeId-index from table`,
           `${tableName} for employee ${employeeId} and expense type ${expenseTypeId}`
         );
@@ -487,9 +507,11 @@ class databaseModify {
         // return entries
         return entries;
       })
-      .catch(err => {
+      .catch((err) => {
         // log error
-        logger.log(4, 'queryWithTwoIndexesInDB',
+        logger.log(
+          4,
+          'queryWithTwoIndexesInDB',
           `Failed to query employeeId-expenseTypeId-index for table ${tableName} for employee ${employeeId} and`,
           `expense type ${expenseTypeId}`
         );
@@ -521,16 +543,18 @@ class databaseModify {
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
-      .then(function(entries) {
+      .then(function (entries) {
         // log success
-        logger.log(4, '_readFromDB',
+        logger.log(
+          4,
+          '_readFromDB',
           `Successfully read ${entries.length} entries from ${tableName} with ID ${passedID}`
         );
 
         // return entries
         return entries;
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ID ${passedID}`);
 
@@ -549,7 +573,9 @@ class databaseModify {
   async _readFromDBUrl(passedID, category) {
     // log method
     let tableName = this.tableName;
-    logger.log(4, '_readFromDBUrl',
+    logger.log(
+      4,
+      '_readFromDBUrl',
       `Attempting to read url entries from ${tableName} with ID ${passedID} and category ${category}`
     );
 
@@ -565,18 +591,22 @@ class databaseModify {
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
-      .then(function(entries) {
+      .then(function (entries) {
         // log success
-        logger.log(4, '_readFromDBUrl',
+        logger.log(
+          4,
+          '_readFromDBUrl',
           `Successfully read ${entries.length} url entries from ${tableName} with ID ${passedID} and category`,
           `${category}`
         );
         // return entries
         return entries;
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
-        logger.log(4, '_readFromDBUrl',
+        logger.log(
+          4,
+          '_readFromDBUrl',
           `Failed to read url entries from ${tableName} with ID ${passedID} and category ${category}`
         );
         // throw error
@@ -607,13 +637,13 @@ class databaseModify {
     return documentClient
       .delete(params)
       .promise()
-      .then(data => {
+      .then((data) => {
         // log success
         logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
 
         return data.Attributes;
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
 
@@ -625,7 +655,6 @@ class databaseModify {
     //   console.error(err);
     //   throw err;
     // }); //Throw error and handle properly in crudRoutes
-
   } // removeFromDB
 
   /**
@@ -645,13 +674,13 @@ class databaseModify {
     return documentClient
       .update(params)
       .promise()
-      .then(data => {
+      .then((data) => {
         // log success
         logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
         return data.Attributes;
       })
-      .catch(function(err) {
+      .catch(function (err) {
         // log error
         logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
