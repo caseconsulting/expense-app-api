@@ -14,6 +14,7 @@
  * - employeeId
  * - expenseTypeId
  * - category
+ * - showOnFeed
  */
 class Expense {
   constructor(data) {
