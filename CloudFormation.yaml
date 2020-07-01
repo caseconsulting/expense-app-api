@@ -441,6 +441,13 @@ Resources:
               - Effect: Allow
                 Action: 'textract:*'
                 Resource: '*'
+        - PolicyName: Comprehend
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'comprehend:*'
+                Resource: '*'
         - PolicyName: DynamoDB
           PolicyDocument:
             Version: 2012-10-17
