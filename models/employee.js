@@ -8,7 +8,6 @@
  * - lastName
  * - employeeNumber
  * - hireDate
- * - expenseTypes
  * - email
  * - employeeRole
  * - workStatus
