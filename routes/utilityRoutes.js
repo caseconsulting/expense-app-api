@@ -39,7 +39,14 @@ class Utility {
     this._getUserInfo = getUserInfo;
 
     // this._router.get('/', this._checkJwt, this._getUserInfo, this.showList.bind(this));
-    this._router.get('/getAllExpenses', this._checkJwt, this._getUserInfo, this._getAllAggregateExpenses.bind(this));
+    this._router.get('/getAllAggregateExpenses',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getAllAggregateExpenses.bind(this));
+    this._router.get('/getAllExpenses',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getAllExpenses.bind(this));
     this._router.get('/getAllActiveEmployeeBudgets/:id',
       this._checkJwt,
       this._getUserInfo,
@@ -299,6 +306,74 @@ class Utility {
       return err;
     }
   } // _getAllActiveEmployeeBudgets
+
+  /**
+   * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
+   * returns all expenses.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - objects read
+   */
+  async _getAllExpenses(req, res) {
+    // log method
+    logger.log(1, '_getAllExpenses', 'Attempting to get all expenses');
+
+    // compute method
+    try {
+      if (this.isAdmin(req.employee) || this.isUser(req.employee)) {
+        // employee is an admin or user
+        // get expense types
+        let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+        let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+          return new ExpenseType(expenseTypeData);
+        });
+
+        let employeesData;
+        let expensesData;
+
+        // get all employee and expense data if admin
+        employeesData = await this.employeeDynamo.getAllEntriesInDB();
+        expensesData = await this.expenseDynamo.getAllEntriesInDB();
+
+        let employees = _.map(employeesData, employeeData => {
+          return new Employee(employeeData);
+        });
+
+        let expenses = _.map(expensesData, expenseData => {
+          return new Expense(expenseData);
+        });
+
+        let aggregateExpenses = this._convertIdsToNames(expenses, employees, expenseTypes);
+
+        // log success
+        logger.log(1, '_getAllExpenses', 'Successfully got all aggregate expenses');
+
+        // send sucessful 200 status
+        res.status(200).send(aggregateExpenses);
+
+        // return aggregate expenses
+        return aggregateExpenses;
+      } else {
+        // insuffient employee permissions
+        let err = {
+          code: 403,
+          message: 'Unable to get all aggregate expenses due to insufficient employee permissions.'
+        };
+
+        throw err; // handled by try-catch
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_getAllExpenses', 'Failed to get all expenses');
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _getAllExpenses
 
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
