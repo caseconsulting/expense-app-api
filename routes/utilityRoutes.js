@@ -10,6 +10,7 @@ const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
 const moment = require('moment');
 const _ = require('lodash');
+const Basecamp = require('../routes/basecampRoutes');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
@@ -61,6 +62,11 @@ class Utility {
       this._checkJwt,
       this._getUserInfo,
       this._getFiscalDateViewBudgets.bind(this)
+    );
+    this._router.get('/getAllEvents',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getAllEvents.bind(this)
     );
     this._router.get('/getAllEmployeeExpenses/:id',
       this._checkJwt,
@@ -374,6 +380,67 @@ class Utility {
       return err;
     }
   } // _getAllExpenses
+
+  async _getAllEvents(req, res) {
+    // log method
+    logger.log(1, '_getAllEvents', 'Attempting to get all event data');
+
+    try {
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+        return new ExpenseType(expenseTypeData);
+      });
+
+      let employeesData;
+      let expensesData;
+
+      employeesData = await this.employeeDynamo.getAllEntriesInDB();
+      expensesData = await this.expenseDynamo.getAllEntriesInDB();
+
+      let employees = _.map(employeesData, employeeData => {
+        return new Employee(employeeData);
+      });
+
+      let expenses = _.map(expensesData, expenseData => {
+        return new Expense(expenseData);
+      });
+
+      let aggregateExpenses = this._convertIdsToNames(expenses, employees, expenseTypes);
+      //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
+      const baseCamp = new Basecamp();
+
+      let entries = [];
+      let accessToken = await baseCamp._getBasecampToken();
+
+      const basecampInfo = baseCamp.getBascampInfo();
+      
+      for (let proj in basecampInfo) {
+        entries.push(await baseCamp._getScheduleEntries(accessToken, basecampInfo[proj]));
+      }
+      let payload = {
+        employees: employees,
+        expenses: aggregateExpenses,
+        schedules: entries
+      };
+
+      // log success
+      logger.log(1, '_getAllEvents', 'Successfully got all event data');
+
+      // send sucessful 200 status
+      res.status(200).send(payload);
+
+      return payload;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getAllEvents', 'Failed to get all event data');
+
+      // send error status
+      this._sendError(res, err);
+      
+      // return error
+      return err;
+    }
+  } 
 
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and

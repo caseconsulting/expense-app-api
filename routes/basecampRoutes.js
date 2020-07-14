@@ -142,7 +142,9 @@ class BasecampRoutes {
       return err;
     }
   }
-  
+  getBascampInfo(){
+    return BASECAMP_PROJECTS;
+  }
   /**
    * Returns the instace express router.
    *
