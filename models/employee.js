@@ -73,7 +73,7 @@ class Employee {
   } // isAdmin
 
   /**
-   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
    *
    * @param value - value to check
    * @return boolean - value is empty
@@ -136,10 +136,11 @@ class Employee {
    *
    * @param data - employee data
    * @param attribute - employee attribute
+   * @param fixed - decimal places to fix value
    */
-  setOptionalNumberAttribute(data, attribute) {
+  setOptionalNumberAttribute(data, attribute, fixed) {
     if (!this._isEmpty(data[attribute])) {
-      this[attribute] = Number(data[attribute]);
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     }
   } // setNumberAttribute
 
@@ -164,10 +165,11 @@ class Employee {
    * @param data - employee data
    * @param attribute - employee attribute
    * @param defaultValue - default value
+   * @param fixed - decimal places to fix value
    */
-  setRequiredNumberAttribute(data, attribute, defaultValue) {
+  setRequiredNumberAttribute(data, attribute, defaultValue, fixed) {
     if (!this._isEmpty(data[attribute])) {
-      this[attribute] = Number(data[attribute]);
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     } else {
       this[attribute] = defaultValue;
     }
