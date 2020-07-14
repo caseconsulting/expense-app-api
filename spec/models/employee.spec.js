@@ -85,9 +85,9 @@ describe('employee', () => {
           employeeRole: EMPLOYEE_ROLE,
           workStatus: WORK_STATUS,
           twitter: TWITTER
-        }
-        ));
-    }); // should populate empty attribute values
+        })
+      );
+    }); // should populate required and optional values only
   }); // constructor
 
   describe('fullName', () => {

@@ -128,7 +128,7 @@ class EmployeeRoutes extends Crud {
   /**
    * Reads all employees from the database. Returns all employees.
    *
-   * @return Array - all training urls
+   * @return Array - all employees
    */
   async _readAll() {
     // log method

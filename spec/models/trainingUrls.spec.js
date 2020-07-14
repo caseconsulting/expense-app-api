@@ -55,7 +55,7 @@ describe('trainingUrls', () => {
           image: IMAGE
         }
         ));
-    }); // should populate additional attribute values
+    }); // should populate required and optional values only
   }); // constructor
 
   describe('_isEmpty', () => {
