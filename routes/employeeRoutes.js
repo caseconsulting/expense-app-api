@@ -126,6 +126,36 @@ class EmployeeRoutes extends Crud {
   } // _read
 
   /**
+   * Reads all employees from the database. Returns all employees.
+   *
+   * @return Array - all training urls
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all employees');
+
+    // compute method
+    try {
+      let employeesData = await this.databaseModify.getAllEntriesInDB();
+      let employees = _.map(employeesData, employee => {
+        return new Employee(employee);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all employees');
+
+      // return all employees
+      return employees;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all employees');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+
+  /**
    * Prepares an employee to be updated. Returns the employee if it can be successfully updated.
    *
    * @param data - data of employee
