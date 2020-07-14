@@ -22,31 +22,39 @@ describe('trainingUrls', () => {
     publisher: PUBLISHER
   };
 
-  let trainingData, trainingUrl;
+  let trainingUrl;
 
   beforeEach(() => {
     trainingUrl = new TrainingUrl(TRAINING_URL_DATA);
-    trainingData = {
-      id: URL,
-      category: CATEGORY,
-      hits: HITS,
-      title: TITLE,
-      description: DESCRIPTION,
-      image: IMAGE
-    };
   });
 
   describe('constructor', () => {
 
-    it('should populate additional attribute values', () => {
-      expect(trainingData).toEqual(jasmine.objectContaining({
+    let localTrainingData;
+
+    beforeEach(() => {
+      localTrainingData = {
         id: URL,
         category: CATEGORY,
         hits: HITS,
         title: TITLE,
         description: DESCRIPTION,
-        image: IMAGE
-      }));
+        image: IMAGE,
+        invalid: '{invalid}'
+      };
+      trainingUrl = new TrainingUrl(localTrainingData);
+    });
+
+    it('should populate required and optional values only', () => {
+      expect(trainingUrl).toEqual(
+        new TrainingUrl({id: URL,
+          category: CATEGORY,
+          hits: HITS,
+          title: TITLE,
+          description: DESCRIPTION,
+          image: IMAGE
+        }
+        ));
     }); // should populate additional attribute values
   }); // constructor
 

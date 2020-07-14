@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 /**
  * TrainingURLs model
  *
@@ -13,21 +15,17 @@
  * - logo
  * - publisher
  */
-
 class TrainingUrls {
   constructor(data) {
-    this.id = data.id;
-    this.category = data.category;
-    this.hits = data.hits;
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'category');
+    this.setRequiredNumberAttribute(data, 'hits', 0);
 
-    if (this.hits == null) {
-      this.hits = 0; // default: 0 hits
-    }
-
-    // populate additional attributes
-    for (let additionalAttributes in data) {
-      this[additionalAttributes] = data[additionalAttributes];
-    }
+    this.setOptionalAttribute(data, 'description');
+    this.setOptionalAttribute(data, 'image');
+    this.setOptionalAttribute(data, 'logo');
+    this.setOptionalAttribute(data, 'publisher');
+    this.setOptionalAttribute(data, 'title');
   } // constructor
 
   /**
@@ -37,8 +35,62 @@ class TrainingUrls {
    * @return boolean - value is empty
    */
   _isEmpty(value) {
-    return value == null || value === ' ' || value === '';
+    return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
+
+  /**
+   * Sets an employee attribute if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   */
+  setOptionalAttribute(data, attribute) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    }
+  } // setOptionalAttribute
+
+  /**
+   * Sets an employee attribute number if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   */
+  setOptionalNumberAttribute(data, attribute) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = Number(data[attribute]);
+    }
+  } // setNumberAttribute
+
+  /**
+   * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   */
+  setRequiredAttribute(data, attribute, defaultValue) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredAttribute
+
+  /**
+   * Sets an employee attribute number. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   */
+  setRequiredNumberAttribute(data, attribute, defaultValue) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = Number(data[attribute]);
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredNumberAttribute
 }
 
 module.exports = TrainingUrls;
