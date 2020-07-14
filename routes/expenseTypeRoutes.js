@@ -109,64 +109,37 @@ class ExpenseTypeRoutes extends Crud {
   } // _read
 
   /**
-   * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
-   * objects.
+   * Reads all expense types from the database. Returns all expense types.
    *
-   * @param req - api request
-   * @param res - api response
-   * @return Object - objects read
+   * @return Array - all expense types
    */
-  async _readAllWrapper(req, res) {
+  async _readAll() {
     // log method
-    logger.log(1, '_readAllWrapper', `Attempting to read all objects from ${this._getTableName()}`);
+    logger.log(2, '_readAll', 'Attempting to read all expense types');
 
     // compute method
-    if (this._checkPermissionToReadAll(req.employee)) {
-      // employee has permission to read all objects from table
-      return this.databaseModify.getAllEntriesInDB() // read from database
-        .then(data => {
-          // log success
-          logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
-
-          let parsedData = _.map(data, expenseTypeData => {
-            expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
-              return JSON.parse(category);
-            });
-            return new ExpenseType(expenseTypeData);
-          });
-
-          // send successful 200 status
-          res.status(200).send(parsedData);
-
-          // return read data
-          return parsedData;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
-
-          // send error status
-          this._sendError(res, err);
-
-          return err;
+    try {
+      let expenseTypesData = await this.databaseModify.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, expenseType => {
+        expenseType.categories = _.map(expenseType.categories, category => {
+          return JSON.parse(category);
         });
-    } else {
-      // employee does not have permission to read all objects from table
-      let err = {
-        code: 403,
-        message: 'Unable to read all objects from database due to insufficient employee permissions.'
-      };
+        return new ExpenseType(expenseType);
+      });
 
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all expense types');
+
+      // return all expense types
+      return expenseTypes;
+    } catch (err) {
       // log error
-      logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
-
-      // send error status
-      this._sendError(res, err);
+      logger.log(2, '_readAll', 'Failed to read all expense types');
 
       // return error
-      return err;
+      return Promise.reject(err);
     }
-  } // _readAllWrapper
+  } // readAll
 
   /**
    * Update expense type and budgets. Returns the expense type updated.
