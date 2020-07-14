@@ -1,10 +1,12 @@
 /**
  * TrainingURLs model
  *
- * Fields:
+ * Required Fields:
  * - id (the url)
  * - hits
  * - category
+ *
+ * Additional Fields:
  * - title
  * - description
  * - image
@@ -17,21 +19,14 @@ class TrainingUrls {
     this.id = data.id;
     this.category = data.category;
     this.hits = data.hits;
-    this.title = data.title;
-    this.description = data.description;
-    this.image = data.image;
-    this.logo = data.logo;
-    this.publisher = data.publisher;
 
     if (this.hits == null) {
       this.hits = 0; // default: 0 hits
     }
 
-    // populate empty fields with a space holder
-    for (let propName in this) {
-      if (this._isEmpty(this[propName])) {
-        this[propName] = ' ';
-      }
+    // populate additional attributes
+    for (let additionalAttributes in data) {
+      this[additionalAttributes] = data[additionalAttributes];
     }
   } // constructor
 

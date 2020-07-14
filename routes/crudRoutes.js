@@ -793,6 +793,11 @@ class Crud {
     }
   } // _readWrapper
 
+  // temporary
+  async _readAll() {
+    return await this.databaseModify.getAllEntriesInDB();
+  }
+
   /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
    * objects.
@@ -808,11 +813,11 @@ class Crud {
     // compute method
     if (this._checkPermissionToReadAll(req.employee)) {
       // employee has permission to read all objects from table
-      return this.databaseModify.getAllEntriesInDB() // read from database
+      return this._readAll() // read from database
         .then(data => {
           // log success
           logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
-
+          
           // send successful 200 status
           res.status(200).send(data);
 
@@ -866,11 +871,17 @@ class Crud {
    * @return API Status - error status
    */
   _sendError(res, err) {
-    // log method
-    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
+    if (err.code && err.message) {
+      logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
-    // return error status
-    return res.status(err.code).send(err);
+      // return error status
+      return res.status(err.code).send(err);
+    } else {
+      logger.log(3, '_sendError', `Sending 500 error status: ${err.message}`);
+
+      // return error status
+      return res.status(500).send(err);
+    }
   } // _sendError
 
   /* eslint-disable no-unused-vars */

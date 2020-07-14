@@ -19,30 +19,35 @@ describe('trainingUrls', () => {
     description: DESCRIPTION,
     image: IMAGE,
     logo: LOGO,
-    publisher: PUBLISHER,
+    publisher: PUBLISHER
   };
 
-  let trainingUrl, blankTrainingUrl;
+  let trainingData, trainingUrl;
 
   beforeEach(() => {
     trainingUrl = new TrainingUrl(TRAINING_URL_DATA);
-    blankTrainingUrl = new TrainingUrl({});
+    trainingData = {
+      id: URL,
+      category: CATEGORY,
+      hits: HITS,
+      title: TITLE,
+      description: DESCRIPTION,
+      image: IMAGE
+    };
   });
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values', () => {
-      expect(blankTrainingUrl).toEqual(jasmine.objectContaining({
-        id: ' ',
-        category: ' ',
-        hits: 0,
-        title: ' ',
-        description: ' ',
-        image: ' ',
-        logo: ' ',
-        publisher: ' ',
+    it('should populate additional attribute values', () => {
+      expect(trainingData).toEqual(jasmine.objectContaining({
+        id: URL,
+        category: CATEGORY,
+        hits: HITS,
+        title: TITLE,
+        description: DESCRIPTION,
+        image: IMAGE
       }));
-    }); // should populate empty attribute values
+    }); // should populate additional attribute values
   }); // constructor
 
   describe('_isEmpty', () => {

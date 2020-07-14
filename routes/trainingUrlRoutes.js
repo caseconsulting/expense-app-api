@@ -2,6 +2,7 @@ const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
 const Logger = require('../js/Logger');
 const TrainingUrl = require('../models/trainingUrls');
+const _ = require('lodash');
 
 const atob = require('atob');
 const logger = new Logger('trainingUrlRoutes');
@@ -68,7 +69,6 @@ class TrainingUrlRoutes extends Crud {
     // compute method
     try {
       let decodedUrl = await this._decodeUrl(data.id);
-
       let trainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(decodedUrl, data.category));
 
       // log success
@@ -86,6 +86,36 @@ class TrainingUrlRoutes extends Crud {
   } // _read
 
   /**
+   * Reads all training urls from the database. Returns all training urls
+   *
+   * @return Array - all training urls
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all training urls');
+
+    // compute method
+    try {
+      let trainingUrlsData = await this.databaseModify.getAllEntriesInDB();
+      let trainingUrls = _.map(trainingUrlsData, trainingUrl => {
+        return new TrainingUrl(trainingUrl);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all training urls');
+
+      // return all training urls
+      return trainingUrls;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all training urls');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+
+  /**
    * Prepares a training url to be updated. Returns the training url if it can be successfully updated.
    *
    * @param data - data of training url
@@ -97,8 +127,8 @@ class TrainingUrlRoutes extends Crud {
 
     // compute method
     try {
-      let newTrainingUrl = new TrainingUrl(data);
       let oldTrainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(data.id, data.category));
+      let newTrainingUrl = new TrainingUrl(data);
 
       return this._validateTrainingUrl(newTrainingUrl) // validate training url
         .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl)) // validate update

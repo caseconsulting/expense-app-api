@@ -403,24 +403,21 @@ describe('databaseModify', () => {
       let expectedExpressionAttributeValues, expectedUpdateExpression;
 
       beforeEach(() => {
-        data = new TrainingUrl(TRAINING_URL_DATA);
+        data = new TrainingUrl({
+          id: '{{ url }}',
+          category: '{{ category }}',
+          hits: 0,
+          title: '{{ title }}'
+        });
 
         expectedExpressionAttributeValues = {
           ':a': 0,
-          ':b': ' ',
-          ':c': ' ',
-          ':d': ' ',
-          ':e': ' ',
-          ':f': ' '
+          ':b': '{{ title }}'
         };
 
         expectedUpdateExpression = 'set'
           + ' hits = :a,'
-          + 'title = :b,'
-          + 'description = :c,'
-          + 'image = :d,'
-          + 'logo = :e,'
-          + 'publisher = :f';
+          + 'title = :b';
       });
 
       it('should omit id and category', () => {
