@@ -381,6 +381,56 @@ describe('employeeRoutes', () => {
     }); // when fails to read employee
   }); // _read
 
+  describe('_readAll', () => {
+
+    let employees;
+
+    beforeEach(() => {
+      employees = [new Employee(EMPLOYEE_DATA)];
+    });
+
+    describe('when successfully reads all entries', () => {
+
+      beforeEach(() => {
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
+      })
+
+      it('should return the employees', done => {
+        employeeRoutes._readAll()
+          .then(data => {
+            expect(data).toEqual(employees);
+            done();
+          });
+      }); // should return the employees
+    }); // when successfully reads all entries
+
+    describe('when fails to read all entries', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to read entries'
+        };
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        employeeRoutes._readAll()
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
+      }); // should return a 404 rejected promise
+    }); // when fails to read all entries
+  }); // _readAll
+
   describe('_update', () => {
 
     let data, oldEmployee, newEmployee;
