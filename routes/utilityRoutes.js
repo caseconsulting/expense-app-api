@@ -311,6 +311,57 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
+   * 
+   * @param expenseType - expenseType to use to get expenses
+   * @param cutOffDate - 
+   */
+  async queryExpenses(expenseType, cutOffDate){
+    //use additional params option of querySecondaryIndex to filter things.
+    cutOffDate = cutOffDate.toISODate();
+    //default attributes for two 
+    let expressionAttributes = {
+      ':queryKey': expenseType.expenseTypeId,
+      ':cutOffDate': cutOffDate
+    };
+    //for every object in the category array
+    let filterExpression = [];
+    if (expenseType.categories !== [] && expenseType.alwaysOnFeed === true) {
+      //if the specific expenseType has any categories
+      for (let category in expenseType.categories) {
+        if (category.showOnFeed === true) {
+          //if the specific category is set to be shown on feed add filters and attributes for it
+          filterExpression.push(`category = :${category}`);
+          expressionAttributes[`:${category}`] = category;
+        }
+      }
+    }
+    //
+    if (filterExpression !== []) {
+      //if the expenseType has categories and they arent all false
+      let filterExpressionString = filterExpression.join(' || '); // category = :lodging || category == :Meals 
+      return await this.expenseDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-reimbursedDate-index',
+        'expenseTypeId',
+        expenseType.expenseyTypeId,
+        {
+          ExpressionAttributeValues: expressionAttributes,
+          KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
+          FilterExpression: filterExpressionString
+        });
+    } else {
+      //doesnt have categories or the categories are all false
+      return await this.expenseDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-reimbursedDate-index',
+        'expenseTypeId',
+        expenseType.expenseyTypeId,
+        {
+          ExpressionAttributeValues: expressionAttributes,
+          KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
+        });
+    }
+    
+  }// queryExpenses
+  /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
    * returns all expenses.
    *
@@ -334,8 +385,6 @@ class Utility {
 
         // get all employee and expense data if admin
         employeesData = await this.employeeDynamo.getAllEntriesInDB();
-        expensesData = await this.expenseDynamo.getAllEntriesInDB();
-
         let employees = _.map(employeesData, employeeData => {
           return new Employee(employeeData);
         });
@@ -374,7 +423,14 @@ class Utility {
       return err;
     }
   } // _getAllExpenses
-
+  
+  /**
+   * Getting all expense data that fits the criteria for the feed as well as all employees and 
+   * 
+   * @param req - api request 
+   * @param res - api response
+   * @return all info needed for activity feed
+   */
   async _getAllEvents(req, res) {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
@@ -382,11 +438,20 @@ class Utility {
     try {
       let expenseTypes = await this.getAllExpenseTypes();
 
+      let now = moment();
+      let cutOff = now.subtract(6, 'months').startOf('day');
+      let filteredExpenseTypes = _.remove(expenseTypes, (expenseType) => { 
+        return expenseType.isInactive || cutOff.isAfter(expenseType.endDate);
+      });
+      
       let employeesData;
       let expensesData;
 
       employeesData = await this.employeeDynamo.getAllEntriesInDB();
-      expensesData = await this.expenseDynamo.getAllEntriesInDB();
+      expensesData =  _.map(filteredExpenseTypes, (expenseType) => {
+        return this.queryExpenses(expenseType, cutOff);
+      });
+      //expensesData = await this.expenseDynamo.getAllEntriesInDB();
 
       let employees = _.map(employeesData, employeeData => {
         return new Employee(employeeData);
@@ -403,7 +468,7 @@ class Utility {
       let entries = [];
       let accessToken = await baseCamp._getBasecampToken();
 
-      const basecampInfo = baseCamp.getBascampInfo();
+      const basecampInfo = baseCamp.getBasecampInfo();
       
       for (let proj in basecampInfo) {
         entries.push(await baseCamp._getScheduleEntries(accessToken, basecampInfo[proj]));
@@ -431,7 +496,8 @@ class Utility {
       // return error
       return err;
     }
-  } 
+  } // getAllEvents
+
   /**
    * Gets all expensetype data and then parses the categories
    */
@@ -443,9 +509,11 @@ class Utility {
       });
       return new ExpenseType(expenseTypeData);
     });
+   
 
     return expenseTypes;
-  }
+  } // getAllExpenseTypes
+
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
    * returns all expenses if the employee is an admin or just the requesting employee's expenses if the employee is a

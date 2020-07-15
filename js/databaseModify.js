@@ -418,8 +418,9 @@ class databaseModify {
    * @param secondaryIndex - index name
    * @param queryKey - key attribute to query by
    * @param queryParam - parameter value of entries
+   * @param additionalParams - optional parameter to add or overwrite default param values
    */
-  async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam) {
+  async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam, additionalParams = {}) {
     // log method
     let tableName = this.tableName;
     logger.log(
@@ -429,14 +430,14 @@ class databaseModify {
     );
 
     // compute method
-    const params = {
+    const params = _.assign({
       TableName: tableName,
       IndexName: secondaryIndex,
       ExpressionAttributeValues: {
         ':queryKey': queryParam
       },
-      KeyConditionExpression: `${queryKey} = :queryKey`
-    };
+      KeyConditionExpression: `${queryKey} = :queryKey` 
+    }, additionalParams); 
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)

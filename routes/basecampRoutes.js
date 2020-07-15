@@ -142,7 +142,7 @@ class BasecampRoutes {
       return err;
     }
   }
-  getBascampInfo(){
+  getBasecampInfo(){
     return BASECAMP_PROJECTS;
   }
   /**
