@@ -796,7 +796,6 @@ describe('databaseModify', () => {
       });
 
       it('should return the updated object', done => {
-        console.log(newDyanmoObj);
         databaseModify.updateEntryInDB(newDyanmoObj)
           .then(data => {
             expect(data).toEqual(newDyanmoObj);

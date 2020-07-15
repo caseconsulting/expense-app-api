@@ -211,7 +211,7 @@ describe('expenseRoutes', () => {
       describe('and expense is pending', () => {
 
         beforeEach(() => {
-          expense.reimbursedDate = ' ';
+          delete expense.reimbursedDate;
           expectedBudget.pendingAmount = 3;
         });
 
@@ -505,7 +505,7 @@ describe('expenseRoutes', () => {
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       budget = new Budget(BUDGET_DATA);
       employee.workStatus = 100;
-      expense.reimbursedDate = ' ';
+      delete expense.reimbursedDate;
       expense.purchaseDate = '2000-08-18';
       expense.cost = 2;
       expenseType.recurringFlag = false;
@@ -728,7 +728,7 @@ describe('expenseRoutes', () => {
           message: 'Purchase date must be in current annual budget range from2020-01-01 to 2020-12-31.'
         };
         employee.hireDate = '2000-01-01';
-        expense.reimbursedDate = ' ';
+        delete expense.reimbursedDate;
         expense.purchaseDate = '2000-01-01';
         expenseType.recurringFlag = true;
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
@@ -792,17 +792,17 @@ describe('expenseRoutes', () => {
       employee = new Employee(EMPLOYEE_DATA);
       expense = new Expense(EXPENSE_DATA);
       expense.purchaseDate = '2000-08-18';
-      expense.reimbursedDate = ' ';
+      delete expense.reimbursedDate;
       expense.cost = 1;
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType.recurringFlag = false;
       expenseData = _.cloneDeep(EXPENSE_DATA);
       expenseData.purchaseDate = '2000-08-18';
-      expenseData.reimbursedDate = ' ';
+      delete expenseData.reimbursedDate;
       expenseData.cost = 1;
       otherExpenseData = _.cloneDeep(EXPENSE_DATA);
       otherExpenseData.purchaseDate = '2000-08-18';
-      otherExpenseData.reimbursedDate = ' ';
+      delete otherExpenseData.reimbursedDate;
       otherExpenseData.cost = 2;
       expensesData = [expenseData, otherExpenseData];
 
@@ -1212,7 +1212,7 @@ describe('expenseRoutes', () => {
     describe('when only the expense reimbursed date is changed', () => {
 
       beforeEach(() => {
-        oldExpense.reimbursedDate = ' ';
+        delete oldExpense.reimbursedDate;
         newExpense.reimbursedDate = '2000-08-18';
       });
 
@@ -1226,7 +1226,7 @@ describe('expenseRoutes', () => {
 
     describe('when expense is being changed', () => {
       beforeEach(() => {
-        oldExpense.reimbursedDate = ' ';
+        delete oldExpense.reimbursedDate;
         oldExpense.description = 'old description';
         newExpense.reimbursedDate = '2000-08-18';
         newExpense.description = 'new description';
@@ -1466,8 +1466,8 @@ describe('expenseRoutes', () => {
       describe('and changing a pending expense', () => {
 
         beforeEach(() => {
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
         });
 
         it('should log', () => {
@@ -1478,7 +1478,7 @@ describe('expenseRoutes', () => {
       describe('and reimbursing an expense', () => {
 
         beforeEach(() => {
-          oldExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
           newExpense.reimbursedDate = '2000-08-18';
         });
 
@@ -1491,7 +1491,7 @@ describe('expenseRoutes', () => {
 
         beforeEach(() => {
           oldExpense.reimbursedDate = '2000-08-18';
-          newExpense.reimbursedDate = ' ';
+          delete newExpense.reimbursedDate;
         });
 
         it('should log', () => {
@@ -1522,8 +1522,8 @@ describe('expenseRoutes', () => {
       describe('and changing a pending expense', () => {
 
         beforeEach(() => {
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
         });
 
         it('should log', () => {
@@ -1534,7 +1534,7 @@ describe('expenseRoutes', () => {
       describe('and reimbursing an expense', () => {
 
         beforeEach(() => {
-          oldExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
           newExpense.reimbursedDate = '2000-08-18';
         });
 
@@ -1547,7 +1547,7 @@ describe('expenseRoutes', () => {
 
         beforeEach(() => {
           oldExpense.reimbursedDate = '2000-08-18';
-          newExpense.reimbursedDate = ' ';
+          delete newExpense.reimbursedDate;
         });
 
         it('should log', () => {
@@ -1654,7 +1654,7 @@ describe('expenseRoutes', () => {
       newExpenseData = _.cloneDeep(EXPENSE_DATA);
 
       oldExpense.cost = 5;
-      oldExpense.reimbursedDate = ' ';
+      delete oldExpense.reimbursedDate;
       oldExpense.purchaseDate = '2000-08-18';
 
       newExpense.cost = 5;
@@ -1662,7 +1662,7 @@ describe('expenseRoutes', () => {
       newExpense.purchaseDate = '2000-08-18';
 
       oldExpenseData.cost = 5;
-      oldExpenseData.reimbursedDate = ' ';
+      delete oldExpenseData.reimbursedDate;
       oldExpenseData.purchaseDate = '2000-08-18';
 
       newExpenseData.cost = 5;
@@ -1957,7 +1957,7 @@ describe('expenseRoutes', () => {
 
               beforeEach(() => {
                 expenseType.categories = CATEGORIES;
-                newExpense.category = ' ';
+                delete newExpense.category;
               });
 
               it('should create a new expense and delete the old', done => {
@@ -1981,7 +1981,7 @@ describe('expenseRoutes', () => {
           describe('the old does not have a receipt,', () => {
 
             beforeEach(() => {
-              oldExpense.receipt = ' ';
+              delete oldExpense.receipt;
             });
 
             describe('and requires a category', () => {
@@ -2012,7 +2012,7 @@ describe('expenseRoutes', () => {
               beforeEach(() => {
                 expenseType.categories = CATEGORIES;
                 oldExpenseType.categories = CATEGORIES;
-                newExpense.category = ' ';
+                delete newExpense.category;
               });
 
               it('should create a new expense and delete the old', done => {
@@ -2038,7 +2038,7 @@ describe('expenseRoutes', () => {
           beforeEach(() => {
             expenseType.requiredFlag = false;
             oldExpenseType.requiredFlag = false;
-            newExpense.receipt = ' ';
+            delete newExpense.receipt;
           });
 
           describe('and requires a category', () => {
@@ -2068,7 +2068,7 @@ describe('expenseRoutes', () => {
 
             beforeEach(() => {
               expenseType.categories = CATEGORIES;
-              newExpense.category = ' ';
+              delete newExpense.category;
             });
 
             it('should create a new expense and delete the old', done => {
@@ -2093,9 +2093,9 @@ describe('expenseRoutes', () => {
 
         beforeEach(() => {
           expenseType.requiredFlag = false;
-          newExpense.receipt = ' ';
+          delete newExpense.receipt;
           expenseType.categories = CATEGORIES;
-          newExpense.category = ' ';
+          delete newExpense.category;
         });
 
         describe('create new expense', () => {
@@ -2274,12 +2274,12 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 10;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
           expense2.cost = 90;
-          expense2.reimbursedDate = ' ';
+          delete expense2.reimbursedDate;
 
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2000-08-18';
@@ -2299,7 +2299,7 @@ describe('expenseRoutes', () => {
           expense6 = _.cloneDeep(EXPENSE_DATA);
           expense6.purchaseDate = '2003-08-18';
           expense6.cost = 80;
-          expense6.reimbursedDate = ' ';
+          delete expense6.reimbursedDate;
 
           budget1 = _.cloneDeep(BUDGET_DATA);
           budget1.fiscalStartDate = '2000-08-18';
@@ -2392,7 +2392,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 90;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -2407,7 +2407,7 @@ describe('expenseRoutes', () => {
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = '2002-08-18';
           expense4.cost = 20;
-          expense4.reimbursedDate = ' ';
+          delete expense4.reimbursedDate;
 
           expense5 = _.cloneDeep(EXPENSE_DATA);
           expense5.purchaseDate = '2002-08-18';
@@ -2510,17 +2510,17 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 20;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2001-08-18';
           expense2.cost = 50;
-          expense2.reimbursedDate = ' ';
+          delete expense2.reimbursedDate;
 
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2002-08-18';
           expense3.cost = 20;
-          expense3.reimbursedDate = ' ';
+          delete expense3.reimbursedDate;
 
           budget1 = _.cloneDeep(BUDGET_DATA);
           budget1.fiscalStartDate = '2000-08-18';
@@ -2596,7 +2596,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 20;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           budget1 = _.cloneDeep(BUDGET_DATA);
           budget1.fiscalStartDate = '2000-08-18';
@@ -2645,7 +2645,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 70;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -2755,7 +2755,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 70;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -2865,7 +2865,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = moment().subtract(1, 'y').format(ISOFORMAT);
           expense1.cost = 20;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = moment().subtract(1, 'y').format(ISOFORMAT);
@@ -2875,7 +2875,7 @@ describe('expenseRoutes', () => {
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = moment().format(ISOFORMAT);
           expense3.cost = 90;
-          expense3.reimbursedDate = ' ';
+          delete expense3.reimbursedDate;
 
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = moment().format(ISOFORMAT);
@@ -2946,7 +2946,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 90;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           budget1 = _.cloneDeep(BUDGET_DATA);
           budget1.fiscalStartDate = '2000-08-18';
@@ -3015,12 +3015,12 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 10;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
           expense2.cost = 90;
-          expense2.reimbursedDate = ' ';
+          delete expense2.reimbursedDate;
 
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2000-08-18';
@@ -3040,7 +3040,7 @@ describe('expenseRoutes', () => {
           expense6 = _.cloneDeep(EXPENSE_DATA);
           expense6.purchaseDate = '2003-08-18';
           expense6.cost = 80;
-          expense6.reimbursedDate = ' ';
+          delete expense6.reimbursedDate;
 
           budget1 = _.cloneDeep(BUDGET_DATA);
           budget1.fiscalStartDate = '2000-08-18';
@@ -3133,7 +3133,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 140;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -3143,7 +3143,7 @@ describe('expenseRoutes', () => {
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2001-08-18';
           expense3.cost = 20;
-          expense3.reimbursedDate = ' ';
+          delete expense3.reimbursedDate;
 
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = '2001-08-18';
@@ -3153,7 +3153,7 @@ describe('expenseRoutes', () => {
           expense5 = _.cloneDeep(EXPENSE_DATA);
           expense5.purchaseDate = '2002-08-18';
           expense5.cost = 10;
-          expense5.reimbursedDate = ' ';
+          delete expense5.reimbursedDate;
 
           expense6 = _.cloneDeep(EXPENSE_DATA);
           expense6.purchaseDate = '2002-08-18';
@@ -3238,7 +3238,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 140;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -3248,7 +3248,7 @@ describe('expenseRoutes', () => {
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2001-08-18';
           expense3.cost = 20;
-          expense3.reimbursedDate = ' ';
+          delete expense3.reimbursedDate;
 
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = '2001-08-18';
@@ -3258,7 +3258,7 @@ describe('expenseRoutes', () => {
           expense5 = _.cloneDeep(EXPENSE_DATA);
           expense5.purchaseDate = '2002-08-18';
           expense5.cost = 10;
-          expense5.reimbursedDate = ' ';
+          delete expense5.reimbursedDate;
 
           expense6 = _.cloneDeep(EXPENSE_DATA);
           expense6.purchaseDate = '2002-08-18';
@@ -3346,7 +3346,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 100;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -3356,7 +3356,7 @@ describe('expenseRoutes', () => {
           expense3 = _.cloneDeep(EXPENSE_DATA);
           expense3.purchaseDate = '2001-08-18';
           expense3.cost = 10;
-          expense3.reimbursedDate = ' ';
+          delete expense3.reimbursedDate;
 
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = '2001-08-18';
@@ -3366,7 +3366,7 @@ describe('expenseRoutes', () => {
           expense5 = _.cloneDeep(EXPENSE_DATA);
           expense5.purchaseDate = '2002-08-18';
           expense5.cost = 60;
-          expense5.reimbursedDate = ' ';
+          delete expense5.reimbursedDate;
 
           expense6 = _.cloneDeep(EXPENSE_DATA);
           expense6.purchaseDate = '2002-08-18';
@@ -3421,7 +3421,7 @@ describe('expenseRoutes', () => {
 
           oldExpense = new Expense(expense4);
           newExpense = new Expense(expense4);
-          newExpense.reimbursedDate = ' ';
+          delete newExpense.reimbursedDate;
 
           databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
           budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
@@ -3451,7 +3451,7 @@ describe('expenseRoutes', () => {
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 20;
-          expense1.reimbursedDate = ' ';
+          delete expense1.reimbursedDate;
 
           expense2 = _.cloneDeep(EXPENSE_DATA);
           expense2.purchaseDate = '2000-08-18';
@@ -3466,7 +3466,7 @@ describe('expenseRoutes', () => {
           expense4 = _.cloneDeep(EXPENSE_DATA);
           expense4.purchaseDate = '2001-08-18';
           expense4.cost = 10;
-          expense4.reimbursedDate = ' ';
+          delete expense4.reimbursedDate;
 
           expense5 = _.cloneDeep(EXPENSE_DATA);
           expense5.purchaseDate = '2001-08-18';
@@ -3526,7 +3526,7 @@ describe('expenseRoutes', () => {
 
           oldExpense = new Expense(expense3);
           newExpense = new Expense(expense3);
-          newExpense.reimbursedDate = ' ';
+          delete newExpense.reimbursedDate;
 
           databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
           budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
@@ -3647,7 +3647,7 @@ describe('expenseRoutes', () => {
         expense1 = _.cloneDeep(EXPENSE_DATA);
         expense1.purchaseDate = '2000-08-18';
         expense1.cost = 20;
-        expense1.reimbursedDate = ' ';
+        delete expense1.reimbursedDate;
 
         budget1 = _.cloneDeep(BUDGET_DATA);
         budget1.fiscalStartDate = '2000-08-18';
@@ -3867,7 +3867,7 @@ describe('expenseRoutes', () => {
     describe('when the expense is not reimbursed', () => {
 
       beforeEach(() => {
-        expense.reimbursedDate = ' ';
+        delete expense.reimbursedDate;
       });
 
       it('should return the validated expense', () => {
@@ -3910,7 +3910,7 @@ describe('expenseRoutes', () => {
       expense = new Expense(EXPENSE_DATA);
       employee = new Employee(EMPLOYEE_DATA);
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
-      expense.reimbursedDate = ' ';
+      delete expense.reimbursedDate;
       expenseType.isInactive = false;
       expenseType.recurringFlag = true;
       employee.workStatus = 100;
@@ -4008,7 +4008,7 @@ describe('expenseRoutes', () => {
           message: `Receipt is required for expense type ${NAME}.`
         };
         expenseType.requiredFlag = true;
-        expense.receipt = ' ';
+        delete expense.receipt;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -4275,8 +4275,8 @@ describe('expenseRoutes', () => {
             code: 404,
             message: 'Failed to find todays budget.'
           };
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.reject(err));
         });
 
@@ -4303,8 +4303,8 @@ describe('expenseRoutes', () => {
             message: 'Cannot change cost of expenses outside of current annual budget from'
             + ' 2001-08-18 to 2002-08-17.'
           };
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           otherBudget = new Budget(BUDGET_DATA);
           otherBudget.id = 'OTHER_ID';
           otherBudget.fiscalStartDate = '2001-08-18';
@@ -4334,8 +4334,8 @@ describe('expenseRoutes', () => {
             code: 403,
             message: 'Expense is over the budget limit.'
           };
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.resolve(budget));
           spyOn(expenseRoutes, '_isValidCostChange').and.returnValue(false);
         });
@@ -4363,8 +4363,8 @@ describe('expenseRoutes', () => {
             message: 'Cannot change cost of expenses outside of current annual budget from'
             + ' 2001-08-18 to 2002-08-17.'
           };
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           otherBudget = new Budget(BUDGET_DATA);
           otherBudget.id = 'OTHER_ID';
           oldExpense.fiscalStartDate = '2001-08-18';
@@ -4393,8 +4393,8 @@ describe('expenseRoutes', () => {
       describe('and validation is successful', () => {
 
         beforeEach(() => {
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           spyOn(expenseRoutes, '_findBudget').and.returnValue(Promise.resolve(budget));
           spyOn(expenseRoutes, '_isValidCostChange').and.returnValue(true);
         });
@@ -4550,8 +4550,8 @@ describe('expenseRoutes', () => {
             code: 403,
             message: 'Cannot change cost of expenses outside of current annual budget from 2001-08-18 to 2002-08-17.'
           };
-          oldExpense.reimbursedDate = ' ';
-          newExpense.reimbursedDate = ' ';
+          delete oldExpense.reimbursedDate;
+          delete newExpense.reimbursedDate;
           otherBudget = new Budget(BUDGET_DATA);
           otherBudget.id = 'OTHER_ID';
           budget.fiscalStartDate = '2001-08-18';

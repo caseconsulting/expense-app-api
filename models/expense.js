@@ -1,43 +1,41 @@
+const _ = require('lodash');
+
 /**
  * Expense model
  *
- * Fields:
+ * Required Fields:
  * - id
- * - purchaseDate
- * - reimbursedDate
- * - note
- * - url
+ * - employeeId
  * - createdAt
- * - receipt
+ * - expenseTypeId
  * - cost
  * - description
- * - employeeId
- * - expenseTypeId
- * - category
+ * - purchaseDate
  * - showOnFeed
+ *
+ * Optional Fields:
+ * - category
+ * - reimbursedDate
+ * - receipt
+ * - note
+ * - url
  */
 class Expense {
   constructor(data) {
-    this.id = data.id;
-    this.purchaseDate = data.purchaseDate;
-    this.reimbursedDate = data.reimbursedDate;
-    this.note = data.note;
-    this.url = data.url;
-    this.createdAt = data.createdAt;
-    this.receipt = data.receipt;
-    this.cost = Number(Number(data.cost).toFixed(2));
-    this.description = data.description;
-    this.employeeId = data.employeeId;
-    this.expenseTypeId = data.expenseTypeId;
-    this.category = data.category;
-    this.showOnFeed = data.showOnFeed;
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'employeeId');
+    this.setRequiredAttribute(data, 'createdAt');
+    this.setRequiredAttribute(data, 'expenseTypeId');
+    this.setRequiredAttribute(data, 'description');
+    this.setRequiredAttribute(data, 'purchaseDate');
+    this.setRequiredAttribute(data, 'showOnFeed', false);
+    this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
 
-    // populate empty fields with a space holder
-    for (let propName in this) {
-      if (this._isEmpty(this[propName])) {
-        this[propName] = ' ';
-      }
-    }
+    this.setOptionalAttribute(data, 'category');
+    this.setOptionalAttribute(data, 'reimbursedDate');
+    this.setOptionalAttribute(data, 'receipt');
+    this.setOptionalAttribute(data, 'note');
+    this.setOptionalAttribute(data, 'url');
   } // constructor
 
   /**
@@ -50,13 +48,13 @@ class Expense {
   }
 
   /**
-   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
    *
    * @param value - value to check
    * @return boolean - value is empty
    */
   _isEmpty(value) {
-    return value == null || value === ' ' || value === '';
+    return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
 
   /**
@@ -67,6 +65,62 @@ class Expense {
   isReimbursed() {
     return !this._isEmpty(this.reimbursedDate);
   } // isReimbursed
+
+  /**
+   * Sets an employee attribute if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   */
+  setOptionalAttribute(data, attribute) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    }
+  } // setOptionalAttribute
+
+  /**
+   * Sets an employee attribute number if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param fixed - decimal places to fix value
+   */
+  setOptionalNumberAttribute(data, attribute, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    }
+  } // setNumberAttribute
+
+  /**
+   * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   */
+  setRequiredAttribute(data, attribute, defaultValue) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredAttribute
+
+  /**
+   * Sets an employee attribute number. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   * @param fixed - decimal places to fix value
+   */
+  setRequiredNumberAttribute(data, attribute, defaultValue, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredNumberAttribute
 }
 
 module.exports = Expense;

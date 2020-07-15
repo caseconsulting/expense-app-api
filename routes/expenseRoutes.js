@@ -546,6 +546,36 @@ class ExpenseRoutes extends Crud {
     }
   }
 
+  /**
+   * Reads all expenses from the database. Returns all expenses.
+   *
+   * @return Array - all expenses
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all expenses');
+
+    // compute method
+    try {
+      let expensesData = await this.databaseModify.getAllEntriesInDB();
+      let expenses = _.map(expensesData, expense => {
+        return new Expense(expense);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all expenses');
+
+      // return all expenses
+      return expenses;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all expenses');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+
   /*
    * Sorts array of budgets by fiscal start date. Returns sorted budgets.
    *
@@ -635,7 +665,7 @@ class ExpenseRoutes extends Crud {
 
         if (!expenseType.requiredFlag) {
           // clear receipt if the new expense type does not require a receipt
-          newExpense.receipt = ' ';
+          delete newExpense.receipt;
         } else {
           if (oldExpense.hasReceipt()) {
             // change the bucket/path of the receipt from the old expense id to the new expense id
@@ -645,7 +675,7 @@ class ExpenseRoutes extends Crud {
 
         if (expenseType.categories.length <= 0) {
           // clear category if the new expense type does not have categories
-          newExpense.category = ' ';
+          delete newExpense.category;
         }
 
         return (
