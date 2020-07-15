@@ -393,7 +393,7 @@ describe('employeeRoutes', () => {
 
       beforeEach(() => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
-      })
+      });
 
       it('should return the employees', done => {
         employeeRoutes._readAll()
