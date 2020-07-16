@@ -441,7 +441,20 @@ class Utility {
       return err;
     }
   } 
+  /**
+   * Gets all expensetype data and then parses the categories
+   */
+  async getAllExpenseTypes(){
+    let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+        return JSON.parse(category);
+      });
+      return new ExpenseType(expenseTypeData);
+    });
 
+    return expenseTypes;
+  }
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
    * returns all expenses if the employee is an admin or just the requesting employee's expenses if the employee is a
