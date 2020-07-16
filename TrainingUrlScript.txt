@@ -1,0 +1,54 @@
+[2020-07-17T13:01:16-04:00] Attempting to update all Training Urls | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Deleting all entries in dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Getting all entries in table dev-training-urls | Processing handled by function TrainingSync.getAllEntriesInDB
+[2020-07-17T13:01:16-04:00] Successfully deleted training url https://invalidtestforAustin.com with category Certifications from dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Successfully deleted training url https://nonescrapething.com with category Certifications from dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Successfully deleted training url https://aws.com with category Certifications from dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Successfully deleted training url https://invalidurlthatdoesnotexist.com with category Certifications from dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Successfully deleted training url http://acloud.guru with category Certifications from dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Finished deleting all entries in dev-training-urls | Processing handled by function TrainingSync.deleteAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Getting all entries in table dev-expense-types | Processing handled by function TrainingSync.getAllEntriesInDB
+[2020-07-17T13:01:16-04:00] Getting all entries in table dev-expenses | Processing handled by function TrainingSync.getAllEntriesInDB
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://www.codecademy.com/ | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://www.codecademy.com/ | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://twitter.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://twitter.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://invalidurlthatdoesnotexist.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://invalidurlthatdoesnotexist.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://www.udemy.com/ | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://www.udemy.com/ | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://yahoo.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://yahoo.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from http://acloud.guru | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for http://acloud.guru | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://nonescrapething.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://nonescrapething.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://aws.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://aws.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Attempting to scrape metadata from https://invalidtestforAustin.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Getting http request for https://invalidtestforAustin.com | Processing handled by function TrainingSync._got
+[2020-07-17T13:01:16-04:00] Finished updating all Training Urls | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:16-04:00] Scraping http://acloud.guru/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:16-04:00] Scraping https://twitter.com/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:16-04:00] Scraping https://www.codecademy.com/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:16-04:00] Successfully scraped metadata from https://twitter.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Successfully scraped metadata from http://acloud.guru | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Successfully scraped metadata from https://www.codecademy.com/ | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:16-04:00] Scraping https://www.udemy.com/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:17-04:00] >>> Successfully created 1 hit(s) for training url 'http://acloud.guru' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:17-04:00] >>> Successfully created 15 hit(s) for training url 'https://twitter.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:17-04:00] >>> Successfully created 2 hit(s) for training url 'https://www.codecademy.com/' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:17-04:00] Successfully scraped metadata from https://www.udemy.com/ | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:17-04:00] Scraping https://aws.amazon.com/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:17-04:00] Successfully scraped metadata from https://aws.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:17-04:00] >>> Successfully created 1 hit(s) for training url 'https://www.udemy.com/' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:17-04:00] >>> Successfully created 1 hit(s) for training url 'https://aws.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:17-04:00] Scraping https://www.yahoo.com/ for metadata | Processing handled by function TrainingSync._metascraper
+[2020-07-17T13:01:17-04:00] Successfully scraped metadata from https://yahoo.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:17-04:00] >>> Successfully created 1 hit(s) for training url 'https://yahoo.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:19-04:00] Failed to scrape metadata from https://invalidtestforAustin.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:19-04:00] >>> Successfully created 1 hit(s) for training url 'https://invalidtestforAustin.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:19-04:00] Failed to scrape metadata from https://nonescrapething.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:19-04:00] >>> Successfully created 1 hit(s) for training url 'https://nonescrapething.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
+[2020-07-17T13:01:19-04:00] Failed to scrape metadata from https://invalidurlthatdoesnotexist.com | Processing handled by function TrainingSync._getMetaData
+[2020-07-17T13:01:19-04:00] >>> Successfully created 1 hit(s) for training url 'https://invalidurlthatdoesnotexist.com' with category 'Certifications' | Processing handled by function TrainingSync.getAllTrainingUrls
