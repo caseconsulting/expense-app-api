@@ -108,7 +108,7 @@ class ExpenseTypeRoutes extends Crud {
     }
   } // _read
 
-    /**
+  /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
    * objects.
    *
