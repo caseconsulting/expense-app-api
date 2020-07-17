@@ -124,7 +124,7 @@ async function categoryFixer() {
         categories.push(category);
       } catch(err) {
         let categoryObj = {name: category, showOnFeed: false};
-        categories.push(categoryObj);
+        categories.push(JSON.stringify(categoryObj));
       }
     });
     let params = {

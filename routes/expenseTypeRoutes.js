@@ -108,6 +108,66 @@ class ExpenseTypeRoutes extends Crud {
     }
   } // _read
 
+    /**
+   * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
+   * objects.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - objects read
+   */
+  async _readAllWrapper(req, res) {
+    // log method
+    logger.log(1, '_readAllWrapper', `Attempting to read all objects from ${this._getTableName()}`);
+
+    // compute method
+    if (this._checkPermissionToReadAll(req.employee)) {
+      // employee has permission to read all objects from table
+      return this.databaseModify.getAllEntriesInDB() // read from database
+        .then(data => {
+          // log success
+          logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
+
+          let parsedData = _.map(data, expenseTypeData => {
+            expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+              return JSON.parse(category);
+            });
+            return new ExpenseType(expenseTypeData);
+          });
+
+          // send successful 200 status
+          res.status(200).send(parsedData);
+
+          // return read data
+          return parsedData;
+        })
+        .catch(err => {
+          // log error
+          logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
+
+          // send error status
+          this._sendError(res, err);
+
+          return err;
+        });
+    } else {
+      // employee does not have permission to read all objects from table
+      let err = {
+        code: 403,
+        message: 'Unable to read all objects from database due to insufficient employee permissions.'
+      };
+
+      // log error
+      logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _readAllWrapper
+
   /**
    * Update expense type and budgets. Returns the expense type updated.
    *
