@@ -627,14 +627,9 @@ class ExpenseRoutes extends Crud {
         // expense types are different
         // generate a new expense id
         newExpense.id = this.getUUID();
-        console.log('here 1');
         let oldExpenseType = await this.expenseTypeDynamo.getEntry(oldExpense.expenseTypeId);
-        console.log('here 2');
-        console.log('oldExpenseType');
-        console.log(oldExpenseType);
-        console.log('type of oldExpenseType categories: ' + typeof oldExpenseType.categories[0]);
         oldExpenseType.categories = _.map(oldExpenseType.categories, (category) => {
-          return category;
+          return JSON.parse(category);
         });
         oldExpenseType = new ExpenseType(oldExpenseType);
 
