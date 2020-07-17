@@ -43,7 +43,7 @@ describe('budget', () => {
         invalid: '{invalid}'
       };
       budget = new Budget(localBudgetData);
-    })
+    });
 
     it('should populate required and optional values only', () => {
       expect(budget).toEqual(
