@@ -7,7 +7,9 @@
 // LIST OF ACTIONS
 const actions = [
   '0. Cancel',
-  '1. Set all expense type\'s accessible by value to \'ALL\''
+  '1. Set all expense type\'s accessible by value to \'ALL\'',
+  '2. Change expense type categories to JSON objects',
+  '3. Add alwaysOnFeed to DynamoDB table'
 ];
 
 // check for stage argument
@@ -67,6 +69,71 @@ async function accessibleByAll() {
       UpdateExpression: 'set accessibleBy = :a',
       ExpressionAttributeValues: {
         ':a': 'ALL'
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+}
+
+async function addAlwaysOnFeed() {
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, expenseType => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set alwaysOnFeed = :a',
+      ExpressionAttributeValues: {
+        ':a': false
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+}
+
+/**
+ * changes expense types with string categories to JSON objects.
+ */
+async function categoryFixer() {
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, expenseType => {
+    let categories = [];
+    _.forEach(expenseType.categories, category => {
+      try {
+        JSON.parse(category);
+        categories.push(category);
+      } catch(err) {
+        let categoryObj = {name: category, showOnFeed: false};
+        categories.push(categoryObj);
+      }
+    });
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set categories = :a',
+      ExpressionAttributeValues: {
+        ':a': categories
       },
       ReturnValues: 'UPDATED_NEW'
     };
@@ -149,6 +216,18 @@ async function main() {
       if (confirmAction('set all expense type\'s accessible by value to \'ALL\'?')) {
         console.log('Setting all expense type\'s accessible by value to \'ALL\'');
         accessibleByAll();
+      }
+      break;
+    case 2:
+      if(confirmAction('Change expense type categories to JSON objects')) {
+        console.log('Changing expense type categories to JSON objects');
+        categoryFixer();
+      }
+      break;
+    case 3:
+      if(confirmAction('Add alwaysOnFeed to DynamoDB table')) {
+        console.log('Adding alwaysOnFeed to DynamoDB table');
+        addAlwaysOnFeed();
       }
       break;
     default:
