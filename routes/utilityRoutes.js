@@ -274,10 +274,7 @@ class Utility {
       let employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
 
       // get all expense types
-      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-      let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-        return new ExpenseType(expenseTypeData);
-      });
+      let expenseTypes = await this.getAllExpenseTypes();
 
       let activeBudgets = []; // store active budgets
       let today = moment().format(ISOFORMAT); // today isoformat string
@@ -330,10 +327,7 @@ class Utility {
       if (this.isAdmin(req.employee) || this.isUser(req.employee)) {
         // employee is an admin or user
         // get expense types
-        let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-        let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-          return new ExpenseType(expenseTypeData);
-        });
+        let expenseTypes = await this.getAllExpenseTypes();
 
         let employeesData;
         let expensesData;
@@ -386,10 +380,7 @@ class Utility {
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
 
     try {
-      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-      let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-        return new ExpenseType(expenseTypeData);
-      });
+      let expenseTypes = await this.getAllExpenseTypes();
 
       let employeesData;
       let expensesData;
@@ -473,10 +464,7 @@ class Utility {
       if (this.isAdmin(req.employee) || this.isUser(req.employee)) {
         // employee is an admin or user
         // get expense types
-        let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-        let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-          return new ExpenseType(expenseTypeData);
-        });
+        let expenseTypes = await this.getAllExpenseTypes();
 
         let employeesData;
         let expensesData;
@@ -680,7 +668,11 @@ class Utility {
       const employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
 
       // get expense type
-      const expenseType = new ExpenseType(await this.expenseTypeDynamo.getEntry(req.params.expenseTypeId));
+      let expenseType = await this.expenseTypeDynamo.getEntry(req.params.expenseTypeId);
+      expenseType.categories = _.map(expenseType.categories, (category) => {
+        return JSON.parse(category);
+      });
+      expenseType = new ExpenseType(expenseType);
 
       // get all budgets for employee and expense type
       let budgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
@@ -743,10 +735,7 @@ class Utility {
       let employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
 
       // get all expense types
-      let allExpenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-      let allExpenseTypes = _.map(allExpenseTypesData, expenseTypeData => {
-        return new ExpenseType(expenseTypeData);
-      });
+      let allExpenseTypes = await this.getAllExpenseTypes();
 
       // get all budgets
       let budgetsData = await this.budgetDynamo

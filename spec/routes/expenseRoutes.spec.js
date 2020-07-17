@@ -35,7 +35,7 @@ describe('expenseRoutes', () => {
   const CREATED_AT = '{createdAt}';
   const RECEIPT = '{receipt}';
   const COST = 0;
-  const CATEGORY = '{category}';
+  const CATEGORY = '{"name": "categoryName", "showOnFeed": false}';
 
   const NAME = '{name}';
   const BUDGET = 0;
