@@ -9,8 +9,7 @@ const actions = [
   '0. Cancel',
   '1. Set all expense type\'s accessible by value to \'ALL\'',
   '2. Change expense type categories to JSON objects',
-  '3. Add alwaysOnFeed to DynamoDB table',
-  '4. Change name of alwaysOnFeed attribute to disableShowOnFeedToggle in DynamoDB table'
+  '3. Add disableShowOnFeedToggle to DynamoDB table',
 ];
 
 // check for stage argument
@@ -85,7 +84,7 @@ async function accessibleByAll() {
   });
 }
 
-async function addAlwaysOnFeed() {
+async function addDisableShowOnFeedToggle() {
   let expenseTypes = await getAllEntries();
   _.forEach(expenseTypes, expenseType => {
     let params = {
@@ -93,7 +92,7 @@ async function addAlwaysOnFeed() {
       Key: {
         'id': expenseType.id
       },
-      UpdateExpression: 'set alwaysOnFeed = :a',
+      UpdateExpression: 'set disableShowOnFeedToggle = :a',
       ExpressionAttributeValues: {
         ':a': false
       },
@@ -205,70 +204,6 @@ function confirmAction(prompt) {
     return false;
   }
 }
-async function changeAttributeName(oldName, newName) {
-  copyValues(oldName, newName);
-  removeAttribute(oldName);
-}
-/**
- * Copies values from old attribute name to new attribute name
- */
-async function copyValues(oldName, newName) {
-  let expenseTypes = await getAllEntries();
-
-  _.forEach(expenseTypes, expenseType => {
-    let params = {
-      TableName: TABLE,
-      Key: {
-        'id': expenseType.id
-      },
-      UpdateExpression: `set ${newName} = :e`,
-      ExpressionAttributeValues: {
-        ':e': expenseType[oldName]
-      },
-      ReturnValues: 'UPDATED_NEW'
-    };
-
-    if (expenseType[newName]) {
-      params.ExpressionAttributeValues = {
-        ':e': expenseType[newName]
-      };
-    }
-
-    // update budget
-    ddb.update(params, function(err, data) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Item Updated\n  Budget ID: ${expenseType.id}\n  ${newName} copied: ${data.Attributes[newName]}`);
-      }
-    });
-  });
-}
-
-/**
- * Removes given attribute from all budget data
- */
-async function removeAttribute(attribute) {
-  let expenseTypes = await getAllEntries();
-  _.forEach(expenseTypes, expenseType => {
-    let params = {
-      TableName: TABLE,
-      Key: {
-        'id': expenseType.id
-      },
-      UpdateExpression: `remove ${attribute}`,
-      ReturnValues: 'UPDATED_NEW'
-    };
-
-    // update budget
-    ddb.update(params, function(err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
-  });
-}
-
 
 /**
  * main - action selector
@@ -290,15 +225,9 @@ async function main() {
       }
       break;
     case 3:
-      if(confirmAction('Add alwaysOnFeed to DynamoDB table?')) {
-        console.log('Adding alwaysOnFeed to DynamoDB table');
-        addAlwaysOnFeed();
-      }
-      break;
-    case 4:
-      if(confirmAction('Change name of alwaysOnFeed attribute to disableShowOnFeedToggle in DynamoDB table?')) {
-        console.log('Changing name of  alwaysOnFeed attribute to disableShowOnFeedToggle in DynamoDB table');
-        changeAttributeName('alwaysOnFeed', 'disableShowOnFeedToggle');
+      if(confirmAction('Add disableShowOnFeedToggle to DynamoDB table?')) {
+        console.log('Adding disableShowOnFeedToggle to DynamoDB table');
+        addDisableShowOnFeedToggle();
       }
       break;
     default:
