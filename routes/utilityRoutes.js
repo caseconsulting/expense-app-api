@@ -318,21 +318,26 @@ class Utility {
   async queryExpenses(expenseType, cutOffDate){
     //use additional params option of querySecondaryIndex to filter things.
     cutOffDate = cutOffDate.format('YYYY-MM-DD');
-    //default attributes for two 
+    //default attributes for two
     let expressionAttributes = {
-      ':queryKey': expenseType.expenseTypeId,
+      ':queryKey': expenseType.id,
       ':cutOffDate': cutOffDate
     };
     //for every object in the category array
-    let filterExpression = [];
-    if (expenseType.alwaysOnFeed && !_.isEmpty(expenseType.categories)) {
+    let filterExpressionString;
+    let filterExpression = {};
+    if (expenseType.alwayOnFeed && !_.isEmpty(expenseType.categories)) {
       //if the specific expenseType has any categories
+
       for (let category in expenseType.categories) {
-        if (category.showOnFeed) {
-          //if the specific category is set to be shown on feed add filters and attributes for it
-          filterExpression.push(`category = :${category}`);
-          expressionAttributes[`:${category.name}`] = category.name;
+        if (expenseType.categories[category].showOnFeed) {
+          //if the specific category is set to be shown on feed add filters and attributes for it        
+          expressionAttributes[`:${expenseType.categories[category].name}`] = expenseType.categories[category].name;
+          filterExpression[`:${expenseType.categories[category].name}`] = expenseType.categories[category].name;
         }
+      }
+      if (!_.isEmpty(filterExpression)) {
+        filterExpressionString = 'category in (' + Object.keys(filterExpression).toString()+')';
       }
       //if an expensetype has alwaysOnFeed = true but has no categories tht have showOnFeed = true 
       //we dont need to make a query at all so we return empty array
@@ -346,16 +351,17 @@ class Utility {
     };
     if (!_.isEmpty(filterExpression)) {
       //if the expenseType has categories and they arent all false
-      let filterExpressionString = filterExpression.join(' || '); // category = :lodging || category == :Meals 
       additionalParams.FilterExpression = filterExpressionString;
     }
 
-    return await this.expenseDynamo.querySecondaryIndexInDB(
+    let x =  await this.expenseDynamo.querySecondaryIndexInDB(
       'expenseTypeId-reimbursedDate-index',
       'expenseTypeId',
-      expenseType.expenseyTypeId,
+      expenseType.id,
       additionalParams
     );
+
+    return x;
   }// queryExpenses
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
@@ -436,16 +442,39 @@ class Utility {
 
       let now = moment();
       let cutOff = now.subtract(6, 'months').startOf('day');
-      let filteredExpenseTypes = _.remove(expenseTypes, (expenseType) => { 
-        return expenseType.isInactive || cutOff.isAfter(expenseType.endDate);
+
+      let filteredExpenseTypes = _.map(expenseTypes, (expenseType) => {
+        let endDate = moment(expenseType.endDate, 'YYYY-MM-DD');
+        if (expenseType.isInactive || cutOff.isAfter(endDate.startOf('day'))) {
+          return;
+        }else {
+          return expenseType;
+        }
       });
+      filteredExpenseTypes = _.compact(filteredExpenseTypes);
       
       let employeesData;
-      let expensesData;
+      let expensesData = [];
 
       employeesData = await this.employeeDynamo.getAllEntriesInDB();
-      expensesData =  _.map(filteredExpenseTypes, (expenseType) => {
-        return this.queryExpenses(expenseType, cutOff);
+      
+      
+      await this.asyncForEach(filteredExpenseTypes, async expenseType => {
+        await this.queryExpenses(expenseType, cutOff).then(queryExpensesData => {
+          // log success
+          logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
+  
+          let expenses = _.map(queryExpensesData, expenseData => {
+            return new Expense(expenseData);
+          });
+          expensesData = _.union(expensesData, expenses);
+        })
+          .catch(err => {
+          // log error
+            logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
+
+            return Promise.reject(err);
+          });
       });
       //expensesData = await this.expenseDynamo.getAllEntriesInDB();
 
@@ -453,11 +482,7 @@ class Utility {
         return new Employee(employeeData);
       });
 
-      let expenses = _.map(expensesData, expenseData => {
-        return new Expense(expenseData);
-      });
-
-      let aggregateExpenses = this._convertIdsToNames(expenses, employees, expenseTypes);
+      let aggregateExpenses = this._convertIdsToNames(expensesData, employees, expenseTypes);
       //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
       const baseCamp = new Basecamp();
 
