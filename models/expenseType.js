@@ -18,7 +18,7 @@ const ISOFORMAT = 'YYYY-MM-DD';
  * - categories
  * - accessiblyBy
  * - hasRecipient
- * - alwaysOnFeed
+ * - disableShowOnFeedToggle
  */
 
 class ExpenseType {
@@ -36,7 +36,7 @@ class ExpenseType {
     this.categories = data.categories;
     this.accessibleBy = data.accessibleBy;
     this.hasRecipient = data.hasRecipient;
-    this.alwaysOnFeed = data.alwaysOnFeed;
+    this.disableShowOnFeedToggle = data.disableShowOnFeedToggle;
 
     if (!this.categories) {
       this.categories = []; // default: no categories

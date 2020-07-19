@@ -326,7 +326,7 @@ class Utility {
     //for every object in the category array
     let filterExpressionString;
     let filterExpression = {};
-    if (expenseType.alwayOnFeed && !_.isEmpty(expenseType.categories)) {
+    if (expenseType.disableShowOnFeedToggle && !_.isEmpty(expenseType.categories)) {
       //if the specific expenseType has any categories
 
       for (let category in expenseType.categories) {
