@@ -70,27 +70,22 @@ function getAllEntries(table) {
 async function addShowOnFeed() {
   // check expenseType, then check categories, then set to false
   let expenseTypes = await getAllEntries(ETTABLE);
-  console.log(expenseTypes);
   let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let expenseType = _.find(expenseTypes, (eType) => {
       return eType.id === expense.expenseTypeId;
     });
     let category;
-    // console.log(expenseType.categories);
     if (expenseType.categories) {
-      // console.log('here');
       category = _.find(expenseType.categories, (cat) => {
-        return cat.name == expense.category;
+        return JSON.parse(cat).name == expense.category;
       });
     }
-    // console.log('category: ' + category);
     let sof = false;
     if (category) {
-      // console.log('has category: ' + category + ' sof: ' + sof);
+      category = JSON.parse(category);
       sof = category.showOnFeed;
     } else {
-      // console.log('no categories, sof: ' + sof);
       sof = expenseType.disableShowOnFeedToggle;
     }
     let params = {
