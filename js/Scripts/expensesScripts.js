@@ -86,7 +86,7 @@ async function addShowOnFeed() {
       category = JSON.parse(category);
       sof = category.showOnFeed;
     } else {
-      sof = expenseType.disableShowOnFeedToggle;
+      sof = expenseType.alwaysOnFeed;
     }
     let params = {
       TableName: TABLE,

@@ -9,7 +9,7 @@ const actions = [
   '0. Cancel',
   '1. Set all expense type\'s accessible by value to \'ALL\'',
   '2. Change expense type categories to JSON objects',
-  '3. Add disableShowOnFeedToggle to DynamoDB table',
+  '3. Add alwaysOnFeed to DynamoDB table',
 ];
 
 // check for stage argument
@@ -84,7 +84,7 @@ async function accessibleByAll() {
   });
 }
 
-async function addDisableShowOnFeedToggle() {
+async function addAlwaysOnFeed() {
   let expenseTypes = await getAllEntries();
   _.forEach(expenseTypes, expenseType => {
     let params = {
@@ -92,7 +92,7 @@ async function addDisableShowOnFeedToggle() {
       Key: {
         'id': expenseType.id
       },
-      UpdateExpression: 'set disableShowOnFeedToggle = :a',
+      UpdateExpression: 'set alwaysOnFeed = :a',
       ExpressionAttributeValues: {
         ':a': false
       },
@@ -225,9 +225,9 @@ async function main() {
       }
       break;
     case 3:
-      if(confirmAction('Add disableShowOnFeedToggle to DynamoDB table?')) {
-        console.log('Adding disableShowOnFeedToggle to DynamoDB table');
-        addDisableShowOnFeedToggle();
+      if(confirmAction('Add alwaysOnFeed to DynamoDB table?')) {
+        console.log('Adding alwaysOnFeed to DynamoDB table');
+        addAlwaysOnFeed();
       }
       break;
     default:
