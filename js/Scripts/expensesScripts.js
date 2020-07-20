@@ -73,7 +73,7 @@ async function addShowOnFeed() {
   let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let expenseType = _.find(expenseTypes, (eType) => {
-      return eType.value === expense.expenseTypeId;
+      return eType.id === expense.expenseTypeId;
     });
     let category;
     if (expenseType.categories) {
