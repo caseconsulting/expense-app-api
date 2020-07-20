@@ -81,10 +81,12 @@ async function addShowOnFeed() {
         return cat.name === expense.category;
       });
     }
-    let sof;
+    let sof = false;
     if (category) {
+      console.log('has category: ' + category + ' sof: ' + sof);
       sof = category.showOnFeed;
     } else {
+      console.log('no categories, sof: ' + sof);
       sof = expenseType.disableShowOnFeedToggle;
     }
     let params = {
