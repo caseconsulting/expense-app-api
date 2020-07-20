@@ -11,7 +11,8 @@ const actions = [
   '2. Create a specified number of dummy expenses',
   '3. Delete all expenses',
   '4. Change all expense attributes labeled categories to category',
-  '5. Change all expense attributes labeled userId to employeeId'
+  '5. Change all expense attributes labeled userId to employeeId',
+  '6. Add showOnFeed attribute to DynamoDB'
 ];
 
 // check for stage argument
@@ -27,6 +28,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 
 // set expense table
 const TABLE = `${STAGE}-expenses`;
+const ETTABLE = `${STAGE}-expense-types`;
 
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
@@ -52,14 +54,58 @@ const getAllEntriesHelper = (params, out = []) =>
   });
 
 // get all entries in dynamodb table
-function getAllEntries() {
+function getAllEntries(table) {
   console.log('Getting all entries in dynamodb expenses table');
   let params = {
-    TableName: TABLE
+    TableName: table
   };
   let entries = getAllEntriesHelper(params);
-  console.log('Finished getting all entries');
+  console.log('Finished getting all entries in ' + table);
   return entries;
+}
+
+/**
+ * adds a showOnFeed attribute to each expense in DynamoDB
+ */
+async function addShowOnFeed() {
+  // check expenseType, then check categories, then set to false
+  let expenseTypes = await getAllEntries(ETTABLE);
+  let expenses = await getAllEntries(TABLE);
+  _.forEach(expenses, (expense) => {
+    let expenseType = _.find(expenseTypes, (eType) => {
+      return eType.value === expense.expenseTypeId;
+    });
+    let category;
+    if (expenseType.categories) {
+      category = _.find(expenseTypes.categories, (cat) => {
+        return cat.name === expense.category;
+      });
+    }
+    let sof;
+    if (category) {
+      sof = category.showOnFeed;
+    } else {
+      sof = expenseType.disableShowOnFeedToggle;
+    }
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expense.id
+      },
+      UpdateExpression: 'set showOnFeed = :a',
+      ExpressionAttributeValues: {
+        ':a': sof
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense
+    ddb.update(params, function (err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
 }
 
 // Used for testing dynamo limitations - populates data table with expenses
@@ -95,7 +141,7 @@ function createItems(numberOfItems) {
 
 // Used for testing dynamo limitations - deletes all expenses
 async function deleteAllExpenses() {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
@@ -116,7 +162,7 @@ async function deleteAllExpenses() {
  * Copies values from old attribute name to new attribute name
  */
 async function copyValues(oldName, newName) {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
 
   _.forEach(expenses, (expense) => {
     let params = {
@@ -152,7 +198,7 @@ async function copyValues(oldName, newName) {
  * Removes given attribute from all expense data
  */
 async function removeAttribute(attribute) {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
@@ -274,7 +320,7 @@ async function main() {
     case 1:
       if (confirmAction('list all expenses?')) {
         console.log('Listing all expenses');
-        console.log(await getAllEntries());
+        console.log(await getAllEntries(TABLE));
       }
       break;
     case 2:
@@ -300,6 +346,12 @@ async function main() {
       if (confirmAction('change all expense attributes labeled userId to employeeId?')) {
         console.log('Changing all expense attributes labeled userId to employeeId');
         changeAttributeName('userId', 'employeeId');
+      }
+      break;
+    case 6:
+      if (confirmAction('Add showOnFeed attribute to all expenses?')) {
+        console.log('Adding showOnFeed attribute to all expenses');
+        addShowOnFeed();
       }
       break;
     default:
