@@ -6,6 +6,7 @@ const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 
 const budgetDynamo = new DatabaseModify('budgets');
+const expenseTypeDynamo = new DatabaseModify('expense-types');
 
 /*
  * Async function to loop an array.
@@ -23,7 +24,7 @@ async function asyncForEach(array, callback) {
  * Gets all expensetype data and then parses the categories
  */
 async function getAllExpenseTypes(){
-  let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+  let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
   let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
     expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
       return JSON.parse(category);
