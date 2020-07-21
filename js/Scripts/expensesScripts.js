@@ -107,7 +107,7 @@ async function addShowOnFeed() {
       }
     });
   });
-}
+} // addShowOnFeed
 
 // Used for testing dynamo limitations - populates data table with expenses
 function createItems(numberOfItems) {
@@ -138,7 +138,7 @@ function createItems(numberOfItems) {
       }
     });
   }
-}
+} // createItems
 
 // Used for testing dynamo limitations - deletes all expenses
 async function deleteAllExpenses() {
@@ -157,7 +157,7 @@ async function deleteAllExpenses() {
       }
     });
   });
-}
+} // deleteAllExpenses
 
 /**
  * Copies values from old attribute name to new attribute name
@@ -193,7 +193,7 @@ async function copyValues(oldName, newName) {
       }
     });
   });
-}
+} // copyValues
 
 /**
  * Removes given attribute from all expense data
@@ -217,7 +217,7 @@ async function removeAttribute(attribute) {
       }
     });
   });
-}
+} // removeAttribute
 
 /**
  * Changes attribute name
@@ -225,7 +225,7 @@ async function removeAttribute(attribute) {
 async function changeAttributeName(oldName, newName) {
   copyValues(oldName, newName);
   removeAttribute(oldName);
-}
+} // changeAttributeName
 
 /*
  * User chooses an action
@@ -260,7 +260,7 @@ function chooseAction() {
     }
   }
   return input;
-}
+} // chooseAction
 
 /*
  * Prompts the user and confirm action
@@ -281,7 +281,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 function getNumExpenses() {
   let input;
@@ -309,7 +309,7 @@ function getNumExpenses() {
     }
   }
   return input;
-}
+} // getNumExpenses
 
 /**
  * main - action selector
@@ -358,6 +358,6 @@ async function main() {
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();

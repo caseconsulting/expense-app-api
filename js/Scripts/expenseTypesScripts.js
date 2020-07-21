@@ -10,6 +10,7 @@ const actions = [
   '1. Set all expense type\'s accessible by value to \'ALL\'',
   '2. Change expense type categories to JSON objects',
   '3. Add alwaysOnFeed to DynamoDB table',
+  '4. Delete disableShowOnFeedToggle attribute from Expense Type Table'
 ];
 
 // check for stage argument
@@ -53,7 +54,7 @@ function getAllEntries() {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-}
+} // getAllEntries
 
 /**
  * Sets all expense type's accessible by value to 'ALL'
@@ -82,7 +83,7 @@ async function accessibleByAll() {
       }
     });
   });
-}
+} // accessibleByAll
 
 async function addAlwaysOnFeed() {
   let expenseTypes = await getAllEntries();
@@ -108,7 +109,7 @@ async function addAlwaysOnFeed() {
       }
     });
   });
-}
+} // addAlwaysOnFeed
 
 /**
  * changes expense types with string categories to JSON objects.
@@ -147,7 +148,31 @@ async function categoryFixer() {
       }
     });
   });
-}
+} // categoryFixer
+
+/**
+ * Removes given attribute from all expense type data
+ */
+async function removeAttribute(attribute) {
+  let expenseTypes = await getAllEntries(TABLE);
+  _.forEach(expenseTypes, (expenseType) => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        id: expenseType.id
+      },
+      UpdateExpression: `remove ${attribute}`,
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense
+    ddb.update(params, function (err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
+} // removeAttribute
 
 /*
  * User chooses an action
@@ -182,7 +207,7 @@ function chooseAction() {
     }
   }
   return input;
-}
+} // chooseAction
 
 /*
  * Prompts the user and confirm action
@@ -203,7 +228,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 /**
  * main - action selector
@@ -230,9 +255,15 @@ async function main() {
         addAlwaysOnFeed();
       }
       break;
+    case 4:
+      if(confirmAction('Delete disableShowOnFeedToggle from Expense Type table?')) {
+        console.log('Deleting disableShowOnFeedToggle from Expense Type table');
+        removeAttribute('disableShowOnFeedToggle');
+      }
+      break;
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();
