@@ -22,8 +22,8 @@ const TRAINING_TABLE = `${STAGE}-training-urls`;
 const EXPENSE_TYPE_TABLE = `${STAGE}-expense-types`;
 
 // get all the entries in dynamo the given table
-async function getAllEntries(params, out = []) {
-  return new Promise((resolve, reject) => {
+const getAllEntries = (params, out = []) =>
+  new Promise((resolve, reject) => {
     ddb
       .scan(params)
       .promise()
@@ -37,8 +37,6 @@ async function getAllEntries(params, out = []) {
       })
       .catch(reject);
   });
-} //getAllEntries
-
 /*
  * Async function to loop an array.
  *
@@ -256,7 +254,7 @@ async function getAllTrainingUrls() {
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
 
-  return getAllTrainingUrls();
+  getAllTrainingUrls();
 } // handler
 
 module.exports = { handler };
