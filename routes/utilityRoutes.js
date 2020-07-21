@@ -313,7 +313,7 @@ class Utility {
   /**
    * 
    * @param expenseType - expenseType to use to get expenses
-   * @param cutOffDate - 
+   * @param cutOffDate - expenses with reimbursedDate before this date are not returned
    */
   async queryExpenses(expenseType, cutOffDate){
     //use additional params option of querySecondaryIndex to filter things.
@@ -323,45 +323,18 @@ class Utility {
       ':queryKey': expenseType.id,
       ':cutOffDate': cutOffDate
     };
-    //for every object in the category array
-    let filterExpressionString;
-    let filterExpression = {};
-    if (expenseType.alwaysOnFeed && !_.isEmpty(expenseType.categories)) {
-      //if the specific expenseType has any categories
-
-      for (let category in expenseType.categories) {
-        if (expenseType.categories[category].showOnFeed) {
-          //if the specific category is set to be shown on feed add filters and attributes for it        
-          expressionAttributes[`:${expenseType.categories[category].name}`] = expenseType.categories[category].name;
-          filterExpression[`:${expenseType.categories[category].name}`] = expenseType.categories[category].name;
-        }
-      }
-      if (!_.isEmpty(filterExpression)) {
-        filterExpressionString = 'category in (' + Object.keys(filterExpression).toString()+')';
-      }
-      //if an expensetype has alwaysOnFeed = true but has no categories tht have showOnFeed = true 
-      //we dont need to make a query at all so we return empty array
-      if(_.isEmpty(filterExpression)){
-        return [];
-      }
-    }
     let additionalParams =  {
       ExpressionAttributeValues: expressionAttributes,
       KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
     };
-    if (!_.isEmpty(filterExpression)) {
-      //if the expenseType has categories and they arent all false
-      additionalParams.FilterExpression = filterExpressionString;
-    }
-
-    let x =  await this.expenseDynamo.querySecondaryIndexInDB(
+    let ret =  await this.expenseDynamo.querySecondaryIndexInDB(
       'expenseTypeId-reimbursedDate-index',
       'expenseTypeId',
       expenseType.id,
       additionalParams
     );
 
-    return x;
+    return ret;
   }// queryExpenses
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
