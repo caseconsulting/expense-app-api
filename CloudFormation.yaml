@@ -552,6 +552,7 @@ Resources:
       Description: Provides the nightly update to training section with extracted expense data.
       Handler: chiron.handler
       Timeout: 900
+      MemorySize: 256
       CodeUri: ./
       Events:
         ChironSchedule:
