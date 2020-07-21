@@ -1,23 +1,10 @@
 const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
-const got = require('got');
 const Logger = require('../js/Logger');
 const TrainingUrl = require('../models/trainingUrls');
-// const moment = require('moment');
-// const _ = require('lodash');
 
 const atob = require('atob');
 const logger = new Logger('trainingUrlRoutes');
-
-const metascraper = require('metascraper')([
-  require('metascraper-description')(),
-  require('metascraper-image')(),
-  require('metascraper-logo')(),
-  require('metascraper-clearbit')(),
-  require('metascraper-publisher')(),
-  require('metascraper-title')(),
-  require('metascraper-url')()
-]);
 
 class TrainingUrlRoutes extends Crud {
 
@@ -36,13 +23,7 @@ class TrainingUrlRoutes extends Crud {
     // log method
     logger.log(2, '_create', `Preparing to create training url ${data.id} with category ${data.category}`);
 
-    // compute method
-    let metadata = await this._getMetaData(data.id);
-    metadata.id = data.id;
-    metadata.category = data.category;
-    metadata.hits = data.hits;
-
-    let trainingUrl = new TrainingUrl(metadata);
+    let trainingUrl = new TrainingUrl(data);
 
     return this._validateTrainingUrl(trainingUrl) // validate training url
       .then(() => {
@@ -73,63 +54,6 @@ class TrainingUrlRoutes extends Crud {
     // return atob(id.replace(/%2F/g, '/'));
     return atob(id);
   }
-
-  /**
-   * Scrapes metadata from a website url. Returns the url title, description, image, logo, and publisher.
-   *
-   * @param id - website url
-   * @return object - url metadata
-   */
-  async _getMetaData(id) {
-    // log method
-    logger.log(3, '_getMetaData', `Attempting to scrape metadata from ${id}`);
-
-    // compute method
-    return this._got(id)
-      .then(data => this._metascraper(data))
-      .then(metaData => {
-        // log success
-        logger.log(3, '_getMetaData', `Successfully scraped metadata from ${id}`);
-
-        return metaData;
-      })
-      .catch(() => {
-        // log error
-        logger.log(3, '_getMetaData', `Failed to scrape metadata from ${id}`);
-        return {};
-      });
-  } // _getMetaData
-
-  /**
-   * Executes a http request to a url and returns information about the request. (Helper function for testing)
-   *
-   * @param id - url
-   * @return Object - html request body and url
-   */
-  async _got(id) {
-    // log method
-    logger.log(5, '_got', `Getting http request for ${id}`);
-
-    // compute method
-    const { body: html, url } = await got(id);
-    return {html, url};
-  } // _got
-
-  /**
-   * Scrapes a url http request and returns an object with metadata from the url: title, description, image, logo,
-   * and publisher. (Helper function for testing)
-   *
-   * @param data - object containing the html data and url
-   * @return Object - url metadata
-   */
-  async _metascraper(data) {
-    // log method
-    logger.log(5, '_metascraper', `Scraping ${data.url} for metadata`);
-
-    // compute method
-    return metascraper(data);
-    // return {};
-  } // _metascraper
 
   /**
    * Reads a training url from the database. Returns the training url read.
