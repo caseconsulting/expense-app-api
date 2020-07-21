@@ -158,6 +158,7 @@ async function _got(id) {
 
   // compute method
   const { body: html, url } = await got(id);
+  logger.log(2, '_got', 'Got html and url');
   return { html, url };
 } // _got
 
