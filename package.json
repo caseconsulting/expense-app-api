@@ -35,6 +35,7 @@
     "download:test:claudia": "aws s3 cp s3://case-consulting-expense-app-resources-test/claudia.json claudia.json",
     "download:test:env": "aws s3 cp s3://case-consulting-expense-app-resources-test/.env .env",
     "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
+    "invoke:chiron": "sam local invoke ChironFunction --env-vars env.json --no-event --template CloudFormation.yaml",
     "invoke:chronos": "sam local invoke ChronosFunction --env-vars env.json --no-event --template CloudFormation.yaml",
     "lint": "npm run eslint",
     "package:chronos:dev": "aws cloudformation package --template-file CloudFormation.yaml --s3-bucket case-consulting-expense-app-resources-dev --s3-prefix expense-app-api --output-template-file packaged.yaml",
