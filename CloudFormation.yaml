@@ -235,6 +235,25 @@ Resources:
   #         Value: portal-app
   #       - Key: Stage
   #         Value: !Ref Stage
+  s3BlogAttachments:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-portal-app-blog-attachments-
+          - !Ref Stage
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/blog-attachments/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: portal-app
+        - Key: Stage
+          Value: !Ref Stage
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
