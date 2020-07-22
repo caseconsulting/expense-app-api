@@ -436,8 +436,8 @@ class databaseModify {
       ExpressionAttributeValues: {
         ':queryKey': queryParam
       },
-      KeyConditionExpression: `${queryKey} = :queryKey` 
-    }, additionalParams); 
+      KeyConditionExpression: `${queryKey} = :queryKey`
+    }, additionalParams);
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
@@ -614,6 +614,45 @@ class databaseModify {
         throw err;
       });
   } // _readFromDBUrl
+
+  /**
+   * Deletes entries from the dynamodb table by an ID and category.
+   *
+   * @param passedID - ID of entry to delete
+   * @return Object - entries deleted
+   */
+  async removeFromDBUrl(passedID, category) {
+    // log method
+    let tableName = this.tableName;
+    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
+
+    // compute method
+    const params = {
+      TableName: tableName,
+      Key: {
+        id: passedID,
+        category: category
+      },
+      ReturnValues: 'ALL_OLD'
+    };
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return documentClient
+      .delete(params)
+      .promise()
+      .then((data) => {
+        // log success
+        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
+
+        return data.Attributes;
+      })
+      .catch(function (err) {
+        // log error
+        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
+
+        // throw error
+        throw err;
+      });
+  } // removeFromDBUrl
 
   /**
    * Deletes entries from the dynamodb table by a single ID.

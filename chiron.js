@@ -1,7 +1,16 @@
-const STAGE = process.env.STAGE;
-const AWS = require('aws-sdk');
 const got = require('got');
 const Logger = require('./js/Logger');
+const DatabaseModify = require('./js/databaseModify');
+const TrainingUrl = require('./models/trainingUrls');
+const ExpenseType = require('./models/expenseType');
+const Expense = require('./models/expense');
+const _ = require('lodash');
+const urlExist = require('url-exist');
+
+const trainingUrlDynamo = new DatabaseModify('training-urls');
+const expenseTypeDynamo = new DatabaseModify('expense-types');
+const expenseDynamo = new DatabaseModify('expenses');
+
 const metascraper = require('metascraper')([
   require('metascraper-description')(),
   require('metascraper-image')(),
@@ -11,32 +20,23 @@ const metascraper = require('metascraper')([
   require('metascraper-title')(),
   require('metascraper-url')()
 ]);
-const TrainingUrl = require('./models/trainingUrls');
-const _ = require('lodash');
 
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 const logger = new Logger('TrainingSync');
-const EXPENSE_TABLE = `${STAGE}-expenses`;
-const TRAINING_TABLE = `${STAGE}-training-urls`;
-const EXPENSE_TYPE_TABLE = `${STAGE}-expense-types`;
 
-// get all the entries in dynamo the given table
-const getAllEntries = (params, out = []) =>
-  new Promise((resolve, reject) => {
-    ddb
-      .scan(params)
-      .promise()
-      .then(({ Items, LastEvaluatedKey }) => {
-        out.push(...Items);
-        /* jshint ignore:start */
-        !LastEvaluatedKey
-          ? resolve(out) 
-          : resolve(getAllEntries(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), out));
-        /* jshint ignore:end */
-      })
-      .catch(reject);
+/**
+ * Gets all expensetype data and then parses the categories
+ */
+async function getAllExpenseTypes() {
+  let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
+  let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+    expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+      return JSON.parse(category);
+    });
+    return new ExpenseType(expenseTypeData);
   });
+  return expenseTypes;
+} // getAllExpenseTypes
+
 /*
  * Async function to loop an array.
  *
@@ -53,59 +53,14 @@ async function asyncForEach(array, callback) {
  * Deletes all training urls from the training table.
  */
 async function deleteAllTrainingUrls() {
-  logger.log(2, 'deleteAllTrainingUrls', `Deleting all entries in ${TRAINING_TABLE}`);
+  logger.log(2, 'deleteAllTrainingUrls', `Deleting all entries in ${expenseTypeDynamo.tableName}`);
 
-  let entries = await getAllEntriesInDB(TRAINING_TABLE);
-
-  await asyncForEach(entries, async (entry) => {
-    let params = {
-      TableName: TRAINING_TABLE,
-      Key: {
-        id: entry.id,
-        category: entry.category
-      },
-      ReturnValues: 'ALL_OLD'
-    };
-
-    // delete entry
-    await ddb
-      .delete(params)
-      .promise()
-      .then((data) => {
-        logger.log(
-          2,
-          'deleteAllTrainingUrls',
-          `Successfully deleted training url ${data.Attributes.id} with category ${data.Attributes.category} from`,
-          `${TRAINING_TABLE}`
-        );
-      })
-      .catch((err) => {
-        logger.log(
-          2,
-          'deleteAllTrainingUrls',
-          `Failed to delete training url ${entry.id} with category ${entry.category} from ${TRAINING_TABLE}. Error`,
-          'JSON:',
-          JSON.stringify(err, null, 2)
-        );
-      });
+  let trainingUrls = await trainingUrlDynamo.getAllEntriesInDB();
+  await asyncForEach(trainingUrls, async (entry) => {
+    await trainingUrlDynamo.removeFromDBUrl(entry.id, entry.category);
   });
-  logger.log(2, 'deleteAllTrainingUrls', `Finished deleting all entries in ${TRAINING_TABLE}`);
+  logger.log(2, 'deleteAllTrainingUrls', `Finished deleting all entries in ${expenseTypeDynamo.tableName}`);
 } // deleteAllTrainingUrls
-
-/*
- * Get all expenses in a given table.
- *
- * @param table - Dynamo table to get entries from
- * @return Array - List of entries in table
- */
-function getAllEntriesInDB(table) {
-  logger.log(2, 'getAllEntriesInDB', `Getting all entries in table ${table}`);
-
-  let params = {
-    TableName: table
-  };
-  return getAllEntries(params);
-} // getAllEntriesInDB
 
 /**
  * Checks if a value is empty. Returns true if the value is null or a single character space String.
@@ -155,9 +110,16 @@ async function _got(id) {
   logger.log(2, '_got', `Getting http request for ${id}`);
 
   // compute method
-  const { body: html, url } = await got(id);
-  logger.log(2, '_got', 'Got html and url');
-  return { html, url };
+  try {
+    if (await urlExist(id)) {
+      const { body: html, url } = await got(id);
+      return { html, url };
+    } else {
+      throw 'invalid url';
+    }
+  } catch (err) {
+    return err;
+  }
 } // _got
 
 /**
@@ -173,24 +135,30 @@ async function _metascraper(data) {
 
   // compute method
   return metascraper(data);
-  // return {};
 } // _metascraper
 
 // repopulate all expense training urls
 async function getAllTrainingUrls() {
   logger.log(2, 'getAllTrainingUrls', 'Attempting to update all Training Urls');
+
   // delete all old entries in training table
   await deleteAllTrainingUrls();
 
   // get training expense type
-  let expenseTypes = await getAllEntriesInDB(EXPENSE_TYPE_TABLE);
+  let expenseTypes = await getAllExpenseTypes();
+
   let trainingET = _.find(expenseTypes, (expenseType) => {
     return expenseType.budgetName === 'Training';
   });
 
   // generate training hits from expenses
-  let expenses = await getAllEntriesInDB(EXPENSE_TABLE);
+  let expensesData = await expenseDynamo.getAllEntriesInDB();
+  let expenses = _.map(expensesData, expenseData => {
+    return new Expense(expenseData);
+  });
+
   let keys = [];
+
   for (let i = 0; i < expenses.length; i++) {
     if (expenses[i].expenseTypeId === trainingET.id && !_isEmpty(expenses[i].url) && !_isEmpty(expenses[i].category)) {
       let key = {
@@ -209,40 +177,16 @@ async function getAllTrainingUrls() {
   }
 
   // create entry in dynamo table
-  _.forEach(keys, async (key) => {
+  await asyncForEach(keys, async (key) => {
     let metadata = await _getMetaData(key.url);
     metadata.id = key.url;
     metadata.category = key.category;
     metadata.hits = key.hits;
-
     let trainingUrl = new TrainingUrl(metadata);
 
-    // add budget to budgets table
-    let params = {
-      TableName: TRAINING_TABLE,
-      Item: trainingUrl
-    };
-
-    await ddb
-      .put(params)
-      .promise()
-      .then(() => {
-        logger.log(
-          1,
-          'getAllTrainingUrls',
-          `Successfully created ${key.hits} hit(s) for training url '${key.url}' with category '${key.category}'`
-        );
-      })
-      .catch((err) => {
-        logger.log(
-          1,
-          'getAllTrainingUrls',
-          `Unable to create ${key.hits} hit(s) for training url '${key.url}' with category '${key.category}'. Erro`,
-          'JSON:',
-          JSON.stringify(err, null, 2)
-        );
-      });
+    await trainingUrlDynamo.addToDB(trainingUrl);
   });
+
   logger.log(2, 'getAllTrainingUrls', 'Finished updating all Training Urls');
 }
 
@@ -254,7 +198,7 @@ async function getAllTrainingUrls() {
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
 
-  getAllTrainingUrls();
+  await getAllTrainingUrls();
 } // handler
 
 module.exports = { handler };
