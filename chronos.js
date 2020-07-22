@@ -21,6 +21,21 @@ async function asyncForEach(array, callback) {
 } // asyncForEach
 
 /**
+ * Gets all expensetype data and then parses the categories
+ */
+async function getAllExpenseTypes(){
+  let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
+  let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+    expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+      return JSON.parse(category);
+    });
+    return new ExpenseType(expenseTypeData);
+  });
+
+  return expenseTypes;
+}
+
+/**
  * Finds an expense type given an id from a list of expense types.
  *
  * @param expenseTypes - list of ExpenseTypes
@@ -107,10 +122,7 @@ async function start() {
     budgets = _.map(budgetsData, budgetData => {
       return new Budget(budgetData);
     });
-    let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB(); //get all expensetypes
-    expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-      return new ExpenseType(expenseTypeData);
-    });
+    expenseTypes = await getAllExpenseTypes();
 
     if (budgets.length != 0) {
       await asyncForEach(budgets, async (oldBudget) => {

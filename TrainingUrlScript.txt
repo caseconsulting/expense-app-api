@@ -1,0 +1,12 @@
+Changing expense type categories to JSON objects
+Getting all entries in dynamodb expense type table
+Finished getting all entries
+Updated expense type id 891ed076-65fd-4810-8988-e30e770c7c95
+Updated expense type id 4e79b367-afee-41fe-87d5-fde8a4ee11f5
+Updated expense type id 7a4a0c37-6568-41b3-9d77-169ef52aadce
+Updated expense type id e2882327-4f90-49f0-b176-2e3b5f92ee3b
+Updated expense type id 821bc560-b22b-4e39-b2ed-ee0809872b80
+Updated expense type id 79772163-d09f-44a6-be26-4d293b2d0515
+Updated expense type id 95d24ca3-edde-4c98-aaff-5fc125542678
+Updated expense type id 408e6009-a3e9-4fc3-a5c6-92cb63b2d74e
+Updated expense type id 4a3bb585-b3ec-4609-baf2-f2730eed95f6

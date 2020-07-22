@@ -229,24 +229,15 @@ To reset for local development, after a deployment:
 npm run download:local:env
 ```
 
-## FOR THE NEXT DEPLOYMENT AFTER 5-8-20
+## Error deploying
+If getting this error
 
-1) Open CloudFormation.yaml
-2) Uncomment the userId indexes and attributes for expense and budget tables
-3) Comment out expenseTable index
+`Unable to upload artifact ./ referenced by CodeUri parameter of ChronosFunction resource.
+[Errno 2] No such file or directory: '/Users/austinlam/Documents/expense-app-case/expense-app-api/node_modules/.bin/babylon'`
 
-      # - IndexName: employeeId-expenseType-index
-      #   KeySchema:
-      #     - AttributeName: employeeId
-      #       KeyType: HASH
-      #     - AttributeName: expenseTypeId
-      #       KeyType: RANGE
-      #   Projection:
-      #     ProjectionType: ALL
-
-4) $ npm run package:chronos:dev && npm run deploy:chronos:dev
-5) Comment out the userId indexes and attributes for expense and budget tables from step 2
-6) $ npm run package:chronos:dev && npm run deploy:chronos:dev
-7) Uncomment the expenseTable attribute and index from step 3
-8) $ npm run package:chronos:dev && npm run deploy:chronos:dev
-9) After deploying to production the userId indexes and attributes can be removed from CloudFormation.yaml and these steps from the README
+Run the following commands:
+```bash
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```

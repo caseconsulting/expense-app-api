@@ -84,6 +84,21 @@ class EmployeeRoutes extends Crud {
   } // _delete
 
   /**
+   * Gets all expensetype data and then parses the categories
+   */
+  async getAllExpenseTypes() {
+    let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+        return JSON.parse(category);
+      });
+      return new ExpenseType(expenseTypeData);
+    });
+
+    return expenseTypes;
+  }
+
+  /**
    * Reads an employee from the database. Returns the employee read.
    *
    * @param data - parameters of employee
@@ -177,11 +192,7 @@ class EmployeeRoutes extends Crud {
           return new Budget(budgetData);
         });
 
-        let expenseTypes;
-        let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-        expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-          return new ExpenseType(expenseTypeData);
-        });
+        let expenseTypes = await this.getAllExpenseTypes();
 
         let i; // index of budgets
         for (i = 0; i < budgets.length; i++) {

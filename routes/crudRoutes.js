@@ -672,6 +672,17 @@ class Crud {
   } // isEmpty
 
   /**
+   * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
+   * false.
+   *
+   * @param value - value to check
+   * @return boolean - value is in iso-format
+   */
+  isIsoFormat(value) {
+    return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
+  } // isIsoFormat
+
+  /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
    *
    * @param employee - Employee to check

@@ -7,7 +7,10 @@
 // LIST OF ACTIONS
 const actions = [
   '0. Cancel',
-  '1. Set all expense type\'s accessible by value to \'ALL\''
+  '1. Set all expense type\'s accessible by value to \'ALL\'',
+  '2. Change expense type categories to JSON objects',
+  '3. Add alwaysOnFeed to DynamoDB table',
+  '4. Delete disableShowOnFeedToggle attribute from Expense Type Table'
 ];
 
 // check for stage argument
@@ -51,7 +54,7 @@ function getAllEntries() {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-}
+} // getAllEntries
 
 /**
  * Sets all expense type's accessible by value to 'ALL'
@@ -80,7 +83,96 @@ async function accessibleByAll() {
       }
     });
   });
-}
+} // accessibleByAll
+
+async function addAlwaysOnFeed() {
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, expenseType => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set alwaysOnFeed = :a',
+      ExpressionAttributeValues: {
+        ':a': false
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+} // addAlwaysOnFeed
+
+/**
+ * changes expense types with string categories to JSON objects.
+ */
+async function categoryFixer() {
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, expenseType => {
+    let categories = [];
+    _.forEach(expenseType.categories, category => {
+      try {
+        JSON.parse(category);
+        categories.push(category);
+      } catch(err) {
+        let categoryObj = {name: category, showOnFeed: false};
+        categories.push(JSON.stringify(categoryObj));
+      }
+    });
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set categories = :a',
+      ExpressionAttributeValues: {
+        ':a': categories
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+} // categoryFixer
+
+/**
+ * Removes given attribute from all expense type data
+ */
+async function removeAttribute(attribute) {
+  let expenseTypes = await getAllEntries(TABLE);
+  _.forEach(expenseTypes, (expenseType) => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        id: expenseType.id
+      },
+      UpdateExpression: `remove ${attribute}`,
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense
+    ddb.update(params, function (err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
+} // removeAttribute
 
 /*
  * User chooses an action
@@ -115,7 +207,7 @@ function chooseAction() {
     }
   }
   return input;
-}
+} // chooseAction
 
 /*
  * Prompts the user and confirm action
@@ -136,7 +228,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 /**
  * main - action selector
@@ -151,9 +243,27 @@ async function main() {
         accessibleByAll();
       }
       break;
+    case 2:
+      if(confirmAction('Change expense type categories to JSON objects')) {
+        console.log('Changing expense type categories to JSON objects');
+        categoryFixer();
+      }
+      break;
+    case 3:
+      if(confirmAction('Add alwaysOnFeed to DynamoDB table?')) {
+        console.log('Adding alwaysOnFeed to DynamoDB table');
+        addAlwaysOnFeed();
+      }
+      break;
+    case 4:
+      if(confirmAction('Delete disableShowOnFeedToggle from Expense Type table?')) {
+        console.log('Deleting disableShowOnFeedToggle from Expense Type table');
+        removeAttribute('disableShowOnFeedToggle');
+      }
+      break;
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();

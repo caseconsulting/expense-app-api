@@ -11,7 +11,8 @@ const actions = [
   '2. Create a specified number of dummy expenses',
   '3. Delete all expenses',
   '4. Change all expense attributes labeled categories to category',
-  '5. Change all expense attributes labeled userId to employeeId'
+  '5. Change all expense attributes labeled userId to employeeId',
+  '6. Add showOnFeed attribute to DynamoDB'
 ];
 
 // check for stage argument
@@ -27,6 +28,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 
 // set expense table
 const TABLE = `${STAGE}-expenses`;
+const ETTABLE = `${STAGE}-expense-types`;
 
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
@@ -52,15 +54,60 @@ const getAllEntriesHelper = (params, out = []) =>
   });
 
 // get all entries in dynamodb table
-function getAllEntries() {
+function getAllEntries(table) {
   console.log('Getting all entries in dynamodb expenses table');
   let params = {
-    TableName: TABLE
+    TableName: table
   };
   let entries = getAllEntriesHelper(params);
-  console.log('Finished getting all entries');
+  console.log('Finished getting all entries in ' + table);
   return entries;
 }
+
+/**
+ * adds a showOnFeed attribute to each expense in DynamoDB
+ */
+async function addShowOnFeed() {
+  // check expenseType, then check categories, then set to false
+  let expenseTypes = await getAllEntries(ETTABLE);
+  let expenses = await getAllEntries(TABLE);
+  _.forEach(expenses, (expense) => {
+    let expenseType = _.find(expenseTypes, (eType) => {
+      return eType.id === expense.expenseTypeId;
+    });
+    let category;
+    if (expenseType.categories) {
+      category = _.find(expenseType.categories, (cat) => {
+        return JSON.parse(cat).name == expense.category;
+      });
+    }
+    let sof = false;
+    if (category) {
+      category = JSON.parse(category);
+      sof = category.showOnFeed;
+    } else {
+      sof = expenseType.alwaysOnFeed;
+    }
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expense.id
+      },
+      UpdateExpression: 'set showOnFeed = :a',
+      ExpressionAttributeValues: {
+        ':a': sof
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense
+    ddb.update(params, function (err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      }
+    });
+  });
+} // addShowOnFeed
 
 // Used for testing dynamo limitations - populates data table with expenses
 function createItems(numberOfItems) {
@@ -91,11 +138,11 @@ function createItems(numberOfItems) {
       }
     });
   }
-}
+} // createItems
 
 // Used for testing dynamo limitations - deletes all expenses
 async function deleteAllExpenses() {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
@@ -110,13 +157,13 @@ async function deleteAllExpenses() {
       }
     });
   });
-}
+} // deleteAllExpenses
 
 /**
  * Copies values from old attribute name to new attribute name
  */
 async function copyValues(oldName, newName) {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
 
   _.forEach(expenses, (expense) => {
     let params = {
@@ -146,13 +193,13 @@ async function copyValues(oldName, newName) {
       }
     });
   });
-}
+} // copyValues
 
 /**
  * Removes given attribute from all expense data
  */
 async function removeAttribute(attribute) {
-  let expenses = await getAllEntries();
+  let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
     let params = {
       TableName: TABLE,
@@ -170,7 +217,7 @@ async function removeAttribute(attribute) {
       }
     });
   });
-}
+} // removeAttribute
 
 /**
  * Changes attribute name
@@ -178,7 +225,7 @@ async function removeAttribute(attribute) {
 async function changeAttributeName(oldName, newName) {
   copyValues(oldName, newName);
   removeAttribute(oldName);
-}
+} // changeAttributeName
 
 /*
  * User chooses an action
@@ -213,7 +260,7 @@ function chooseAction() {
     }
   }
   return input;
-}
+} // chooseAction
 
 /*
  * Prompts the user and confirm action
@@ -234,7 +281,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 function getNumExpenses() {
   let input;
@@ -262,7 +309,7 @@ function getNumExpenses() {
     }
   }
   return input;
-}
+} // getNumExpenses
 
 /**
  * main - action selector
@@ -274,7 +321,7 @@ async function main() {
     case 1:
       if (confirmAction('list all expenses?')) {
         console.log('Listing all expenses');
-        console.log(await getAllEntries());
+        console.log(await getAllEntries(TABLE));
       }
       break;
     case 2:
@@ -302,9 +349,15 @@ async function main() {
         changeAttributeName('userId', 'employeeId');
       }
       break;
+    case 6:
+      if (confirmAction('Add showOnFeed attribute to all expenses?')) {
+        console.log('Adding showOnFeed attribute to all expenses');
+        addShowOnFeed();
+      }
+      break;
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();

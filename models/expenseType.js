@@ -11,8 +11,14 @@ const ISOFORMAT = 'YYYY-MM-DD';
  * - endDate
  * - budget
  * - recurringFlag
+ * - requiredFlag
  * - startDate
  * - description
+ * - isInactive
+ * - categories
+ * - accessiblyBy
+ * - hasRecipient
+ * - alwaysOnFeed
  */
 
 class ExpenseType {
@@ -29,6 +35,8 @@ class ExpenseType {
     this.description = data.description;
     this.categories = data.categories;
     this.accessibleBy = data.accessibleBy;
+    this.hasRecipient = data.hasRecipient;
+    this.alwaysOnFeed = data.alwaysOnFeed;
 
     if (!this.categories) {
       this.categories = []; // default: no categories

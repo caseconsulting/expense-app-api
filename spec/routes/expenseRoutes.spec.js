@@ -35,7 +35,7 @@ describe('expenseRoutes', () => {
   const CREATED_AT = '{createdAt}';
   const RECEIPT = '{receipt}';
   const COST = 0;
-  const CATEGORY = '{category}';
+  const CATEGORY = '{"name": "categoryName", "showOnFeed": false}';
 
   const NAME = '{name}';
   const BUDGET = 0;
@@ -1888,12 +1888,15 @@ describe('expenseRoutes', () => {
 
     describe('when expense types are different', () => {
 
+      let oldExpenseType;
+
       beforeEach(() => {
         newExpenseData.expenseTypeId = 'other';
         newExpense.expenseTypeId = 'other';
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldExpense));
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
-        expenseTypeDynamo.getEntry.and.returnValue(Promise.resolve(expenseType));
+        oldExpenseType = _.cloneDeep(expenseType);
+        expenseTypeDynamo.getEntry.and.returnValues(Promise.resolve(expenseType), Promise.resolve(oldExpenseType));
         spyOn(expenseRoutes, 'getUUID').and.returnValue(ID);
       });
 
@@ -1917,6 +1920,7 @@ describe('expenseRoutes', () => {
 
           beforeEach(() => {
             expenseType.requiredFlag = true;
+            oldExpenseType.requiredFlag = true;
           });
 
           describe('the old has a receipt,', () => {
@@ -1929,6 +1933,7 @@ describe('expenseRoutes', () => {
 
               beforeEach(() => {
                 expenseType.categories = [CATEGORY];
+                oldExpenseType.categories = [CATEGORY];
               });
 
               it('should create a new expense and delete the old', done => {
@@ -1983,6 +1988,7 @@ describe('expenseRoutes', () => {
 
               beforeEach(() => {
                 expenseType.categories = [CATEGORY];
+                oldExpenseType.categories = [CATEGORY];
               });
 
               it('should create a new expense and delete the old', done => {
@@ -2005,6 +2011,7 @@ describe('expenseRoutes', () => {
 
               beforeEach(() => {
                 expenseType.categories = CATEGORIES;
+                oldExpenseType.categories = CATEGORIES;
                 newExpense.category = ' ';
               });
 
@@ -2030,6 +2037,7 @@ describe('expenseRoutes', () => {
 
           beforeEach(() => {
             expenseType.requiredFlag = false;
+            oldExpenseType.requiredFlag = false;
             newExpense.receipt = ' ';
           });
 
@@ -2037,6 +2045,7 @@ describe('expenseRoutes', () => {
 
             beforeEach(() => {
               expenseType.categories = [CATEGORY];
+              oldExpenseType.categories = [CATEGORY];
             });
 
             it('should create a new expense and delete the old', done => {
