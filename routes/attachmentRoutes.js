@@ -407,11 +407,83 @@ class Attachment {
           logger.log(2, 'extractText', `Successfully extracted text from ${req.params.fileName}`);
           let textEntities = await this.comprehendText(textExtracted);
 
+          let forms = [];
+          let words = {};
+          _.forEach(textExtracted.Blocks, (block) => {
+            if (block.BlockType === 'WORD') {
+              words[block.Id] = block.Text;
+            }
+          });
+          // # get key and value maps
+          // key_map = {}
+          // value_map = {}
+          // block_map = {}
+          // for block in blocks:
+          //     block_id = block['Id']
+          //     block_map[block_id] = block
+          //     if block['BlockType'] == "KEY_VALUE_SET":
+          //         if 'KEY' in block['EntityTypes']:
+          //             key_map[block_id] = block
+          //         else:
+          //             value_map[block_id] = block
+      
+          // return key_map, value_map, block_map
+          
+          let keyMap = {};
+          let valueMap = {};
+          let blockMap = {};
+
+          _.forEach(textExtracted.Blocks, (block) => {
+            let blockId = block.Id;
+            blockMap[blockId] = block;
+            if (block.BlockType === 'KEY_VALUE_SET') {
+              if (_.includes(block.EntityTypes, 'KEY')) {
+                keyMap.blockId = block;
+              } else {
+                valueMap.blockId = block;
+              }
+            }  
+          });
+
+          console.log('{{{{{{{------Maps--------}}}}}');
+          console.log(keyMap);
+          console.log(valueMap);
+
+          // def get_kv_relationship(key_map, value_map, block_map):
+          // kvs = {}
+          // for block_id, key_block in key_map.items():
+          //     value_block = find_value_block(key_block, value_map)
+          //     key = get_text(key_block, block_map)
+          //     val = get_text(value_block, block_map)
+          //     kvs[key] = val
+          // return kvs
+
+          let keyValueSets = {};
+          for(let key in keyMap){
+            console.log(key);
+            let valueBlock = this.findValueBlock(keyMap[key], valueMap);
+            let KVSkey = this.getText(keyMap[key], blockMap);
+            let KVSval = this.getText(valueBlock, blockMap);
+            keyValueSets[KVSkey] = KVSval;
+          }
+
+          console.log(words);
+          console.log(keyValueSets);
+
+          _.forEach(textExtracted.Blocks, (block) => {
+            console.log('+++++++++' + block.BlockType);
+            if (block.BlockType === 'KEY_VALUE_SET') {
+              forms.push(block);
+            }
+          });
+          console.log('====');
+
+          let payload = { comprehend: textEntities, textract: textExtracted, forms: forms};
           // send successful 200 status with the uploaded file and text
-          res.status(200).send(textEntities);
+          res.status(200).send(payload);
 
           // return text entries
-          return textEntities;
+          return payload;
         } catch (err) {
           // failed to extract text
           logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}. ${err.message}`);
@@ -429,6 +501,59 @@ class Attachment {
     });
   } // extractText
 
+  findValueBlock(keyBlock, valueMap) {
+    // for relationship in key_block['Relationships']:
+    //     if relationship['Type'] == 'VALUE':
+    //         for value_id in relationship['Ids']:
+    //             value_block = value_map[value_id]
+    // return value_block
+    let valueBlock;
+    _.forEach(keyBlock.Relationships, (relationship)=> {
+      if(relationship.Type === 'Value'){
+        for(let valueId in relationship.Ids){
+          valueBlock = valueMap[valueId];
+        }
+      }
+    });
+    return valueBlock;
+  }
+
+  getText(result, blocksMap) {
+    // def get_text(result, blocks_map):
+    // text = ''
+    // if 'Relationships' in result:
+    //     for relationship in result['Relationships']:
+    //         if relationship['Type'] == 'CHILD':
+    //             for child_id in relationship['Ids']:
+    //                 word = blocks_map[child_id]
+    //                 if word['BlockType'] == 'WORD':
+    //                     text += word['Text'] + ' '
+    //                 if word['BlockType'] == 'SELECTION_ELEMENT':
+    //                     if word['SelectionStatus'] == 'SELECTED':
+    //                         text += 'X '    
+
+                                
+    // return text
+    let text = '';
+    if (Object.prototype.hasOwnProperty.call(result, 'Relationships')) {
+      _.forEach(result.Relationships, (relationship) => {
+        if  (relationship.Type === 'CHILD'){
+          for (let childId in relationship.Ids) {
+            let word = blocksMap[childId];
+            if (word.BlockType === 'WORD') {
+              text += word.Text + '';
+            } 
+            if (word.BlockType === 'SELECTION_ELEMENT') {
+              if (word.SelectionStatus === 'SELECTED') {
+                text += 'X ';
+              }
+            }
+          }
+        }
+      });
+    }
+    return text;
+  }
   /**
    * Gets an attachment from S3.
 
