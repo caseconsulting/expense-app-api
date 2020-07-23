@@ -104,8 +104,8 @@ describe('expenseType', () => {
 
         it('should return false', () => {
           expect(expenseType.isDateInRange(undefined)).toBe(false);
-        }) // should be false
-      }) // and date does not exist
+        }); // should be false
+      }); // and date does not exist
 
       describe('and date is same as fiscal start date', () => {
 
