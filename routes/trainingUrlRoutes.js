@@ -174,7 +174,7 @@ class TrainingUrlRoutes extends Crud {
       };
 
       // validate id
-      if (this.isEmpty(trainingUrl.id)) {
+      if (_.isNil(trainingUrl.id)) {
         // log error
         logger.log(3, '_validateTrainingUrl', 'Training url id is empty');
 
@@ -184,7 +184,7 @@ class TrainingUrlRoutes extends Crud {
       }
 
       // validate category
-      if (this.isEmpty(trainingUrl.category)) {
+      if (_.isNil(trainingUrl.category)) {
         // log error
         logger.log(3, '_validateTrainingUrl', 'Training url category is empty');
 

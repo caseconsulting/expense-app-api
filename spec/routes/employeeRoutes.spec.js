@@ -1018,7 +1018,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee id.'
         };
 
-        employee.id = ' ';
+        delete employee.id;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1044,7 +1044,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee first name.'
         };
 
-        employee.firstName = ' ';
+        delete employee.firstName;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1070,7 +1070,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee last name.'
         };
 
-        employee.lastName = ' ';
+        delete employee.lastName;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1096,7 +1096,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee number.'
         };
 
-        employee.employeeNumber = ' ';
+        delete employee.employeeNumber;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1122,7 +1122,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee hire date.'
         };
 
-        employee.hireDate = ' ';
+        delete employee.hireDate;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1148,7 +1148,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee email.'
         };
 
-        employee.email = ' ';
+        delete employee.email;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1174,7 +1174,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee role.'
         };
 
-        employee.employeeRole = ' ';
+        delete employee.employeeRole;
       });
 
       it('should return a 403 rejected promise', done => {
@@ -1200,7 +1200,7 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee work status.'
         };
 
-        employee.workStatus = ' ';
+        delete employee.workStatus;
       });
 
       it('should return a 403 rejected promise', done => {

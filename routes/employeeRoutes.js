@@ -390,7 +390,7 @@ class EmployeeRoutes extends Crud {
       };
 
       // validate id
-      if (this.isEmpty(employee.id)) {
+      if (_.isNil(employee.id)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee id is empty');
 
@@ -400,7 +400,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate first name
-      if (this.isEmpty(employee.firstName)) {
+      if (_.isNil(employee.firstName)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee first name is empty');
 
@@ -410,7 +410,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate last name
-      if (this.isEmpty(employee.lastName)) {
+      if (_.isNil(employee.lastName)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee last name is empty');
 
@@ -420,7 +420,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate employee number
-      if (this.isEmpty(employee.employeeNumber)) {
+      if (_.isNil(employee.employeeNumber)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee number is empty');
 
@@ -430,7 +430,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate hire date
-      if (this.isEmpty(employee.hireDate)) {
+      if (_.isNil(employee.hireDate)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee hire date is empty');
 
@@ -440,7 +440,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate email
-      if (this.isEmpty(employee.email)) {
+      if (_.isNil(employee.email)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee email is empty');
 
@@ -450,7 +450,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate employee role
-      if (this.isEmpty(employee.employeeRole)) {
+      if (_.isNil(employee.employeeRole)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee role is empty');
 
@@ -460,7 +460,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate work status
-      if (this.isEmpty(employee.workStatus)) {
+      if (_.isNil(employee.workStatus)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee work status is empty');
 

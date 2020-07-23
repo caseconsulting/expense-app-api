@@ -424,7 +424,7 @@ class ExpenseTypeRoutes extends Crud {
       };
 
       // validate id
-      if (this.isEmpty(expenseType.id)) {
+      if (_.isNil(expenseType.id)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type id is empty');
 
@@ -434,7 +434,7 @@ class ExpenseTypeRoutes extends Crud {
       }
 
       // validate budget name
-      if (this.isEmpty(expenseType.budgetName)) {
+      if (_.isNil(expenseType.budgetName)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type budget name is empty');
 
@@ -444,7 +444,7 @@ class ExpenseTypeRoutes extends Crud {
       }
 
       // validate budget
-      if (this.isEmpty(expenseType.budget)) {
+      if (_.isNil(expenseType.budget)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type budget is empty');
 
@@ -454,7 +454,7 @@ class ExpenseTypeRoutes extends Crud {
       }
 
       // validate description
-      if (this.isEmpty(expenseType.description)) {
+      if (_.isNil(expenseType.description)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type description is empty');
 
@@ -464,7 +464,7 @@ class ExpenseTypeRoutes extends Crud {
       }
 
       // validate accessibleBy
-      if (this.isEmpty(expenseType.accessibleBy)) {
+      if (_.isNil(expenseType.accessibleBy)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type accessibleBy is empty');
 
@@ -476,14 +476,14 @@ class ExpenseTypeRoutes extends Crud {
       // validate start and end date
       if (!expenseType.recurringFlag) {
         // expense type is non recurring
-        if (this.isEmpty(expenseType.startDate)) {
+        if (_.isNil(expenseType.startDate)) {
           // log error
           logger.log(3, '_validateExpenseType', 'Expense type is not recurring and missing a start date');
 
           // throw error
           err.message = 'Start date required for non recurring expense type.';
           throw err;
-        } else if (this.isEmpty(expenseType.endDate)) {
+        } else if (_.isNil(expenseType.endDate)) {
           // log error
           logger.log(3, '_validateExpenseType', 'Expense type is not recurring and missing an end date');
 

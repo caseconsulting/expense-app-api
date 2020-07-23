@@ -1,7 +1,7 @@
 /*
- * node ./js/Scripts/v2.2DataScript.js dev
- * node ./js/Scripts/v2.2DataScript.js test
- * node ./js/Scripts/v2.2DataScript.js prod --profile prod
+ * node ./js/Scripts/v3.1DataScript.js dev
+ * node ./js/Scripts/v3.1DataScript.js test
+ * node ./js/Scripts/v3.1DataScript.js prod --profile prod
  */
 
 // check for stage argument

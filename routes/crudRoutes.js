@@ -648,30 +648,6 @@ class Crud {
   } // isAdmin
 
   /**
-   * Checks if a value is empty. Returns true if the value is null or a single character space String.
-   *
-   * @param value - value to check
-   * @return boolean - value is empty
-   */
-  isEmpty(value) {
-    // log method
-    logger.log(5, 'isEmpty', `Checking if value ${value} is empty`);
-
-    // compute method
-    let result = value == null || value === ' ' || value === '';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isEmpty', `Value ${value} is empty`);
-    } else {
-      logger.log(5, 'isEmpty', `Value ${value} is not empty`);
-    }
-
-    // return result
-    return result;
-  } // isEmpty
-
-  /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
    * false.
    *
@@ -817,7 +793,7 @@ class Crud {
         .then(data => {
           // log success
           logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
-          
+
           // send successful 200 status
           res.status(200).send(data);
 
