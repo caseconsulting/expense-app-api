@@ -40,7 +40,7 @@ class BlogAttachments {
     );
   } // constructor
 
-    /**
+  /**
    * Returns the instace express router.
    *
    * @return Router Object - express router
