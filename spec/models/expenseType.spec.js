@@ -83,15 +83,14 @@ describe('expenseType', () => {
 
       beforeEach(() => {
         expenseType.recurringFlag = true;
-        expenseType.startDate = ' ';
-        expenseType.endDate = ' ';
-        dateStr = ' ';
+        delete expenseType.startDate;
+        delete expenseType.endDate;
       });
 
       it('should return true', () => {
-        expect(expenseType.isDateInRange(dateStr)).toBe(true);
+        expect(expenseType.isDateInRange(undefined)).toBe(true);
       }); // should return true
-    }); // when expense type is recurring
+    }); // when expense type is recurring and does not have an date
 
     describe('when expense type is not recurring', () => {
 
@@ -100,6 +99,13 @@ describe('expenseType', () => {
         expenseType.startDate = '2000-08-18';
         expenseType.endDate = '2002-08-18';
       });
+
+      describe('and date does not exist', () => {
+
+        it('should return false', () => {
+          expect(expenseType.isDateInRange(undefined)).toBe(false);
+        }) // should be false
+      }) // and date does not exist
 
       describe('and date is same as fiscal start date', () => {
 

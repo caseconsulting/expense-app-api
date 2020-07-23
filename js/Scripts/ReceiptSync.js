@@ -102,33 +102,43 @@ async function updateReceiptFields() {
         // find the S3 key that matches this expense
         let mapping = _.find(map, {'path': `${expense.employeeId}/${expense.id}`});
         // if the there is a match
-        let params = {
-          TableName: table,
-          Key: {
-            'id': expense.id
-          },
-          UpdateExpression: 'set receipt = :r',
-          ExpressionAttributeValues: {
-            ':r': ' '
-          },
-          ReturnValues: 'UPDATED_NEW'
-        };
-
         if (mapping) {
           // set up dyanmo update params
-          params.ExpressionAttributeValues = {
-            ':r': mapping.name
+          let params = {
+            TableName: table,
+            Key: {
+              'id': expense.id
+            },
+            UpdateExpression: 'set receipt = :r',
+            ExpressionAttributeValues: {
+              ':r': mapping.name
+            },
+            ReturnValues: 'UPDATED_NEW'
           };
-        }
 
-        // update expense
-        ddb.update(params, function(err, data) {
-          if (err) {
-            console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-          } else {
-            console.log(`Updated expenseId ${expense.id} with receipt "${data.Attributes.receipt}"`);
-          }
-        });
+          // update expense
+          ddb.update(params, function(err, data) {
+            if (err) {
+              console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+            } else {
+              console.log(`Updated expenseId ${expense.id} with receipt "${data.Attributes.receipt}"`);
+            }
+          });
+        } else {
+          delete expense.receipt;
+
+          let params = {
+            TableName: table,
+            Item: expense
+          };
+          ddb.put(params, function (err) {
+            if (err) {
+              console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+            } else {
+              console.log(`Could not find receipt for expenseId ${expense.id}. Removed receipt attribute.`);
+            }
+          });
+        }
       });
     })
     .catch(console.log);

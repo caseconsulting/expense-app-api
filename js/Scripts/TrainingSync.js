@@ -119,16 +119,6 @@ function getAllEntriesInDB(table) {
 } // getAllEntriesInDB
 
 /**
- * Checks if a value is empty. Returns true if the value is null or a single character space String.
- *
- * @param value - value to check
- * @return boolean - value is empty
- */
-function _isEmpty(value) {
-  return value == null || value === ' ' || value === '';
-} // isEmpty
-
-/**
  * Scrapes metadata from a website url. Returns the url title, description, image, logo, and publisher.
  *
  * @param id - website url
@@ -202,7 +192,7 @@ async function getAllTrainingUrls() {
   let expenses = await getAllEntriesInDB(EXPENSE_TABLE);
   let keys = [];
   for (let i = 0; i < expenses.length; i++) {
-    if (expenses[i].expenseTypeId === trainingET.id && !_isEmpty(expenses[i].url) && !_isEmpty(expenses[i].category)) {
+    if (expenses[i].expenseTypeId === trainingET.id && !_.isNil(expenses[i].url) && !_.isNil(expenses[i].category)) {
       let key = {
         url: expenses[i].url,
         category: expenses[i].category

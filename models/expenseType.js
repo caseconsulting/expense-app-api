@@ -54,6 +54,8 @@ class ExpenseType {
   isDateInRange(dateStr) {
     if (this.recurringFlag) {
       return true;
+    } else if (_.isNil(dateStr)) {
+      return false;
     } else {
       let date = moment(dateStr, ISOFORMAT);
       let start = moment(this.startDate, ISOFORMAT);
