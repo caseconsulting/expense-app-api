@@ -34,8 +34,7 @@ const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
 // const TEXTRACT_BUCKET = `case-consulting-portal-app-textract-attachments-${STAGE}`;
 const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
-const comprehend = new AWS.Comprehend({apiVersion: '2017-11-27'});
-
+const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
 
 const storage = multerS3({
   s3: s3,
@@ -173,7 +172,7 @@ class Attachment {
   } // deleteAttachmentFromS3
 
   timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -331,7 +330,6 @@ class Attachment {
     return comprehend.detectEntities(comprehendParams).promise();
   } // comprehendText
 
-
   /**
    * Extracts text from a file using AWS Textract.
    *
@@ -430,7 +428,6 @@ class Attachment {
       }
     });
   } // extractText
-
 
   /**
    * Gets an attachment from S3.
