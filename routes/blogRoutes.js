@@ -21,7 +21,7 @@ const checkJwt = jwt({
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
   algorithms: ['RS256']
 });
-  
+
 const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const BUCKET = `case-consulting-portal-app-blog-attachments-${STAGE}`;
@@ -32,12 +32,7 @@ class BlogAttachments {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    this._router.post(
-      '/getModerationLabel',
-      this._checkJwt,
-      this._getUserInfo,
-      this.detectModeration.bind(this)
-    );
+    this._router.post('/getModerationLabel', this._checkJwt, this._getUserInfo, this.detectModeration.bind(this));
   } // constructor
 
   /**
@@ -52,27 +47,26 @@ class BlogAttachments {
     return this._router;
   } // router
 
-
   /**
-  * Extracts labels from an image using AWS Rekognition.
-  *
-  * @param req - api request
-  * @param res - api response
-  * @return Object - text data
-  */
+   * Extracts labels from an image using AWS Rekognition.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - text data
+   */
   detectModeration(req, res) {
     var params = {
       Image: {
         // /* required Bytes: Buffer.from('...') || 'STRING_VALUE' Strings will be Base-64 encoded on your behalf */,
         S3Object: {
           Bucket: BUCKET,
-          Name: 'bikini.png'
+          Name: 'beach.jpg'
         }
       },
-      MinConfidence: 0.0
+      MinConfidence: 10
     };
     rekognition.detectModerationLabels(params, function (err, data) {
-      if (err) { 
+      if (err) {
         console.log(err, err.stack);
 
         let error = {
@@ -88,9 +82,7 @@ class BlogAttachments {
         res.status(200).send(data);
       }
     });
-    
   } // detectModeration
-  
 } // BlogAttachments
 
 module.exports = BlogAttachments;
