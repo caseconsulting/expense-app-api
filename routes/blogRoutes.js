@@ -60,10 +60,10 @@ class BlogAttachments {
         // /* required Bytes: Buffer.from('...') || 'STRING_VALUE' Strings will be Base-64 encoded on your behalf */,
         S3Object: {
           Bucket: BUCKET,
-          Name: 'beach.jpg'
+          Name: 'purge.jpg'
         }
       },
-      MinConfidence: 10
+      MinConfidence: 60
     };
     rekognition.detectModerationLabels(params, function (err, data) {
       if (err) {
