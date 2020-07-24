@@ -18,6 +18,7 @@ const _ = require('lodash');
  * - categories
  * - hasRecipient
  * - alwaysOnFeed
+ * - requireURL
  *
  * Optional Fields:
  * - startDate
@@ -38,6 +39,7 @@ class ExpenseType {
     this.setRequiredAttribute(data, 'categories', []); // default: no categories
     this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
     this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
+    this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
 
 
     this.setOptionalAttribute(data, 'startDate');
