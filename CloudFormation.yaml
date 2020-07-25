@@ -505,7 +505,7 @@ Resources:
               - Effect: Allow
                 Action: 'lambda:Invoke*'
                 Resource: '*'
-        - PolicyName: Amazon Rekognition
+        - PolicyName: AmazonRekognition
           PolicyDocument:
             Version: 2012-10-17
             Statement:
