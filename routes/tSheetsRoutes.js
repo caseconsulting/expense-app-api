@@ -4,10 +4,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
-const moment = require('moment');
-// const _ = require('lodash');
 
-const ISOFORMAT = 'YYYY-MM-DD';
 const lambda = new AWS.Lambda();
 const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
@@ -43,10 +40,10 @@ class TSheetsRoutes {
       this._getPTOBalances.bind(this)
     );
     this._router.get(
-      '/getTimeSheets/:employeeNumber/:startDate/:endDate',
+      '/getMonthlyHours/:employeeNumber',
       this._checkJwt,
       this._getUserInfo,
-      this._getTimeSheets.bind(this)
+      this._getMonthlyHours.bind(this)
     );
   } // constructor
 
@@ -125,63 +122,33 @@ class TSheetsRoutes {
   } // _getPTOBalances
 
   /**
-   * Gets an employee's time sheets, given an employee number, a start date, and end date in iso-format. If the
-   * employee number is 0, time sheets for ALL employees between the date range will be returned.
+   * Gets an employee's monthly hours charged, given an employee number.
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - time sheets
+   * @return Object - monthly hours
    */
-  async _getTimeSheets(req, res) {
+  async _getMonthlyHours(req, res) {
     // log method
-    logger.log(1, '_getTimeSheets',
-      `Attempting to get time sheets for employee number ${req.params.employeeNumber} between`,
-      `${req.params.startDate} and ${req.params.endDate}`
+    logger.log(1, '_getMonthlyHours',
+      `Attempting to get monthly hours for employee number ${req.params.employeeNumber}`
     );
 
     try {
-      if (!this.isIsoFormat(req.params.startDate)) {
-        throw {
-          code: 400,
-          message: 'Invalid start date. Start date must be in iso-format.'
-        };
-      } else if (!this.isIsoFormat(req.params.endDate)) {
-        throw {
-          code: 400,
-          message: 'Invalid end date. End date must be in iso-format.'
-        };
-      }
-
-      let startDate = moment(req.params.startDate, ISOFORMAT);
-      let endDate = moment(req.params.endDate, ISOFORMAT);
-      if (startDate.isAfter(endDate)) {
-        throw {
-          code: 400,
-          message: 'Start date must be before end date.'
-        };
-      }
-      if (!startDate.isValid() || !endDate.isValid()) {
-        throw {
-          code: 400,
-          message: 'Dates must be valid.'
-        };
-      }
 
       // mysterio function parameters
       let payload = {
-        employeeNumber: req.params.employeeNumber,
-        startDate: req.params.startDate,
-        endDate: req.params.endDate
+        employeeNumber: req.params.employeeNumber
       };
 
       // lambda invoke parameters
       let params = {
-        FunctionName: `mysterio-time-sheets-${STAGE}`,
+        FunctionName: `mysterio-monthly-hours-${STAGE}`,
         Payload: JSON.stringify(payload),
         Qualifier: '$LATEST'
       };
 
-      // invoke mysterio time sheets lambda function
+      // invoke mysterio monthly hours lambda function
       let result = await lambda.invoke(params).promise();
 
       // invoke mysterio pto balances lambda function
@@ -189,9 +156,8 @@ class TSheetsRoutes {
 
       if (resultPayload.body) {
         // log success
-        logger.log(1, '_getTimeSheets',
-          `Successfully got time sheets for employee number ${req.params.employeeNumber} between`,
-          `${req.params.startDate} and ${req.params.endDate}`
+        logger.log(1, '_getMonthlyHours',
+          `Successfully got monthly hours for employee number ${req.params.employeeNumber}`
         );
 
         let timeSheets = resultPayload.body;
@@ -209,9 +175,8 @@ class TSheetsRoutes {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_getTimeSheets',
-        `Failed to get time sheets for employee number ${req.params.employeeNumber} between ${req.params.startDate}`,
-        `and ${req.params.endDate}`
+      logger.log(1, '_getMonthlyHours',
+        `Failed to get monthly hours for employee number ${req.params.employeeNumber}`
       );
 
       // send error status
@@ -220,7 +185,7 @@ class TSheetsRoutes {
       // return error
       return err;
     }
-  } // _getTimeSheets
+  } // _getMonthlyHours
 
   /**
    * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
