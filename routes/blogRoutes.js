@@ -69,7 +69,7 @@ const storage = multerS3({
   contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
   key: function (req, file, cb) {
-    cb(null, `${file.originalname}`);
+    cb(null, `${req.params.employeeId}/${file.originalname}`);
   }
 });
 
@@ -78,7 +78,7 @@ const upload = multer({
   storage: storage,
   limits: limits,
   fileFilter: fileFilter
-}).single('img');
+}).single('image');
 
 
 
