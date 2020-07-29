@@ -69,7 +69,7 @@ const storage = multerS3({
   contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
   key: function (req, file, cb) {
-    cb(null, `${req.params.employeeId}/${file.originalname}`);
+    cb(null, `${file.originalname}`);
   }
 });
 
@@ -93,7 +93,7 @@ class BlogAttachments {
       '/uploadBlogAttachmentToS3/:img',
       this._checkJwt,
       this._getUserInfo,
-      this.uploadAttachmentToS3.bind(this)
+      this.uploadBlogAttachmentToS3.bind(this)
     );
   } // constructor
 
