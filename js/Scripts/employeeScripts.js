@@ -9,7 +9,8 @@ const actions = [
   '0. Cancel',
   '1. Sets all employee\'s work status active = 100 (Full Time) or inactive = 0',
   '2. Removes isInactive attribute from all employees',
-  '3. Removes expenseTypes attribute from all employees'
+  '3. Removes expenseTypes attribute from all employees',
+  '4. Set any null birthdayFeed attributes to true'
 ];
 
 // check for stage argument
@@ -116,6 +117,43 @@ async function removeAttribute(attribute) {
   });
 }
 
+/**
+ * Removes given attribute from all employee data
+ */
+async function setBirthdayFeed(attribute) {
+  let employees = await getAllEntries();
+  let showBirthday = true;
+  _.forEach(employees, employee => {
+    showBirthday = true;
+    if (!employee.birthday) {
+      showBirthday = false;
+    }
+    if (employee.birthdayFeed != null) {
+      showBirthday = employee.birthdayFeed;
+    }
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': employee.id
+      },
+      UpdateExpression: `set ${attribute} = :a`,
+      ExpressionAttributeValues: {
+        ':a': showBirthday
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update employee
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Refreshed Employee ID: ${employee.id}`);
+      }
+    });
+  });
+}
+
 /*
  * User chooses an action
  */
@@ -195,6 +233,12 @@ async function main() {
       if (confirmAction('remove expenseType attribute from all employees?')) {
         console.log('Removing expenseTypes attribute from all employees');
         removeAttribute('expenseTypes');
+      }
+      break;
+    case 4:
+      if (confirmAction('Set null birthdayFeed attributes to true?')) {
+        console.log('Setting null birthdayFeed attributes to true');
+        setBirthdayFeed('birthdayFeed');
       }
       break;
     default:
