@@ -6,6 +6,7 @@ const moment = require('moment');
 // const TrainingUrls = require('../../models/trainingUrls');
 const UtilityRoutes = require('../../routes/utilityRoutes');
 const _ = require('lodash');
+// const BasecampRoutes = require('../../routes/basecampRoutes');
 
 describe('utilityRoutes', () => {
 
@@ -51,6 +52,7 @@ describe('utilityRoutes', () => {
   const ACCESSIBLE_BY = '{accessibleBy}';
   const CATEGORIES = [];
 
+  // const BASE_CAMP_TOKEN = '{basecampToken}';
   // const HITS = 0;
   // const TITLE = '{title}';
   // const IMAGE = '{image}';
@@ -111,6 +113,10 @@ describe('utilityRoutes', () => {
     categories: CATEGORIES,
     accessibleBy: ACCESSIBLE_BY
   };
+
+  // const BASE_CAMP_DATA = {
+  //   id: ID
+  // };
 
   // const TRAINING_URL_DATA = {
   //   id: URL,
@@ -203,6 +209,11 @@ describe('utilityRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    // basecamp = jasmine.createSpyObj('basecamp', [
+    //   '_getBasecampToken',
+    //   'getBasecampInfo',
+    //   '_getScheduleEntries'
+    // ]);
     res = jasmine.createSpyObj('res', ['status', 'send']);
     res.status.and.returnValue(res);
 
@@ -213,6 +224,7 @@ describe('utilityRoutes', () => {
     utilityRoutes.expenseTypeDynamo = expenseTypeDynamo;
     utilityRoutes.trainingDynamo = trainingDynamo;
     utilityRoutes._router = _ROUTER;
+
   });
 
   describe('asyncForEach', () => {
@@ -708,6 +720,384 @@ describe('utilityRoutes', () => {
       }); // should respond with a 404 and error
     }); // when getting an active budget throws an error
   }); // _getAllActiveEmployeeBudgets
+
+  // describe('_getAllExpenses', () => {
+  //   let req, expenseType, expense, aggregateExpense, employee;
+
+  //   beforeEach(() => {
+  //     req = _.cloneDeep(REQ_DATA);
+  //     expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
+  //     employee = _.cloneDeep(EMPLOYEE_DATA);
+  //     expense = _.cloneDeep(EXPENSE_DATA);
+  //     aggregateExpense = new Expense(EXPENSE_DATA);
+  //     aggregateExpense.budgetName = NAME;
+  //     aggregateExpense.employeeName = `${FIRST_NAME} ${LAST_NAME}`;
+  //     aggregateExpense.firstName = FIRST_NAME;
+  //     aggregateExpense.middleName = MIDDLE_NAME;
+  //     aggregateExpense.lastName = LAST_NAME;
+  //     req.employee.employeeRole = 'admin';
+  //   });
+
+  //   describe('when it successfully gets all expenses', () => {
+  //     beforeEach(() => {
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense]));
+  //     });
+
+  //     it('should respond with a 200 and the expenses', done => {
+  //       utilityRoutes._getAllExpenses(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual([aggregateExpense]);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(expenseDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(200);
+  //           expect(res.send).toHaveBeenCalledWith([aggregateExpense]);
+  //           done();
+  //         });
+  //     }); // should respond with a 200 and the aggregated expenses
+  //   });// when it successfully gets all expenses
+    
+  //   describe('when it fails to get expense types', () => {
+      
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get expense types.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllExpenses(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   }); // when it fails to get expense types
+
+  //   describe('when it fails to get employees', () => {
+      
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get employees.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllExpenses(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   });// when it fails to get employees
+  //   describe('when it fails to get all expenses', () => {
+
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get all expenses.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllAggregateExpenses(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(expenseDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   });
+  // }); // _getAllExpenses
+  
+  // fdescribe('_getAllEvents', () => {
+  //   let req, expenseType, expense, aggregateExpense, employee, basecampEvent, basecampToken, payload;
+
+  //   beforeEach(() => {
+  //     req = _.cloneDeep(EXPENSE_TYPE_DATA);
+  //     expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
+  //     employee = _.cloneDeep(EMPLOYEE_DATA);
+  //     expense = _.cloneDeep(EXPENSE_DATA);
+  //     aggregateExpense = new Expense(EXPENSE_DATA);
+  //     aggregateExpense.budgetName = NAME;
+  //     aggregateExpense.employeeName = `${FIRST_NAME} ${LAST_NAME}`;
+  //     aggregateExpense.firstName = FIRST_NAME;
+  //     aggregateExpense.middleName = MIDDLE_NAME;
+  //     aggregateExpense.lastName = LAST_NAME;
+  //     basecampEvent = _.cloneDeep(BASE_CAMP_DATA);
+  //     basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
+  //     payload = {employees: [employee], expenses: [aggregateExpense], schedules: [basecampEvent]};
+  //   });
+
+  //   describe('when successfully gets all events for the payload', () => {
+      
+  //     beforeEach(() => {
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       // utilityRoutes.queryExpenses.and.returnValue(Promise.resolve([expense])); //TODO: queryExpenses
+  //       // utilityRoutes.getBasecampToken.and.returnValue(Promise.resolve(basecampToken)); 
+  //       // utilityRoutes.getScheduleEntries.and.returnValue(Promise.resolve([basecampEvent]));
+  //       spyOn(utilityRoutes, 'queryExpenses').and.returnValue([aggregateExpense]);
+  //       spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
+  //       spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue([basecampEvent]);
+  //     });
+
+  //     it('should respond with a 200 and the data', done => {
+  //       utilityRoutes._getAllEvents(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(payload);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled(); 
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(utilityRoutes.queryExpenses).toHaveBeenCalled(); //TODO: queryExpense?
+  //           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
+  //           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(200);
+  //           expect(res.send).toHaveBeenCalledWith(payload);
+  //           done();
+  //         });
+  //     }); // should respond with a 200 and the aggregated expenses
+  //   });// when successfully gets all events for the payload
+
+  //   describe('when fails to get expense type', () => {
+
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get expense types.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllEvents(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   });// when fails to get expense type
+
+
+  //   describe('when fails to get employees', () => {
+
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get employees.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllAggregateExpenses(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   });// when fails to get employees
+    
+  //   describe('when it fails to get all expenses', () => {
+
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get all expenses.'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType])); 
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       // utilityRoutes.queryExpenses.and.returnValue(Promise.reject(err)); TODO: queryExpense?
+  //       spyOn(utilityRoutes.queryExpenses).and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllEvents(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     }); // should respond with a 404 and error
+  //   });// when it fails to get all expenses
+
+  //   describe('when it fails to get basecamp token', () => {
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get basecamp token'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType])); 
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense])); //TODO: queryExpense?
+  //       spyOn(utilityRoutes, 'queryExpenses').and.returnValue([aggregateExpense]);
+  //       spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(err);
+        
+  //     });
+
+  //     it('should respond with a 404 and error', done => {
+  //       utilityRoutes._getAllEvents(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+  //           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     });
+  //   });// when it fails to get basecamp token
+
+  //   describe('when it fails to get basecamp schedule entries', () => {
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get basecamp events'
+  //       };
+
+  //       expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType])); 
+  //       employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+  //       spyOn(utilityRoutes, 'queryExpenses').and.returnValue([aggregateExpense]);
+  //       spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
+  //       spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(err);
+  //     });
+
+  //     it('should respond witha  404 and error', done => {
+  //       utilityRoutes._getAllEvents(req, res)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+  //           expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+  //           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
+  //           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
+  //           expect(res.status).toHaveBeenCalledWith(404);
+  //           expect(res.send).toHaveBeenCalledWith(err);
+  //           done();
+  //         });
+  //     });
+  //   });// when it fails to get basecamp schedule entries
+
+  // });
+
+  // fdescribe('queryExpenses', () => {
+    
+  //   let cutOffDate, expenseType, expense, formattedDate, additionalParams;
+
+  //   beforeEach(() => {
+  //     cutOffDate = moment();
+  //     expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
+  //     expense = _.cloneDeep(EXPENSE_DATA);
+  //     formattedDate = cutOffDate.format('YYYY-MM-DD');
+  //     additionalParams = {
+  //       ExpressionAttributeValues: {
+  //         ':queryKey': expenseType.id,
+  //         ':cutOffDate': formattedDate
+  //       },
+  //       KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
+  //     };
+  //   });
+
+  //   describe('when it succeeds in returning all queried expenses', () => {
+      
+  //     beforeEach(() => {
+  //       expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([expense]));
+  //     });
+
+  //     it('should respond with 200 and expense data', done => {
+  //       utilityRoutes.queryExpenses(expenseType, cutOffDate)
+  //         .then(data => {
+  //           expect(data).toEqual([expense]);
+  //           expect(expenseDynamo.querySecondaryIndexInDB)
+  //             .toHaveBeenCalledWith(
+  //               'expenseTypeId-reimbursedDate-index', 'expenseTypeId', expenseType.id, additionalParams);
+  //           done();
+  //         });
+  //     });
+  //   });// when it succeeds in returning all queried expenses
+
+  //   describe('when it fails to return queried expenses', () => {
+      
+  //     let err;
+
+  //     beforeEach(() => {
+  //       err = {
+  //         code: 404,
+  //         message: 'Failed to get queried expenses'
+  //       };
+
+  //       expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+  //     });
+
+  //     it('should respond with 404 and err', done => {
+  //       utilityRoutes.queryExpenses(expenseType, cutOffDate)
+  //         .then(data => {
+  //           expect(data).toEqual(err);
+  //           expect(expenseDynamo.querySecondaryIndexInDB)
+  //             .toHaveBeenCalledWith(
+  //               'expenseTypeId-reimbursedDate-index', 'expenseTypeId', expenseType.id, additionalParams);
+  //           done();
+  //         });
+  //     });
+  //   });
+  // });
 
   describe('_getAllAggregateExpenses', () => {
 

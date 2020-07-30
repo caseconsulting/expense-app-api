@@ -352,7 +352,7 @@ class Attachment {
       // Content types that can be text extracted
       const ALLOWED_CONTENT_TYPES = [
         'image/jpeg', //.jpeg
-        'image/png' //.png
+        'image/png', //.png
       ];
 
       if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
@@ -663,7 +663,7 @@ class Attachment {
 
         // set a successful 200 response with uploaded file
         res.status(200).send(req.file);
-
+        
         // return file uploaded
         return req.file;
       }

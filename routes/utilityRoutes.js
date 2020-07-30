@@ -336,6 +336,19 @@ class Utility {
 
     return ret;
   }// queryExpenses
+  
+  async getBasecampToken() {
+    const basecamp = new Basecamp();
+
+    return await basecamp._getBasecampToken();
+  }
+
+  async getScheduleEntries(accessToken, project) {
+    const basecamp = new Basecamp();
+
+    return  await basecamp._getScheduleEntries(accessToken, project);
+  }
+
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
    * returns all expenses.
@@ -360,6 +373,7 @@ class Utility {
 
         // get all employee and expense data if admin
         employeesData = await this.employeeDynamo.getAllEntriesInDB();
+        expensesData = await this.expenseDynamo.getAllEntriesInDB();
         let employees = _.map(employeesData, employeeData => {
           return new Employee(employeeData);
         });
@@ -457,15 +471,14 @@ class Utility {
 
       let aggregateExpenses = this._convertIdsToNames(expensesData, employees, expenseTypes);
       //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
-      const baseCamp = new Basecamp();
+      let accessToken = await this.getBasecampToken();
 
       let entries = [];
-      let accessToken = await baseCamp._getBasecampToken();
-
-      const basecampInfo = baseCamp.getBasecampInfo();
+      const basecamp = new Basecamp();
+      const basecampInfo = basecamp.getBasecampInfo();
       
       for (let proj in basecampInfo) {
-        entries.push(await baseCamp._getScheduleEntries(accessToken, basecampInfo[proj]));
+        entries.push(await this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
       let payload = {
         employees: employees,
