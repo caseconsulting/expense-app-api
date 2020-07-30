@@ -88,7 +88,7 @@ class BlogAttachments {
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.post('/getModerationLabel/:img', this._checkJwt, this._getUserInfo, this.detectModeration.bind(this));
-    this._router.post('/getKeyPhrases/:text', this._checkJwt, this._getUserInfo, this.detectKeyPhrases.bind(this));
+    this._router.post('/getKeyPhrases', this._checkJwt, this._getUserInfo, this.detectKeyPhrases.bind(this));
     this._router.post(
       '/uploadBlogAttachmentToS3/:img',
       this._checkJwt,
@@ -119,7 +119,7 @@ class BlogAttachments {
   detectKeyPhrases(req, res) {
     var params = {
       LanguageCode: 'en' /* required */,
-      Text: req.params.text
+      Text: req.body.inputText
     };
     comprehend.detectKeyPhrases(params, function (err, data) {
       if (err) {
