@@ -2,29 +2,27 @@
 // const Employee = require('../../models/employee');
 // const Expense = require('../../models/expense');
 // const ExpenseType = require('../../models/expenseType');
-const moment = require('moment');
+// const moment = require('moment');
 // const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
 const BasecampRoutes = require('../../routes/basecampRoutes');
-const AWS = require('aws-sdk');
-const lambda = new AWS.Lambda();
 
 describe('basecampRoutes', () => {
-  const ID = '{id}';
+  // const ID = '{id}';
   
-  const FIRST_NAME = '{firstName}';
-  const MIDDLE_NAME = '{middleName}';
-  const LAST_NAME = '{lastName}';
-  const EMPLOYEE_NUMBER = 0;
-  const HIRE_DATE = '{hireDate}';
-  const EMAIL = '{email}';
-  const EMPLOYEE_ROLE = '{employeeRole}';
-  const WORK_STATUS = 0;
+  // const FIRST_NAME = '{firstName}';
+  // const MIDDLE_NAME = '{middleName}';
+  // const LAST_NAME = '{lastName}';
+  // const EMPLOYEE_NUMBER = 0;
+  // const HIRE_DATE = '{hireDate}';
+  // const EMAIL = '{email}';
+  // const EMPLOYEE_ROLE = '{employeeRole}';
+  // const WORK_STATUS = 0;
   
-  const CATEGORY = '{category}';
+  // const CATEGORY = '{category}';
   
-  const ISOFORMAT = 'YYYY-MM-DD';
-  const DATE = moment().format(ISOFORMAT);
+  // const ISOFORMAT = 'YYYY-MM-DD';
+  // const DATE = moment().format(ISOFORMAT);
   const _ROUTER = '{router}';
 
   const BASE_CAMP_TOKEN = '{basecampToken}';
@@ -33,45 +31,45 @@ describe('basecampRoutes', () => {
 
   let res;
 
-  const BODY_DATA = {
-    id: ID
-  };
+  // const BODY_DATA = {
+  //   id: ID
+  // };
 
-  const PARAMS_DATA = {
-    id: ID,
-    category: CATEGORY,
-    expenseTypeId: ID,
-    date: DATE
-  };
+  // const PARAMS_DATA = {
+  //   id: ID,
+  //   category: CATEGORY,
+  //   expenseTypeId: ID,
+  //   date: DATE
+  // };
 
-  const EMPLOYEE_DATA = {
-    id: ID,
-    firstName: FIRST_NAME,
-    middleName: MIDDLE_NAME,
-    lastName: LAST_NAME,
-    employeeNumber: EMPLOYEE_NUMBER,
-    hireDate: HIRE_DATE,
-    email: EMAIL,
-    employeeRole: EMPLOYEE_ROLE,
-    workStatus: WORK_STATUS
-  };
+  // const EMPLOYEE_DATA = {
+  //   id: ID,
+  //   firstName: FIRST_NAME,
+  //   middleName: MIDDLE_NAME,
+  //   lastName: LAST_NAME,
+  //   employeeNumber: EMPLOYEE_NUMBER,
+  //   hireDate: HIRE_DATE,
+  //   email: EMAIL,
+  //   employeeRole: EMPLOYEE_ROLE,
+  //   workStatus: WORK_STATUS
+  // };
 
-  const REQ_DATA = {
-    employee: EMPLOYEE_DATA,
-    body: BODY_DATA,
-    params: PARAMS_DATA
-  };
+  // const REQ_DATA = {
+  //   employee: EMPLOYEE_DATA,
+  //   body: BODY_DATA,
+  //   params: PARAMS_DATA
+  // };
 
-  const BASE_CAMP_INFO = {
-    PROJ_NAME: {
-      ID: 0,
-      SCHEDULE_ID: 0
-    }
-  };
+  // const BASE_CAMP_INFO = {
+  //   PROJ_NAME: {
+  //     ID: 0,
+  //     SCHEDULE_ID: 0
+  //   }
+  // };
 
-  const BASE_CAMP_DATA = {
-    id: ID
-  };
+  // const BASE_CAMP_DATA = {
+  //   id: ID
+  // };
 
 
   const BASECAMP_PROJECTS = {
