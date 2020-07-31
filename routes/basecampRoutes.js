@@ -72,6 +72,9 @@ class BasecampRoutes {
     );
   }
 
+  async getToken(params){
+    return lambda.invoke(params).promise();
+  }
 
   async _getBasecampToken() {
     //log the attempt
@@ -85,10 +88,13 @@ class BasecampRoutes {
 
 
       // invoke mysterio basecamp lambda function
-      let result = await lambda.invoke(params).promise();
-
+      let result = await this.getToken(params);
+      console.log('result');
+      console.log(result);
+      
       let resultPayload = JSON.parse(result.Payload);
-
+      console.log(resultPayload);
+      console.log(resultPayload.body);
       if (resultPayload.body) {
         logger.log(1, '_getBasecampToken', 'Successfully acquired token');
 
@@ -179,7 +185,7 @@ class BasecampRoutes {
   } // _getBasecampAvatars
 
   async _getScheduleEntries(token, project) {
-    logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
+    logger.log(1, '_getScheduleEntries', 'Attempting to get Basecamp Events');
     try{
       let options = {
         method: 'GET',
@@ -193,7 +199,7 @@ class BasecampRoutes {
       return basecampResponse.data;
 
     } catch(err) {
-      logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
+      logger.log(1, '_getScheduleEntries', `${err.code}: ${err.message}`);
 
       throw err;
     }
@@ -221,6 +227,7 @@ class BasecampRoutes {
   getBasecampInfo(){
     return BASECAMP_PROJECTS;
   }
+
   /**
    * Returns the instace express router.
    *

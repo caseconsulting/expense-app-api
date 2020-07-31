@@ -348,8 +348,10 @@ class Utility {
 
   getBasecampInfo() {
     const basecamp = new Basecamp();
+
     return basecamp.getBasecampInfo();
   }
+
   async getScheduleEntries(accessToken, project) {
     const basecamp = new Basecamp();
 
@@ -517,16 +519,19 @@ class Utility {
    * Gets all expensetype data and then parses the categories
    */
   async getAllExpenseTypes(){
-    let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
-        return JSON.parse(category);
+    try{
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+        expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+          return JSON.parse(category);
+        });
+        return new ExpenseType(expenseTypeData);
       });
-      return new ExpenseType(expenseTypeData);
-    });
-   
 
-    return expenseTypes;
+      return expenseTypes;
+    } catch (err) {
+      return err;
+    }
   } // getAllExpenseTypes
 
   /**
