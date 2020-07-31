@@ -327,14 +327,17 @@ class Utility {
       ExpressionAttributeValues: expressionAttributes,
       KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
     };
-    let ret =  await this.expenseDynamo.querySecondaryIndexInDB(
-      'expenseTypeId-reimbursedDate-index',
-      'expenseTypeId',
-      expenseType.id,
-      additionalParams
-    );
-
-    return ret;
+    try{
+      let ret =  await this.expenseDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-reimbursedDate-index',
+        'expenseTypeId',
+        expenseType.id,
+        additionalParams
+      );
+      return ret;
+    } catch (err) {
+      return err;
+    }
   }// queryExpenses
   
   async getBasecampToken() {
@@ -343,6 +346,10 @@ class Utility {
     return await basecamp._getBasecampToken();
   }
 
+  getBasecampInfo() {
+    const basecamp = new Basecamp();
+    return basecamp.getBasecampInfo();
+  }
   async getScheduleEntries(accessToken, project) {
     const basecamp = new Basecamp();
 
@@ -424,7 +431,7 @@ class Utility {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
 
-    try {
+    try {    
       let expenseTypes = await this.getAllExpenseTypes();
 
       let now = moment();
@@ -444,25 +451,26 @@ class Utility {
       let expensesData = [];
 
       employeesData = await this.employeeDynamo.getAllEntriesInDB();
-      
-      
+
       await this.asyncForEach(filteredExpenseTypes, async expenseType => {
         await this.queryExpenses(expenseType, cutOff).then(queryExpensesData => {
           // log success
           logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
-  
+
           let expenses = _.map(queryExpensesData, expenseData => {
             return new Expense(expenseData);
           });
+
           expensesData = _.union(expensesData, expenses);
+
         })
           .catch(err => {
           // log error
             logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
-
             return Promise.reject(err);
           });
       });
+
       //expensesData = await this.expenseDynamo.getAllEntriesInDB();
 
       let employees = _.map(employeesData, employeeData => {
@@ -471,11 +479,12 @@ class Utility {
 
       let aggregateExpenses = this._convertIdsToNames(expensesData, employees, expenseTypes);
       //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
+
       let accessToken = await this.getBasecampToken();
 
       let entries = [];
-      const basecamp = new Basecamp();
-      const basecampInfo = basecamp.getBasecampInfo();
+      
+      const basecampInfo = this.getBasecampInfo();
       
       for (let proj in basecampInfo) {
         entries.push(await this.getScheduleEntries(accessToken, basecampInfo[proj]));
@@ -485,7 +494,6 @@ class Utility {
         expenses: aggregateExpenses,
         schedules: entries
       };
-
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
 

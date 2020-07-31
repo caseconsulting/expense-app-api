@@ -195,7 +195,7 @@ class BasecampRoutes {
     } catch(err) {
       logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
 
-      return err;
+      throw err;
     }
   }
 
