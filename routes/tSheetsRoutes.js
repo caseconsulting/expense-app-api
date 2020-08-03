@@ -149,7 +149,7 @@ class TSheetsRoutes {
       };
 
       // invoke mysterio monthly hours lambda function
-      let result = await lambda.invoke(params).promise();
+      let result = await this.invokeLambda(params);
 
       // invoke mysterio pto balances lambda function
       let resultPayload = JSON.parse(result.Payload);
@@ -273,6 +273,16 @@ class TSheetsRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
+
+  /**
+   * Invokes lambda function with given params
+   * @param params - params to invoke lambda function with 
+   * @return object if successful, error otherwise
+   */
+  async invokeLambda(params) {
+    let result = await lambda.invoke(params).promise();
+    return result;
+  } // invokeLambda
 } // TSheetsRoutes
 
 module.exports = TSheetsRoutes;

@@ -5,8 +5,8 @@ const _ = require('lodash');
 
 describe('tSheetsRoutes', () => {
 
-  // const ISOFORMAT = 'YYYY-MM-DD';
-  // const STAGE = 'dev';
+  //const ISOFORMAT = 'YYYY-MM-DD';
+  //const STAGE = 'dev';
   const _ROUTER = '{router}';
 
   const ID = '{id}';
@@ -19,8 +19,8 @@ describe('tSheetsRoutes', () => {
   const EMPLOYEE_ROLE = '{employeeRole}';
   const WORK_STATUS = 0;
 
-  // const START_DATE = '2020-01-01';
-  // const END_DATE = '2020-01-31';
+  const START_DATE = '2020-01-01';
+  const END_DATE = '2020-01-31';
 
   const EMPLOYEE_DATA = {
     id: ID,
@@ -34,16 +34,22 @@ describe('tSheetsRoutes', () => {
     workStatus: WORK_STATUS
   };
 
-  // const PARAMS_DATA = {
-  //   employeeNumber: EMPLOYEE_NUMBER,
-  //   startDate: START_DATE,
-  //   endDate: END_DATE
-  // };
+  const PARAMS_DATA = {
+    employeeNumber: EMPLOYEE_NUMBER,
+    startDate: START_DATE,
+    endDate: END_DATE
+  };
 
-  // const REQ_DATA = {
-  //   employee: EMPLOYEE_DATA,
-  //   params: PARAMS_DATA
-  // };
+  const REQ_DATA = {
+    employee: EMPLOYEE_DATA,
+    params: PARAMS_DATA
+  };
+
+  const MONTHLY_HOURS = {
+    Payload: '{"body":"{timesheets}"}'
+  };
+
+  const TIMESHEETS = '{timesheets}';
 
   let res, tSheetsRoutes;
 
@@ -161,4 +167,51 @@ describe('tSheetsRoutes', () => {
       tSheetsRoutes._sendError(res, err);
     }); // should send an error
   }); // _sendError
+
+  describe('isIsoFormat', () => {
+    let value;
+
+    describe('when value is in iso format', () => {
+      beforeEach(() => {
+        value = '2020-01-11';
+      });
+      it('should return true', () => {
+        expect(tSheetsRoutes.isIsoFormat(value)).toBeTrue();
+      });
+    }); // value is in iso format
+
+    describe('when value is not in iso format', () => {
+      beforeEach(() => {
+        value = '01-11-2020';
+      });
+      it('should return false', () => {
+        expect(tSheetsRoutes.isIsoFormat(value)).toBeFalse();
+      });
+    }); // value is not in iso format
+  }); // isIsoFormat
+
+  describe('_getMonthlyHours', () => {
+    let req, monthlyHours, timesheets;
+    beforeEach(() => {
+      req = _.cloneDeep(REQ_DATA);
+      monthlyHours = _.cloneDeep(MONTHLY_HOURS);
+      timesheets = _.cloneDeep(TIMESHEETS);
+    });
+
+    describe('when successfully returns monthly hours', () => {
+      beforeEach(() => {
+        spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(monthlyHours);
+      });
+      it('should respond with a 200 and monthly hours', done => {
+        tSheetsRoutes._getMonthlyHours(req, res)
+          .then(data => {
+            expect(data).toEqual(timesheets);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(timesheets);
+            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+            done();
+          });
+      });
+    }); // successfully returns monthly hours
+  }); // _getMonthlyHours
 }); // tSheetsRoutes
