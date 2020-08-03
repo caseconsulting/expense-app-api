@@ -113,6 +113,10 @@ class BasecampRoutes {
     }
   }
 
+  async callAxios(options) {
+    return axios(options);
+  }
+
   /**
    * Get basecamp avatars for all employees in the Case Consulting Basecamp.
    *
@@ -143,7 +147,7 @@ class BasecampRoutes {
             'User-Agent': 'CasePortal (info@consultwithcase.com)'
           }
         };
-        basecampResponse = await axios(options);
+        basecampResponse = await this.callAxios(options);
         let basecampData = basecampResponse.data;
         pageAvatars = _.map(basecampData, person => {
           return {
