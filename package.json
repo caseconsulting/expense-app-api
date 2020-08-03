@@ -58,7 +58,7 @@
     "test": "jasmine",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine",
     "update": "claudia update --runtime nodejs12.x --timeout 10",
-    "update:prod": "claudia update --runtime nodejs12.x --profile prod",
+    "update:prod": "claudia update --runtime nodejs12.x --timeout 10 --profile prod",
     "upload:dev:claudia": "aws s3 cp claudia.json s3://case-consulting-expense-app-resources-dev/claudia.json --sse",
     "upload:dev:env": "aws s3 cp .env s3://case-consulting-expense-app-resources-dev/.env --sse",
     "upload:prod:claudia": "aws s3 cp claudia.json s3://case-consulting-expense-app-resources-prod/claudia.json --sse --profile prod",
