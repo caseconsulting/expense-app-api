@@ -242,5 +242,5 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-## Next time deploying to test for v3.1.0
-Deploy mysterio
+## Next time deploying v3.1.0 to test or prod
+Deploy mysterio to test or prod

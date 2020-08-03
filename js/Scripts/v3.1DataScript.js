@@ -1,7 +1,7 @@
 /*
  * node ./js/Scripts/v3.1DataScript.js dev
  * node ./js/Scripts/v3.1DataScript.js test
- * node ./js/Scripts/v3.1DataScript.js prod --profile prod
+ * node ./js/Scripts/v3.1DataScript.js prod (must set aws credentials for prod as default)
  */
 
 // check for stage argument

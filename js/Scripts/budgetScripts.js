@@ -1,7 +1,7 @@
 /*
  * node ./js/Scripts/budgetScripts.js dev
  * node ./js/Scripts/budgetScripts.js test
- * node ./js/Scripts/budgetScripts.js prod --profile prod
+ * node ./js/Scripts/budgetScripts.js prod (must set aws credentials for prod as default)
  */
 
 // LIST OF ACTIONS
