@@ -1202,10 +1202,7 @@ describe('expenseRoutes', () => {
     describe('when the expense is not changed', () => {
 
       it('should return true', () => {
-        expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)
-          .then(data => {
-            expect(data).toBe(true);
-          });
+        expect(expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)).toBe(true);
       }); // should return true
     }); // when the expense is not changed
 
@@ -1217,10 +1214,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should return true', () => {
-        expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)
-          .then(data => {
-            expect(data).toBe(true);
-          });
+        expect(expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)).toBe(true);
       }); // should return true
     }); // when only the expense reimbursed date is changed
 
@@ -1233,10 +1227,7 @@ describe('expenseRoutes', () => {
       });
 
       it('should return false', () => {
-        expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)
-          .then(data => {
-            expect(data).toBe(false);
-          });
+        expect(expenseRoutes._isOnlyReimburseDateChange(oldExpense, newExpense)).toBe(false);
       }); // should return false
     }); // when expense is being changed
   }); // _isOnlyReimburseDateChange

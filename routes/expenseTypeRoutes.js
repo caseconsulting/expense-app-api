@@ -28,23 +28,23 @@ class ExpenseTypeRoutes extends Crud {
     // log method
     logger.log(2, '_create', `Preparing to create expense type ${data.budgetName} with ID ${data.id}`);
 
-    let expenseType = new ExpenseType(data);
+    // compute method
+    try {
+      let expenseType = new ExpenseType(data);
+      await this._validateExpenseType(expenseType);
 
-    return this._validateExpenseType(expenseType)
-      .then(() => {
-        // log success
-        logger.log(2, '_create', `Successfully prepared to create expense type ${data.budgetName} with ID ${data.id}`);
+      // log success
+      logger.log(2, '_create', `Successfully prepared to create expense type ${data.budgetName} with ID ${data.id}`);
 
-        // return created expense type
-        return Promise.resolve(expenseType);
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, '_create', `Failed to prepare create for expense type ${data.budgetName} with ID ${data.id}`);
+      // return created expense type
+      return expenseType;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for expense type ${data.budgetName} with ID ${data.id}`);
 
-        // return rejected promise
-        return Promise.reject(err);
-      });
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _create
 
   /**
@@ -60,17 +60,12 @@ class ExpenseTypeRoutes extends Crud {
     try {
       let expenseType = new ExpenseType(await this.databaseModify.getEntry(id));
 
-      return this._validateDelete(expenseType)
-        .then(() => {
-          // log success
-          logger.log(2, '_delete', `Successfully prepared to delete expense type ${id}`);
+      await this._validateDelete(expenseType);
+      // log success
+      logger.log(2, '_delete', `Successfully prepared to delete expense type ${id}`);
 
-          // return expense type deleted
-          return expenseType;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // return expense type deleted
+      return expenseType;
     } catch (err) {
       // log error
       logger.log(2, '_delete', `Failed to prepare delete for expense type ${id}`);
@@ -156,29 +151,25 @@ class ExpenseTypeRoutes extends Crud {
       let newExpenseType = new ExpenseType(data);
       let oldExpenseType = new ExpenseType(await this.databaseModify.getEntry(data.id));
 
-      return this._validateExpenseType(newExpenseType)
-        .then(() => this._validateUpdate(oldExpenseType, newExpenseType))
-        .then(() => this._validateDates(newExpenseType))
-        .then(() => this._updateBudgets(oldExpenseType, newExpenseType))
-        .then(() => {
-          // log success
-          if (oldExpenseType.budgetName == newExpenseType.budgetName) {
-            logger.log(2, '_update',
-              `Successfully prepared to update expense type ${oldExpenseType.budgetName} with ID ${data.id}`
-            );
-          } else {
-            logger.log(2, '_update',
-              `Successfully prepared to update expense type ${oldExpenseType.budgetName} to`,
-              `${newExpenseType.budgetName} with ID ${data.id}`
-            );
-          }
+      await this._validateExpenseType(newExpenseType);
+      await this._validateUpdate(oldExpenseType, newExpenseType);
+      await this._validateDates(newExpenseType);
+      await this._updateBudgets(oldExpenseType, newExpenseType);
 
-          // return expense type updated
-          return newExpenseType;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // log success
+      if (oldExpenseType.budgetName == newExpenseType.budgetName) {
+        logger.log(2, '_update',
+          `Successfully prepared to update expense type ${oldExpenseType.budgetName} with ID ${data.id}`
+        );
+      } else {
+        logger.log(2, '_update',
+          `Successfully prepared to update expense type ${oldExpenseType.budgetName} to`,
+          `${newExpenseType.budgetName} with ID ${data.id}`
+        );
+      }
+
+      // return expense type updated
+      return newExpenseType;
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for expense type ${data.budgetName} with ID ${data.id}`);
@@ -246,14 +237,13 @@ class ExpenseTypeRoutes extends Crud {
           }
 
           // update budget in database
-          await this.budgetDynamo.updateEntryInDB(budgets[i])
-            .then(() => {
-              logger.log(3, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
-            })
-            .catch(err => {
-              logger.log(3, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
-              throw err;
-            });
+          try {
+            await this.budgetDynamo.updateEntryInDB(budgets[i]);
+            logger.log(3, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+          } catch (err) {
+            logger.log(3, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+            throw err;
+          }
         }
       }
 

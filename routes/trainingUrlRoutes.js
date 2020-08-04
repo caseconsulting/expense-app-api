@@ -23,26 +23,24 @@ class TrainingUrlRoutes extends Crud {
   async _create(data) {
     // log method
     logger.log(2, '_create', `Preparing to create training url ${data.id} with category ${data.category}`);
+    try {
+      let trainingUrl = new TrainingUrl(data);
+      await this._validateTrainingUrl(trainingUrl); // validate training url
 
-    let trainingUrl = new TrainingUrl(data);
+      // log success
+      logger.log(2, '_create',
+        `Successfully prepared to create training url ${data.id} with category ${data.category}`
+      );
 
-    return this._validateTrainingUrl(trainingUrl) // validate training url
-      .then(() => {
-        // log success
-        logger.log(2, '_create',
-          `Successfully prepared to create training url ${data.id} with category ${data.category}`
-        );
+      // return prepared training url
+      return trainingUrl;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for training url ${data.id} with category ${data.category}`);
 
-        // return prepared training url
-        return trainingUrl;
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, '_create', `Failed to prepare create for training url ${data.id} with category ${data.category}`);
-
-        // return rejected promise
-        return Promise.reject(err);
-      });
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _create
 
   /**
@@ -130,20 +128,16 @@ class TrainingUrlRoutes extends Crud {
       let oldTrainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(data.id, data.category));
       let newTrainingUrl = new TrainingUrl(data);
 
-      return this._validateTrainingUrl(newTrainingUrl) // validate training url
-        .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl)) // validate update
-        .then(() => {
-          // log success
-          logger.log(2, '_update',
-            `Successfully prepared to update training url ${data.id} with category ${data.category}`
-          );
+      await this._validateTrainingUrl(newTrainingUrl); // validate training url
+      await this._validateUpdate(oldTrainingUrl, newTrainingUrl); // validate update
 
-          // return training url to update
-          return newTrainingUrl;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // log success
+      logger.log(2, '_update',
+        `Successfully prepared to update training url ${data.id} with category ${data.category}`
+      );
+
+      // return training url to update
+      return newTrainingUrl;
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for training url ${data.id} with category ${data.category}`);

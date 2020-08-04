@@ -321,57 +321,57 @@ class Crud {
     logger.log(2, 'createNewBudget',
       `Attempting to create a new budget for employee ${employee.id} with expense type ${expenseType.id}`
     );
+    try {
+      // compute method
+      let budgetData = {
+        id: this.getUUID(),
+        expenseTypeId: expenseType.id,
+        employeeId: employee.id,
+        reimbursedAmount: 0,
+        pendingAmount: 0,
+        amount: 0
+      };
 
-    // compute method
-    let budgetData = {
-      id: this.getUUID(),
-      expenseTypeId: expenseType.id,
-      employeeId: employee.id,
-      reimbursedAmount: 0,
-      pendingAmount: 0,
-      amount: 0
-    };
-
-    // set fiscal start and end date
-    if (expenseType.recurringFlag) {
-      if (annualStart) {
-        // set fiscal dates to the provided start date
-        budgetData.fiscalStartDate = annualStart;
-        budgetData.fiscalEndDate = moment(annualStart, ISOFORMAT).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      // set fiscal start and end date
+      if (expenseType.recurringFlag) {
+        if (annualStart) {
+          // set fiscal dates to the provided start date
+          budgetData.fiscalStartDate = annualStart;
+          budgetData.fiscalEndDate = moment(annualStart, ISOFORMAT).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        } else {
+          // set fiscal dates to current anniversary date if no start date provided
+          let dates = this.getBudgetDates(employee.hireDate);
+          budgetData.fiscalStartDate = dates.startDate.format(ISOFORMAT);
+          budgetData.fiscalEndDate = dates.endDate.format(ISOFORMAT);
+        }
       } else {
-        // set fiscal dates to current anniversary date if no start date provided
-        let dates = this.getBudgetDates(employee.hireDate);
-        budgetData.fiscalStartDate = dates.startDate.format(ISOFORMAT);
-        budgetData.fiscalEndDate = dates.endDate.format(ISOFORMAT);
+        budgetData.fiscalStartDate = expenseType.startDate;
+        budgetData.fiscalEndDate = expenseType.endDate;
       }
-    } else {
-      budgetData.fiscalStartDate = expenseType.startDate;
-      budgetData.fiscalEndDate = expenseType.endDate;
+
+      // set the amount of the new budget
+      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+
+      let newBudget = new Budget(budgetData);
+
+      let budget = await this.budgetDynamo.addToDB(newBudget); // add budget to database
+
+      // log success
+      logger.log(2, 'createNewBudget',
+        `Successfully created new budget ${budget.id} for employee ${employee.id} with expense type ${expenseType.id}`
+      );
+
+      // return new budget
+      return budget;
+    } catch (err) {
+      // log error
+      logger.log(2, 'createNewBudget',
+        `Failed to create new budget for employee ${employee.id} and expense type ${expenseType.id}`
+      );
+
+      // throw error
+      throw err;
     }
-
-    // set the amount of the new budget
-    budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
-
-    let newBudget = new Budget(budgetData);
-    return this.budgetDynamo.addToDB(newBudget) // add budget to database
-      .then(budget => {
-        // log success
-        logger.log(2, 'createNewBudget',
-          `Successfully created new budget ${budget.id} for employee ${employee.id} with expense type ${expenseType.id}`
-        );
-
-        // return new budget
-        return budget;
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, 'createNewBudget',
-          `Failed to create new budget for employee ${employee.id} and expense type ${expenseType.id}`
-        );
-
-        // throw error
-        throw err;
-      });
   } // createNewBudget
 
   /**
@@ -386,48 +386,40 @@ class Crud {
     logger.log(1, '_createWrapper', `Attempting to create an object in ${this._getTableName()}`);
 
     // compute method
-    if (this._checkPermissionToCreate(req.employee)) {
-      // employee has permissions to create to table
-      return this._create(req.body) // create object
-        .then(objectCreated => this._validateInputs(objectCreated)) // validate inputs
-        .then(objectValidated => this.databaseModify.addToDB(objectValidated)) // add object to database
-        .then(data => {
-          // log success
-          if (data instanceof TrainingUrl) {
-            // created a training url
-            logger.log(1, '_createWrapper',
-              `Successfully created object ${data.id} with category ${data.category} in ${this._getTableName()}`
-            );
-          } else {
-            // created an expense, expense type, or employee
-            logger.log(1, '_createWrapper',
-              `Successfully created object ${data.id} in ${this._getTableName()}`
-            );
-          }
+    try {
+      if (this._checkPermissionToCreate(req.employee)) {
+        // employee has permissions to create to table
+        let objectCreated = await this._create(req.body); // create object
+        let objectValidated = await this._validateInputs(objectCreated); // validate inputs
+        let dataCreated = await this.databaseModify.addToDB(objectValidated); // add object to database
 
-          // send successful 200 status
-          res.status(200).send(data);
+        // log success
+        if (dataCreated instanceof TrainingUrl) {
+          // created a training url
+          logger.log(1, '_createWrapper',
+            `Successfully created object ${dataCreated.id} with category ${dataCreated.category} in`,
+            `${this._getTableName()}`
+          );
+        } else {
+          // created an expense, expense type, or employee
+          logger.log(1, '_createWrapper',
+            `Successfully created object ${dataCreated.id} in ${this._getTableName()}`
+          );
+        }
 
-          // return created data
-          return data;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
+        // send successful 200 status
+        res.status(200).send(dataCreated);
 
-          // send error status
-          this._sendError(res, err);
-
-          // return error
-          return err;
-        });
-    } else {
-      // employee does not have permissions to create to table
-      let err = {
-        code: 403,
-        message: 'Unable to create object in database due to insufficient employee permissions.'
-      };
-
+        // return created data
+        return dataCreated;
+      } else {
+        // employee does not have permissions to create table
+        throw {
+          code: 403,
+          message: 'Unable to create object in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
       // log error
       logger.log(1, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
 
@@ -465,39 +457,30 @@ class Crud {
     logger.log(1, '_deleteWrapper', `Attempting to delete an object from ${this._getTableName()}`);
 
     // compute method
-    if (this._checkPermissionToDelete(req.employee)) {
-      // employee has permission to delete from table
-      return this._delete(req.params.id) // delete object
-        .then(objectDeleted => this.databaseModify.removeFromDB(objectDeleted.id)) // remove from database
-        .then(data => {
-          // log success
-          logger.log(1, '_deleteWrapper',
-            `Successfully deleted object ${data.id} from ${this._getTableName()}`
-          );
+    try {
+      if (this._checkPermissionToDelete(req.employee)) {
+        // employee has permission to delete from table
+        let objectDeleted = await this._delete(req.params.id); // delete object
+        let dataDeleted = await this.databaseModify.removeFromDB(objectDeleted.id); // remove from database
 
-          // send sucessful 200 status
-          res.status(200).send(data);
+        // log success
+        logger.log(1, '_deleteWrapper',
+          `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`
+        );
 
-          // return deleted data
-          return data;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
+        // send sucessful 200 status
+        res.status(200).send(dataDeleted);
 
-          // send error status
-          this._sendError(res, err);
-
-          // return error
-          return err;
-        });
-    } else {
-      // employee does not have permissions to delete from table
-      let err = {
-        code: 403,
-        message: 'Unable to delete object from database due to insufficient employee permissions.'
-      };
-
+        // return object removed
+        return dataDeleted;
+      } else {
+        // employee does not have permissions to delete from table
+        throw {
+          code: 403,
+          message: 'Unable to delete object from database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
       // log error
       logger.log(1, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
 
@@ -713,59 +696,52 @@ class Crud {
       message: 'Unable to read object from database due to insufficient employee permissions.'
     };
 
-    if (this._checkPermissionToRead(req.employee)) {
-      // employee has permission to read from table
-      return this._read(req.params) // read object
-        .then(data => {
-          // validate user permission to the read expense
-          if (this.isUser(req.employee) && this._checkTableName(['expenses'])) {
-            // user is reading an expense
-            // check the expense belongs to the user
-            if (data.employeeId !== req.employee.id) {
-              // expense does not belong to user
-              return Promise.reject(FORBIDDEN);
-            }
+    try {
+      if (this._checkPermissionToRead(req.employee)) {
+        // employee has permission to read from table
+        let dataRead = await this._read(req.params); // read object
+
+        // validate user permission to the read expense
+        if (this.isUser(req.employee) && this._checkTableName(['expenses'])) {
+          // user is reading an expense
+          // check the expense belongs to the user
+          if (dataRead.employeeId !== req.employee.id) {
+            // expense does not belong to user
+            throw FORBIDDEN;
           }
+        }
 
-          // log success
-          if (data instanceof TrainingUrl) {
-            // read a training url
-            logger.log(1, '_readWrapper',
-              `Successfully read object ${data.id} with category ${data.category} from ${this._getTableName()}`
-            );
-          } else {
-            // read an expense, expense-type, or employee
-            logger.log(1, '_readWrapper',
-              `Successfully read object ${data.id} from ${this._getTableName()}`
-            );
-          }
+        // log success
+        if (dataRead instanceof TrainingUrl) {
+          // read a training url
+          logger.log(1, '_readWrapper',
+            `Successfully read object ${dataRead.id} with category ${dataRead.category} from ${this._getTableName()}`
+          );
+        } else {
+          // read an expense, expense-type, or employee
+          logger.log(1, '_readWrapper',
+            `Successfully read object ${dataRead.id} from ${this._getTableName()}`
+          );
+        }
 
-          // send successful 200 status
-          res.status(200).send(data);
+        // send successful 200 status
+        res.status(200).send(dataRead);
 
-          // return object read data
-          return data;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_readWrapper', `Failed to read object from ${this._getTableName()}`);
-
-          // send error status
-          this._sendError(res, err);
-
-          // return error
-          return err;
-        });
-    } else {
-      // employee does not have permission to read
+        // return read data
+        return dataRead;
+      } else {
+        // employee does not have permission to read
+        throw FORBIDDEN;
+      }
+    } catch (err) {
       // log error
-      logger.log(1, '_readWrapper', `Failed to read an object from ${this._getTableName()}`);
+      logger.log(1, '_readWrapper', `Failed to read object from ${this._getTableName()}`);
 
       // send error status
-      this._sendError(res, FORBIDDEN);
+      this._sendError(res, err);
 
       // return error
-      return FORBIDDEN;
+      return err;
     }
   } // _readWrapper
 
@@ -787,42 +763,33 @@ class Crud {
     logger.log(1, '_readAllWrapper', `Attempting to read all objects from ${this._getTableName()}`);
 
     // compute method
-    if (this._checkPermissionToReadAll(req.employee)) {
-      // employee has permission to read all objects from table
-      return this._readAll() // read from database
-        .then(data => {
-          // log success
-          logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
+    try {
+      if (this._checkPermissionToReadAll(req.employee)) {
+        // employee has permission to read all objects from table
+        let dataRead = await this._readAll(); // read from database
 
-          // send successful 200 status
-          res.status(200).send(data);
+        // log success
+        logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
 
-          // return read data
-          return data;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
+        // send successful 200 status
+        res.status(200).send(dataRead);
 
-          // send error status
-          this._sendError(res, err);
-
-          return err;
-        });
-    } else {
-      // employee does not have permission to read all objects from table
-      let err = {
-        code: 403,
-        message: 'Unable to read all objects from database due to insufficient employee permissions.'
-      };
-
+        // return read data
+        return dataRead;
+      } else {
+        // employee does not have permission to read all objects from table
+        throw {
+          code: 403,
+          message: 'Unable to read all objects from database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
       // log error
       logger.log(1, '_readAllWrapper', `Failed to read all objects from ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
 
-      // return error
       return err;
     }
   } // _readAllWrapper
@@ -886,57 +853,48 @@ class Crud {
     logger.log(1, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
 
     // compute method
-    if (this._checkPermissionToUpdate(req.employee)) {
-      // employee has permission to update table
-      return this._update(req.body) // update object
-        .then(objectUpdated => this._validateInputs(objectUpdated)) // validate inputs
-        .then(objectValidated => {
-          // add object to database
-          if (objectValidated.id == req.body.id) {
-            // update database if the id's are the same
-            return this.databaseModify.updateEntryInDB(objectValidated);
-          } else {
-            // id's are different (database updated when changing expense types in expenseRoutes)
-            return objectValidated;
-          }
-        })
-        .then(data => {
-          // log success
-          if (data instanceof TrainingUrl) {
-            // updated a training url
-            logger.log(1, '_updateWrapper',
-              `Successfully updated object ${data.id} with category ${data.category} from ${this._getTableName()}`
-            );
-          } else {
-            // updated an expense, expense-type, or employee
-            logger.log(1, '_updateWrapper',
-              `Successfully updated object ${data.id} from ${this._getTableName()}`
-            );
-          }
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let objectUpdated = await this._update(req.body); // update object
+        let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
+        let dataUpdated;
+        // add object to database
+        if (objectValidated.id == req.body.id) {
+          // update database if the id's are the same
+          dataUpdated = await this.databaseModify.updateEntryInDB(objectValidated);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = objectValidated;
+        }
 
-          // send successful 200 status
-          res.status(200).send(data);
+        // log success
+        if (dataUpdated instanceof TrainingUrl) {
+          // updated a training url
+          logger.log(1, '_updateWrapper',
+            `Successfully updated object ${dataUpdated.id} with category ${dataUpdated.category} from`,
+            `${this._getTableName()}`
+          );
+        } else {
+          // updated an expense, expense-type, or employee
+          logger.log(1, '_updateWrapper',
+            `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`
+          );
+        }
 
-          // return updated data
-          return data;
-        })
-        .catch(err => {
-          // log error
-          logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+        // send successful 200 status
+        res.status(200).send(dataUpdated);
 
-          // send error status
-          this._sendError(res, err);
-
-          // return error
-          return err;
-        });
-    } else {
-      // employee does not have permissions to update table
-      let err = {
-        code: 403,
-        message: 'Unable to update object in database due to insufficient employee permissions.'
-      };
-
+        // return updated data
+        return dataUpdated;
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update object in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
       // log error
       logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
 

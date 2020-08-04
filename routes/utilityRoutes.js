@@ -311,7 +311,7 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
-   * 
+   *
    * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
    */
@@ -339,7 +339,7 @@ class Utility {
       return err;
     }
   }// queryExpenses
-  
+
   async getBasecampToken() {
     const basecamp = new Basecamp();
 
@@ -421,11 +421,11 @@ class Utility {
       return err;
     }
   } // _getAllExpenses
-  
+
   /**
-   * Getting all expense data that fits the criteria for the feed as well as all employees and 
-   * 
-   * @param req - api request 
+   * Getting all expense data that fits the criteria for the feed as well as all employees and
+   *
+   * @param req - api request
    * @param res - api response
    * @return all info needed for activity feed
    */
@@ -433,7 +433,7 @@ class Utility {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
 
-    try {    
+    try {
       let expenseTypes = await this.getAllExpenseTypes();
 
       let now = moment();
@@ -448,14 +448,16 @@ class Utility {
         }
       });
       filteredExpenseTypes = _.compact(filteredExpenseTypes);
-      
+
       let employeesData;
       let expensesData = [];
 
       employeesData = await this.employeeDynamo.getAllEntriesInDB();
 
       await this.asyncForEach(filteredExpenseTypes, async expenseType => {
-        await this.queryExpenses(expenseType, cutOff).then(queryExpensesData => {
+        try {
+          let queryExpensesData = await this.queryExpenses(expenseType, cutOff);
+
           // log success
           logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
 
@@ -464,30 +466,25 @@ class Utility {
           });
 
           expensesData = _.union(expensesData, expenses);
-
-        })
-          .catch(err => {
+        } catch (err) {
           // log error
-            logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
-            return Promise.reject(err);
-          });
+          logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
+          return Promise.reject(err);
+        }
       });
-
-      //expensesData = await this.expenseDynamo.getAllEntriesInDB();
 
       let employees = _.map(employeesData, employeeData => {
         return new Employee(employeeData);
       });
 
       let aggregateExpenses = this._convertIdsToNames(expensesData, employees, expenseTypes);
-      //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
 
       let accessToken = await this.getBasecampToken();
 
       let entries = [];
-      
+
       const basecampInfo = this.getBasecampInfo();
-      
+
       for (let proj in basecampInfo) {
         entries.push(await this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
@@ -509,7 +506,7 @@ class Utility {
 
       // send error status
       this._sendError(res, err);
-      
+
       // return error
       return err;
     }

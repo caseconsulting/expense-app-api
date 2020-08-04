@@ -29,24 +29,24 @@ class EmployeeRoutes extends Crud {
     logger.log(2, '_create', `Preparing to create employee ${data.id}`);
 
     // compute method
-    let employee = new Employee(data);
+    try {
+      let employee = new Employee(data);
 
-    return this._validateEmployee(employee) // validate employee
-      .then(() => this._validateCreate(employee)) // validate create
-      .then(() => {
-        // log success
-        logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
+      await this._validateEmployee(employee); // validate employee
+      await this._validateCreate(employee); // validate create
 
-        // return prepared employee
-        return employee;
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, '_create', `Failed to prepare create for employee ${data.id}`);
+      // log success
+      logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
 
-        // return rejected promise
-        return Promise.reject(err);
-      });
+      // return prepared employee
+      return employee;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for employee ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _create
 
   /**
@@ -62,18 +62,13 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       let employee = new Employee(await this.databaseModify.getEntry(id));
+      await this._validateDelete(employee);
 
-      return this._validateDelete(employee)
-        .then(() => {
-          // log success
-          logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
+      // log success
+      logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
 
-          // return employee deleted
-          return employee;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // return employee deleted
+      return employee;
     } catch (err) {
       // log error
       logger.log(2, '_delete', `Failed to prepare delete for employee ${id}`);
@@ -170,19 +165,16 @@ class EmployeeRoutes extends Crud {
       let newEmployee = new Employee(data);
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
 
-      return this._validateEmployee(newEmployee)
-        .then(() => this._validateUpdate(oldEmployee, newEmployee))
-        .then(() => this._updateBudgets(oldEmployee, newEmployee))
-        .then(() => {
-          // log success
-          logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+      await this._validateEmployee(newEmployee);
+      await this._validateUpdate(oldEmployee, newEmployee);
+      await this._updateBudgets(oldEmployee, newEmployee);
 
-          // return employee to update
-          return newEmployee;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+
+      // return employee to update
+      return newEmployee;
+
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
@@ -235,16 +227,16 @@ class EmployeeRoutes extends Crud {
             budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
 
             // update budget in database
-            await this.budgetDynamo.updateEntryInDB(budgets[i])
-              .then(() => {
-                // log budget update success
-                logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
-              })
-              .catch(err => {
-                // log and throw budget update failure
-                logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
-                throw err;
-              });
+            try {
+              await this.budgetDynamo.updateEntryInDB(budgets[i]);
+
+              // log budget update success
+              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+            } catch (err) {
+              // log and throw budget update failure
+              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+              throw err;
+            }
           }
         }
       }
