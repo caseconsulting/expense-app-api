@@ -89,12 +89,9 @@ class BasecampRoutes {
 
       // invoke mysterio basecamp lambda function
       let result = await this.getToken(params);
-      console.log('result');
-      console.log(result);
       
       let resultPayload = JSON.parse(result.Payload);
-      console.log(resultPayload);
-      console.log(resultPayload.body);
+
       if (resultPayload.body) {
         logger.log(1, '_getBasecampToken', 'Successfully acquired token');
 
@@ -187,16 +184,32 @@ class BasecampRoutes {
   async _getScheduleEntries(token, project) {
     logger.log(1, '_getScheduleEntries', 'Attempting to get Basecamp Events');
     try{
-      let options = {
-        method: 'GET',
-        url: `${BASECAMP_ROOT_URL}/buckets/${project.ID}/schedules/${project.SCHEDULE_ID}/entries.json`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'User-Agent': 'CasePortal (info@consultwithcase.com)'
-        }
-      };
-      let basecampResponse = await axios(options);
-      return basecampResponse.data;
+      let page = 1;
+      let basecampResponse;
+      let entries = [];
+      let pageEntries = [];
+      do{
+        let options = {
+          method: 'GET',
+          url: `${BASECAMP_ROOT_URL}/buckets/${project.ID}/schedules/${project.SCHEDULE_ID}/entries.json`,
+          params: {
+            page: page
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'CasePortal (info@consultwithcase.com)'
+          }
+        };
+        basecampResponse = await axios(options);
+        pageEntries = basecampResponse.data;
+        entries = _.union(entries, pageEntries);
+        page++;
+      }while(this.getNextPage((page - 1), pageEntries.length));
+
+      // log success
+      logger.log(1, '_getScheduleEntries', 'Successfully got Basecamp Schedule entries');
+
+      return entries;
 
     } catch(err) {
       logger.log(1, '_getScheduleEntries', `${err.code}: ${err.message}`);
@@ -227,7 +240,19 @@ class BasecampRoutes {
   getBasecampInfo(){
     return BASECAMP_PROJECTS;
   }
-
+  
+  //used to check if we need to make another API call to basecamp for paginated things
+  getNextPage(currentPage, responseLength){
+    if(currentPage === 1){
+      return responseLength === 15 ? true : false;
+    } else if (currentPage === 2){
+      return responseLength === 30 ? true : false;
+    } else if (currentPage === 3) {
+      return responseLength === 50 ? true : false;
+    } else if (currentPage >= 4) {
+      return responseLength === 100 ? true : false;
+    }
+  }
   /**
    * Returns the instace express router.
    *

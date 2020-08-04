@@ -455,16 +455,13 @@ class Attachment {
 
           let keyValueSets = [];
           for(let key in keyMap){
-            console.log('run through');
             let valueBlock = this.findValueBlock(keyMap[key], valueMap);
             let KVSkey = this.getText(keyMap[key], blockMap);
             let KVSval = this.getText(valueBlock, blockMap);
             //keyValueSets[KVSkey] = KVSval;
             let keys = {};
             let values = {};
-            console.log('KVSKey + val');
-            console.log(KVSkey);
-            console.log(KVSval);
+
             for(let i = 0; i < KVSkey.ids.length; i++){
               keys[KVSkey.ids[i]] = {Text: KVSkey.Text[i], Confidence: KVSkey.Confidences[i]};
             }
@@ -484,9 +481,6 @@ class Attachment {
            * }
            * 
            */
-          console.log(words);
-          console.log(keyValueSets);
-
           let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets, Words: words};
           // send successful 200 status with the uploaded file and text
           res.status(200).send(payload);
