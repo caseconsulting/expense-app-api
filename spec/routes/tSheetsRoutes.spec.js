@@ -51,6 +51,20 @@ describe('tSheetsRoutes', () => {
 
   const TIMESHEETS = '{timesheets}';
 
+  const MONTHLY_HOURS_ERR = {
+    Payload: '{"body" : "", "errorMessage" : "Failed to get monthly hours"}'
+  };
+
+  const PTO_BALANCES_PAYLOAD = {
+    Payload: '{"body": "{ptoBalances}"}'
+  };
+
+  const PTO_BALANCES = '{ptoBalances}';
+
+  const PTO_BALANCES_ERR = {
+    Payload: '{"body" : "", "errorMessage" : "Failed to get pto balances"}'
+  }
+
   let res, tSheetsRoutes;
 
   beforeEach(() => {
@@ -213,5 +227,71 @@ describe('tSheetsRoutes', () => {
           });
       });
     }); // successfully returns monthly hours
+
+    describe('when it fails to return monthly hours', ()=> {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get monthly hours'
+        };
+        spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(MONTHLY_HOURS_ERR);
+        spyOn(tSheetsRoutes, '_sendError').and.returnValue(err);
+      });
+      it('should respond with 404 and err', done => {
+        tSheetsRoutes._getMonthlyHours(req, res)
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(tSheetsRoutes._sendError).toHaveBeenCalled();
+            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+            done();
+          });
+      });
+    }); // fails to return monthly hours
   }); // _getMonthlyHours
+
+  describe('_getPTOBalances', () => {
+    let req, ptoBalancesPayload, ptoBalances;
+    beforeEach(() => {
+      req = _.cloneDeep(REQ_DATA);
+      ptoBalancesPayload = _.cloneDeep(PTO_BALANCES_PAYLOAD);
+      ptoBalances = _.cloneDeep(PTO_BALANCES);
+    });
+    describe('when successfully return pto balances', () => {
+      beforeEach(()=> {
+        spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(ptoBalancesPayload);
+      });
+      it('should respond with a 200 and pto balances', done => {
+        tSheetsRoutes._getPTOBalances(req, res)
+          .then(data => {
+            expect(data).toEqual(ptoBalances);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(ptoBalances);
+            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+            done();
+          });
+      });
+    }); // successfully returns pto balances
+
+    describe('when it fails to return pto balances', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 404, 
+          message: 'Failed to get pto balances'
+        };
+        spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(PTO_BALANCES_ERR);
+        spyOn(tSheetsRoutes, '_sendError').and.returnValue(err);
+      });
+      it('should respond with 404 and err', done => {
+        tSheetsRoutes._getPTOBalances(req, res)
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(tSheetsRoutes._sendError).toHaveBeenCalled();
+            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+            done();
+          });
+      });
+    }); // fails to return pto balances
+  }); // _getPToBalances
 }); // tSheetsRoutes

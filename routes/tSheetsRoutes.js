@@ -86,7 +86,7 @@ class TSheetsRoutes {
         Qualifier: '$LATEST'
       };
 
-      let result = await lambda.invoke(params).promise();
+      let result = await this.invokeLambda(params);
 
       // invoke mysterio pto balances lambda function
       let resultPayload = JSON.parse(result.Payload);
