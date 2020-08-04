@@ -204,7 +204,7 @@ class BasecampRoutes {
             'User-Agent': 'CasePortal (info@consultwithcase.com)'
           }
         };
-        basecampResponse = await axios(options);
+        basecampResponse = await this.callAxios(options);
         pageEntries = basecampResponse.data;
         entries = _.union(entries, pageEntries);
         page++;

@@ -47,6 +47,65 @@ describe('basecampRoutes', () => {
     data: []
   };
 
+  const ALL_DAY = '{all_day}';
+  const APP_URL = '{app_url}';
+  const BOOKMARK_URL = '{bookmark_url}';
+  const BUCKET = '{bucket}';
+  const COMMENTS_COUNT = '{comments_count}';
+  const COMMENTS_URL = '{comments_url}';
+  const CREATED_AT = '{created_at}';
+  const CREATOR = '{creator}';
+  const DESCRIPTION = '{description}';
+  const ENDS_AT = '{ends_at}';
+  const SCHEDULE_ID = '{id}';
+  const INHERITS_STATUS = '{inherits_status}';
+  const PARENT = '{parent}';
+  const PARTICIPANTS = '{participants}';
+  const STARTS_AT = '{starts_at}';
+  const STATUS = '{status}';
+  const SUBSCRIPTION_URL = '{subscription_url}';
+  const SUMMARY = '{summary}';
+  const TITLE = '{title}';
+  const TYPE = '{type}';
+  const UPDATED_AT = '{updated_at}';
+  const SCHEDULE_URL = '{updated_at}';
+  const VISISBLE_TO_CLIENTS = '{visible_to_clients}';
+
+
+  const SCHEDULE = {
+    all_day: ALL_DAY,
+    app_url: APP_URL,
+    bookmark_url: BOOKMARK_URL,
+    bucket: BUCKET,
+    comments_count: COMMENTS_COUNT,
+    comments_url: COMMENTS_URL,
+    created_at: CREATED_AT,
+    creator: CREATOR,
+    description: DESCRIPTION,
+    ends_at: ENDS_AT,
+    id: SCHEDULE_ID,
+    inherits_status: INHERITS_STATUS,
+    parent: PARENT,
+    participants: PARTICIPANTS,
+    starts_at: STARTS_AT,
+    status: STATUS,
+    subscription_url: SUBSCRIPTION_URL,
+    summary: SUMMARY,
+    title: TITLE,
+    type: TYPE,
+    updated_at: UPDATED_AT,
+    url: SCHEDULE_URL,
+    visible_to_clients: VISISBLE_TO_CLIENTS
+  };
+
+  const RAW_SCHEDULE = {
+    data: [SCHEDULE]
+  };
+
+  const EMPTY_SCHEDULE = {
+    data: []
+  };
+
   let res;
 
   const BODY_DATA = {
@@ -242,7 +301,61 @@ describe('basecampRoutes', () => {
   });
 
   describe('_getFeedEvents', () => {
+    let req, basecampToken, basecampSchedule, basecampRawSchedule, basecampEmptySchedule;
+    beforeEach(() => {
+      req = _.cloneDeep(REQ_DATA);
+      basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
+      basecampSchedule = _.cloneDeep(SCHEDULE);
+      basecampRawSchedule = _.cloneDeep(RAW_SCHEDULE);
+      basecampEmptySchedule = _.cloneDeep(EMPTY_SCHEDULE);
+    });
 
+    describe('when it succeeds to return basecamp avatars', () => {
+      
+      beforeEach(() => {
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+        spyOn(basecampRoutes, 'callAxios').and
+          .returnValues(Promise.resolve(basecampRawSchedule), Promise.resolve(basecampEmptySchedule));
+        spyOn(basecampRoutes, '_getScheduleEntries').and.returnValue(Promise.resolve([basecampSchedule]));
+      });
+      // [[basecampSchedule], [basecampSchedule], [basecampSchedule]]
+
+      it('should respond with the data', done => {
+        basecampRoutes._getFeedEvents(req, res)
+          .then(data => {
+            expect(data).toEqual([[basecampSchedule], [basecampSchedule], [basecampSchedule]]);
+            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith([[basecampSchedule], [basecampSchedule], [basecampSchedule]]);
+            expect(basecampRoutes._getScheduleEntries).toHaveBeenCalled();
+            expect(basecampRoutes._getScheduleEntries).toHaveBeenCalledTimes(3);
+            done();
+          });
+      });// it should respond with the data
+    });
+
+    describe('when it fails to get the token', () => {
+      
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get basecamp token.'
+        };
+
+        spyOn(basecampRoutes, 'getToken').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return 404 error', done => {
+        basecampRoutes._getBasecampToken()
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(basecampRoutes.getToken).toHaveBeenCalled();
+            done();
+          });
+      });// should return 404 error
+    });
   });
 
   describe('getBasecampInfo', () => {
