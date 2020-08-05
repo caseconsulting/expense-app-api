@@ -32,6 +32,7 @@ class Expense {
     this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
 
     this.setOptionalAttribute(data, 'category');
+    this.setOptionalAttribute(data, 'recipient');
     this.setOptionalAttribute(data, 'reimbursedDate');
     this.setOptionalAttribute(data, 'receipt');
     this.setOptionalAttribute(data, 'note');
