@@ -249,55 +249,61 @@ describe('basecampRoutes', () => {
       });// it should respond with the data
     });
 
-    // describe('when it fails to get the avatars', () => {
+    describe('when it fails to get the avatars', () => {
       
-    //   let err;
-
-    //   beforeEach(() => {
-    //     err = {
-    //       code: 404,
-    //       message: 'Failed to get basecamp token.'
-    //     };
-
-    //     spyOn(basecampRoutes, '_getBasecampAvatars').and.returnValue(Promise.reject(err));
-    //   });
-
-    //   it('should return 404 error', done => {
-    //     basecampRoutes._getBasecampAvatars(req, res)
-    //       .then(data => {
-    //         expect(data).toEqual(err);
-    //         expect(basecampRoutes.getToken).toHaveBeenCalled();
-    //         done();
-    //       });
-    //   });// should return 404 error
-
-    describe('when it fails to get the token', () => {
-      
-      let err;
+      let err, req;
 
       beforeEach(() => {
         err = {
           code: 404,
-          message: 'Failed to get basecamp token.'
+          message: 'Failed to get basecamp avatars.'
         };
-
-        spyOn(basecampRoutes, 'getToken').and.returnValue(Promise.reject(err));
+        req = _.cloneDeep(REQ_DATA);
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.reject(err));
       });
 
       it('should return 404 error', done => {
-        basecampRoutes._getBasecampToken()
+        basecampRoutes._getBasecampAvatars(req, res)
           .then(data => {
             expect(data).toEqual(err);
-            expect(basecampRoutes.getToken).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
             done();
           });
-      });// should return 404 error
-    });
+      });
+    });// should return 404 error
 
   });
 
   describe('_getScheduleEntries', () => {
+    let basecampToken, basecampSchedule, basecampRawSchedule, basecampEmptySchedule, projects;
+    beforeEach(() => {
+      basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
+      basecampSchedule = _.cloneDeep(SCHEDULE);
+      basecampRawSchedule = _.cloneDeep(RAW_SCHEDULE);
+      basecampEmptySchedule = _.cloneDeep(EMPTY_SCHEDULE);
+      projects = _.cloneDeep(BASECAMP_PROJECTS.CASE_CARES);
+    });
 
+    describe('when it succeeds to return schedule entries', () => {
+      
+      beforeEach(() => {
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+        spyOn(basecampRoutes, 'callAxios').and
+          .returnValues(Promise.resolve(basecampRawSchedule), Promise.resolve(basecampEmptySchedule));
+      });
+
+      it('should respond with the data', done => {
+        basecampRoutes._getScheduleEntries(basecampToken, projects)
+          .then(data => {
+            expect(data).toEqual([basecampSchedule]);
+            expect(basecampRoutes.callAxios).toHaveBeenCalled();
+            expect(basecampRoutes.callAxios).toHaveBeenCalledTimes(1);
+            done();
+          });
+      });// it should respond with the data
+    });
   });
 
   describe('_getFeedEvents', () => {
@@ -310,7 +316,7 @@ describe('basecampRoutes', () => {
       basecampEmptySchedule = _.cloneDeep(EMPTY_SCHEDULE);
     });
 
-    describe('when it succeeds to return basecamp avatars', () => {
+    describe('when it succeeds to return feed events', () => {
       
       beforeEach(() => {
         spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
@@ -334,28 +340,53 @@ describe('basecampRoutes', () => {
       });// it should respond with the data
     });
 
-    describe('when it fails to get the token', () => {
+    describe('when it fails to get the feed events', () => {
       
-      let err;
+      let err, req;
 
       beforeEach(() => {
         err = {
           code: 404,
-          message: 'Failed to get basecamp token.'
+          message: 'Failed to get basecamp feed events.'
         };
-
-        spyOn(basecampRoutes, 'getToken').and.returnValue(Promise.reject(err));
+        req = _.cloneDeep(REQ_DATA);
       });
 
-      it('should return 404 error', done => {
-        basecampRoutes._getBasecampToken()
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(basecampRoutes.getToken).toHaveBeenCalled();
-            done();
-          });
-      });// should return 404 error
-    });
+      describe('due to token issues', () => {
+        beforeEach(() => {
+          spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.reject(err));
+        });
+
+        it('should return 404 error', done => {
+          basecampRoutes._getFeedEvents(req, res)
+            .then(data => {
+              expect(data).toEqual(err);
+              expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+              done();
+            });
+        });
+      });
+
+      describe('due to schedule issues', () => {
+        beforeEach(() => {
+          spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+          spyOn(basecampRoutes, 'callAxios').and
+            .returnValues(Promise.resolve(basecampRawSchedule), Promise.resolve(basecampEmptySchedule));
+          spyOn(basecampRoutes, '_getScheduleEntries').and.returnValue(Promise.reject(err));
+        });
+
+        it('should return 404 error', done => {
+          basecampRoutes._getFeedEvents(req, res)
+            .then(data => {
+              expect(data).toEqual(err);
+              expect(basecampRoutes._getScheduleEntries).toHaveBeenCalled();
+              done();
+            });
+        });
+      });
+
+      
+    });// should return 404 error
   });
 
   describe('getBasecampInfo', () => {
