@@ -4,54 +4,56 @@ const _ = require('lodash');
  * Employee model
  *
  * Required Fields:
- * - id
- * - firstName
- * - lastName
- * - employeeNumber
- * - hireDate
  * - email
+ * - employeeNumber
  * - employeeRole
+ * - firstName
+ * - hireDate
+ * - id
+ * - lastName
  * - workStatus
  *
  * Optional Fields:
- * - middleName
  * - birthday
  * - birthdayFeed
- * - jobRole
- * - prime
- * - contract
- * - github
- * - twitter
  * - city
- * - st
+ * - contract
  * - country
+ * - degrees
  * - deptDate
+ * - github
+ * - jobRole
+ * - middleName
+ * - prime
+ * - st
+ * - twitter
  */
 class Employee {
   constructor(data) {
     // required attributes
-    this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'firstName');
-    this.setRequiredAttribute(data, 'lastName');
-    this.setRequiredAttribute(data, 'hireDate');
     this.setRequiredAttribute(data, 'email');
-    this.setRequiredAttribute(data, 'employeeRole');
-    this.setRequiredAttribute(data, 'workStatus');
     this.setRequiredNumberAttribute(data, 'employeeNumber');
+    this.setRequiredAttribute(data, 'employeeRole');
+    this.setRequiredAttribute(data, 'firstName');
+    this.setRequiredAttribute(data, 'hireDate');
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'lastName');
+    this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
-    this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
-    this.setOptionalAttribute(data, 'jobRole');
-    this.setOptionalAttribute(data, 'prime');
-    this.setOptionalAttribute(data, 'contract');
-    this.setOptionalAttribute(data, 'github');
-    this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'city');
-    this.setOptionalAttribute(data, 'st');
+    this.setOptionalAttribute(data, 'contract');
     this.setOptionalAttribute(data, 'country');
+    this.setOptionalAttribute(data, 'degrees');
     this.setOptionalAttribute(data, 'deptDate');
+    this.setOptionalAttribute(data, 'github');
+    this.setOptionalAttribute(data, 'jobRole');
+    this.setOptionalAttribute(data, 'middleName');
+    this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'st');
+    this.setOptionalAttribute(data, 'twitter');
   } // constructor
 
   /**
