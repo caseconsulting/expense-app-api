@@ -21,6 +21,7 @@ const _ = require('lodash');
  * - city
  * - clearances
  * - contract
+ * - contracts
  * - country
  * - customerOrgExp
  * - degrees
@@ -55,6 +56,7 @@ class Employee {
     this.setOptionalAttribute(data, 'city');
     this.setOptionalAttribute(data, 'clearances');
     this.setOptionalAttribute(data, 'contract');
+    this.setOptionalAttribute(data, 'contracts');
     this.setOptionalAttribute(data, 'country');
     this.setOptionalAttribute(data, 'customerOrgExp');
     this.setOptionalAttribute(data, 'degrees');
