@@ -1,9 +1,7 @@
 const chronos = require('../chronos');
 
 describe('chronos', () => {
-
   describe('asyncForEach', () => {
-
     let counter, array;
 
     beforeEach(() => {
@@ -12,7 +10,7 @@ describe('chronos', () => {
     });
 
     it('should call the a number of times depending on the array size', () => {
-      chronos.asyncForEach(array, number => {
+      chronos.asyncForEach(array, (number) => {
         counter++;
         expect(counter).toEqual(number);
       });
@@ -45,9 +43,7 @@ describe('chronos', () => {
     }); // expense type id is not in expense types
   }); // _getExpenseType
 
-  describe('_makeNewBudget', () => {
-    
-  }); // _makeNewBudget
+  describe('_makeNewBudget', () => {}); // _makeNewBudget
 
   describe('start', () => {
     //

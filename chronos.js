@@ -23,10 +23,10 @@ async function asyncForEach(array, callback) {
 /**
  * Gets all expensetype data and then parses the categories
  */
-async function getAllExpenseTypes(){
+async function getAllExpenseTypes() {
   let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
-  let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-    expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+  let expenseTypes = _.map(expenseTypesData, (expenseTypeData) => {
+    expenseTypeData.categories = _.map(expenseTypeData.categories, (category) => {
       return JSON.parse(category);
     });
     return new ExpenseType(expenseTypeData);
@@ -97,7 +97,8 @@ async function _makeNewBudget(oldBudget, expenseType) {
     newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - expenseType.budget;
     updatedBudget.pendingAmount = expenseType.budget - oldBudget.reimbursedAmount; // update old pending amount
   }
-  return budgetDynamo.updateEntryInDB(updatedBudget) // update old budget in database
+  return budgetDynamo
+    .updateEntryInDB(updatedBudget) // update old budget in database
     .then(() => {
       console.log(
         `Moving overdrafted amount of $${newBudget.reimbursedAmount} reimbursed and $${newBudget.pendingAmount}`,
@@ -119,7 +120,7 @@ async function start() {
     //budget anniversary date is today
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
     let budgetsData = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
-    budgets = _.map(budgetsData, budgetData => {
+    budgets = _.map(budgetsData, (budgetData) => {
       return new Budget(budgetData);
     });
     expenseTypes = await getAllExpenseTypes();
@@ -132,8 +133,8 @@ async function start() {
           if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
             // expense type is recurring and old budget is full time
             let newBudget = await _makeNewBudget(oldBudget, expenseType);
-            let msg =
-              `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n created new budget with id: ${newBudget.id}`;
+            let msg = `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n
+                       created new budget with id: ${newBudget.id}`;
             console.log(msg);
             numberRecurring++;
             return newBudget;
