@@ -1,7 +1,10 @@
 const chronos = require('../chronos');
 
+const Budget = require('../models/budget');
+const moment = require('moment');
+
 describe('chronos', () => {
-  describe('asyncForEach', () => {
+  describe('_asyncForEach', () => {
     let counter, array;
 
     beforeEach(() => {
@@ -10,12 +13,12 @@ describe('chronos', () => {
     });
 
     it('should call the a number of times depending on the array size', () => {
-      chronos.asyncForEach(array, (number) => {
+      chronos._asyncForEach(array, (number) => {
         counter++;
         expect(counter).toEqual(number);
       });
     }); // should call the a number of times depending on the array size
-  }); // asyncForEach
+  }); // _asyncForEach
 
   describe('_getExpenseType', () => {
     let expenseTypes, expectedExpenseType;
@@ -46,8 +49,76 @@ describe('chronos', () => {
   describe('_makeNewBudget', () => {}); // _makeNewBudget
 
   describe('start', () => {
-    //
-    //  how to mock or spy on budgetDynamo/expenseTypeDynamo to return a specific value in start?
-    //
+    let yesterday, budgetDynamo;
+
+    beforeEach(() => {
+      yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
+
+      budgetDynamo = jasmine.createSpyObj('budgetDynamo', ['querySecondaryIndexInDB']);
+      spyOn(chronos, '_getAllExpenseTypes').and.returnValue(Promise.resolve([]));
+
+      spyOn(chronos, '_asyncForEach');
+    });
+
+    afterEach(() => expect(chronos._getAllExpenseTypes).toHaveBeenCalledWith());
+
+    describe('WHEN no budgets', () => {
+      beforeEach(() => {
+        budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
+        spyOn(chronos, '_budgetDynamo').and.returnValue(budgetDynamo);
+      });
+
+      afterEach(() => {
+        expect(chronos._budgetDynamo).toHaveBeenCalledWith();
+        expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+          'fiscalEndDate-index',
+          'fiscalEndDate',
+          yesterday
+        );
+        expect(chronos._asyncForEach).not.toHaveBeenCalled();
+      });
+
+      it('SHOULD return nothing', (done) => {
+        return chronos.start().then((result) => {
+          expect(result).toBeUndefined();
+          done();
+        });
+      });
+    }); // WHEN no budgets
+
+    describe('WHEN budgets', () => {
+      let budget;
+      beforeEach(() => {
+        budget = {
+          id: 'id',
+          expenseTypeId: 'expenseTypeId',
+          employeeId: 'employeeId',
+          reimbursedAmount: 0,
+          pendingAmount: 0,
+          fiscalStartDate: 'fiscalStartDate',
+          fiscalEndDate: 'fiscalEndDate',
+          amount: 2112
+        };
+        budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([budget]));
+        spyOn(chronos, '_budgetDynamo').and.returnValue(budgetDynamo);
+      });
+
+      afterEach(() => {
+        expect(chronos._budgetDynamo).toHaveBeenCalledWith();
+        expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+          'fiscalEndDate-index',
+          'fiscalEndDate',
+          yesterday
+        );
+        expect(chronos._asyncForEach).toHaveBeenCalledWith([new Budget(budget)], jasmine.any(Function));
+      });
+
+      it('SHOULD return nothing', (done) => {
+        return chronos.start().then((result) => {
+          expect(result).toBeUndefined();
+          done();
+        });
+      });
+    }); // WHEN budgets
   }); // start
 }); // chronos

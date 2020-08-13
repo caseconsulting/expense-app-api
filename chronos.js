@@ -1,3 +1,5 @@
+let lib;
+
 const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
@@ -5,8 +7,19 @@ const moment = require('moment');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 
-const budgetDynamo = new DatabaseModify('budgets');
-const expenseTypeDynamo = new DatabaseModify('expense-types');
+/**
+ * Returns a new DatabaseModify for budgets
+ */
+function _budgetDynamo() {
+  return new DatabaseModify('budgets');
+}
+
+/**
+ * Returns a new DatabaseModify for expense-types
+ */
+function _expenseTypeDynamo() {
+  return new DatabaseModify('expense-types');
+}
 
 /*
  * Async function to loop an array.
@@ -14,17 +27,17 @@ const expenseTypeDynamo = new DatabaseModify('expense-types');
  * @param array - Array of elements to iterate over
  * @param callback - callback function
  */
-async function asyncForEach(array, callback) {
+async function _asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
-} // asyncForEach
+} // _asyncForEach
 
 /**
  * Gets all expensetype data and then parses the categories
  */
-async function getAllExpenseTypes() {
-  let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
+async function _getAllExpenseTypes() {
+  let expenseTypesData = await lib._expenseTypeDynamo().getAllEntriesInDB();
   let expenseTypes = _.map(expenseTypesData, (expenseTypeData) => {
     expenseTypeData.categories = _.map(expenseTypeData.categories, (category) => {
       return JSON.parse(category);
@@ -52,17 +65,6 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
     throw new Error('Expense Type does not exist');
   }
 } // _getExpenseType
-
-/**
- * Handler to execute lamba function.
- * @param event - request
- * @return Object - response
- */
-async function handler(event) {
-  console.info(JSON.stringify(event)); // eslint-disable-line no-console
-
-  return start();
-} // handler
 
 /**
  * Prepeares a new budget with overdrafted amounts and updates the old budget.
@@ -97,14 +99,15 @@ async function _makeNewBudget(oldBudget, expenseType) {
     newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - expenseType.budget;
     updatedBudget.pendingAmount = expenseType.budget - oldBudget.reimbursedAmount; // update old pending amount
   }
-  return budgetDynamo
+  return lib
+    ._budgetDynamo()
     .updateEntryInDB(updatedBudget) // update old budget in database
     .then(() => {
       console.log(
         `Moving overdrafted amount of $${newBudget.reimbursedAmount} reimbursed and $${newBudget.pendingAmount}`,
         `pending to new budget: ${newBudget.id} for employee ${newBudget.employeeId} 💰💰💰`
       );
-      return budgetDynamo.addToDB(newBudget); // add new budget to database
+      return lib._budgetDynamo().addToDB(newBudget); // add new budget to database
     }); // add new budget
 } // _makeNewBudget
 
@@ -119,14 +122,16 @@ async function start() {
   try {
     //budget anniversary date is today
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
-    let budgetsData = await budgetDynamo.querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
+    let budgetsData = await lib
+      ._budgetDynamo()
+      .querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
     budgets = _.map(budgetsData, (budgetData) => {
       return new Budget(budgetData);
     });
-    expenseTypes = await getAllExpenseTypes();
+    expenseTypes = await lib._getAllExpenseTypes();
 
     if (budgets.length != 0) {
-      await asyncForEach(budgets, async (oldBudget) => {
+      await lib._asyncForEach(budgets, async (oldBudget) => {
         if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
           // old budget has overdraft
           let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
@@ -152,6 +157,28 @@ async function start() {
   }
 } // start
 
+/**
+ * Handler to execute Lambda function.
+ * @param event - request
+ * @return Object - response
+ */
+async function handler(event) {
+  console.info(JSON.stringify(event)); // eslint-disable-line no-console
+
+  return start();
+} // handler
+
 // module.exports = { start, handler };
 // included other methods for testing
-module.exports = { start, handler, asyncForEach, _getExpenseType, _makeNewBudget };
+lib = {
+  _budgetDynamo,
+  _expenseTypeDynamo,
+  _asyncForEach,
+  _getAllExpenseTypes,
+  _getExpenseType,
+  _makeNewBudget,
+
+  start,
+  handler
+};
+module.exports = lib;
