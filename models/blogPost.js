@@ -7,7 +7,7 @@ const _ = require('lodash');
  * - id
  * - authorId
  * - createDate
- * - bucketId -- might be unecessary
+ * - fileName
  * - tags
  */
 
@@ -16,7 +16,7 @@ class BlogPost {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'authorId');
     this.setRequiredAttribute(data, 'createDate');
-    this.setRequiredAttribute(data, 'bucketId');
+    this.setRequiredAttribute(data, 'fileName');
     this.setOptionalAttribute(data, 'tags');
   }
 
