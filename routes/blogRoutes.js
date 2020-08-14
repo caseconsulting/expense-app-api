@@ -78,22 +78,22 @@ const attachmentStorage = multerS3({
   }
 });
 
-const storage = multerS3({
-  s3: s3,
-  bucket: BUCKET,
-  acl: 'bucket-owner-full-control',
-  contentType: multerS3.AUTO_CONTENT_TYPE,
-  serverSideEncryption: 'AES256',
-  key: function (req, file, cb) {
-    cb(null, `${req.params.authorId}/${req.params.id}/${file.originalname}`);
-  }
-});
+// const storage = multerS3({
+//   s3: s3,
+//   bucket: BUCKET,
+//   acl: 'bucket-owner-full-control',
+//   contentType: multerS3.AUTO_CONTENT_TYPE,
+//   serverSideEncryption: 'AES256',
+//   key: function (req, file, cb) {
+//     cb(null, `${req.params.authorId}/${req.params.id}/${file.originalname}`);
+//   }
+// });
 
-const upload = multer({
-  storage: storage,
-  limits:limits,
-  fileFilter: fileFilter //TODO: make filter for blog posts
-}).single('image');
+// const upload = multer({
+//   storage: storage,
+//   limits:limits,
+//   fileFilter: fileFilter //TODO: make filter for blog posts
+// }).single('image');
 
 // s3 file upload multer
 const attachmentUpload = multer({
@@ -212,78 +212,78 @@ class BlogRoutes extends Crud {
     }
   } // _create
 
-  /**
-   * Prepares an employee to be deleted. Returns the employee if it can be successfully deleted.
-   *
-   * @param id - id of employee
-   * @return Employee - employee prepared to delete
-   */
-  async _delete(id) {
-    // log method
-    logger.log(2, '_delete', `Preparing to delete employee ${id}`);
+  // /**
+  //  * Prepares an employee to be deleted. Returns the employee if it can be successfully deleted.
+  //  *
+  //  * @param id - id of employee
+  //  * @return Employee - employee prepared to delete
+  //  */
+  // async _delete(id) {
+  //   // log method
+  //   logger.log(2, '_delete', `Preparing to delete employee ${id}`);
 
-    // compute method
-    try {
-      let blogPost = new BlogPost(await this.databaseModify.getEntry(id));
-      await this._validateDelete(employee);
+  //   // compute method
+  //   try {
+  //     let blogPost = new BlogPost(await this.databaseModify.getEntry(id));
+  //     await this._validateDelete(employee);
 
-      // log success
-      logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
+  //     // log success
+  //     logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
 
-      // return employee deleted
-      return blogPost;
-    } catch (err) {
-      // log error
-      logger.log(2, '_delete', `Failed to prepare delete for employee ${id}`);
+  //     // return employee deleted
+  //     return blogPost;
+  //   } catch (err) {
+  //     // log error
+  //     logger.log(2, '_delete', `Failed to prepare delete for employee ${id}`);
 
-      // return rejected promise
-      return Promise.reject(err);
-    }
-  } // _delete
+  //     // return rejected promise
+  //     return Promise.reject(err);
+  //   }
+  // } // _delete
 
-  /**
-   * Loads file to s3 bucket
-   * 
-   * @param file - markdown file to be created for blogPost
-   * @return blogFile -blogFile that go uploaded
-   */
-  async _uploadToS3(blogFile) {
-    // log method
-    logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
+  // /**
+  //  * Loads file to s3 bucket
+  //  * 
+  //  * @param file - markdown file to be created for blogPost
+  //  * @return blogFile -blogFile that go uploaded
+  //  */
+  // async _uploadToS3(blogFile) {
+  //   // log method
+  //   logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
 
-    // compute method
-    upload(req, res, async (err) => {
-      if (err) {
-        // log error
-        logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
+  //   // compute method
+  //   upload(req, res, async (err) => {
+  //     if (err) {
+  //       // log error
+  //       logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
 
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
+  //       let error = {
+  //         code: 403,
+  //         message: `${err.message}`
+  //       };
 
-        // send error status
-        res.status(error.code).send(error);
+  //       // send error status
+  //       res.status(error.code).send(error);
 
-        // return error
-        return error;
-      } else {
-        // log success
-        logger.log(
-          1,
-          'uploadAttachmentToS3',
-          `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
-          `to S3 bucket ${req.file.bucket}`
-        );
+  //       // return error
+  //       return error;
+  //     } else {
+  //       // log success
+  //       logger.log(
+  //         1,
+  //         'uploadAttachmentToS3',
+  //         `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
+  //         `to S3 bucket ${req.file.bucket}`
+  //       );
 
-        // set a successful 200 response with uploaded file
-        res.status(200).send(req.file);
+  //       // set a successful 200 response with uploaded file
+  //       res.status(200).send(req.file);
 
-        // return file uploaded
-        return req.file;
-      }
-    });
-  }
+  //       // return file uploaded
+  //       return req.file;
+  //     }
+  //   });
+  // }
 
   /**
    * Validate that a blogPost is valid. Returns the blogPost if successfully validated, otherwise returns an error.
