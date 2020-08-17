@@ -67,6 +67,15 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
 } // _getExpenseType
 
 /**
+ * Generates and returns a new uuid.
+ *
+ * @return String - new uuid
+ */
+function _getUUID() {
+  return uuid();
+} // _getUUID
+
+/**
  * Prepeares a new budget with overdrafted amounts and updates the old budget.
  *
  * @param oldBudget - old budget to carry into new budget
@@ -76,7 +85,7 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
 async function _makeNewBudget(oldBudget, expenseType) {
   let updatedBudget = _.cloneDeep(oldBudget);
   let newBudgetData = {
-    id: uuid(),
+    id: _getUUID(),
     expenseTypeId: oldBudget.expenseTypeId,
     employeeId: oldBudget.employeeId,
     reimbursedAmount: 0,
@@ -176,6 +185,7 @@ lib = {
   _asyncForEach,
   _getAllExpenseTypes,
   _getExpenseType,
+  _getUUID,
   _makeNewBudget,
 
   start,
