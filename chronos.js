@@ -143,10 +143,10 @@ async function start() {
       await lib._asyncForEach(budgets, async (oldBudget) => {
         if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
           // old budget has overdraft
-          let expenseType = _getExpenseType(expenseTypes, oldBudget.expenseTypeId);
+          let expenseType = lib._getExpenseType(expenseTypes, oldBudget.expenseTypeId);
           if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
             // expense type is recurring and old budget is full time
-            let newBudget = await _makeNewBudget(oldBudget, expenseType);
+            let newBudget = await lib._makeNewBudget(oldBudget, expenseType);
             let msg = `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n
                        created new budget with id: ${newBudget.id}`;
             console.log(msg);
@@ -174,7 +174,7 @@ async function start() {
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
 
-  return start();
+  return lib.start();
 } // handler
 
 // module.exports = { start, handler };

@@ -81,18 +81,19 @@ describe('chronos', () => {
   }); // _expenseTypeDynamo
 
   describe('_getAllExpenseTypes', () => {
-
     let expenseTypeDynamo, etData, etReturned;
 
     beforeEach(() => {
       etData = _.cloneDeep(EXPENSE_TYPE_DATA);
       etData.categories = ['{"name":"Meals","showOnFeed":false,"requireURL":false}'];
       etReturned = new ExpenseType(EXPENSE_TYPE_DATA);
-      etReturned.categories = [{
-        name: 'Meals',
-        showOnFeed: false,
-        requireURL: false
-      }];
+      etReturned.categories = [
+        {
+          name: 'Meals',
+          showOnFeed: false,
+          requireURL: false
+        }
+      ];
       expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['getAllEntriesInDB']);
       spyOn(chronos, '_expenseTypeDynamo').and.returnValue(expenseTypeDynamo);
     });
@@ -102,13 +103,12 @@ describe('chronos', () => {
     });
 
     describe('when successfully reads all entries from db', () => {
-
       beforeEach(() => {
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([etData]));
       });
 
-      it('should return all the expense types', done => {
-        return chronos._getAllExpenseTypes().then(data => {
+      it('should return all the expense types', (done) => {
+        return chronos._getAllExpenseTypes().then((data) => {
           expect(data).toEqual([etReturned]);
           done();
         });
@@ -116,7 +116,6 @@ describe('chronos', () => {
     }); // when successfully reads all entries from db
 
     describe('when fails to read all entries from db', () => {
-
       let err;
 
       beforeEach(() => {
@@ -140,7 +139,6 @@ describe('chronos', () => {
           });
       }); // should return a 404 rejected promise
     }); // when fails to read all entries from db
-
   }); // _getAllExpenseTypes
 
   describe('_getExpenseType', () => {
@@ -175,6 +173,19 @@ describe('chronos', () => {
       expect(id).toBeDefined();
     }); // should return an id value
   }); // _getUUID
+
+  describe('handler', () => {
+    beforeEach(() => {
+      spyOn(chronos, 'start').and.returnValue('hello world');
+    });
+
+    it('SHOULD return nothing', (done) => {
+      return chronos.handler().then((result) => {
+        expect(result).toEqual('hello world');
+        done();
+      });
+    }); // SHOULD return nothing
+  }); // handler
 
   describe('_makeNewBudget', () => {
     let budgetDynamo, expenseType, newBudget, oldBudget, updatedBudget;
@@ -398,13 +409,14 @@ describe('chronos', () => {
     beforeEach(() => {
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType.recurringFlag = true;
+      expenseType.budget = 100;
 
       yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
 
       budgetDynamo = jasmine.createSpyObj('budgetDynamo', ['querySecondaryIndexInDB']);
       spyOn(chronos, '_getAllExpenseTypes').and.returnValue(Promise.resolve([expenseType]));
 
-      spyOn(chronos, '_asyncForEach');
+      spyOn(chronos, '_asyncForEach').and.callThrough();
     });
 
     describe('WHEN no budgets', () => {
@@ -433,25 +445,36 @@ describe('chronos', () => {
     }); // WHEN no budgets
 
     describe('WHEN budgets', () => {
-      let budget;
+      let budget, noneReccuringBudget, underBudget;
+
       beforeEach(() => {
         budget = {
-          id: '{id}',
-          expenseTypeId: 'expenseTypeId',
-          employeeId: 'employeeId',
+          id: ID,
+          expenseTypeId: ID,
+          employeeId: ID,
           reimbursedAmount: 70,
           pendingAmount: 60,
           fiscalStartDate: 'fiscalStartDate',
           fiscalEndDate: 'fiscalEndDate',
           amount: 100
         };
+
+        underBudget = _.cloneDeep(BUDGET_DATA);
+        noneReccuringBudget = _.cloneDeep(BUDGET_DATA);
+        noneReccuringBudget.reimbursedAmount = 70;
+        noneReccuringBudget.pendingAmount = 60;
+        noneReccuringBudget.amount = 100;
         spyOn(chronos, '_budgetDynamo').and.returnValue(budgetDynamo);
       });
 
       describe('and successfully queries budgets', () => {
         beforeEach(() => {
-          budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([budget]));
-          spyOn(chronos, '_getExpenseType').and.returnValue(Promise.resolve());
+          spyOn(chronos, '_getExpenseType').and.returnValues(
+            expenseType,
+            new ExpenseType(EXPENSE_TYPE_DATA),
+            expenseType
+          );
+          spyOn(chronos, '_makeNewBudget').and.returnValue(Promise.resolve(new Budget(BUDGET_DATA)));
         });
 
         afterEach(() => {
@@ -461,15 +484,55 @@ describe('chronos', () => {
             yesterday
           );
           expect(chronos._getAllExpenseTypes).toHaveBeenCalledWith();
-          expect(chronos._asyncForEach).toHaveBeenCalledWith([new Budget(budget)], jasmine.any(Function));
+          expect(chronos._makeNewBudget).toHaveBeenCalledWith(new Budget(budget), expenseType);
         });
 
-        it('SHOULD return nothing', (done) => {
-          return chronos.start().then((result) => {
-            expect(result).toBeUndefined();
-            done();
+        describe('and creates 1 new budget', () => {
+          beforeEach(() => {
+            budgetDynamo.querySecondaryIndexInDB.and.returnValue(
+              Promise.resolve([budget, noneReccuringBudget, underBudget])
+            );
           });
-        });
+
+          afterEach(() => {
+            expect(chronos._asyncForEach).toHaveBeenCalledWith(
+              [new Budget(budget), new Budget(noneReccuringBudget), new Budget(underBudget)],
+              jasmine.any(Function)
+            );
+          });
+
+          it('SHOULD return nothing', (done) => {
+            return chronos.start().then((result) => {
+              expect(result).toBeUndefined();
+              done();
+            });
+          });
+        }); // and makes 1 budget
+
+        describe('and creates 2 new budget', () => {
+          let budget2;
+
+          beforeEach(() => {
+            budget2 = _.cloneDeep(budget);
+            budgetDynamo.querySecondaryIndexInDB.and.returnValue(
+              Promise.resolve([budget, noneReccuringBudget, underBudget, budget2])
+            );
+          });
+
+          afterEach(() => {
+            expect(chronos._asyncForEach).toHaveBeenCalledWith(
+              [new Budget(budget), new Budget(noneReccuringBudget), new Budget(underBudget), new Budget(budget2)],
+              jasmine.any(Function)
+            );
+          });
+
+          it('SHOULD return nothing', (done) => {
+            return chronos.start().then((result) => {
+              expect(result).toBeUndefined();
+              done();
+            });
+          });
+        }); // and makes 1 budget
       });
 
       describe('and fails queries budgets', () => {
