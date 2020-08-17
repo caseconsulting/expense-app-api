@@ -1,5 +1,7 @@
-const moment = require('moment');
 const ISOFORMAT = 'YYYY-MM-DD';
+const moment = require('moment');
+const _ = require('lodash');
+
 
 /**
  * Budget model
@@ -17,21 +19,15 @@ const ISOFORMAT = 'YYYY-MM-DD';
 
 class Budget {
   constructor(data) {
-    this.id = data.id;
-    this.expenseTypeId = data.expenseTypeId;
-    this.employeeId = data.employeeId;
-    this.reimbursedAmount = Number(Number(data.reimbursedAmount).toFixed(2));
-    this.pendingAmount = Number(Number(data.pendingAmount).toFixed(2));
-    this.fiscalStartDate = data.fiscalStartDate;
-    this.fiscalEndDate = data.fiscalEndDate;
-    this.amount = Number(Number(data.amount).toFixed(2));
-
-    // populate empty fields with a space holder
-    for (let propName in this) {
-      if (this._isEmpty(this[propName])) {
-        this[propName] = ' ';
-      }
-    }
+    // required attributes
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'expenseTypeId');
+    this.setRequiredAttribute(data, 'employeeId');
+    this.setRequiredNumberAttribute(data, 'reimbursedAmount', undefined, 2);
+    this.setRequiredNumberAttribute(data, 'pendingAmount', undefined, 2);
+    this.setRequiredAttribute(data, 'fiscalStartDate');
+    this.setRequiredAttribute(data, 'fiscalEndDate');
+    this.setRequiredNumberAttribute(data, 'amount', undefined, 2);
   } // constructor
 
   /**
@@ -49,14 +45,70 @@ class Budget {
   } // isDateInRange
 
   /**
-   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
    *
    * @param value - value to check
    * @return boolean - value is empty
    */
   _isEmpty(value) {
-    return value == null || value === ' ' || value === '';
+    return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
+
+  /**
+   * Sets an employee attribute if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   */
+  setOptionalAttribute(data, attribute) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    }
+  } // setOptionalAttribute
+
+  /**
+   * Sets an employee attribute number if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param fixed - decimal places to fix value
+   */
+  setOptionalNumberAttribute(data, attribute, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    }
+  } // setNumberAttribute
+
+  /**
+   * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   */
+  setRequiredAttribute(data, attribute, defaultValue) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredAttribute
+
+  /**
+   * Sets an employee attribute number. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   * @param fixed - decimal places to fix value
+   */
+  setRequiredNumberAttribute(data, attribute, defaultValue, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredNumberAttribute
 }
 
 module.exports = Budget;

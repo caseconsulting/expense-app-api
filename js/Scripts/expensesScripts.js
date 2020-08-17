@@ -1,7 +1,7 @@
 /*
  * node ./js/Scripts/expensesScripts.js dev
  * node ./js/Scripts/expensesScripts.js test
- * node ./js/Scripts/expensesScripts.js prod --profile prod
+ * node ./js/Scripts/expensesScripts.js prod (must set aws credentials for prod as default)
  */
 
 // LIST OF ACTIONS

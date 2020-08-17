@@ -61,7 +61,7 @@ describe('trainingUrlRoutes', () => {
           code: 403,
           message: 'Invalid training category.'
         };
-        data.category = ' ';
+        delete data.category;
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -311,7 +311,7 @@ describe('trainingUrlRoutes', () => {
           message: 'Invalid training url.'
         };
 
-        trainingUrl.id = ' ';
+        delete trainingUrl.id;
       });
 
       it('should return a 403 rejected promise', (done) => {
@@ -337,7 +337,7 @@ describe('trainingUrlRoutes', () => {
           message: 'Invalid training category.'
         };
 
-        trainingUrl.category = ' ';
+        delete trainingUrl.category;
       });
 
       it('should return a 403 rejected promise', (done) => {

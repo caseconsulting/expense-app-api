@@ -1,58 +1,75 @@
+const _ = require('lodash');
+
 /**
  * Employee model
  *
- * Fields:
- * - id
- * - firstName
- * - middleName
- * - lastName
- * - employeeNumber
- * - hireDate
+ * Required Fields:
  * - email
+ * - employeeNumber
  * - employeeRole
+ * - firstName
+ * - hireDate
+ * - id
+ * - lastName
  * - workStatus
  *
+ * Optional Fields:
+ * - awards
  * - birthday
  * - birthdayFeed
- * - jobRole
- * - prime
- * - contract
- * - github
- * - twitter
+ * - certifications
  * - city
- * - st
+ * - clearances
+ * - contract
+ * - contracts
  * - country
+ * - customerOrgExp
+ * - degrees
  * - deptDate
+ * - github
+ * - icTimeFrames
+ * - jobRole
+ * - jobs
+ * - middleName
+ * - prime
+ * - st
+ * - technologies
+ * - twitter
  */
 class Employee {
   constructor(data) {
-    this.id = data.id;
-    this.firstName = data.firstName;
-    this.middleName = data.middleName;
-    this.lastName = data.lastName;
-    this.employeeNumber = Number(data.employeeNumber);
-    this.hireDate = data.hireDate;
-    this.email = data.email;
-    this.employeeRole = data.employeeRole;
-    this.workStatus = data.workStatus;
-    this.birthday = data.birthday;
-    this.birthdayFeed = data.birthdayFeed;
-    this.jobRole = data.jobRole;
-    this.prime = data.prime;
-    this.contract = data.contract;
-    this.github = data.github;
-    this.twitter = data.twitter;
-    this.city = data.city;
-    this.st = data.st;
-    this.country = data.country;
-    this.deptDate = data.deptDate;
+    // required attributes
+    this.setRequiredAttribute(data, 'email');
+    this.setRequiredNumberAttribute(data, 'employeeNumber');
+    this.setRequiredAttribute(data, 'employeeRole');
+    this.setRequiredAttribute(data, 'firstName');
+    this.setRequiredAttribute(data, 'hireDate');
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'lastName');
+    this.setRequiredAttribute(data, 'workStatus');
 
-    // populate empty fields with a space holder
-    for (let propName in this) {
-      if (this._isEmpty(this[propName])) {
-        this[propName] = ' ';
-      }
-    }
+    // optional attributes
+    this.setOptionalAttribute(data, 'awards');
+    this.setOptionalAttribute(data, 'birthday');
+    this.setOptionalAttribute(data, 'birthdayFeed');
+    this.setOptionalAttribute(data, 'certifications');
+    this.setOptionalAttribute(data, 'city');
+    this.setOptionalAttribute(data, 'clearances');
+    this.setOptionalAttribute(data, 'contract');
+    this.setOptionalAttribute(data, 'contracts');
+    this.setOptionalAttribute(data, 'country');
+    this.setOptionalAttribute(data, 'customerOrgExp');
+    this.setOptionalAttribute(data, 'degrees');
+    this.setOptionalAttribute(data, 'deptDate');
+    this.setOptionalAttribute(data, 'github');
+    this.setOptionalAttribute(data, 'icTimeFrames');
+    this.setOptionalAttribute(data, 'jobRole');
+    this.setOptionalAttribute(data, 'jobs');
+    this.setOptionalAttribute(data, 'middleName');
+    this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'st');
+    this.setOptionalAttribute(data, 'technologies');
+    this.setOptionalAttribute(data, 'twitter');
   } // constructor
 
   /**
@@ -74,13 +91,13 @@ class Employee {
   } // isAdmin
 
   /**
-   * Checks if a value is empty. Returns true if the value is null or a single character space String.
+   * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
    *
    * @param value - value to check
    * @return boolean - value is empty
    */
   _isEmpty(value) {
-    return value == null || value === ' ' || value === '';
+    return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
 
   /**
@@ -119,6 +136,62 @@ class Employee {
   isUser() {
     return this.employeeRole == 'user';
   } // isUser
+
+  /**
+   * Sets an employee attribute if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   */
+  setOptionalAttribute(data, attribute) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    }
+  } // setOptionalAttribute
+
+  /**
+   * Sets an employee attribute number if it is not null or an empty/blank string.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param fixed - decimal places to fix value
+   */
+  setOptionalNumberAttribute(data, attribute, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    }
+  } // setNumberAttribute
+
+  /**
+   * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   */
+  setRequiredAttribute(data, attribute, defaultValue) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = data[attribute];
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredAttribute
+
+  /**
+   * Sets an employee attribute number. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   * @param fixed - decimal places to fix value
+   */
+  setRequiredNumberAttribute(data, attribute, defaultValue, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredNumberAttribute
 }
 
 module.exports = Employee;

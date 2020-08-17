@@ -1,7 +1,7 @@
 /*
  * node ./js/Scripts/expenseTypesScripts.js dev
  * node ./js/Scripts/expenseTypesScripts.js test
- * node ./js/Scripts/expenseTypesScripts.js prod --profile prod
+ * node ./js/Scripts/expenseTypesScripts.js prod (must set aws credentials for prod as default)
  */
 
 // LIST OF ACTIONS
@@ -10,7 +10,8 @@ const actions = [
   '1. Set all expense type\'s accessible by value to \'ALL\'',
   '2. Change expense type categories to JSON objects',
   '3. Add alwaysOnFeed to DynamoDB table',
-  '4. Delete disableShowOnFeedToggle attribute from Expense Type Table'
+  '4. Delete disableShowOnFeedToggle attribute from Expense Type Table',
+  '5. Add requireURL attribute to Expense Type categories'
 ];
 
 // check for stage argument
@@ -174,6 +175,43 @@ async function removeAttribute(attribute) {
   });
 } // removeAttribute
 
+/**
+ * Adds requireURL attribute to all expense type categories
+ */
+async function addRequireURLAttrToCategories()
+{
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, (expenseType) => {
+    let categories = [];
+    _.forEach(expenseType.categories, (category) =>{
+      let categoryObj = JSON.parse(category);
+      categoryObj['requireURL'] = false;
+      categoryObj = JSON.stringify(categoryObj);
+      categories.push(categoryObj);
+    });
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set categories = :a',
+      ExpressionAttributeValues: {
+        ':a': categories
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+}
+
 /*
  * User chooses an action
  */
@@ -259,6 +297,12 @@ async function main() {
       if(confirmAction('Delete disableShowOnFeedToggle from Expense Type table?')) {
         console.log('Deleting disableShowOnFeedToggle from Expense Type table');
         removeAttribute('disableShowOnFeedToggle');
+      }
+      break;
+    case 5:
+      if(confirmAction('Add requireURL attribute to Expense Type categories?')) {
+        console.log('Adding requireURL attribute to Expense Type categories');
+        addRequireURLAttrToCategories();
       }
       break;
     default:

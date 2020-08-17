@@ -29,24 +29,24 @@ class EmployeeRoutes extends Crud {
     logger.log(2, '_create', `Preparing to create employee ${data.id}`);
 
     // compute method
-    let employee = new Employee(data);
+    try {
+      let employee = new Employee(data);
 
-    return this._validateEmployee(employee) // validate employee
-      .then(() => this._validateCreate(employee)) // validate create
-      .then(() => {
-        // log success
-        logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
+      await this._validateEmployee(employee); // validate employee
+      await this._validateCreate(employee); // validate create
 
-        // return prepared employee
-        return employee;
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, '_create', `Failed to prepare create for employee ${data.id}`);
+      // log success
+      logger.log(2, '_create', `Successfully prepared to create employee ${data.id}`);
 
-        // return rejected promise
-        return Promise.reject(err);
-      });
+      // return prepared employee
+      return employee;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for employee ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _create
 
   /**
@@ -62,18 +62,13 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       let employee = new Employee(await this.databaseModify.getEntry(id));
+      await this._validateDelete(employee);
 
-      return this._validateDelete(employee)
-        .then(() => {
-          // log success
-          logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
+      // log success
+      logger.log(2, '_delete', `Successfully prepared to delete employee ${id}`);
 
-          // return employee deleted
-          return employee;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // return employee deleted
+      return employee;
     } catch (err) {
       // log error
       logger.log(2, '_delete', `Failed to prepare delete for employee ${id}`);
@@ -126,6 +121,36 @@ class EmployeeRoutes extends Crud {
   } // _read
 
   /**
+   * Reads all employees from the database. Returns all employees.
+   *
+   * @return Array - all employees
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all employees');
+
+    // compute method
+    try {
+      let employeesData = await this.databaseModify.getAllEntriesInDB();
+      let employees = _.map(employeesData, employee => {
+        return new Employee(employee);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all employees');
+
+      // return all employees
+      return employees;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all employees');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+
+  /**
    * Prepares an employee to be updated. Returns the employee if it can be successfully updated.
    *
    * @param data - data of employee
@@ -140,19 +165,16 @@ class EmployeeRoutes extends Crud {
       let newEmployee = new Employee(data);
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
 
-      return this._validateEmployee(newEmployee)
-        .then(() => this._validateUpdate(oldEmployee, newEmployee))
-        .then(() => this._updateBudgets(oldEmployee, newEmployee))
-        .then(() => {
-          // log success
-          logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+      await this._validateEmployee(newEmployee);
+      await this._validateUpdate(oldEmployee, newEmployee);
+      await this._updateBudgets(oldEmployee, newEmployee);
 
-          // return employee to update
-          return newEmployee;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+
+      // return employee to update
+      return newEmployee;
+
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
@@ -205,16 +227,16 @@ class EmployeeRoutes extends Crud {
             budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
 
             // update budget in database
-            await this.budgetDynamo.updateEntryInDB(budgets[i])
-              .then(() => {
-                // log budget update success
-                logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
-              })
-              .catch(err => {
-                // log and throw budget update failure
-                logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
-                throw err;
-              });
+            try {
+              await this.budgetDynamo.updateEntryInDB(budgets[i]);
+
+              // log budget update success
+              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+            } catch (err) {
+              // log and throw budget update failure
+              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+              throw err;
+            }
           }
         }
       }
@@ -360,7 +382,7 @@ class EmployeeRoutes extends Crud {
       };
 
       // validate id
-      if (this.isEmpty(employee.id)) {
+      if (_.isNil(employee.id)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee id is empty');
 
@@ -370,7 +392,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate first name
-      if (this.isEmpty(employee.firstName)) {
+      if (_.isNil(employee.firstName)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee first name is empty');
 
@@ -380,7 +402,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate last name
-      if (this.isEmpty(employee.lastName)) {
+      if (_.isNil(employee.lastName)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee last name is empty');
 
@@ -390,7 +412,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate employee number
-      if (this.isEmpty(employee.employeeNumber)) {
+      if (_.isNil(employee.employeeNumber)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee number is empty');
 
@@ -400,7 +422,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate hire date
-      if (this.isEmpty(employee.hireDate)) {
+      if (_.isNil(employee.hireDate)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee hire date is empty');
 
@@ -410,7 +432,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate email
-      if (this.isEmpty(employee.email)) {
+      if (_.isNil(employee.email)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee email is empty');
 
@@ -420,7 +442,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate employee role
-      if (this.isEmpty(employee.employeeRole)) {
+      if (_.isNil(employee.employeeRole)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee role is empty');
 
@@ -430,7 +452,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate work status
-      if (this.isEmpty(employee.workStatus)) {
+      if (_.isNil(employee.workStatus)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee work status is empty');
 

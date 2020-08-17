@@ -85,7 +85,7 @@
     "got": "^11.5.1",
     "jwks-rsa": "^1.8.1",
     "lodash": "^4.17.19",
-    "metascraper": "^5.12.17",
+    "metascraper": "^5.12.19",
     "metascraper-author": "^5.12.17",
     "metascraper-clearbit": "^5.12.18",
     "metascraper-date": "^5.12.17",

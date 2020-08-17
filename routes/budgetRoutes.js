@@ -51,31 +51,35 @@ class Budgets {
     logger.log(1, 'getCallerBudgets', `Attempting to read all budgets for employee caller ${req.employee.id}`);
 
     // compute method
-    return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.employee.id)
-      .then(budgetsData => {
-        // log success
-        logger.log(1, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
+    try {
+      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+        'employeeId-expenseTypeId-index',
+        'employeeId',
+        req.employee.id
+      );
 
-        let budgets = _.map(budgetsData, budgetData => {
-          return new Budget(budgetData);
-        });
+      // log success
+      logger.log(1, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
 
-        // send successful 200 status
-        res.status(200).send(budgets);
-
-        // return employee budgets
-        return budgets;
-      })
-      .catch(err => {
-        // log error
-        logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.employee.id}`);
-
-        // send error status
-        this._sendError(res, err);
-
-        // return error
-        return Promise.reject(err);
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
       });
+
+      // send successful 200 status
+      res.status(200).send(budgets);
+
+      // return employee budgets
+      return budgets;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.employee.id}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return Promise.reject(err);
+    }
   } // getCallerBudgets
 
   /**
@@ -91,31 +95,35 @@ class Budgets {
     logger.log(1, 'getEmployeeBudgets', `Attempting to read all budgets for employee ${req.params.id}`);
 
     // compute method
-    return this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', req.params.id)
-      .then(budgetsData => {
-        // log success
-        logger.log(1, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
+    try {
+      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+        'employeeId-expenseTypeId-index',
+        'employeeId',
+        req.params.id
+      );
 
-        let budgets = _.map(budgetsData, budgetData => {
-          return new Budget(budgetData);
-        });
+      // log success
+      logger.log(1, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
 
-        // send successful 200 status
-        res.status(200).send(budgets);
-
-        // return employee budgets
-        return budgets;
-      })
-      .catch(err => {
-        // log error
-        logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.params.id}`);
-
-        // send error status
-        this._sendError(res, err);
-
-        // return error
-        return Promise.reject(err);
+      let budgets = _.map(budgetsData, budgetData => {
+        return new Budget(budgetData);
       });
+
+      // send successful 200 status
+      res.status(200).send(budgets);
+
+      // return employee budgets
+      return budgets;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getCallerBudgets', `Failed to read all budgets for employee caller ${req.params.id}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return Promise.reject(err);
+    }
   } // getEmployeeBudgets
 
   /**

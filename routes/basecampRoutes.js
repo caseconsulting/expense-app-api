@@ -5,6 +5,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
+const _ = require('lodash');
 
 const lambda = new AWS.Lambda();
 const logger = new Logger('basecampRoutes');
@@ -37,7 +38,7 @@ const checkJwt = jwt({
     jwksRequestsPerMinute: 5,
     jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
   }),
-  
+
   // Validate the audience and the issuer.
   audience: process.env.VUE_APP_AUTH0_AUDIENCE,
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
@@ -47,7 +48,7 @@ const checkJwt = jwt({
 
 class BasecampRoutes {
   constructor() {
-    this._router = express.Router(); 
+    this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
 
@@ -63,29 +64,38 @@ class BasecampRoutes {
       this._getUserInfo,
       this._getFeedEvents.bind(this)
     );
+    this._router.get(
+      '/getBasecampAvatars',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getBasecampAvatars.bind(this)
+    );
   }
 
-  
+  async getToken(params){
+    return lambda.invoke(params).promise();
+  }
+
   async _getBasecampToken() {
     //log the attempt
     logger.log(1, '_getBasecampToken', 'Attempting to get Basecamp Token');
     try{
       // lambda function paramters
       let params = {
-        FunctionName: `mysterio-basecamp-token-${STAGE}`, 
+        FunctionName: `mysterio-basecamp-token-${STAGE}`,
         Qualifier: '$LATEST'
       };
 
 
       // invoke mysterio basecamp lambda function
-      let result = await lambda.invoke(params).promise();
-
+      let result = await this.getToken(params);
+      
       let resultPayload = JSON.parse(result.Payload);
 
       if (resultPayload.body) {
         logger.log(1, '_getBasecampToken', 'Successfully acquired token');
 
-        
+
         let token = resultPayload.body;
 
         return token.access_token;
@@ -103,27 +113,115 @@ class BasecampRoutes {
     }
   }
 
-  async _getScheduleEntries(token, project) {
-    logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
-    try{
-      let options = {
-        method: 'GET',
-        url: `${BASECAMP_ROOT_URL}/buckets/${project.ID}/schedules/${project.SCHEDULE_ID}/entries.json`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'User-Agent': 'CasePortal (info@consultwithcase.com)'
-        }
-      };
-      let basecampResponse = await axios(options);
-      return basecampResponse.data;
-      
-    } catch(err) {
-      logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
+  async callAxios(options) {
+    return axios(options);
+  }
 
+  /**
+   * Get basecamp avatars for all employees in the Case Consulting Basecamp.
+   *
+   * @return object - Employee Basecamp avatar data
+   */
+  async _getBasecampAvatars(req, res) {
+    // log method
+    logger.log(1, '_getBasecampAvatars', 'Attempting to get Basecamp Employee Avatars');
+
+    // compute method
+    try {
+      let token = await this._getBasecampToken();
+      let page = 1;
+      let basecampResponse;
+      let avatars = [];
+      let pageAvatars = [];
+
+      do {
+        let options = {
+          method: 'GET',
+          url: `${BASECAMP_ROOT_URL}/people.json`,
+          params: {
+            page: page
+          },
+          // url: `${BASECAMP_ROOT_URL}/people.json`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'CasePortal (info@consultwithcase.com)'
+          }
+        };
+        basecampResponse = await this.callAxios(options);
+        let basecampData = basecampResponse.data;
+        pageAvatars = _.map(basecampData, person => {
+          return {
+            email_address: person.email_address,
+            avatar_url: person.avatar_url,
+            name: person.name
+          };
+        });
+        avatars = _.union(avatars, pageAvatars);
+        page++;
+      } while(!_.isEmpty(pageAvatars));
+
+      // log success
+      logger.log(1, '_getBasecampAvatars', 'Successfully got Basecamp Employee Avatars');
+
+      // send successful 200 response and employee avatar data
+      res.status(200).send(avatars);
+
+      // return avatar data
+      return avatars;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getBasecampAvatars', 'Failed to get Basecamp Employee Avatars');
+
+      let error = {
+        code: 404,
+        message: err.message
+      };
+
+      // send error status
+      this._sendError(res, error);
+
+      // return error;
       return err;
     }
+  } // _getBasecampAvatars
+
+  async _getScheduleEntries(token, project) {
+    logger.log(1, '_getScheduleEntries', 'Attempting to get Basecamp Events');
+    try{
+      let page = 1;
+      let basecampResponse;
+      let entries = [];
+      let pageEntries = [];
+      do{
+        let options = {
+          method: 'GET',
+          url: `${BASECAMP_ROOT_URL}/buckets/${project.ID}/schedules/${project.SCHEDULE_ID}/entries.json`,
+          params: {
+            page: page
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'CasePortal (info@consultwithcase.com)'
+          }
+        };
+        basecampResponse = await this.callAxios(options);
+        pageEntries = basecampResponse.data;
+        entries = _.union(entries, pageEntries);
+        page++;
+      }while(this.getNextPage((page - 1), pageEntries.length));
+
+      // log success
+      logger.log(1, '_getScheduleEntries', 'Successfully got Basecamp Schedule entries');
+
+      return entries;
+
+    } catch(err) {
+      logger.log(1, '_getScheduleEntries', `${err.code}: ${err.message}`);
+
+      throw err;
+    }
   }
-  
+
   async _getFeedEvents(req, res) {
     logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
     try{
@@ -136,14 +234,28 @@ class BasecampRoutes {
       res.status(200).send(entries);
 
       return entries;
-      
+
     } catch(err) {
       logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
       return err;
     }
   }
+
   getBasecampInfo(){
     return BASECAMP_PROJECTS;
+  }
+  
+  //used to check if we need to make another API call to basecamp for paginated things
+  getNextPage(currentPage, responseLength){
+    if(currentPage === 1){
+      return responseLength === 15 ? true : false;
+    } else if (currentPage === 2){
+      return responseLength === 30 ? true : false;
+    } else if (currentPage === 3) {
+      return responseLength === 50 ? true : false;
+    } else if (currentPage >= 4) {
+      return responseLength === 100 ? true : false;
+    }
   }
   /**
    * Returns the instace express router.

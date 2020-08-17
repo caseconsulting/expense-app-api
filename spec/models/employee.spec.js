@@ -4,57 +4,90 @@ describe('employee', () => {
 
   const ID = '{id}';
   const FIRST_NAME = '{firstName}';
-  const MIDDLE_NAME = '{middleName}';
   const LAST_NAME = '{lastName}';
-  const EMPLOYEE_NUMBER = 0;
   const HIRE_DATE = '{hireDate}';
   const EMAIL = '{email}';
   const EMPLOYEE_ROLE = '{employeeRole}';
+  const EMPLOYEE_NUMBER = 0;
   const WORK_STATUS = 0;
+
+  const MIDDLE_NAME = '{middleName}';
+  const BIRTHDAY = '{birthday}';
+  const BIRTHDAY_FEED = '{birthday feed}';
+  const JOB_ROLE = 'jobRole';
+  const PRIME = 'prime';
+  const CONTRACT = 'contract';
+  const GITHUB = 'github';
+  const TWITTER = 'twitter';
+  const CITY = 'city';
+  const STREET = 'st';
+  const COUNTRY = 'country';
+  const DEPARTURE_DATE = 'deptDate';
 
   const EMPLOYEE_DATA = {
     id: ID,
     firstName: FIRST_NAME,
-    middleName: MIDDLE_NAME,
     lastName: LAST_NAME,
     employeeNumber: EMPLOYEE_NUMBER,
     hireDate: HIRE_DATE,
     email: EMAIL,
     employeeRole: EMPLOYEE_ROLE,
-    workStatus: WORK_STATUS
+    workStatus: WORK_STATUS,
+    middleName: MIDDLE_NAME,
+    birthday: BIRTHDAY,
+    birthdayFeed: BIRTHDAY_FEED,
+    jobRole: JOB_ROLE,
+    prime: PRIME,
+    contract: CONTRACT,
+    github: GITHUB,
+    twitter: TWITTER,
+    city: CITY,
+    st: STREET,
+    country: COUNTRY,
+    deptDate: DEPARTURE_DATE
   };
 
-  let employee, blankEmployee;
+  let employee;
 
   beforeEach(() => {
     employee = new Employee(EMPLOYEE_DATA);
-    blankEmployee = new Employee({});
   });
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values', () => {
-      expect(blankEmployee).toEqual(jasmine.objectContaining({
-        id: ' ',
-        firstName: ' ',
-        middleName: ' ',
-        lastName: ' ',
-        hireDate: ' ',
-        email: ' ',
-        employeeRole: ' ',
-        workStatus: ' ',
-        birthday: ' ',
-        jobRole: ' ',
-        prime: ' ',
-        contract: ' ',
-        github: ' ',
-        twitter: ' ',
-        city: ' ',
-        st: ' ',
-        country: ' ',
-        deptDate: ' '
-      }));
-    }); // should populate empty attribute values
+    let localEmployeeData;
+
+    beforeEach(() => {
+      localEmployeeData = {
+        id: ID,
+        firstName: FIRST_NAME,
+        lastName: LAST_NAME,
+        employeeNumber: EMPLOYEE_NUMBER,
+        hireDate: HIRE_DATE,
+        email: EMAIL,
+        employeeRole: EMPLOYEE_ROLE,
+        workStatus: WORK_STATUS,
+        twitter: TWITTER,
+        invalid: '{invalid}'
+      };
+      employee = new Employee(localEmployeeData);
+    });
+
+    it('should populate required and optional values only', () => {
+      expect(employee).toEqual(
+        new Employee({
+          id: ID,
+          firstName: FIRST_NAME,
+          lastName: LAST_NAME,
+          employeeNumber: EMPLOYEE_NUMBER,
+          hireDate: HIRE_DATE,
+          email: EMAIL,
+          employeeRole: EMPLOYEE_ROLE,
+          workStatus: WORK_STATUS,
+          twitter: TWITTER
+        })
+      );
+    }); // should populate required and optional values only
   }); // constructor
 
   describe('fullName', () => {

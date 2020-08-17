@@ -897,11 +897,11 @@ describe('expenseTypeRoutes', () => {
 
           beforeEach(() => {
             oldExpenseType.recurringFlag = false;
-            oldExpenseType.startDate = ' ';
-            oldExpenseType.endDate = ' ';
+            delete oldExpenseType.startDate;
+            delete oldExpenseType.endDate;
             newExpenseType.recurringFlag = false;
-            newExpenseType.startDate = ' ';
-            newExpenseType.endDate = ' ';
+            delete newExpenseType.startDate;
+            delete newExpenseType.endDate;
 
             expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
@@ -1120,11 +1120,11 @@ describe('expenseTypeRoutes', () => {
 
           beforeEach(() => {
             oldExpenseType.recurringFlag = false;
-            oldExpenseType.startDate = ' ';
-            oldExpenseType.endDate = ' ';
+            delete oldExpenseType.startDate;
+            delete oldExpenseType.endDate;
             newExpenseType.recurringFlag = false;
-            newExpenseType.startDate = ' ';
-            newExpenseType.endDate = ' ';
+            delete newExpenseType.startDate;
+            delete newExpenseType.endDate;
 
             expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
@@ -1506,7 +1506,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type id.'
         };
 
-        expenseType.id = ' ';
+        delete expenseType.id;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1530,7 +1530,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type budget name.'
         };
 
-        expenseType.budgetName = ' ';
+        delete expenseType.budgetName;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1554,7 +1554,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type budget.'
         };
 
-        expenseType.budget = ' ';
+        delete expenseType.budget;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1578,7 +1578,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type description.'
         };
 
-        expenseType.description = ' ';
+        delete expenseType.description;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1602,7 +1602,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type accessible by.'
         };
 
-        expenseType.accessibleBy = ' ';
+        delete expenseType.accessibleBy;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1661,7 +1661,7 @@ describe('expenseTypeRoutes', () => {
             message: 'Start date required for non recurring expense type.'
           };
 
-          expenseType.startDate = ' ';
+          delete expenseType.startDate;
         });
 
         it('should return a 403 rejected promise', () => {
@@ -1685,7 +1685,7 @@ describe('expenseTypeRoutes', () => {
             message: 'End date required for non recurring expense type.'
           };
 
-          expenseType.endDate = ' ';
+          delete expenseType.endDate;
         });
 
         it('should return a 403 rejected promise', () => {

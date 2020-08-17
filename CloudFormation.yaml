@@ -193,6 +193,30 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  s3BlogPosts:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-expense-app-blog-posts-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove Deleted Blog Posts
+            NoncurrentVersionExpirationInDays: 30
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/blog-posts/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   s3Logs:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -235,6 +259,25 @@ Resources:
   #         Value: portal-app
   #       - Key: Stage
   #         Value: !Ref Stage
+  s3BlogAttachments:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-portal-app-blog-attachments-
+          - !Ref Stage
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/blog-attachments/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: portal-app
+        - Key: Stage
+          Value: !Ref Stage
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -261,6 +304,28 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  blogTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - blog-posts
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
       Tags:
         - Key: Application
           Value: expense-app
@@ -485,6 +550,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'lambda:Invoke*'
+                Resource: '*'
+        - PolicyName: AmazonRekognition
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'rekognition:*'
                 Resource: '*'
       Tags:
         - Key: Application

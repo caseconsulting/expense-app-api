@@ -1,9 +1,9 @@
 const AWS = require('aws-sdk-mock');
-const Budget = require('../../models/budget');
+// const Budget = require('../../models/budget');
 const DatabaseModify = require('../../js/databaseModify');
-const Employee = require('../../models/employee');
+// const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
-const ExpenseType = require('../../models/expenseType');
+// const ExpenseType = require('../../models/expenseType');
 // const moment = require('moment');
 const TrainingUrl = require('../../models/trainingUrls');
 
@@ -15,20 +15,20 @@ describe('databaseModify', () => {
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 
-  const FIRST_NAME = '{firstName}';
-  const MIDDLE_NAME = '{middleName}';
-  const LAST_NAME = '{lastName}';
-  const EMPLOYEE_NUMBER = 0;
-  const HIRE_DATE = '{hireDate}';
-  const EMAIL = '{email}';
-  const EMPLOYEE_ROLE = '{employeeRole}';
-  const WORK_STATUS = 0;
-
-  const REIMBURSED_AMOUNT = 0;
-  const PENDING_AMOUNT = 0;
-  const FISCAL_START_DATE = '{fiscalStartDate}';
-  const FISCAL_END_DATE = '{fiscalEndDate}';
-  const AMOUNT = 0;
+  // const FIRST_NAME = '{firstName}';
+  // const MIDDLE_NAME = '{middleName}';
+  // const LAST_NAME = '{lastName}';
+  // const EMPLOYEE_NUMBER = 0;
+  // const HIRE_DATE = '{hireDate}';
+  // const EMAIL = '{email}';
+  // const EMPLOYEE_ROLE = '{employeeRole}';
+  // const WORK_STATUS = 0;
+  //
+  // const REIMBURSED_AMOUNT = 0;
+  // const PENDING_AMOUNT = 0;
+  // const FISCAL_START_DATE = '{fiscalStartDate}';
+  // const FISCAL_END_DATE = '{fiscalEndDate}';
+  // const AMOUNT = 0;
 
   const PURCHASE_DATE = '{purchaseDate}';
   const REIMBURSED_DATE = '{reimbursedDate}';
@@ -40,41 +40,41 @@ describe('databaseModify', () => {
   const CATEGORY = '{category}';
   const SHOWONFEED = '{showOnFeed}';
 
-  const NAME = '{name}';
-  const BUDGET = '{budget}';
-  const START_DATE = '{startDate}';
-  const END_DATE = '{endDate}';
-  const OD_FLAG = '{odFlag}';
-  const REQUIRED_FLAG = '{requiredFlag}';
-  const RECURRING_FLAG = '{recurringFlag}';
-  const IS_INACTIVE = '{isInactive}';
-  const ACCESSIBLE_BY = '{accessibleBy}';
-  const CATEGORIES = [];
+  // const NAME = '{name}';
+  // const BUDGET = '{budget}';
+  // const START_DATE = '{startDate}';
+  // const END_DATE = '{endDate}';
+  // const OD_FLAG = '{odFlag}';
+  // const REQUIRED_FLAG = '{requiredFlag}';
+  // const RECURRING_FLAG = '{recurringFlag}';
+  // const IS_INACTIVE = '{isInactive}';
+  // const ACCESSIBLE_BY = '{accessibleBy}';
+  // const CATEGORIES = [];
 
   const HITS = 0;
 
-  const EMPLOYEE_DATA = {
-    id: ID,
-    firstName: FIRST_NAME,
-    middleName: MIDDLE_NAME,
-    lastName: LAST_NAME,
-    employeeNumber: EMPLOYEE_NUMBER,
-    hireDate: HIRE_DATE,
-    email: EMAIL,
-    employeeRole: EMPLOYEE_ROLE,
-    workStatus: WORK_STATUS
-  };
-
-  const BUDGET_DATA = {
-    id: ID,
-    expenseTypeId: ID,
-    employeeId: ID,
-    reimbursedAmount: REIMBURSED_AMOUNT,
-    pendingAmount: PENDING_AMOUNT,
-    fiscalStartDate: FISCAL_START_DATE,
-    fiscalEndDate: FISCAL_END_DATE,
-    amount: AMOUNT
-  };
+  // const EMPLOYEE_DATA = {
+  //   id: ID,
+  //   firstName: FIRST_NAME,
+  //   middleName: MIDDLE_NAME,
+  //   lastName: LAST_NAME,
+  //   employeeNumber: EMPLOYEE_NUMBER,
+  //   hireDate: HIRE_DATE,
+  //   email: EMAIL,
+  //   employeeRole: EMPLOYEE_ROLE,
+  //   workStatus: WORK_STATUS
+  // };
+  //
+  // const BUDGET_DATA = {
+  //   id: ID,
+  //   expenseTypeId: ID,
+  //   employeeId: ID,
+  //   reimbursedAmount: REIMBURSED_AMOUNT,
+  //   pendingAmount: PENDING_AMOUNT,
+  //   fiscalStartDate: FISCAL_START_DATE,
+  //   fiscalEndDate: FISCAL_END_DATE,
+  //   amount: AMOUNT
+  // };
 
   const EXPENSE_DATA = {
     id: ID,
@@ -92,20 +92,20 @@ describe('databaseModify', () => {
     showOnFeed: SHOWONFEED
   };
 
-  const EXPENSE_TYPE_DATA = {
-    id: ID,
-    budgetName: NAME,
-    budget: BUDGET,
-    startDate: START_DATE,
-    endDate: END_DATE,
-    odFlag: OD_FLAG,
-    requiredFlag: REQUIRED_FLAG,
-    recurringFlag: RECURRING_FLAG,
-    isInactive: IS_INACTIVE,
-    description: DESCRIPTION,
-    categories: CATEGORIES,
-    accessibleBy: ACCESSIBLE_BY
-  };
+  // const EXPENSE_TYPE_DATA = {
+  //   id: ID,
+  //   budgetName: NAME,
+  //   budget: BUDGET,
+  //   startDate: START_DATE,
+  //   endDate: END_DATE,
+  //   odFlag: OD_FLAG,
+  //   requiredFlag: REQUIRED_FLAG,
+  //   recurringFlag: RECURRING_FLAG,
+  //   isInactive: IS_INACTIVE,
+  //   description: DESCRIPTION,
+  //   categories: CATEGORIES,
+  //   accessibleBy: ACCESSIBLE_BY
+  // };
 
   const TRAINING_URL_DATA = {
     id: URL,
@@ -203,349 +203,6 @@ describe('databaseModify', () => {
       }); // should return a 404 rejected promise
     }); // when fails to put object in dynamo
   }); // addToDB
-
-  describe('_buildBudgetUpdateParams', () => {
-
-    let objToUpdate = new Budget(BUDGET_DATA);
-
-    beforeEach(() => {
-      spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' });
-    });
-
-    afterEach(() => {
-      expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate);
-    });
-
-    it('should return the appropriate params', () => {
-      expect(databaseModify._buildBudgetUpdateParams(objToUpdate)).toEqual({
-        TableName: 'dev-budgets',
-        Key: {
-          id: '{id}'
-        },
-        ReturnValues: 'ALL_NEW',
-        expression: '{expression}'
-      });
-    });
-  }); // _buildBudgetUpdateParams
-
-  describe('_buildEmployeeUpdateParams', () => {
-
-    let objToUpdate = new Employee(EMPLOYEE_DATA);
-
-    beforeEach(() => {
-      spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' });
-    });
-
-    afterEach(() => {
-      expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate);
-    });
-
-    it('should return the appropriate params', () => {
-      expect(databaseModify._buildEmployeeUpdateParams(objToUpdate)).toEqual({
-        TableName: 'dev-employees',
-        Key: {
-          id: '{id}'
-        },
-        ReturnValues: 'ALL_NEW',
-        expression: '{expression}'
-      });
-    });
-  }); // _buildEmployeeUpdateParams
-
-  describe('_buildExpenseTypeUpdateParams', () => {
-
-    let objToUpdate = new ExpenseType(EXPENSE_TYPE_DATA);
-
-    beforeEach(() => {
-      spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' });
-    });
-
-    afterEach(() => {
-      expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate);
-    });
-
-    it('should return the appropriate params', () => {
-      expect(databaseModify._buildExpenseTypeUpdateParams(objToUpdate)).toEqual({
-        TableName: 'dev-expense-types',
-        Key: {
-          id: '{id}'
-        },
-        ReturnValues: 'ALL_NEW',
-        expression: '{expression}'
-      });
-    });
-  }); // _buildExpenseTypeUpdateParams
-
-  describe('_buildExpenseUpdateParams', () => {
-
-    let objToUpdate = new Expense(EXPENSE_DATA);
-
-    beforeEach(() => {
-      spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' });
-    });
-
-    afterEach(() => {
-      expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate);
-    });
-
-    it('should return the appropriate params', () => {
-      expect(databaseModify._buildExpenseUpdateParams(objToUpdate)).toEqual({
-        TableName: 'dev-expenses',
-        Key: {
-          id: '{id}'
-        },
-        ReturnValues: 'ALL_NEW',
-        expression: '{expression}'
-      });
-    });
-  }); // _buildExpenseUpdateParams
-
-  describe('_buildExpression', () => {
-
-    let data;
-
-    describe('when data is an expense with a url', () => {
-
-      let expectedExpressionAttributeValues, expectedUpdateExpression, expectedExpressionAttributeNames;
-
-      beforeEach(() => {
-        data = new Expense(EXPENSE_DATA);
-
-        expectedExpressionAttributeValues = {
-          ':a': '{purchaseDate}',
-          ':b': '{reimbursedDate}',
-          ':c': '{note}',
-          ':d': '{url}',
-          ':e': '{createdAt}',
-          ':f': '{receipt}',
-          ':g': 0,
-          ':h': '{description}',
-          ':i': '{id}',
-          ':j': '{id}',
-          ':k': '{category}',
-          ':l': '{showOnFeed}'
-        };
-
-        expectedUpdateExpression = 'set'
-          + ' purchaseDate = :a,'
-          + 'reimbursedDate = :b,'
-          + 'note = :c,'
-          + '#url = :d,'
-          + 'createdAt = :e,'
-          + 'receipt = :f,'
-          + 'cost = :g,'
-          + 'description = :h,'
-          + 'employeeId = :i,'
-          + 'expenseTypeId = :j,'
-          + 'category = :k,'
-          + 'showOnFeed = :l';
-
-        expectedExpressionAttributeNames = { '#url': 'url' };
-      });
-
-      it('should handle the special case with the url', () => {
-        expect(databaseModify._buildExpression(data)).toEqual({
-          ExpressionAttributeValues: expectedExpressionAttributeValues,
-          UpdateExpression: expectedUpdateExpression,
-          ExpressionAttributeNames: expectedExpressionAttributeNames
-        });
-      }); // should handle the special case with the url
-    }); // when data is an expense with a url
-
-    describe('when data is an expense with null values', () => {
-
-      let expectedExpressionAttributeValues, expectedUpdateExpression;
-
-      beforeEach(() => {
-        data = {
-          id: ID,
-          purchaseDate: PURCHASE_DATE,
-          reimbursedDate: null,
-          note: null,
-          url: null,
-          createdAt: CREATED_AT,
-          receipt: null,
-          cost: COST,
-          description: DESCRIPTION,
-          employeeId: ID,
-          expenseTypeId: ID,
-          category: null,
-        };
-
-        expectedExpressionAttributeValues = {
-          ':a': '{purchaseDate}',
-          ':e': '{createdAt}',
-          ':g': 0,
-          ':h': '{description}',
-          ':i': '{id}',
-          ':j': '{id}',
-        };
-
-        expectedUpdateExpression = 'set'
-          + ' purchaseDate = :a,'
-          + 'createdAt = :e,'
-          + 'cost = :g,'
-          + 'description = :h,'
-          + 'employeeId = :i,'
-          + 'expenseTypeId = :j';
-      });
-
-      it('should only handle the defined attributes', () => {
-        expect(databaseModify._buildExpression(data)).toEqual({
-          ExpressionAttributeValues: expectedExpressionAttributeValues,
-          UpdateExpression: expectedUpdateExpression,
-        });
-      }); // should only handle the defined attributes
-    }); // when data is an expense with null values
-
-    describe('when data is a training url', () => {
-
-      let expectedExpressionAttributeValues, expectedUpdateExpression;
-
-      beforeEach(() => {
-        data = new TrainingUrl(TRAINING_URL_DATA);
-
-        expectedExpressionAttributeValues = {
-          ':a': 0,
-          ':b': ' ',
-          ':c': ' ',
-          ':d': ' ',
-          ':e': ' ',
-          ':f': ' '
-        };
-
-        expectedUpdateExpression = 'set'
-          + ' hits = :a,'
-          + 'title = :b,'
-          + 'description = :c,'
-          + 'image = :d,'
-          + 'logo = :e,'
-          + 'publisher = :f';
-      });
-
-      it('should omit id and category', () => {
-        expect(databaseModify._buildExpression(data)).toEqual({
-          ExpressionAttributeValues: expectedExpressionAttributeValues,
-          UpdateExpression: expectedUpdateExpression
-        });
-      }); // should omit id and category
-    }); // when data is a training url
-  }); // _buildExpression
-
-  describe('_buildTrainingUrlUpdateParams', () => {
-
-    let objToUpdate = new TrainingUrl(TRAINING_URL_DATA);
-
-    beforeEach(() => {
-      spyOn(databaseModify, '_buildExpression').and.returnValue({ expression: '{expression}' });
-    });
-
-    afterEach(() => {
-      expect(databaseModify._buildExpression).toHaveBeenCalledWith(objToUpdate);
-    });
-
-    it('should return the appropriate params', () => {
-      expect(databaseModify._buildTrainingUrlUpdateParams(objToUpdate)).toEqual({
-        TableName: 'dev-training-urls',
-        Key: {
-          id: '{url}',
-          category: '{category}'
-        },
-        ReturnValues: 'ALL_NEW',
-        expression: '{expression}'
-      });
-    });
-  }); // _buildTrainingUrlUpdateParams
-
-  describe('_buildUpdateParams', () => {
-
-    let objToUpdate;
-
-    describe('when updating expenses table', () => {
-
-      beforeEach(() => {
-        objToUpdate = new Expense(EXPENSE_DATA);
-        databaseModify.tableName = `${STAGE}-expenses`;
-        spyOn(databaseModify, '_buildExpenseUpdateParams').and.returnValue('{updateParams}');
-      });
-
-      afterEach(() => {
-        expect(databaseModify._buildExpenseUpdateParams).toHaveBeenCalledWith(objToUpdate);
-      });
-
-      it('should return the update params', () => {
-        expect(databaseModify._buildUpdateParams(objToUpdate)).toEqual('{updateParams}');
-      }); // should return the update param
-    }); // when updating expenses table
-
-    describe('when updating employees table', () => {
-
-      beforeEach(() => {
-        objToUpdate = new Employee(EMPLOYEE_DATA);
-        databaseModify.tableName = `${STAGE}-employees`;
-        spyOn(databaseModify, '_buildEmployeeUpdateParams').and.returnValue('{updateParams}');
-      });
-
-      afterEach(() => {
-        expect(databaseModify._buildEmployeeUpdateParams).toHaveBeenCalledWith(objToUpdate);
-      });
-
-      it('should return the update params', () => {
-        expect(databaseModify._buildUpdateParams(objToUpdate)).toEqual('{updateParams}');
-      }); // should return the update param
-    }); // when updating employees table
-
-    describe('when updating expense types table', () => {
-
-      beforeEach(() => {
-        objToUpdate = new ExpenseType(EXPENSE_TYPE_DATA);
-        databaseModify.tableName = `${STAGE}-expense-types`;
-        spyOn(databaseModify, '_buildExpenseTypeUpdateParams').and.returnValue('{updateParams}');
-      });
-
-      afterEach(() => {
-        expect(databaseModify._buildExpenseTypeUpdateParams).toHaveBeenCalledWith(objToUpdate);
-      });
-
-      it('should return the update params', () => {
-        expect(databaseModify._buildUpdateParams(objToUpdate)).toEqual('{updateParams}');
-      }); // should return the update param
-    }); // when updating expense types table
-
-    describe('when updating budgets table', () => {
-
-      beforeEach(() => {
-        objToUpdate = new Budget(BUDGET_DATA);
-        databaseModify.tableName = `${STAGE}-budgets`;
-        spyOn(databaseModify, '_buildBudgetUpdateParams').and.returnValue('{updateParams}');
-      });
-
-      afterEach(() => {
-        expect(databaseModify._buildBudgetUpdateParams).toHaveBeenCalledWith(objToUpdate);
-      });
-
-      it('should return the update params', () => {
-        expect(databaseModify._buildUpdateParams(objToUpdate)).toEqual('{updateParams}');
-      }); // should return the update param
-    }); // when updating budgets table
-
-    describe('when updating training urls table', () => {
-
-      beforeEach(() => {
-        objToUpdate = new TrainingUrl(TRAINING_URL_DATA);
-        databaseModify.tableName = `${STAGE}-training-urls`;
-        spyOn(databaseModify, '_buildTrainingUrlUpdateParams').and.returnValue('{updateParams}');
-      });
-
-      afterEach(() => {
-        expect(databaseModify._buildTrainingUrlUpdateParams).toHaveBeenCalledWith(objToUpdate);
-      });
-
-      it('should return the update params', () => {
-        expect(databaseModify._buildUpdateParams(objToUpdate)).toEqual('{updateParams}');
-      }); // should return the update param
-    }); // when updating training urls table
-  }); // _buildUpdateParams
 
   describe('getAllEntriesInDB', () => {
 
@@ -1103,13 +760,13 @@ describe('databaseModify', () => {
       AWS.restore();
     });
 
-    describe('when successfully updates entry in database', () => {
+    describe('when successfully updates an expense in database', () => {
 
       beforeEach(() => {
-        spyOn(databaseModify, '_buildUpdateParams').and.returnValue('{updateParams}');
-        AWS.mock('DynamoDB.DocumentClient', 'update', function(params, callback) {
+        spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.resolve('{{ oldExpense }}'));
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
           callback(null, {
-            Attributes: newDyanmoObj
+            Data: newDyanmoObj
           });
         });
       });
@@ -1121,9 +778,85 @@ describe('databaseModify', () => {
             done();
           });
       });
-    }); // when successfully updates entry in database
+    }); // when successfully updates an expense in database
 
-    describe('when fails to update entry in database', () => {
+    describe('when successfully updates a training url in database', () => {
+
+      beforeEach(() => {
+        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
+      });
+
+      beforeEach(() => {
+        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
+          callback(null, {
+            Data: newDyanmoObj
+          });
+        });
+      });
+
+      it('should return the updated object', done => {
+        databaseModify.updateEntryInDB(newDyanmoObj)
+          .then(data => {
+            expect(data).toEqual(newDyanmoObj);
+            done();
+          });
+      });
+    }); // when successfully updates a training url in database
+
+    describe('when fails to find expense to update in database', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          messge: 'Failed to find entry to update in database.'
+        };
+
+        spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        databaseModify.updateEntryInDB(newDyanmoObj)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return 404 rejected promise
+    }); // when fails to find expense to update in database
+
+    describe('when fails to find training url to update in database', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          messge: 'Failed to find entry to update in database.'
+        };
+        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
+        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', done => {
+        databaseModify.updateEntryInDB(newDyanmoObj)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return 404 rejected promise
+    }); // when fails to find training url to update in database
+
+    describe('when fails to update expense in database', () => {
 
       let err;
 
@@ -1133,8 +866,8 @@ describe('databaseModify', () => {
           messge: 'Failed to update entry in database.'
         };
 
-        spyOn(databaseModify, '_buildUpdateParams').and.returnValue('{updateParams}');
-        AWS.mock('DynamoDB.DocumentClient', 'update', function(params, callback) {
+        spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.resolve('{{ oldExpense }}'));
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
           callback(err);
         });
       });
@@ -1150,6 +883,35 @@ describe('databaseModify', () => {
             done();
           });
       }); // should return 404 rejected promise
-    }); // when fails to update entry in database
+    }); // when fails to update expense in database
+
+    describe('when fails to update training url in database', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          messge: 'Failed to update entry in database.'
+        };
+        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
+        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
+        AWS.mock('DynamoDB.DocumentClient', 'put', function(params, callback) {
+          callback(err);
+        });
+      });
+
+      it('should return a 404 rejected promise', done => {
+        databaseModify.updateEntryInDB(newDyanmoObj)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch(error => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return 404 rejected promise
+    }); // when fails to update training url in database
   }); // updateEntryInDB
 }); // databaseModify

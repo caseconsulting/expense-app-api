@@ -34,8 +34,7 @@ const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
 // const TEXTRACT_BUCKET = `case-consulting-portal-app-textract-attachments-${STAGE}`;
 const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
-const comprehend = new AWS.Comprehend({apiVersion: '2017-11-27'});
-
+const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
 
 const storage = multerS3({
   s3: s3,
@@ -173,7 +172,7 @@ class Attachment {
   } // deleteAttachmentFromS3
 
   timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -331,7 +330,6 @@ class Attachment {
     return comprehend.detectEntities(comprehendParams).promise();
   } // comprehendText
 
-
   /**
    * Extracts text from a file using AWS Textract.
    *
@@ -409,11 +407,86 @@ class Attachment {
           logger.log(2, 'extractText', `Successfully extracted text from ${req.params.fileName}`);
           let textEntities = await this.comprehendText(textExtracted);
 
+          let words = [];
+          _.forEach(textExtracted.Blocks, (block) => {
+            if (block.BlockType === 'WORD') {
+              words.push({ Text: block.Text, Confidence: block.Confidence });
+            }
+          });
+          // # get key and value maps
+          // key_map = {}
+          // value_map = {}
+          // block_map = {}
+          // for block in blocks:
+          //     block_id = block['Id']
+          //     block_map[block_id] = block
+          //     if block['BlockType'] == "KEY_VALUE_SET":
+          //         if 'KEY' in block['EntityTypes']:
+          //             key_map[block_id] = block
+          //         else:
+          //             value_map[block_id] = block
+      
+          // return key_map, value_map, block_map
+          
+          let keyMap = {};
+          let valueMap = {};
+          let blockMap = {};
+
+          _.forEach(textExtracted.Blocks, (block) => {
+            let blockId = block.Id;
+            blockMap[blockId] = block;
+            if (block.BlockType === 'KEY_VALUE_SET') {
+              if (_.includes(block.EntityTypes, 'KEY')) {
+                keyMap[blockId] = block;
+              } else {
+                valueMap[blockId] = block;
+              }
+            }  
+          });
+
+          // def get_kv_relationship(key_map, value_map, block_map):
+          // kvs = {}
+          // for block_id, key_block in key_map.items():
+          //     value_block = find_value_block(key_block, value_map)
+          //     key = get_text(key_block, block_map)
+          //     val = get_text(value_block, block_map)
+          //     kvs[key] = val
+          // return kvs
+
+          let keyValueSets = [];
+          for(let key in keyMap){
+            let valueBlock = this.findValueBlock(keyMap[key], valueMap);
+            let KVSkey = this.getText(keyMap[key], blockMap);
+            let KVSval = this.getText(valueBlock, blockMap);
+            //keyValueSets[KVSkey] = KVSval;
+            let keys = {};
+            let values = {};
+
+            for(let i = 0; i < KVSkey.ids.length; i++){
+              keys[KVSkey.ids[i]] = {Text: KVSkey.Text[i], Confidence: KVSkey.Confidences[i]};
+            }
+            for(let i = 0; i < KVSval.ids.length; i++){
+              values[KVSval.ids[i]] = {Text: KVSval.Text[i], Confidence: KVSval.Confidences[i]};
+            }
+
+            keyValueSets.push({ Keys: keys, Values: values});
+          }
+          /**
+           * {
+           *   Keys: {
+           *     id: {Text: 'Total', Confidence: 99.9871273912}
+           *   }
+           *   Values: {
+           *     id: {Text: '$100', Confidence: 99.1237187237}
+           * }
+           * 
+           */
+          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets, Words: words};
           // send successful 200 status with the uploaded file and text
-          res.status(200).send(textEntities);
+          res.status(200).send(payload);
 
           // return text entries
-          return textEntities;
+          return payload;
         } catch (err) {
           // failed to extract text
           logger.log(2, 'extractText', `Failed to extract text from ${req.params.fileName}. ${err.message}`);
@@ -431,7 +504,65 @@ class Attachment {
     });
   } // extractText
 
+  findValueBlock(keyBlock, valueMap) {
+    // for relationship in key_block['Relationships']:
+    //     if relationship['Type'] == 'VALUE':
+    //         for value_id in relationship['Ids']:
+    //             value_block = value_map[value_id]
+    // return value_block
+    let valueBlock;
+    _.forEach(keyBlock.Relationships, (relationship)=> {
+      if(relationship.Type === 'VALUE'){
+        _.forEach(relationship.Ids, (valueId) => {
+          valueBlock = valueMap[valueId];
+        });
+      }
+    });
+    return valueBlock;
+  }
 
+  getText(result, blocksMap) {
+    // def get_text(result, blocks_map):
+    // text = ''
+    // if 'Relationships' in result:
+    //     for relationship in result['Relationships']:
+    //         if relationship['Type'] == 'CHILD':
+    //             for child_id in relationship['Ids']:
+    //                 word = blocks_map[child_id]
+    //                 if word['BlockType'] == 'WORD': 
+    //                     text += word['Text'] + ' '
+    //                 if word['BlockType'] == 'SELECTION_ELEMENT':
+    //                     if word['SelectionStatus'] == 'SELECTED':
+    //                         text += 'X '    
+
+                                
+    // return text
+    let text = [];
+    let Ids = [];
+    let confidences = [];
+    if (Object.prototype.hasOwnProperty.call(result, 'Relationships')) {
+      _.forEach(result.Relationships, (relationship) => {
+        if  (relationship.Type === 'CHILD'){
+          _.forEach(relationship.Ids, (childId) => {
+            let word = blocksMap[childId];
+            if (word.BlockType === 'WORD') {
+              text.push(word.Text);
+              Ids.push(word.Id);
+              confidences.push(word.Confidence);
+            } 
+            if (word.BlockType === 'SELECTION_ELEMENT') {
+              if (word.SelectionStatus === 'SELECTED') {
+                text.push('X ');
+                Ids.push(word.Id);
+                confidences.push(word.Confidence);
+              }
+            }
+          });
+        }
+      });
+    }
+    return {ids: Ids, Text: text, Confidences: confidences};
+  }
   /**
    * Gets an attachment from S3.
 

@@ -20,24 +20,45 @@ describe('budget', () => {
     amount: AMOUNT
   };
 
-  let budget, blankBudget;
+  let budget;
 
   beforeEach(() => {
     budget = new Budget(BUDGET_DATA);
-    blankBudget = new Budget({});
   });
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values', () => {
-      expect(blankBudget).toEqual(jasmine.objectContaining({
-        id: ' ',
-        expenseTypeId: ' ',
-        employeeId: ' ',
-        fiscalStartDate: ' ',
-        fiscalEndDate: ' ',
-      }));
-    }); // should populate empty attribute values
+    let localBudgetData;
+
+    beforeEach(() => {
+      localBudgetData = {
+        id: ID,
+        expenseTypeId: ID,
+        employeeId: ID,
+        reimbursedAmount: REIMBURSED_AMOUNT,
+        pendingAmount: PENDING_AMOUNT,
+        fiscalStartDate: FISCAL_START_DATE,
+        fiscalEndDate: FISCAL_END_DATE,
+        amount: AMOUNT,
+        invalid: '{invalid}'
+      };
+      budget = new Budget(localBudgetData);
+    });
+
+    it('should populate required and optional values only', () => {
+      expect(budget).toEqual(
+        new Budget({
+          id: ID,
+          expenseTypeId: ID,
+          employeeId: ID,
+          reimbursedAmount: REIMBURSED_AMOUNT,
+          pendingAmount: PENDING_AMOUNT,
+          fiscalStartDate: FISCAL_START_DATE,
+          fiscalEndDate: FISCAL_END_DATE,
+          amount: AMOUNT
+        })
+      );
+    }); // should populate required and optional values only
   }); // constructor
 
   describe('isDateInRange', () => {

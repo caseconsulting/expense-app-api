@@ -311,7 +311,7 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
-   * 
+   *
    * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
    */
@@ -327,15 +327,37 @@ class Utility {
       ExpressionAttributeValues: expressionAttributes,
       KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate',
     };
-    let ret =  await this.expenseDynamo.querySecondaryIndexInDB(
-      'expenseTypeId-reimbursedDate-index',
-      'expenseTypeId',
-      expenseType.id,
-      additionalParams
-    );
-
-    return ret;
+    try{
+      let ret =  await this.expenseDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-reimbursedDate-index',
+        'expenseTypeId',
+        expenseType.id,
+        additionalParams
+      );
+      return ret;
+    } catch (err) {
+      return err;
+    }
   }// queryExpenses
+
+  async getBasecampToken() {
+    const basecamp = new Basecamp();
+
+    return await basecamp._getBasecampToken();
+  }
+
+  getBasecampInfo() {
+    const basecamp = new Basecamp();
+
+    return basecamp.getBasecampInfo();
+  }
+
+  async getScheduleEntries(accessToken, project) {
+    const basecamp = new Basecamp();
+
+    return  await basecamp._getScheduleEntries(accessToken, project);
+  }
+
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
    * returns all expenses.
@@ -360,6 +382,7 @@ class Utility {
 
         // get all employee and expense data if admin
         employeesData = await this.employeeDynamo.getAllEntriesInDB();
+        expensesData = await this.expenseDynamo.getAllEntriesInDB();
         let employees = _.map(employeesData, employeeData => {
           return new Employee(employeeData);
         });
@@ -398,11 +421,11 @@ class Utility {
       return err;
     }
   } // _getAllExpenses
-  
+
   /**
-   * Getting all expense data that fits the criteria for the feed as well as all employees and 
-   * 
-   * @param req - api request 
+   * Getting all expense data that fits the criteria for the feed as well as all employees and
+   *
+   * @param req - api request
    * @param res - api response
    * @return all info needed for activity feed
    */
@@ -425,54 +448,51 @@ class Utility {
         }
       });
       filteredExpenseTypes = _.compact(filteredExpenseTypes);
-      
+
       let employeesData;
       let expensesData = [];
 
       employeesData = await this.employeeDynamo.getAllEntriesInDB();
-      
-      
+
       await this.asyncForEach(filteredExpenseTypes, async expenseType => {
-        await this.queryExpenses(expenseType, cutOff).then(queryExpensesData => {
+        try {
+          let queryExpensesData = await this.queryExpenses(expenseType, cutOff);
+
           // log success
           logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
-  
+
           let expenses = _.map(queryExpensesData, expenseData => {
             return new Expense(expenseData);
           });
-          expensesData = _.union(expensesData, expenses);
-        })
-          .catch(err => {
-          // log error
-            logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
 
-            return Promise.reject(err);
-          });
+          expensesData = _.union(expensesData, expenses);
+        } catch (err) {
+          // log error
+          logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
+          return Promise.reject(err);
+        }
       });
-      //expensesData = await this.expenseDynamo.getAllEntriesInDB();
 
       let employees = _.map(employeesData, employeeData => {
         return new Employee(employeeData);
       });
 
       let aggregateExpenses = this._convertIdsToNames(expensesData, employees, expenseTypes);
-      //let basecampConstants = Basecamp.BASECAMP_PROJECTS;
-      const baseCamp = new Basecamp();
+
+      let accessToken = await this.getBasecampToken();
 
       let entries = [];
-      let accessToken = await baseCamp._getBasecampToken();
 
-      const basecampInfo = baseCamp.getBasecampInfo();
-      
+      const basecampInfo = this.getBasecampInfo();
+
       for (let proj in basecampInfo) {
-        entries.push(await baseCamp._getScheduleEntries(accessToken, basecampInfo[proj]));
+        entries.push(await this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
       let payload = {
         employees: employees,
         expenses: aggregateExpenses,
         schedules: entries
       };
-
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
 
@@ -486,7 +506,7 @@ class Utility {
 
       // send error status
       this._sendError(res, err);
-      
+
       // return error
       return err;
     }
@@ -496,16 +516,19 @@ class Utility {
    * Gets all expensetype data and then parses the categories
    */
   async getAllExpenseTypes(){
-    let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
-        return JSON.parse(category);
+    try{
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
+        expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+          return JSON.parse(category);
+        });
+        return new ExpenseType(expenseTypeData);
       });
-      return new ExpenseType(expenseTypeData);
-    });
-   
 
-    return expenseTypes;
+      return expenseTypes;
+    } catch (err) {
+      return err;
+    }
   } // getAllExpenseTypes
 
   /**

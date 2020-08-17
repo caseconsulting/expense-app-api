@@ -30,30 +30,49 @@ describe('expenseType', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let expenseType, blankExpenseType;
+  let expenseType;
 
   beforeEach(() => {
     expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
-    blankExpenseType = new ExpenseType({});
   });
 
   describe('constructor', () => {
 
-    it('should populate empty attribute values', () => {
-      expect(blankExpenseType).toEqual(jasmine.objectContaining({
-        id: ' ',
-        budgetName: ' ',
-        startDate: ' ',
-        endDate: ' ',
-        odFlag: false,
-        requiredFlag: true,
-        recurringFlag: false,
-        isInactive: false,
-        description: ' ',
-        categories: [],
-        accessibleBy: 'ALL'
-      }));
-    }); // should populate empty attribute values
+    let localExpenseTypeData;
+
+    beforeEach(() => {
+      localExpenseTypeData = {
+        id: ID,
+        budgetName: NAME,
+        budget: BUDGET,
+        odFlag: OD_FLAG,
+        requiredFlag: REQUIRED_FLAG,
+        recurringFlag: RECURRING_FLAG,
+        isInactive: IS_INACTIVE,
+        description: DESCRIPTION,
+        categories: CATEGORIES,
+        accessibleBy: ACCESSIBLE_BY,
+        invalid: '{invalid}'
+      };
+      expenseType = new ExpenseType(localExpenseTypeData);
+    });
+
+    it('should populate required and optional values only', () => {
+      expect(expenseType).toEqual(
+        new ExpenseType({
+          id: ID,
+          budgetName: NAME,
+          budget: BUDGET,
+          odFlag: OD_FLAG,
+          requiredFlag: REQUIRED_FLAG,
+          recurringFlag: RECURRING_FLAG,
+          isInactive: IS_INACTIVE,
+          description: DESCRIPTION,
+          categories: CATEGORIES,
+          accessibleBy: ACCESSIBLE_BY
+        })
+      );
+    }); // should populate required and optional values only
   }); // constructor
 
   describe('isDateInRange', () => {
@@ -64,15 +83,14 @@ describe('expenseType', () => {
 
       beforeEach(() => {
         expenseType.recurringFlag = true;
-        expenseType.startDate = ' ';
-        expenseType.endDate = ' ';
-        dateStr = ' ';
+        delete expenseType.startDate;
+        delete expenseType.endDate;
       });
 
       it('should return true', () => {
-        expect(expenseType.isDateInRange(dateStr)).toBe(true);
+        expect(expenseType.isDateInRange(undefined)).toBe(true);
       }); // should return true
-    }); // when expense type is recurring
+    }); // when expense type is recurring and does not have an date
 
     describe('when expense type is not recurring', () => {
 
@@ -81,6 +99,13 @@ describe('expenseType', () => {
         expenseType.startDate = '2000-08-18';
         expenseType.endDate = '2002-08-18';
       });
+
+      describe('and date does not exist', () => {
+
+        it('should return false', () => {
+          expect(expenseType.isDateInRange(undefined)).toBe(false);
+        }); // should be false
+      }); // and date does not exist
 
       describe('and date is same as fiscal start date', () => {
 

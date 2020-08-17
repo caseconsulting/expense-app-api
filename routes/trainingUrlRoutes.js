@@ -2,6 +2,7 @@ const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
 const Logger = require('../js/Logger');
 const TrainingUrl = require('../models/trainingUrls');
+const _ = require('lodash');
 
 const atob = require('atob');
 const logger = new Logger('trainingUrlRoutes');
@@ -22,26 +23,24 @@ class TrainingUrlRoutes extends Crud {
   async _create(data) {
     // log method
     logger.log(2, '_create', `Preparing to create training url ${data.id} with category ${data.category}`);
+    try {
+      let trainingUrl = new TrainingUrl(data);
+      await this._validateTrainingUrl(trainingUrl); // validate training url
 
-    let trainingUrl = new TrainingUrl(data);
+      // log success
+      logger.log(2, '_create',
+        `Successfully prepared to create training url ${data.id} with category ${data.category}`
+      );
 
-    return this._validateTrainingUrl(trainingUrl) // validate training url
-      .then(() => {
-        // log success
-        logger.log(2, '_create',
-          `Successfully prepared to create training url ${data.id} with category ${data.category}`
-        );
+      // return prepared training url
+      return trainingUrl;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for training url ${data.id} with category ${data.category}`);
 
-        // return prepared training url
-        return trainingUrl;
-      })
-      .catch(err => {
-        // log error
-        logger.log(2, '_create', `Failed to prepare create for training url ${data.id} with category ${data.category}`);
-
-        // return rejected promise
-        return Promise.reject(err);
-      });
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _create
 
   /**
@@ -68,7 +67,6 @@ class TrainingUrlRoutes extends Crud {
     // compute method
     try {
       let decodedUrl = await this._decodeUrl(data.id);
-
       let trainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(decodedUrl, data.category));
 
       // log success
@@ -86,6 +84,36 @@ class TrainingUrlRoutes extends Crud {
   } // _read
 
   /**
+   * Reads all training urls from the database. Returns all training urls
+   *
+   * @return Array - all training urls
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all training urls');
+
+    // compute method
+    try {
+      let trainingUrlsData = await this.databaseModify.getAllEntriesInDB();
+      let trainingUrls = _.map(trainingUrlsData, trainingUrl => {
+        return new TrainingUrl(trainingUrl);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all training urls');
+
+      // return all training urls
+      return trainingUrls;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all training urls');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+
+  /**
    * Prepares a training url to be updated. Returns the training url if it can be successfully updated.
    *
    * @param data - data of training url
@@ -97,23 +125,19 @@ class TrainingUrlRoutes extends Crud {
 
     // compute method
     try {
-      let newTrainingUrl = new TrainingUrl(data);
       let oldTrainingUrl = new TrainingUrl(await this.databaseModify.getEntryUrl(data.id, data.category));
+      let newTrainingUrl = new TrainingUrl(data);
 
-      return this._validateTrainingUrl(newTrainingUrl) // validate training url
-        .then(() => this._validateUpdate(oldTrainingUrl, newTrainingUrl)) // validate update
-        .then(() => {
-          // log success
-          logger.log(2, '_update',
-            `Successfully prepared to update training url ${data.id} with category ${data.category}`
-          );
+      await this._validateTrainingUrl(newTrainingUrl); // validate training url
+      await this._validateUpdate(oldTrainingUrl, newTrainingUrl); // validate update
 
-          // return training url to update
-          return newTrainingUrl;
-        })
-        .catch(err => {
-          throw err;
-        });
+      // log success
+      logger.log(2, '_update',
+        `Successfully prepared to update training url ${data.id} with category ${data.category}`
+      );
+
+      // return training url to update
+      return newTrainingUrl;
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for training url ${data.id} with category ${data.category}`);
@@ -144,7 +168,7 @@ class TrainingUrlRoutes extends Crud {
       };
 
       // validate id
-      if (this.isEmpty(trainingUrl.id)) {
+      if (_.isNil(trainingUrl.id)) {
         // log error
         logger.log(3, '_validateTrainingUrl', 'Training url id is empty');
 
@@ -154,7 +178,7 @@ class TrainingUrlRoutes extends Crud {
       }
 
       // validate category
-      if (this.isEmpty(trainingUrl.category)) {
+      if (_.isNil(trainingUrl.category)) {
         // log error
         logger.log(3, '_validateTrainingUrl', 'Training url category is empty');
 

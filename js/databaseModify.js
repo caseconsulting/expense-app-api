@@ -102,195 +102,195 @@ class databaseModify {
     }
   } // addToDB
 
-  /**
-   * Builds table params to update an entry in the budget dynamodb table.
-   *
-   * @param objToUpdate - budget to be updated
-   * @return Object - update table parameters
-   */
-  _buildBudgetUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildBudgetUpdateParams', `Building update params for ${STAGE}-budgets`);
+  // /**
+  //  * Builds table params to update an entry in the budget dynamodb table.
+  //  *
+  //  * @param objToUpdate - budget to be updated
+  //  * @return Object - update table parameters
+  //  */
+  // _buildBudgetUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildBudgetUpdateParams', `Building update params for ${STAGE}-budgets`);
+  //
+  //   // compute method
+  //   return _.assign(
+  //     {
+  //       TableName: `${STAGE}-budgets`,
+  //       Key: {
+  //         id: objToUpdate.id
+  //       },
+  //       ReturnValues: 'ALL_NEW'
+  //     },
+  //     this._buildExpression(objToUpdate)
+  //   );
+  // } // _buildBudgetUpdateParams
+  //
+  // /**
+  //  * Builds table params to update an entry in the employee dynamodb table.
+  //  *
+  //  * @param objToUpdate - employee to be updated
+  //  * @return Object - update table parameters
+  //  */
+  // _buildEmployeeUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildEmployeeUpdateParams', `Building update params for ${STAGE}-employees`);
+  //
+  //   // compute method
+  //   return _.assign(
+  //     {
+  //       TableName: `${STAGE}-employees`,
+  //       Key: {
+  //         id: objToUpdate.id
+  //       },
+  //       ReturnValues: 'ALL_NEW'
+  //     },
+  //     this._buildExpression(objToUpdate)
+  //   );
+  // } // _buildEmployeeUpdateParams
+  //
+  // /**
+  //  * Builds table params to update an entry in the expense type dynamodb table.
+  //  *
+  //  * @param objToUpdate - expense type to be updated
+  //  * @return
+  //  */
+  // _buildExpenseTypeUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildExpenseTypeUpdateParams', `Building update params for ${STAGE}-expense-types`);
+  //
+  //   // compute method
+  //   return _.assign(
+  //     {
+  //       TableName: `${STAGE}-expense-types`,
+  //       Key: {
+  //         id: objToUpdate.id
+  //       },
+  //       ReturnValues: 'ALL_NEW'
+  //     },
+  //     this._buildExpression(objToUpdate)
+  //   );
+  // } // _buildExpenseTypeUpdateParams
+  //
+  // /**
+  //  * Builds table params to update an entry in the employee dynamodb table.
+  //  *
+  //  * @param objToUpdate - expense to be updated
+  //  * @return Object - update table parameters
+  //  */
+  // _buildExpenseUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildExpenseUpdateParams', `Building update params for ${STAGE}-expenses`);
+  //
+  //   // compute method
+  //   return _.assign(
+  //     {
+  //       TableName: `${STAGE}-expenses`,
+  //       Key: {
+  //         id: objToUpdate.id
+  //       },
+  //       ReturnValues: 'ALL_NEW'
+  //     },
+  //     this._buildExpression(objToUpdate)
+  //   );
+  // } // _buildExpenseUpdateParams
 
-    // compute method
-    return _.assign(
-      {
-        TableName: `${STAGE}-budgets`,
-        Key: {
-          id: objToUpdate.id
-        },
-        ReturnValues: 'ALL_NEW'
-      },
-      this._buildExpression(objToUpdate)
-    );
-  } // _buildBudgetUpdateParams
+  // /**
+  //  * Builds table expressions for an object.
+  //  *
+  //  * @param data - object to build expresions for
+  //  * @return Object - data table expressions
+  //  */
+  // _buildExpression(data) {
+  //   // log method
+  //   logger.log(4, '_updateWrapper', `Building table expressions for ${data.id}`);
+  //
+  //   // compute method
+  //   const alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  //   let ExpressionAttributeValues = {};
+  //   let UpdateExpression = 'set ';
+  //   let ExpressionAttributeNames = {};
+  //
+  //   // remove key indexes
+  //   let attributes;
+  //   if (data instanceof TrainingUrl) {
+  //     attributes = _.keys(_.omit(data, ['id', 'category']));
+  //   } else {
+  //     attributes = _.keys(_.omit(data, ['id']));
+  //   }
+  //
+  //   // loop attributes
+  //   _.each(attributes, (attribute, index) => {
+  //     const value = _.get(data, attribute);
+  //     if (value != null) {
+  //       // object attribute value exists
+  //       let expressionAttribute = `:${alpha[index]}`;
+  //       ExpressionAttributeValues[expressionAttribute] = value;
+  //
+  //       if (attribute === 'url') {
+  //         // NOTE: 'url' is a DynamoDB reserved word, so we have to define an expression attribute name for it
+  //         // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+  //         UpdateExpression += `#url = ${expressionAttribute},`;
+  //         _.assign(ExpressionAttributeNames, { '#url': 'url' });
+  //       } else {
+  //         UpdateExpression += `${attribute} = ${expressionAttribute},`;
+  //       }
+  //     }
+  //   });
+  //   UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
+  //
+  //   return !_.isEmpty(ExpressionAttributeNames)
+  //     ? { ExpressionAttributeValues, UpdateExpression, ExpressionAttributeNames }
+  //     : { ExpressionAttributeValues, UpdateExpression };
+  // } // _buildExpression
+  //
+  // /**
+  //  * Builds table params to update an entry in the training url dynamodb table.
+  //  *
+  //  * @param objToUpdate - training url to be updated
+  //  * @return Object - update table parameters
+  //  */
+  // _buildTrainingUrlUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildTrainingUrlUpdateParams', `Building update params for ${STAGE}-training-urls`);
+  //
+  //   // compute method
+  //   return _.assign(
+  //     {
+  //       TableName: `${STAGE}-training-urls`,
+  //       Key: {
+  //         id: objToUpdate.id,
+  //         category: objToUpdate.category
+  //       },
+  //       ReturnValues: 'ALL_NEW'
+  //     },
+  //     this._buildExpression(objToUpdate)
+  //   );
+  // } // _buildTrainingUrlUpdateParams
 
-  /**
-   * Builds table params to update an entry in the employee dynamodb table.
-   *
-   * @param objToUpdate - employee to be updated
-   * @return Object - update table parameters
-   */
-  _buildEmployeeUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildEmployeeUpdateParams', `Building update params for ${STAGE}-employees`);
-
-    // compute method
-    return _.assign(
-      {
-        TableName: `${STAGE}-employees`,
-        Key: {
-          id: objToUpdate.id
-        },
-        ReturnValues: 'ALL_NEW'
-      },
-      this._buildExpression(objToUpdate)
-    );
-  } // _buildEmployeeUpdateParams
-
-  /**
-   * Builds table params to update an entry in the expense type dynamodb table.
-   *
-   * @param objToUpdate - expense type to be updated
-   * @return
-   */
-  _buildExpenseTypeUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildExpenseTypeUpdateParams', `Building update params for ${STAGE}-expense-types`);
-
-    // compute method
-    return _.assign(
-      {
-        TableName: `${STAGE}-expense-types`,
-        Key: {
-          id: objToUpdate.id
-        },
-        ReturnValues: 'ALL_NEW'
-      },
-      this._buildExpression(objToUpdate)
-    );
-  } // _buildExpenseTypeUpdateParams
-
-  /**
-   * Builds table params to update an entry in the employee dynamodb table.
-   *
-   * @param objToUpdate - expense to be updated
-   * @return Object - update table parameters
-   */
-  _buildExpenseUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildExpenseUpdateParams', `Building update params for ${STAGE}-expenses`);
-
-    // compute method
-    return _.assign(
-      {
-        TableName: `${STAGE}-expenses`,
-        Key: {
-          id: objToUpdate.id
-        },
-        ReturnValues: 'ALL_NEW'
-      },
-      this._buildExpression(objToUpdate)
-    );
-  } // _buildExpenseUpdateParams
-
-  /**
-   * Builds table expressions for an object.
-   *
-   * @param data - object to build expresions for
-   * @return Object - data table expressions
-   */
-  _buildExpression(data) {
-    // log method
-    logger.log(4, '_updateWrapper', `Building table expressions for ${data.id}`);
-
-    // compute method
-    const alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
-    let ExpressionAttributeValues = {};
-    let UpdateExpression = 'set ';
-    let ExpressionAttributeNames = {};
-
-    // remove key indexes
-    let attributes;
-    if (data instanceof TrainingUrl) {
-      attributes = _.keys(_.omit(data, ['id', 'category']));
-    } else {
-      attributes = _.keys(_.omit(data, ['id']));
-    }
-
-    // loop attributes
-    _.each(attributes, (attribute, index) => {
-      const value = _.get(data, attribute);
-      if (value != null) {
-        // object attribute value exists
-        let expressionAttribute = `:${alpha[index]}`;
-        ExpressionAttributeValues[expressionAttribute] = value;
-
-        if (attribute === 'url') {
-          // NOTE: 'url' is a DynamoDB reserved word, so we have to define an expression attribute name for it
-          // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-          UpdateExpression += `#url = ${expressionAttribute},`;
-          _.assign(ExpressionAttributeNames, { '#url': 'url' });
-        } else {
-          UpdateExpression += `${attribute} = ${expressionAttribute},`;
-        }
-      }
-    });
-    UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
-
-    return !_.isEmpty(ExpressionAttributeNames)
-      ? { ExpressionAttributeValues, UpdateExpression, ExpressionAttributeNames }
-      : { ExpressionAttributeValues, UpdateExpression };
-  } // _buildExpression
-
-  /**
-   * Builds table params to update an entry in the training url dynamodb table.
-   *
-   * @param objToUpdate - training url to be updated
-   * @return Object - update table parameters
-   */
-  _buildTrainingUrlUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildTrainingUrlUpdateParams', `Building update params for ${STAGE}-training-urls`);
-
-    // compute method
-    return _.assign(
-      {
-        TableName: `${STAGE}-training-urls`,
-        Key: {
-          id: objToUpdate.id,
-          category: objToUpdate.category
-        },
-        ReturnValues: 'ALL_NEW'
-      },
-      this._buildExpression(objToUpdate)
-    );
-  } // _buildTrainingUrlUpdateParams
-
-  /**
-   * Builds table params to update an entry in the dynamodb table.
-   *
-   * @param objToUpdate - entry to be updated
-   * @return Object - update table parameters
-   */
-  _buildUpdateParams(objToUpdate) {
-    // log method
-    logger.log(4, '_buildUpdateParams', 'Building update params');
-
-    // compute method
-    switch (this.tableName) {
-      case `${STAGE}-expenses`:
-        return this._buildExpenseUpdateParams(objToUpdate);
-      case `${STAGE}-employees`:
-        return this._buildEmployeeUpdateParams(objToUpdate);
-      case `${STAGE}-expense-types`:
-        return this._buildExpenseTypeUpdateParams(objToUpdate);
-      case `${STAGE}-budgets`:
-        return this._buildBudgetUpdateParams(objToUpdate);
-      case `${STAGE}-training-urls`:
-        return this._buildTrainingUrlUpdateParams(objToUpdate);
-    }
-  } // _buildUpdateParams
+  // /**
+  //  * Builds table params to update an entry in the dynamodb table.
+  //  *
+  //  * @param objToUpdate - entry to be updated
+  //  * @return Object - update table parameters
+  //  */
+  // _buildUpdateParams(objToUpdate) {
+  //   // log method
+  //   logger.log(4, '_buildUpdateParams', 'Building update params');
+  //
+  //   // compute method
+  //   switch (this.tableName) {
+  //     case `${STAGE}-expenses`:
+  //       return this._buildExpenseUpdateParams(objToUpdate);
+  //     case `${STAGE}-employees`:
+  //       return this._buildEmployeeUpdateParams(objToUpdate);
+  //     case `${STAGE}-expense-types`:
+  //       return this._buildExpenseTypeUpdateParams(objToUpdate);
+  //     case `${STAGE}-budgets`:
+  //       return this._buildBudgetUpdateParams(objToUpdate);
+  //     case `${STAGE}-training-urls`:
+  //       return this._buildTrainingUrlUpdateParams(objToUpdate);
+  //   }
+  // } // _buildUpdateParams
 
   /**
    * Gets all entries in the dynamodb table.
@@ -703,22 +703,52 @@ class databaseModify {
    * @param newDyanmoObj - object to update dynamodb entry to
    * @return Object - object updated in dynamodb
    */
-  updateEntryInDB(newDyanmoObj) {
+  async updateEntryInDB(newDyanmoObj) {
     // log method
     let tableName = this.tableName;
     logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
     // compute method
-    const params = this._buildUpdateParams(newDyanmoObj);
+    if (newDyanmoObj instanceof TrainingUrl) {
+      // updating a training url
+      await this._readFromDBUrl(newDyanmoObj.id, newDyanmoObj.category)
+        .catch(err => {
+        // log error
+          logger.log(4, 'updateEntryInDB',
+            `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id} and category`,
+            `${newDyanmoObj.category}`
+          );
+
+          // throw error
+          throw err;
+        });
+    } else {
+      // updated an expense, expense-type, or employee
+      await this._readFromDB(newDyanmoObj.id)
+        .catch(err => {
+        // log error
+          logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
+
+          // throw error
+          throw err;
+        });
+    }
+
+    const params = {
+      TableName: tableName,
+      Item: newDyanmoObj
+    };
+
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
-      .update(params)
+      .put(params)
+      // .update(params)
       .promise()
-      .then((data) => {
+      .then(() => {
         // log success
         logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
-        return data.Attributes;
+        return newDyanmoObj;
       })
       .catch(function (err) {
         // log error
@@ -727,14 +757,6 @@ class databaseModify {
         // throw error
         throw err;
       });
-
-    // .then(function(data) {
-    //   return data.Attributes;
-    // })
-    // .catch(function(err) {
-    //   console.error(err);
-    //   throw err;
-    // });
   } // updateEntryInDB
 } // databaseModify
 
