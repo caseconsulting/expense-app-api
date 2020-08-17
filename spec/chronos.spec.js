@@ -1,4 +1,5 @@
 const chronos = require('../chronos');
+const _ = require('lodash');
 
 const Budget = require('../models/budget');
 const ExpenseType = require('../models/expenseType');
@@ -64,6 +65,83 @@ describe('chronos', () => {
       });
     }); // should call the a number of times depending on the array size
   }); // _asyncForEach
+
+  describe('_budgetDynamo', () => {
+    it('should return a database modify object', () => {
+      let dynamo = chronos._budgetDynamo();
+      expect(dynamo).toBeDefined();
+    }); // should return a database modify object
+  }); // _budgetDynamo
+
+  describe('_expenseTypeDynamo', () => {
+    it('should return a database modify object', () => {
+      let dynamo = chronos._expenseTypeDynamo();
+      expect(dynamo).toBeDefined();
+    }); // should return a database modify object
+  }); // _expenseTypeDynamo
+
+  describe('_getAllExpenseTypes', () => {
+
+    let expenseTypeDynamo, etData, etReturned;
+
+    beforeEach(() => {
+      etData = _.cloneDeep(EXPENSE_TYPE_DATA);
+      etData.categories = ['{"name":"Meals","showOnFeed":false,"requireURL":false}'];
+      etReturned = new ExpenseType(EXPENSE_TYPE_DATA);
+      etReturned.categories = [{
+        name: 'Meals',
+        showOnFeed: false,
+        requireURL: false
+      }];
+      expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['getAllEntriesInDB']);
+      spyOn(chronos, '_expenseTypeDynamo').and.returnValue(expenseTypeDynamo);
+    });
+
+    afterEach(() => {
+      expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalledWith();
+    });
+
+    describe('when successfully reads all entries from db', () => {
+
+      beforeEach(() => {
+        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([etData]));
+      });
+
+      it('should return all the expense types', done => {
+        return chronos._getAllExpenseTypes().then(data => {
+          expect(data).toEqual([etReturned]);
+          done();
+        });
+      }); // should return all the expense types
+    }); // when successfully reads all entries from db
+
+    describe('when fails to read all entries from db', () => {
+
+      let err;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to read all entries from db'
+        };
+        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return a 404 rejected promise', (done) => {
+        return chronos
+          ._getAllExpenseTypes()
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+            done();
+          });
+      }); // should return a 404 rejected promise
+    }); // when fails to read all entries from db
+
+  }); // _getAllExpenseTypes
 
   describe('_getExpenseType', () => {
     let expenseTypes, expectedExpenseType;
