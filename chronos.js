@@ -85,7 +85,7 @@ function _getUUID() {
 async function _makeNewBudget(oldBudget, expenseType) {
   let updatedBudget = _.cloneDeep(oldBudget);
   let newBudgetData = {
-    id: _getUUID(),
+    id: lib._getUUID(),
     expenseTypeId: oldBudget.expenseTypeId,
     employeeId: oldBudget.employeeId,
     reimbursedAmount: 0,
@@ -187,7 +187,6 @@ lib = {
   _getExpenseType,
   _getUUID,
   _makeNewBudget,
-
   start,
   handler
 };

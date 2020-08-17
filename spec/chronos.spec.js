@@ -98,11 +98,13 @@ describe('chronos', () => {
     }); // should return an id value
   }); // _getUUID
 
-  xdescribe('_makeNewBudget', () => {
-    let budgetDynamo, oldBudget, expenseType;
+  describe('_makeNewBudget', () => {
+    let budgetDynamo, expenseType, newBudget, oldBudget, updatedBudget;
 
     beforeEach(() => {
       oldBudget = new Budget(BUDGET_DATA);
+      updatedBudget = new Budget(BUDGET_DATA);
+      newBudget = new Budget(BUDGET_DATA);
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       spyOn(chronos, '_getUUID').and.returnValue('{id}');
       budgetDynamo = jasmine.createSpyObj('budgetDynamo', ['addToDB', 'updateEntryInDB']);
@@ -111,35 +113,204 @@ describe('chronos', () => {
 
     describe('when previous reimburse amount exceeds expense type limit', () => {
       beforeEach(() => {
+        expenseType.budget = 100;
+
         oldBudget.reimbursedAmount = 120;
         oldBudget.pendingAmount = 30;
         oldBudget.amount = 100;
         oldBudget.fiscalStartDate = '2020-01-01';
         oldBudget.fiscalEndDate = '2020-12-31';
-        expenseType.reimbursedAmount = 100;
+
+        updatedBudget.reimbursedAmount = 100;
+        updatedBudget.pendingAmount = 0;
+        updatedBudget.amount = 100;
+        updatedBudget.fiscalStartDate = '2020-01-01';
+        updatedBudget.fiscalEndDate = '2020-12-31';
+
+        newBudget.reimbursedAmount = 20;
+        newBudget.pendingAmount = 30;
+        newBudget.amount = 100;
+        newBudget.fiscalStartDate = '2021-01-01';
+        newBudget.fiscalEndDate = '2021-12-31';
+      });
+
+      afterEach(() => {
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(updatedBudget);
       });
 
       describe('when successfully updates the old budget', () => {
         beforeEach(() => {
-          budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve());
+          budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(oldBudget));
         });
 
-        describe('and successfully adds new budget to db', () => {}); // when successfully adds new budget to db
+        afterEach(() => {
+          expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
+        });
 
-        describe('and fails to add new budget to db', () => {}); // when fails to add new budget to db
+        describe('and successfully adds new budget to db', () => {
+          beforeEach(() => {
+            budgetDynamo.addToDB.and.returnValue(Promise.resolve(newBudget));
+          });
+
+          it('should return the new budget', (done) => {
+            return chronos._makeNewBudget(oldBudget, expenseType).then((result) => {
+              expect(result).toEqual(newBudget);
+              done();
+            });
+          }); // should return the new budget
+        }); // when successfully adds new budget to db
+
+        describe('and fails to add new budget to db', () => {
+          let err;
+
+          beforeEach(() => {
+            err = {
+              code: 404,
+              message: 'Failed to add new budget to db'
+            };
+            budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
+          });
+
+          it('should return a 404 rejected promise', (done) => {
+            return chronos
+              ._makeNewBudget(oldBudget, expenseType)
+              .then(() => {
+                fail('expected error to have been thrown');
+                done();
+              })
+              .catch((error) => {
+                expect(error).toEqual(err);
+                done();
+              });
+          }); // should return a 404 rejected promise
+        }); // when fails to add new budget to db
       }); // whne successfully updates the old budget
 
-      describe('when fails to update the old budget', () => {}); // when fails to update the old budget
+      describe('when fails to update the old budget', () => {
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to update budget'
+          };
+          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should return a 404 rejected promise', (done) => {
+          return chronos
+            ._makeNewBudget(oldBudget, expenseType)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch((error) => {
+              expect(error).toEqual(err);
+              done();
+            });
+        }); // should return a 404 rejected promise
+      }); // when fails to update the old budget
     }); // when previous reimburse amount exceeds expense type limit
 
     describe('when previous reimburse amount does not exceed expense type limit', () => {
-      describe('when successfully updates the old budget', () => {
-        describe('and successfully adds new budget to db', () => {}); // when successfully adds new budget to db
+      beforeEach(() => {
+        expenseType.budget = 100;
 
-        describe('and fails to add new budget to db', () => {}); // when fails to add new budget to db
+        oldBudget.reimbursedAmount = 80;
+        oldBudget.pendingAmount = 50;
+        oldBudget.amount = 100;
+        oldBudget.fiscalStartDate = '2020-01-01';
+        oldBudget.fiscalEndDate = '2020-12-31';
+
+        updatedBudget.reimbursedAmount = 80;
+        updatedBudget.pendingAmount = 20;
+        updatedBudget.amount = 100;
+        updatedBudget.fiscalStartDate = '2020-01-01';
+        updatedBudget.fiscalEndDate = '2020-12-31';
+
+        newBudget.reimbursedAmount = 0;
+        newBudget.pendingAmount = 30;
+        newBudget.amount = 100;
+        newBudget.fiscalStartDate = '2021-01-01';
+        newBudget.fiscalEndDate = '2021-12-31';
+      });
+
+      afterEach(() => {
+        expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledWith(updatedBudget);
+      });
+
+      describe('when successfully updates the old budget', () => {
+        beforeEach(() => {
+          budgetDynamo.updateEntryInDB.and.returnValue(Promise.resolve(oldBudget));
+        });
+
+        afterEach(() => {
+          expect(budgetDynamo.addToDB).toHaveBeenCalledWith(newBudget);
+        });
+
+        describe('and successfully adds new budget to db', () => {
+          beforeEach(() => {
+            budgetDynamo.addToDB.and.returnValue(Promise.resolve(newBudget));
+          });
+
+          it('should return the new budget', (done) => {
+            return chronos._makeNewBudget(oldBudget, expenseType).then((result) => {
+              expect(result).toEqual(newBudget);
+              done();
+            });
+          }); // should return the new budget
+        }); // when successfully adds new budget to db
+
+        describe('and fails to add new budget to db', () => {
+          let err;
+
+          beforeEach(() => {
+            err = {
+              code: 404,
+              message: 'Failed to add new budget to db'
+            };
+            budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
+          });
+
+          it('should return a 404 rejected promise', (done) => {
+            return chronos
+              ._makeNewBudget(oldBudget, expenseType)
+              .then(() => {
+                fail('expected error to have been thrown');
+                done();
+              })
+              .catch((error) => {
+                expect(error).toEqual(err);
+                done();
+              });
+          }); // should return a 404 rejected promise
+        }); // when fails to add new budget to db
       }); // whne successfully updates the old budget
 
-      describe('when fails to update the old budget', () => {}); // when fails to update the old budget
+      describe('when fails to update the old budget', () => {
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to update budget'
+          };
+          budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should return a 404 rejected promise', (done) => {
+          return chronos
+            ._makeNewBudget(oldBudget, expenseType)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch((error) => {
+              expect(error).toEqual(err);
+              done();
+            });
+        }); // should return a 404 rejected promise
+      }); // when fails to update the old budget
     }); // when previous reimburse amount exceeds expense type limit
   }); // _makeNewBudget
 
