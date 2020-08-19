@@ -49,6 +49,9 @@ const basecampRoutes = new BasecampRoutes();
 const BlogRoutes = require('./routes/blogRoutes');
 const blogRoutes = new BlogRoutes();
 
+const BlogAttachmentRoutes = require('./routes/blogAttachtmentRoutes');
+const blogAttachtmentRoutes = new BlogAttachmentRoutes();
+
 const BlogFileRoutes = require('./routes/blogFileRoutes');
 const blogFileRoutes = new BlogFileRoutes();
 
@@ -87,7 +90,8 @@ app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/blog', blogRoutes.router);
-app.use('/blogFile', blogFileRoutes.router);
+app.use('/blogFiles', blogFileRoutes.router);
+app.use('/blogAttachments', blogAttachtmentRoutes.router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
