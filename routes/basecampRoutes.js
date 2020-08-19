@@ -70,6 +70,12 @@ class BasecampRoutes {
       this._getUserInfo,
       this._getBasecampAvatars.bind(this)
     );
+    this._router.get(
+      '/getBasecampCampfires',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getBasecampCampfires.bind(this)
+    );
   }
 
   async getToken(params){
@@ -89,7 +95,7 @@ class BasecampRoutes {
 
       // invoke mysterio basecamp lambda function
       let result = await this.getToken(params);
-      
+
       let resultPayload = JSON.parse(result.Payload);
 
       if (resultPayload.body) {
@@ -185,6 +191,75 @@ class BasecampRoutes {
     }
   } // _getBasecampAvatars
 
+  /**
+   * Get basecamp Campfires for the info@consultwithcase.com basecamp account.
+   *
+   * @return object - Employee Basecamp Campfires
+   */
+  async _getBasecampCampfires(req, res) {
+    // log method
+    logger.log(1, '_getBasecampCampfires', 'Attempting to get Basecamp Campfires');
+
+    // compute method
+    try {
+      let token = await this._getBasecampToken();
+      let page = 1;
+      let basecampResponse;
+      let campfires = [];
+      let pageCampfires = [];
+
+      do {
+        let options = {
+          method: 'GET',
+          url: `${BASECAMP_ROOT_URL}/projects.json`,
+          params: {
+            page: page
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'CasePortal (info@consultwithcase.com)'
+          }
+        };
+        basecampResponse = await this.callAxios(options);
+        let basecampData = basecampResponse.data;
+        pageCampfires = _.map(basecampData, project => {
+          let chat = _.find(project.dock, tools => {
+            return tools.title == 'Campfire';
+          });
+          return {
+            name: project.name,
+            url: chat.app_url
+          };
+        });
+        campfires = _.union(campfires, pageCampfires);
+        page++;
+      } while(!_.isEmpty(pageCampfires));
+
+      // log success
+      logger.log(1, '_getBasecampCampfires', 'Successfully got Basecamp Campfires');
+
+      // send successful 200 response and basecamp campfire data
+      res.status(200).send(campfires);
+
+      // return campfires data
+      return campfires;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getBasecampCampfires', 'Failed to get Basecamp Campfires');
+
+      let error = {
+        code: 404,
+        message: err.message
+      };
+
+      // send error status
+      this._sendError(res, error);
+
+      // return error;
+      return err;
+    }
+  } // _getBasecampCampfires
+
   async _getScheduleEntries(token, project) {
     logger.log(1, '_getScheduleEntries', 'Attempting to get Basecamp Events');
     try{
@@ -244,7 +319,7 @@ class BasecampRoutes {
   getBasecampInfo(){
     return BASECAMP_PROJECTS;
   }
-  
+
   //used to check if we need to make another API call to basecamp for paginated things
   getNextPage(currentPage, responseLength){
     if(currentPage === 1){
