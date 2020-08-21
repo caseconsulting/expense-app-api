@@ -29,7 +29,7 @@ class BlogRoutes extends Crud {
       // log success
       logger.log(2, '_read', `Successfully read blogPost ${data.id}`);
 
-      // return employee
+      // return blogPost
       return blogPost;
     } catch (err) {
       // log error
@@ -73,23 +73,23 @@ class BlogRoutes extends Crud {
    * Prepares a blog post to be created. Returns the blog post if it can be successfully created.
    *
    * @param data - data of blog post - object for dynamo and file for s3
-   * @return Employee - blog post prepared to create
+   * @return blogPost - blog post prepared to create
    */
   async _create(data) {
     // log method
-    logger.log(2, '_create', `Preparing to create employee ${data.id}`);
+    logger.log(2, '_create', `Preparing to create blogPost ${data.id}`);
 
     // compute method
     try {
       let blogPost = new BlogPost(data);
 
-      await this._validateBlogPost(blogPost); // validate employee
+      await this._validateBlogPost(blogPost); // validate blogPost
       await this._validateCreate(blogPost); // validate create
 
       // log success
       logger.log(2, '_create', `Successfully prepared to create blog post ${data.id}`);
 
-      // return prepared employee
+      // return prepared blogPost
       return blogPost;
     } catch (err) {
       // log error
@@ -234,7 +234,7 @@ class BlogRoutes extends Crud {
       // log success
       logger.log(3, '_validateBlogPost', `Successfully validated blogPost ${blogPost.id}`);
 
-      // return employee on success
+      // return blogPost on success
       return Promise.resolve(blogPost);
     } catch (err) {
       // log error

@@ -90,7 +90,7 @@ app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/blog', blogRoutes.router);
-app.use('/blogFiles', blogFileRoutes.router);
+app.use('/blogFile', blogFileRoutes.router);
 app.use('/blogAttachments', blogAttachtmentRoutes.router);
 
 // catch 404 and forward to error handler

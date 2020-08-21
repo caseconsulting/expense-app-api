@@ -31,7 +31,7 @@ const checkJwt = jwt({
 const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const BUCKET = `case-consulting-portal-app-blog-posts-${STAGE}`;
+const BUCKET = `case-consulting-expense-app-blog-posts-${STAGE}`;
 
 const storage = multerS3({
   s3: s3,
@@ -79,7 +79,7 @@ const upload = multer({
   storage: storage,
   limits: limits,
   fileFilter: fileFilter
-}).single('receipt');
+}).single('blogFile');
 
 class BlogFileRoutes{
   constructor() {
@@ -225,13 +225,12 @@ class BlogFileRoutes{
   uploadBlogFileToS3(req, res) {
     // log method
     logger.log(1, 'uploadBlogFileToS3', `Attempting to upload blogFile for blog ${req.params.id}`);
-
     // compute method
     upload(req, res, async (err) => {
       if (err) {
         // log error
         logger.log(1, 'uploadBlogFileToS3', 'Failed to upload file');
-
+        console.log(err);
         let error = {
           code: 403,
           message: `${err.message}`
