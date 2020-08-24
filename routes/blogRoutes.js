@@ -231,6 +231,16 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
+      // validate lastModifiedDate
+      if (_.isNil(blogPost.lastModifiedDate)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost lastModifiedDate is empty');
+      
+        // throw error
+        err.message = 'Invalid blogPost lastModifiedDate.';
+        throw err;
+      }
+
       // validate fileName
       if (_.isNil(blogPost.fileName)) {
         // log error

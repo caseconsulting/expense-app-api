@@ -18,6 +18,7 @@ class BlogPost {
     this.setRequiredAttribute(data, 'title');
     this.setRequiredAttribute(data, 'authorId');
     this.setRequiredAttribute(data, 'createDate');
+    this.setRequiredAttribute(data, 'lastModifiedDate');
     this.setRequiredAttribute(data, 'fileName');
     this.setOptionalAttribute(data, 'tags');
   }
