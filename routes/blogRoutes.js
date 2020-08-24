@@ -201,7 +201,17 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
-      // validate first name
+      // validate title
+      if (_.isNil(blogPost.title)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost title is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost title.';
+        throw err;
+      }
+
+      // validate authorId
       if (_.isNil(blogPost.authorId)) {
         // log error
         logger.log(3, '_validateBlogPost', 'BlogPost authorId is empty');
@@ -211,7 +221,7 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
-      // validate first name
+      // validate createDate
       if (_.isNil(blogPost.createDate)) {
         // log error
         logger.log(3, '_validateBlogPost', 'BlogPost createDate is empty');
@@ -221,7 +231,7 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
-      // validate first name
+      // validate fileName
       if (_.isNil(blogPost.fileName)) {
         // log error
         logger.log(3, '_validateBlogPost', 'BlogPost fileName is empty');
