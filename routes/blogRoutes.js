@@ -155,6 +155,7 @@ class BlogRoutes extends Crud {
 
     } catch (err) {
       // log error
+      console.log(err);
       logger.log(2, '_update', `Failed to prepare update for blogPost ${data.id}`);
 
       // return rejected promise
@@ -307,6 +308,62 @@ class BlogRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateCreate
+
+  /**
+   * Validates that an blogPost can be updated. Returns the blogPost if the blogPost being updated is valid.
+   *
+   * @param oldBlogPost - BlogPost being updated from
+   * @param newBlogPost - BlogPost being updated to
+   * @return BlogPost - validated blogPost
+   */
+  async _validateUpdate(oldBlogPost, newBlogPost) {
+    // log method
+    logger.log(3, '_validateUpdate', `Validating update for blogPost ${oldBlogPost.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating update for blogPost.'
+      };
+
+      // validate blogPost id
+      if (oldBlogPost.id != newBlogPost.id) {
+        // log error
+        logger.log(3, '_validateUpdate',
+          `Old blogPost id ${oldBlogPost.id} does not match new BlogPost id ${newBlogPost.id}`
+        );
+
+        // throw error
+        err.message = 'Error validating blogPost IDs.';
+        throw err;
+      }
+
+      // validate blogPost id
+      if (oldBlogPost.authorId != newBlogPost.authorId) {
+        // log error
+        logger.log(3, '_validateUpdate',
+          `Old blogPost authorId ${oldBlogPost.authorId} does not match new BlogPost authorId ${newBlogPost.authorId}`
+        );
+
+        // throw error
+        err.message = 'Error validating blogPost authorIDs.';
+        throw err;
+      }
+
+      // log success
+      logger.log(3, '_validateUpdate', `Successfully validated update for blogPost ${oldBlogPost.id}`);
+
+      // return new blogPost on success
+      return Promise.resolve(newBlogPost);
+    } catch (err) {
+      // log error
+      logger.log(3, '_validateUpdate', `Failed to validate update for blogPost ${oldBlogPost.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateUpdate
 }
 
 module.exports = BlogRoutes;

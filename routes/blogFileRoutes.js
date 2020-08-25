@@ -114,12 +114,12 @@ class BlogFileRoutes{
     logger.log(
       1,
       'deleteBlogFileFromS3',
-      `Attempting to delete blogFile ${req.params.receipt} for blog ${req.params.id}`
+      `Attempting to delete blogFile ${req.params.fileName} for blog ${req.params.id}`
     );
 
     // set up params
     let fileExt = req.params.fileName;
-    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
+    let filePath = `${req.params.authorId}/${req.params.id}/${fileExt}`;
     let params = { Bucket: BUCKET, Key: filePath };
 
     // make delete call to s3
@@ -171,14 +171,17 @@ class BlogFileRoutes{
     logger.log(1, 'getBlogFileFromS3', `Getting blogFile for blog ${req.params.id}`);
 
     // compute method
-    let expense = await this.expenseDynamo.getEntry(req.params.expenseId);
-    let fileExt = expense.receipt;
-    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
-    let params = { Bucket: BUCKET, Key: filePath, Expires: 60 };
-    s3.getSignedUrl('getObject', params, (err, data) => {
+    let blogPost = await this.blogDynamo.getEntry(req.params.id);
+    let fileExt = blogPost.fileName;
+    let filePath = `${blogPost.authorId}/${blogPost.id}/${fileExt}`;
+    let params = { Bucket: BUCKET, Key: filePath };
+
+    s3.getObject(params, function(err, data) {
+      // Handle any error and exit
       if (err) {
         // log error
-        logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
+        console.log(err);
+        logger.log(1, 'getBlogFileFromS3', 'Failed to read file');
 
         let error = {
           code: 403,
@@ -190,18 +193,19 @@ class BlogFileRoutes{
 
         // return error
         return error;
-      } else {
-        // log success
-        logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
-
-        // send successful 200 status
-        res.status(200).send(data);
-
-        // return file read
-        return data;
       }
+      // No error happened
+  
+      //log success
+      logger.log(1, 'getBlogFileFromS3', `Successfully read blogFile from s3 ${filePath}`);
+      
+      // send successful 200 status
+      res.status(200).send(data.Body.toString('utf-8'));
+
+      // return file read
+      return data.Body.toString('utf-8');
     });
-  } // getAttachmentFromS3
+  } // getBlogFileFromS3
 
   /**
    * Returns the instace express router.
@@ -258,7 +262,6 @@ class BlogFileRoutes{
       }
     });
   } // uploadAttachmentToS3
-
 }
 
 module.exports = BlogFileRoutes;
