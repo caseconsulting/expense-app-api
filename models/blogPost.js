@@ -5,9 +5,11 @@ const _ = require('lodash');
  *
  * Fields:
  * - id
+ * - blogNumber
  * - title
  * - authorId
  * - createDate
+ * - lastModifiedDate
  * - fileName
  * - tags
  */
@@ -15,6 +17,7 @@ const _ = require('lodash');
 class BlogPost {
   constructor(data) {
     this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'blogNumber');
     this.setRequiredAttribute(data, 'title');
     this.setRequiredAttribute(data, 'authorId');
     this.setRequiredAttribute(data, 'createDate');

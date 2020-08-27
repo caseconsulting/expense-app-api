@@ -202,6 +202,16 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
+      // validate blogNumber
+      if (_.isNil(blogPost.blogNumber)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost blogNumber is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost blogNumber.';
+        throw err;
+      }
+
       // validate title
       if (_.isNil(blogPost.title)) {
         // log error
@@ -339,7 +349,7 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
-      // validate blogPost id
+      // validate blogPost authorId
       if (oldBlogPost.authorId != newBlogPost.authorId) {
         // log error
         logger.log(3, '_validateUpdate',
