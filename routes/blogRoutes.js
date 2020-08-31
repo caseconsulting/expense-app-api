@@ -232,6 +232,16 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
+      // validate category
+      if (_.isNil(blogPost.category)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost category is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost category.';
+        throw err;
+      }
+
       // validate description
       if (_.isNil(blogPost.description)) {
         // log error

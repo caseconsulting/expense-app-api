@@ -8,6 +8,7 @@ const _ = require('lodash');
  * - blogNumber
  * - title
  * - authorId
+ * - category
  * - description
  * - createDate
  * - lastModifiedDate
@@ -21,6 +22,7 @@ class BlogPost {
     this.setRequiredAttribute(data, 'blogNumber');
     this.setRequiredAttribute(data, 'title');
     this.setRequiredAttribute(data, 'authorId');
+    this.setRequiredAttribute(data, 'category');
     this.setRequiredAttribute(data, 'description');
     this.setRequiredAttribute(data, 'createDate');
     this.setRequiredAttribute(data, 'lastModifiedDate');
