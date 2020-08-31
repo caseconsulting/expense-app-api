@@ -232,6 +232,16 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
+      // validate description
+      if (_.isNil(blogPost.description)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost description is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost description.';
+        throw err;
+      }
+
       // validate createDate
       if (_.isNil(blogPost.createDate)) {
         // log error
