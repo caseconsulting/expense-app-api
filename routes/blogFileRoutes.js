@@ -53,12 +53,15 @@ const limits = {
 // filter valid mimetypes
 const fileFilter = function (req, file, cb) {
   // log method
-  logger.log(2, 'fileFilter', `Attempting to validate type of attachment ${file.originalname}`);
+  logger.log(2, 'fileFilter', `Attempting to validate type of BlogFile ${file.originalname}`);
 
   // compute method
   // Content types that are allowed to be uploaded
   const ALLOWED_CONTENT_TYPES = [
-    'text/markdown'
+    'text/markdown',
+    'image/gif', //.gif
+    'image/jpeg', //.jpeg
+    'image/png' //.png
   ];
 
   if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
@@ -74,7 +77,7 @@ const fileFilter = function (req, file, cb) {
   }
 };
 
-// s3 fild upload multer
+// s3 file upload multer
 const upload = multer({
   storage: storage,
   limits: limits,
@@ -87,12 +90,18 @@ class BlogFileRoutes{
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.delete(
-      '/:authorId/:id/:fileName',
+      '/:authorId/:id/:fileName/:mainPicture',
       this._checkJwt,
       this._getUserInfo,
       this.deleteBlogFileFromS3.bind(this)
     );
     this._router.get('/:authorId/:id', this._checkJwt, this._getUserInfo, this.getBlogFileFromS3.bind(this));
+    this._router.get(
+      '/:authorId/:id/:mainPicture',
+      this._checkJwt,
+      this._getUserInfo,
+      this.getPictureFileFromS3.bind(this)
+    );
     this._router.post(
       '/:authorId/:id',
       this._checkJwt,
@@ -114,14 +123,19 @@ class BlogFileRoutes{
     logger.log(
       1,
       'deleteBlogFileFromS3',
-      `Attempting to delete blogFile ${req.params.fileName} for blog ${req.params.id}`
+      // eslint-disable-next-line max-len
+      `Attempting to delete blogFile ${req.params.fileName} and mainPicture ${req.params.mainPicure} for blog ${req.params.id}`
     );
 
     // set up params
     let fileExt = req.params.fileName;
+    let picExt = req.params.mainPicure;
     let filePath = `${req.params.authorId}/${req.params.id}/${fileExt}`;
+    let picPath = `${req.params.authorId}/${req.params.id}/${picExt}`;
     let params = { Bucket: BUCKET, Key: filePath };
-
+    let picParams = { Bucket: BUCKET, key: picPath};
+    
+    let fileError, picError, fileData, picData;
     // make delete call to s3
     s3.deleteObject(params, (err, data) => {
       if (err) {
@@ -132,16 +146,14 @@ class BlogFileRoutes{
           `Failed to delete blogFile for blog ${req.params.id} from S3 ${filePath}`
         );
 
-        let error = {
+        fileError = {
           code: 403,
           message: `${err.message}`
         };
 
         // send error status
-        res.status(error.code).send(error);
+        res.status(fileError.code).send(fileError);
 
-        // return error
-        return error;
       } else {
         // log success
         logger.log(
@@ -152,11 +164,47 @@ class BlogFileRoutes{
 
         // send successful 200 status
         res.status(200).send(data);
-
-        // return file read
-        return data;
+        fileData = data;
       }
     });
+
+    // make delete call to s3
+    s3.deleteObject(picParams, (err, data) => {
+      if (err) {
+        // log error
+        logger.log(
+          1,
+          'deleteBlogFileFromS3',
+          `Failed to delete main picture for blog ${req.params.id} from S3 ${picPath}`
+        );
+    
+        picError = {
+          code: 403,
+          message: `${err.message}`
+        };
+    
+        // send error status
+        res.status(picError.code).send(picError);
+    
+      } else {
+        // log success
+        logger.log(
+          1,
+          'deleteBlogFileFromS3',
+          `Successfully deleted main picture for blog ${req.params.id} from S3 ${picPath}`
+        );
+    
+        // send successful 200 status
+        res.status(200).send(data);
+        picData = data;
+      }
+    });
+    return {
+      fileError: fileError,
+      picError: picError,
+      fileData: fileData,
+      picData: picData
+    };
   } // deleteBlogFileFromS3
 
   /**
@@ -208,6 +256,58 @@ class BlogFileRoutes{
   } // getBlogFileFromS3
 
   /**
+   * Gets a blog picture from S3.
+
+   * @param req - api request
+   * @param res - api response
+   * @return Object - picture read from s3
+   */
+  async getPictureFileFromS3(req, res) {
+    // log method
+    logger.log(1, 'getPictureFileFromS3', `Getting main picture for blog ${req.params.id}`);
+
+    // compute method
+    let blogPost = await this.blogDynamo.getEntry(req.params.id);
+    let picExt = req.params.mainPicture;
+    let picPath = `${blogPost.authorId}/${blogPost.id}/${picExt}`;
+    let params = { Bucket: BUCKET, Key: picPath };
+
+    s3.getObject(params, function(err, data) {
+      // Handle any error and exit
+      if (err) {
+        // log error
+        console.log(err);
+        logger.log(1, 'getPictureFileFromS3', 'Failed to read file');
+
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
+
+        // send error status
+        res.status(error.code).send(error);
+
+        // return error
+        return error;
+      }
+      // No error happened
+  
+      //log success
+      logger.log(1, 'getPictureFileFromS3', `Successfully read main picture from s3 ${picPath}`);
+      console.log(data);
+      let payload = {
+        data: data.Body.toString('base64'),
+        type: data.ContentType
+      };
+      // send successful 200 status
+      res.status(200).send(payload);
+
+      // return file read
+      return data;
+    });
+  } // getBlogFileFromS3
+
+  /**
    * Returns the instace express router.
    *
    * @return Router Object - express router
@@ -220,7 +320,7 @@ class BlogFileRoutes{
   } // router
 
   /**
-   * Uploads a blogFile to s3.
+   * Uploads a blogFile/Picture to s3.
    *
    * @param req - api request
    * @param res - api response
@@ -234,7 +334,7 @@ class BlogFileRoutes{
       if (err) {
         // log error
         logger.log(1, 'uploadBlogFileToS3', 'Failed to upload file');
-        console.log(err);
+
         let error = {
           code: 403,
           message: `${err.message}`
@@ -250,7 +350,7 @@ class BlogFileRoutes{
         logger.log(
           1,
           'uploadBlogFileToS3',
-          `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
+          `Successfully uploaded BlogFile or picture ${req.file.originalname} with file key ${req.file.key}`,
           `to S3 bucket ${req.file.bucket}`
         );
 
@@ -261,7 +361,9 @@ class BlogFileRoutes{
         return req.file;
       }
     });
-  } // uploadAttachmentToS3
+
+  } // uploadBlogFileToS3
+
 }
 
 module.exports = BlogFileRoutes;

@@ -222,6 +222,16 @@ class BlogRoutes extends Crud {
         throw err;
       }
 
+      // validate mainPicture
+      if (_.isNil(blogPost.mainPicture)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost mainPicture is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost mainPicture.';
+        throw err;
+      }
+
       // validate authorId
       if (_.isNil(blogPost.authorId)) {
         // log error
