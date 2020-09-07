@@ -297,7 +297,7 @@ class BlogFileRoutes{
       console.log(data);
       let payload = {
         data: data.Body.toString('base64'),
-        type: data.ContentType
+        file: data
       };
       // send successful 200 status
       res.status(200).send(payload);
