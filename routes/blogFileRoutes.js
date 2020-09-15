@@ -124,87 +124,51 @@ class BlogFileRoutes{
       1,
       'deleteBlogFileFromS3',
       // eslint-disable-next-line max-len
-      `Attempting to delete blogFile ${req.params.fileName} and mainPicture ${req.params.mainPicure} for blog ${req.params.id}`
+      `Attempting to delete blogFile ${req.params.fileName} and mainPicture ${req.params.mainPicture} for blog ${req.params.id}`
     );
-
     // set up params
     let fileExt = req.params.fileName;
-    let picExt = req.params.mainPicure;
+    let picExt = req.params.mainPicture;
     let filePath = `${req.params.authorId}/${req.params.id}/${fileExt}`;
     let picPath = `${req.params.authorId}/${req.params.id}/${picExt}`;
-    let params = { Bucket: BUCKET, Key: filePath };
-    let picParams = { Bucket: BUCKET, key: picPath};
+    let params = { Bucket: BUCKET, Delete: { Objects: [{Key: filePath}, {Key: picPath}]} };
+    //let picParams = { Bucket: BUCKET, Key: picPath};
     
-    let fileError, picError, fileData, picData;
+    //let fileError, picError, fileData, picData;
+    let error;
     // make delete call to s3
-    s3.deleteObject(params, (err, data) => {
+    s3.deleteObjects(params, (err, data) => {
       if (err) {
+        console.log(err);
         // log error
         logger.log(
           1,
           'deleteBlogFileFromS3',
-          `Failed to delete blogFile for blog ${req.params.id} from S3 ${filePath}`
+          `Failed to delete blogFile and mainPicture for blog ${req.params.id} from S3 ${filePath}`
         );
 
-        fileError = {
+        error = {
           code: 403,
           message: `${err.message}`
         };
 
         // send error status
-        res.status(fileError.code).send(fileError);
+        res.status(error.code).send(error);
+        return error;
 
       } else {
         // log success
         logger.log(
           1,
           'deleteBlogFileFromS3',
-          `Successfully deleted blogFile for blog ${req.params.id} from S3 ${filePath}`
+          `Successfully deleted blogFile and picture for blog ${req.params.id} from S3 ${filePath}`
         );
 
         // send successful 200 status
         res.status(200).send(data);
-        fileData = data;
+        return data;
       }
     });
-
-    // make delete call to s3
-    s3.deleteObject(picParams, (err, data) => {
-      if (err) {
-        // log error
-        logger.log(
-          1,
-          'deleteBlogFileFromS3',
-          `Failed to delete main picture for blog ${req.params.id} from S3 ${picPath}`
-        );
-    
-        picError = {
-          code: 403,
-          message: `${err.message}`
-        };
-    
-        // send error status
-        res.status(picError.code).send(picError);
-    
-      } else {
-        // log success
-        logger.log(
-          1,
-          'deleteBlogFileFromS3',
-          `Successfully deleted main picture for blog ${req.params.id} from S3 ${picPath}`
-        );
-    
-        // send successful 200 status
-        res.status(200).send(data);
-        picData = data;
-      }
-    });
-    return {
-      fileError: fileError,
-      picError: picError,
-      fileData: fileData,
-      picData: picData
-    };
   } // deleteBlogFileFromS3
 
   /**
