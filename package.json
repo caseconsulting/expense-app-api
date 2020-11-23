@@ -53,7 +53,7 @@
     "start": "pm2 start services.yml",
     "stop": "pm2 stop services.yml",
     "tag:dev": "claudia tag --tags Application=expense-app,Stage=dev",
-    "tag:prod": "claudia tag --tags Application=expense-app,Stage=prod",
+    "tag:prod": "claudia tag --tags Application=expense-app,Stage=prod --profile prod",
     "tag:test": "claudia tag --tags Application=expense-app,Stage=test",
     "test": "jasmine",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine",
