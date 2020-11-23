@@ -563,6 +563,7 @@ class Attachment {
     }
     return {ids: Ids, Text: text, Confidences: confidences};
   }
+  
   /**
    * Gets an attachment from S3.
 

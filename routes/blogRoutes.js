@@ -1,101 +1,167 @@
 const Logger = require('../js/Logger');
-const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
-const jwksRsa = require('jwks-rsa');
-const jwt = require('express-jwt');
-const multer = require('multer');
+const Crud = require('./crudRoutes');
+const DatabaseModify = require('../js/databaseModify');
+const BlogPost = require('../models/blogPost');
 const _ = require('lodash');
 
-const logger = new Logger('attachmentRoutes');
-// Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = jwt({
-  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
-  // endpoint.
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
+const logger = new Logger('blogRoutes');
 
-  // Validate the audience and the issuer.
-  audience: process.env.VUE_APP_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
-
-const STAGE = process.env.STAGE;
-const AWS = require('aws-sdk');
-const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const multerS3 = require('multer-s3');
-const BUCKET = `case-consulting-portal-app-blog-attachments-${STAGE}`;
-const rekognition = new AWS.Rekognition({ apiVersion: '2016-06-27' });
-const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
-
-const fileFilter = function (req, file, cb) {
-  // log method
-  logger.log(2, 'fileFilter', `Attempting to validate type of attachment ${file.originalname}`);
-
-  // compute method
-  // Content types that are allowed to be uploaded
-  const ALLOWED_CONTENT_TYPES = [
-    'image/gif', //.gif
-    'image/jpeg', //.jpeg
-    'image/png', //.png
-  ];
-
-  if (_.includes(ALLOWED_CONTENT_TYPES, file.mimetype)) {
-    // valid file type
-    logger.log(2, 'fileFilter', `Successfully validated Mimetype ${file.mimetype} of attachment ${file.originalname}`);
-
-    cb(null, true);
-  } else {
-    // invalid file type
-    logger.log(2, 'fileFilter', `Failed to validate Mimetype ${file.mimetype} of attachment ${file.originalname}`);
-
-    cb(new Error(`Invalid file type ${file.mimetype}. View help menu for a list of valid file types.`));
-  }
-};
-
-const limits = {
-  files: 1, // allow only 1 file per request
-  fileSize: 6 * 1024 * 1024 // 6 MB (max file size)
-};
-
-const storage = multerS3({
-  s3: s3,
-  bucket: BUCKET,
-  acl: 'bucket-owner-full-control',
-  contentType: multerS3.AUTO_CONTENT_TYPE,
-  serverSideEncryption: 'AES256',
-  key: function (req, file, cb) {
-    cb(null, `${file.originalname}`);
-  }
-});
-
-// s3 file upload multer
-const upload = multer({
-  storage: storage,
-  limits: limits,
-  fileFilter: fileFilter
-}).single('image');
-
-
-
-class BlogAttachments {
+class BlogRoutes extends Crud {
   constructor() {
-    this._router = express.Router();
-    this._checkJwt = checkJwt;
-    this._getUserInfo = getUserInfo;
-    this._router.post('/getModerationLabel/:img', this._checkJwt, this._getUserInfo, this.detectModeration.bind(this));
-    this._router.post('/getKeyPhrases', this._checkJwt, this._getUserInfo, this.detectKeyPhrases.bind(this));
-    this._router.post(
-      '/uploadBlogAttachmentToS3/:img',
-      this._checkJwt,
-      this._getUserInfo,
-      this.uploadBlogAttachmentToS3.bind(this)
-    );
+    super();
+    this.databaseModify = new DatabaseModify('blog-posts');
   } // constructor
+
+  /**
+   * Reads a blog post from the database. Returns the post read along with the blog data from the bucket.
+   *
+   * @param data - parameters of blog post
+   * @return Blog post data
+   */
+  async _read(data) {
+    // log method
+    logger.log(2, '_read', `Attempting to read blogPost ${data.id}`);
+    
+    // compute method
+    try {
+      let blogPostRaw = await this.databaseModify.getEntry(data.id); // read from database
+      let blogPost = new BlogPost(blogPostRaw);
+      // log success
+      logger.log(2, '_read', `Successfully read blogPost ${data.id}`);
+
+      // return blogPost
+      return blogPost;
+    } catch (err) {
+      // log error
+      logger.log(2, '_read', `Failed to read blogPost ${data.id}`);
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // _read
+
+  /**
+   * Reads all blogPosts from the database. Returns all blogPosts.
+   *
+   * @return Array - all blogPosts
+   */
+  async _readAll() {
+    // log method
+    logger.log(2, '_readAll', 'Attempting to read all blogPosts');
+
+    // compute method
+    try {
+      let blogPostsData = await this.databaseModify.getAllEntriesInDB();
+      let blogPosts = _.map(blogPostsData, blogPost => {
+        return new BlogPost(blogPost);
+      });
+
+      // log success
+      logger.log(2, '_readAll', 'Successfully read all blogPosts');
+
+      // return all blogPosts
+      return blogPosts;
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAll', 'Failed to read all blogPosts');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // readAll
+  /**
+   * Prepares a blog post to be created. Returns the blog post if it can be successfully created.
+   *
+   * @param data - data of blog post - object for dynamo and file for s3
+   * @return blogPost - blog post prepared to create
+   */
+  async _create(data) {
+    // log method
+    logger.log(2, '_create', `Preparing to create blogPost ${data.id}`);
+
+    // compute method
+    try {
+      let blogPost = new BlogPost(data);
+
+      await this._validateBlogPost(blogPost); // validate blogPost
+      await this._validateCreate(blogPost); // validate create
+
+      // log success
+      logger.log(2, '_create', `Successfully prepared to create blog post ${data.id}`);
+
+      // return prepared blogPost
+      return blogPost;
+    } catch (err) {
+      // log error
+      logger.log(2, '_create', `Failed to prepare create for blog post ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _create
+
+  /**
+   * Prepares an blogPost to be deleted. Returns the blogPost if it can be successfully deleted.
+   *
+   * @param id - id of blogPost
+   * @return BlogPost - blogPost prepared to delete
+   */
+  async _delete(id) {
+    // log method
+    logger.log(2, '_delete', `Preparing to delete blogPost ${id}`);
+
+    // compute method
+    try {
+      let blogPost = new BlogPost(await this.databaseModify.getEntry(id));
+      //TODO: do a validate?
+
+      // log success
+      logger.log(2, '_delete', `Successfully prepared to delete blogPost ${id}`);
+
+      // return blogPost deleted
+      return blogPost;
+    } catch (err) {
+      // log error
+      logger.log(2, '_delete', `Failed to prepare delete for blogPost ${id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _delete
+
+  /**
+   * Prepares an blogPost to be updated. Returns the blogPost if it can be successfully updated.
+   *
+   * @param data - data of blogPost
+   * @return BlogPost - blogPost prepared to update
+   */
+  async _update(data) {
+    // log method
+    logger.log(2, '_update', `Preparing to update blogPost ${data.id}`);
+
+    // compute method
+    try {
+      let newBlogPost = new BlogPost(data);
+      let oldBlogPost = new BlogPost(await this.databaseModify.getEntry(data.id));
+
+      await this._validateBlogPost(newBlogPost);
+      await this._validateUpdate(oldBlogPost, newBlogPost);
+
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update blogPost ${data.id}`);
+
+      // return blogPost to update
+      return newBlogPost;
+
+    } catch (err) {
+      // log error
+      console.log(err);
+      logger.log(2, '_update', `Failed to prepare update for blogPost ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _update
 
   /**
    * Returns the instace express router.
@@ -108,143 +174,236 @@ class BlogAttachments {
 
     return this._router;
   } // router
-
+  
   /**
-   * Detect key phrases using AWS comprehend.
+   * Validate that a blogPost is valid. Returns the blogPost if successfully validated, otherwise returns an error.
    *
-   * @param req - api request
-   * @param res - api response
-   * @return Object - file uploaded
+   * @param blogPost - BlogPost object to be validated
+   * @return BlogPost - validated blogPost
    */
-  detectKeyPhrases(req, res) {
-    var params = {
-      LanguageCode: 'en' /* required */,
-      Text: req.body.inputText
-    };
-    comprehend.detectKeyPhrases(params, function (err, data) {
-      if (err) {
-        console.log(err, err.stack);
-
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
-
-        // send error status
-        res.status(error.code).send(error);
-        // an error occurred
-      } else {
-        console.log(data); // successful response
-        res.status(200).send(data);
-      }
-    });
-  } // detectKeyPhrases
-
-  /**
-   * Extracts labels from an image using AWS Rekognition.
-   *
-   * @param req - api request
-   * @param res - api response
-   * @return Object - text data
-   */
-  detectModeration(req, res) {
-    var params = {
-      Image: {
-        // /* required Bytes: Buffer.from('...') || 'STRING_VALUE' Strings will be Base-64 encoded on your behalf */,
-        S3Object: {
-          Bucket: BUCKET,
-          Name: req.params.img
-        }
-      },
-      MinConfidence: 60
-    };
-    rekognition.detectModerationLabels(params, function (err, data) {
-      if (err) {
-        console.log(err, err.stack);
-
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
-
-        // send error status
-        res.status(error.code).send(error);
-        // an error occurred
-      } else {
-        console.log(data); // successful response
-        res.status(200).send(data);
-      }
-    });
-  } // detectModeration
-
-  /*
-  async deleteBlogAttachmentFromS3(req, res) {
-    logger.log(1, 'deleteBlogAttachmentFromS3', `Attempting to delete attachment ${req.params.img}`);
-
-    let fileExt = req.params.img;
-    let filePath = `${req.params.e}`;
-    let params = { Bucket: BUCKET: key: filePath };
-
-    s3.deleteObject(params, (err, data) => {
-      if (err) {
-        logger.log(1, 'deleteAttachmentFromS3', `Failed to delete attachment ${req.params.img} from S3 ${filePath}`);
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
-        res.status(error.code).send(error);
-
-        // return error
-        return error;
-      }
-      else {
-        logger.log(1, 'deleteAttachmentFromS3', `Successfully deleted attachment ${req.params.img}`
-            + `from S3 ${filePath}`);
-        res.status(200).send(data);
-        return data;
-      }
-    });
-  } // deleteBlogAttachmentFromS3*/
-
-  uploadBlogAttachmentToS3(req, res) {
-    logger.log(1, 'uploadBlogAttachmentToS3', `Attempting to upload blog attachment ${req.params.img}`);
+  async _validateBlogPost(blogPost) {
+    // log method
+    logger.log(3, '_validateBlogPost', `Validating blogPost ${blogPost.id}`);
 
     // compute method
-    upload(req, res, async (err) => {
-      if(err) {
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating blogPost.'
+      };
+
+      // validate id
+      if (_.isNil(blogPost.id)) {
         // log error
-        logger.log(1, 'uploadBlogAttachmentToS3', 'Failed to upload file');
+        logger.log(3, '_validateBlogPost', 'BlogPost id is empty');
 
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
-
-        // send error status
-        res.status(error.code).send(error);
-        
-        // return error
-        return error;
+        // throw error
+        err.message = 'Invalid blogPost id.';
+        throw err;
       }
-      else {
-        // log success
-        logger.log(
-          1, 
-          'uploadBlogAttachmentToS3',
-          `Successfully uploaded blog attachment ${req.file.originalname} with file key ${req.file.key}`,
-          `to S3 bucket ${req.file.bucket}`
+
+      // validate blogNumber
+      if (_.isNil(blogPost.blogNumber)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost blogNumber is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost blogNumber.';
+        throw err;
+      }
+
+      // validate title
+      if (_.isNil(blogPost.title)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost title is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost title.';
+        throw err;
+      }
+
+      // validate mainPicture
+      if (_.isNil(blogPost.mainPicture)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost mainPicture is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost mainPicture.';
+        throw err;
+      }
+
+      // validate authorId
+      if (_.isNil(blogPost.authorId)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost authorId is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost authorId.';
+        throw err;
+      }
+
+      // validate category
+      if (_.isNil(blogPost.category)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost category is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost category.';
+        throw err;
+      }
+
+      // validate description
+      if (_.isNil(blogPost.description)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost description is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost description.';
+        throw err;
+      }
+
+      // validate createDate
+      if (_.isNil(blogPost.createDate)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost createDate is empty');
+      
+        // throw error
+        err.message = 'Invalid blogPost createDate.';
+        throw err;
+      }
+
+      // validate lastModifiedDate
+      if (_.isNil(blogPost.lastModifiedDate)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost lastModifiedDate is empty');
+      
+        // throw error
+        err.message = 'Invalid blogPost lastModifiedDate.';
+        throw err;
+      }
+
+      // validate fileName
+      if (_.isNil(blogPost.fileName)) {
+        // log error
+        logger.log(3, '_validateBlogPost', 'BlogPost fileName is empty');
+
+        // throw error
+        err.message = 'Invalid blogPost fileName.';
+        throw err;
+      }
+
+      // log success
+      logger.log(3, '_validateBlogPost', `Successfully validated blogPost ${blogPost.id}`);
+
+      // return blogPost on success
+      return Promise.resolve(blogPost);
+    } catch (err) {
+      // log error
+      logger.log(3, '_validateBlogPost', `Failed to validate blogPost ${blogPost.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateBlogPost
+
+  /**
+   * Validate that an blogPost can be created. Returns the blogPost if the blogPost can be created.
+   *
+   * @param blogPost - BlogPost to be created
+   * @return BlogPost - validated blogPost
+   */
+  async _validateCreate(blogPost) {
+    // log method
+    logger.log(3, '_validateCreate', `Validating create for blogPost ${blogPost.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating create for blogPost.'
+      };
+
+      let blogPosts = await this.databaseModify.getAllEntriesInDB();
+
+      // validate duplicate blogPost id
+      if (blogPosts.some((e) => e.id === blogPost.id)) {
+        // log error
+        logger.log(3, '_validateCreate', `BlogPost ID ${blogPost.id} is duplicated`);
+
+        // throw error
+        err.message = 'Unexpected duplicate id created. Please try submitting again.';
+        throw err;
+      }
+
+      // log success
+      logger.log(3, '_validateCreate', `Successfully validated create for blogPost ${blogPost.id}`);
+
+      // return blogPost on success
+      return Promise.resolve(blogPost);
+    } catch (err) {
+      // log error
+      logger.log(3, '_validateCreate', `Failed to validate create for blogPost ${blogPost.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateCreate
+
+  /**
+   * Validates that an blogPost can be updated. Returns the blogPost if the blogPost being updated is valid.
+   *
+   * @param oldBlogPost - BlogPost being updated from
+   * @param newBlogPost - BlogPost being updated to
+   * @return BlogPost - validated blogPost
+   */
+  async _validateUpdate(oldBlogPost, newBlogPost) {
+    // log method
+    logger.log(3, '_validateUpdate', `Validating update for blogPost ${oldBlogPost.id}`);
+
+    // compute method
+    try {
+      let err = {
+        code: 403,
+        message: 'Error validating update for blogPost.'
+      };
+
+      // validate blogPost id
+      if (oldBlogPost.id != newBlogPost.id) {
+        // log error
+        logger.log(3, '_validateUpdate',
+          `Old blogPost id ${oldBlogPost.id} does not match new BlogPost id ${newBlogPost.id}`
         );
 
-        // set a successful 200 response with uploaded file
-        res.status(200).send(req.file);
-
-        // return file uploaded
-        return req.file;
-
+        // throw error
+        err.message = 'Error validating blogPost IDs.';
+        throw err;
       }
-    });
-  } // uploadBlogAttachmentToS3
 
-} // BlogAttachments
+      // validate blogPost authorId
+      if (oldBlogPost.authorId != newBlogPost.authorId) {
+        // log error
+        logger.log(3, '_validateUpdate',
+          `Old blogPost authorId ${oldBlogPost.authorId} does not match new BlogPost authorId ${newBlogPost.authorId}`
+        );
 
-module.exports = BlogAttachments;
+        // throw error
+        err.message = 'Error validating blogPost authorIDs.';
+        throw err;
+      }
+
+      // log success
+      logger.log(3, '_validateUpdate', `Successfully validated update for blogPost ${oldBlogPost.id}`);
+
+      // return new blogPost on success
+      return Promise.resolve(newBlogPost);
+    } catch (err) {
+      // log error
+      logger.log(3, '_validateUpdate', `Failed to validate update for blogPost ${oldBlogPost.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _validateUpdate
+}
+
+module.exports = BlogRoutes;

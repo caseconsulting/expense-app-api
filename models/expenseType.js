@@ -6,44 +6,45 @@ const _ = require('lodash');
  * ExpenseType model
  *
  * Required Fields:
- * - id
- * - budgetName
+ * - accessiblyBy
+ * - alwaysOnFeed
  * - budget
+ * - budgetName
+ * - categories
  * - description
+ * - hasRecipient
+ * - id
+ * - isInactive
  * - odFlag
  * - recurringFlag
  * - requiredFlag
- * - isInactive
- * - accessiblyBy
- * - categories
- * - hasRecipient
- * - alwaysOnFeed
  * - requireURL
  *
  * Optional Fields:
- * - startDate
+ * - campfire
  * - endDate
+ * - startDate
  */
 
 class ExpenseType {
   constructor(data) {
-    this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'budgetName');
+    this.setRequiredAttribute(data, 'accessibleBy', 'ALL'); // default: accessible by all employees
+    this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
     this.setRequiredNumberAttribute(data, 'budget', undefined, 2); // fixed 2 decimal places
+    this.setRequiredAttribute(data, 'budgetName');
+    this.setRequiredAttribute(data, 'categories', []); // default: no categories
     this.setRequiredAttribute(data, 'description');
+    this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'isInactive', false); // default: active
     this.setRequiredAttribute(data, 'odFlag', false); // default: overdraft not allowed
     this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring
     this.setRequiredAttribute(data, 'requiredFlag', true); // default: receipt required
-    this.setRequiredAttribute(data, 'isInactive', false); // default: active
-    this.setRequiredAttribute(data, 'accessibleBy', 'ALL'); // default: accessible by all employees
-    this.setRequiredAttribute(data, 'categories', []); // default: no categories
-    this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
-    this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
     this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
 
-
-    this.setOptionalAttribute(data, 'startDate');
+    this.setOptionalAttribute(data, 'campfire');
     this.setOptionalAttribute(data, 'endDate');
+    this.setOptionalAttribute(data, 'startDate');
   } // constructor
 
   /**

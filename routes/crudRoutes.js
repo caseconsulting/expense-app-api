@@ -100,7 +100,7 @@ class Crud {
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
-      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
 
     let result = userPermissions || adminPermissions;
 
@@ -135,7 +135,8 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses']);
-    let adminPermissions = this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees']);
+    let adminPermissions = 
+      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'blog-posts']);
 
     let result = userPermissions || adminPermissions;
 
@@ -171,7 +172,7 @@ class Crud {
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'expense-types', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
-      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
 
     let result = userPermissions || adminPermissions;
 
@@ -207,7 +208,7 @@ class Crud {
     let userPermissions = this.isUser(employee)
       && this._checkTableName(['expense-types', 'employees', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
-      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
 
     let result = userPermissions || adminPermissions;
 
@@ -243,7 +244,7 @@ class Crud {
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
-      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
 
     let result = userPermissions || adminPermissions;
 

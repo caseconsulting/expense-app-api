@@ -5,18 +5,30 @@ const _ = require('lodash');
  *
  * Fields:
  * - id
+ * - blogNumber
+ * - title
+ * - mainPicture
  * - authorId
+ * - category
+ * - description
  * - createDate
- * - bucketId -- might be unecessary
+ * - lastModifiedDate
+ * - fileName
  * - tags
  */
 
 class BlogPost {
   constructor(data) {
     this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'blogNumber');
+    this.setRequiredAttribute(data, 'title');
+    this.setRequiredAttribute(data, 'mainPicture');
     this.setRequiredAttribute(data, 'authorId');
+    this.setRequiredAttribute(data, 'category');
+    this.setRequiredAttribute(data, 'description');
     this.setRequiredAttribute(data, 'createDate');
-    this.setRequiredAttribute(data, 'bucketId');
+    this.setRequiredAttribute(data, 'lastModifiedDate');
+    this.setRequiredAttribute(data, 'fileName');
     this.setOptionalAttribute(data, 'tags');
   }
 
