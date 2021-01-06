@@ -493,7 +493,7 @@ class ExpenseRoutes extends Crud {
     // compute method
     try {
       let expensesData = await this.databaseModify.getAllEntriesInDB();
-      let expenses = _.map(expensesData, expense => {
+      let expenses = _.map(expensesData, (expense) => {
         return new Expense(expense);
       });
 
@@ -868,7 +868,7 @@ class ExpenseRoutes extends Crud {
 
           // throw error
           err.message =
-            'Purchase date must be in current annual budget range from' +
+            'Purchase date must be in current annual budget range from ' +
             `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}.`;
           throw err;
         }
@@ -1110,12 +1110,7 @@ class ExpenseRoutes extends Crud {
         throw err;
       }
 
-
-      let oldBudget = await this._findBudget(
-        oldExpense.employeeId,
-        oldExpense.expenseTypeId,
-        oldExpense.purchaseDate
-      );
+      let oldBudget = await this._findBudget(oldExpense.employeeId, oldExpense.expenseTypeId, oldExpense.purchaseDate);
 
       // validate change cost
       if (oldExpense.cost != newExpense.cost) {
@@ -1159,11 +1154,7 @@ class ExpenseRoutes extends Crud {
       }
 
       // validate expenses are in same budget
-      let newBudget = await this._findBudget(
-        newExpense.employeeId,
-        newExpense.expenseTypeId,
-        newExpense.purchaseDate
-      );
+      let newBudget = await this._findBudget(newExpense.employeeId, newExpense.expenseTypeId, newExpense.purchaseDate);
 
       if (!_.isEqual(oldBudget, newBudget)) {
         // log error
