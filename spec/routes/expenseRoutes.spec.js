@@ -3,7 +3,8 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 const ExpenseType = require('../../models/expenseType');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
 describe('expenseRoutes', () => {

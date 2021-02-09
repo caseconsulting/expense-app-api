@@ -1,5 +1,6 @@
 // const AWS = require('aws-sdk-mock');
-// const moment = require('moment');
+// const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const TSheetsRoutes = require('../../routes/tSheetsRoutes');
 const _ = require('lodash');
 

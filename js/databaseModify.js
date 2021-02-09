@@ -1,7 +1,6 @@
 const AWS = require('aws-sdk');
 const Logger = require('./Logger');
 const TrainingUrl = require('../models/trainingUrls.js');
-// const moment = require('moment');
 const _ = require('lodash');
 require('dotenv').config({
   silent: true

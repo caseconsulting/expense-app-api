@@ -97,6 +97,7 @@
     "metascraper-url": "^5.16.7",
     "moment": "^2.29.1",
     "moment-range": "^4.0.2",
+    "moment-timezone": "^0.5.33",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
     "multer-s3": "^2.9.0",

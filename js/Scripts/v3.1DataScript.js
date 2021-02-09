@@ -23,7 +23,8 @@ const TRAINING_URLS_TABLE = `${STAGE}-training-urls`;
 
 const _ = require('lodash');
 // const { v4: uuid } = require('uuid');
-// const moment = require('moment');
+// const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const readlineSync = require('readline-sync');
 const Budget = require('./../../models/budget.js');
 const Employee = require('./../../models/employee.js');

@@ -1,4 +1,5 @@
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 
 const LOG_LEVEL = 5; // 1 for highest priority (most important)
 

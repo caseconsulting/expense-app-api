@@ -6,7 +6,8 @@ const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
 const ISOFORMAT = 'YYYY-MM-DD';

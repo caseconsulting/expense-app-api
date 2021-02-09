@@ -1,7 +1,8 @@
 const CrudRoutes = require('../../routes/crudRoutes');
 const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 
 const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
