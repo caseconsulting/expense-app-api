@@ -4,14 +4,13 @@ const BudgetRoutes = require('../../routes/budgetRoutes');
 // const Expense = require('../../models/expense');
 //const ExpenseType = require('../../models/expenseType');
 //const TrainingUrls = require('../../models/trainingUrls');
-//const moment = require('moment-timezone');
+const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
 //const ISOFORMAT = 'YYYY-MM-DD';
 
 describe('budgetRoutes', () => {
-
   //const STAGE = 'dev';
   const _ROUTER = '{router}';
 
@@ -145,7 +144,6 @@ describe('budgetRoutes', () => {
   });
 
   describe('_getCallerBudgets', () => {
-
     let req;
 
     beforeEach(() => {
@@ -153,26 +151,26 @@ describe('budgetRoutes', () => {
     });
 
     describe('when successfully gets employee caller budgets', () => {
-
       beforeEach(() => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([BUDGET_DATA]));
       });
 
-      it('should return an array of budget', done => {
-        budgetRoutes._getCallerBudgets(req, res)
-          .then(data => {
-            expect(data).toEqual([new Budget(BUDGET_DATA)]);
-            expect(budgetDynamo.querySecondaryIndexInDB)
-              .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith([new Budget(BUDGET_DATA)]);
-            done();
-          });
+      it('should return an array of budget', (done) => {
+        budgetRoutes._getCallerBudgets(req, res).then((data) => {
+          expect(data).toEqual([new Budget(BUDGET_DATA)]);
+          expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+            'employeeId-expenseTypeId-index',
+            'employeeId',
+            ID
+          );
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith([new Budget(BUDGET_DATA)]);
+          done();
+        });
       }); // should return an array of budgets
     }); // when successfully gets employee caller budgets
 
     describe('when fails to get employee caller budgets', () => {
-
       let err;
 
       beforeEach(() => {
@@ -183,13 +181,14 @@ describe('budgetRoutes', () => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        budgetRoutes._getCallerBudgets(req, res)
+      it('should return a 404 rejected promise', (done) => {
+        budgetRoutes
+          ._getCallerBudgets(req, res)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -198,7 +197,6 @@ describe('budgetRoutes', () => {
   }); // _getCallerBudgets
 
   describe('_getEmployeeBudgets', () => {
-
     let req;
 
     beforeEach(() => {
@@ -206,26 +204,26 @@ describe('budgetRoutes', () => {
     });
 
     describe('when successfully gets employee budgets', () => {
-
       beforeEach(() => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([BUDGET_DATA]));
       });
 
-      it('should return an array of budget', done => {
-        budgetRoutes._getEmployeeBudgets(req, res)
-          .then(data => {
-            expect(data).toEqual([new Budget(BUDGET_DATA)]);
-            expect(budgetDynamo.querySecondaryIndexInDB)
-              .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith([new Budget(BUDGET_DATA)]);
-            done();
-          });
+      it('should return an array of budget', (done) => {
+        budgetRoutes._getEmployeeBudgets(req, res).then((data) => {
+          expect(data).toEqual([new Budget(BUDGET_DATA)]);
+          expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+            'employeeId-expenseTypeId-index',
+            'employeeId',
+            ID
+          );
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith([new Budget(BUDGET_DATA)]);
+          done();
+        });
       }); // should return an array of budgets
     }); // when successfully gets employee budgets
 
     describe('when fails to get employee budgets', () => {
-
       let err;
 
       beforeEach(() => {
@@ -236,13 +234,14 @@ describe('budgetRoutes', () => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        budgetRoutes._getEmployeeBudgets(req, res)
+      it('should return a 404 rejected promise', (done) => {
+        budgetRoutes
+          ._getEmployeeBudgets(req, res)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -251,14 +250,12 @@ describe('budgetRoutes', () => {
   }); // _getEmployeeBudgets
 
   describe('router', () => {
-
     it('should return the router', () => {
       expect(budgetRoutes.router).toEqual(_ROUTER);
     }); // should return the router
   }); // router
 
   describe('_sendError', () => {
-
     let err;
 
     beforeEach(() => {

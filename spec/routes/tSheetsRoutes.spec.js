@@ -1,11 +1,10 @@
 // const AWS = require('aws-sdk-mock');
-// const moment = require('moment-timezone');
+const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const TSheetsRoutes = require('../../routes/tSheetsRoutes');
 const _ = require('lodash');
 
 describe('tSheetsRoutes', () => {
-
   //const ISOFORMAT = 'YYYY-MM-DD';
   //const STAGE = 'dev';
   const _ROUTER = '{router}';
@@ -77,7 +76,6 @@ describe('tSheetsRoutes', () => {
   });
 
   describe('asyncForEach', () => {
-
     let counter, array;
 
     beforeEach(() => {
@@ -86,7 +84,7 @@ describe('tSheetsRoutes', () => {
     });
 
     it('should call the a number of times depending on the array size', () => {
-      tSheetsRoutes.asyncForEach(array, number => {
+      tSheetsRoutes.asyncForEach(array, (number) => {
         counter++;
         expect(counter).toEqual(number);
       });
@@ -94,7 +92,6 @@ describe('tSheetsRoutes', () => {
   }); // asyncForEach
 
   describe('isAdmin', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -102,7 +99,6 @@ describe('tSheetsRoutes', () => {
     });
 
     describe('when the employee is an admin', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'admin';
       });
@@ -113,7 +109,6 @@ describe('tSheetsRoutes', () => {
     }); // when the employee is an admin
 
     describe('when the employee is not an admin', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'user';
       });
@@ -125,7 +120,6 @@ describe('tSheetsRoutes', () => {
   }); // isAdmin
 
   describe('isUser', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -133,7 +127,6 @@ describe('tSheetsRoutes', () => {
     });
 
     describe('when the employee is a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'user';
       });
@@ -144,7 +137,6 @@ describe('tSheetsRoutes', () => {
     }); // when the employee is a user
 
     describe('when the employee is not a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'admin';
       });
@@ -156,14 +148,12 @@ describe('tSheetsRoutes', () => {
   }); // isUser
 
   describe('router', () => {
-
     it('should return the router', () => {
       expect(tSheetsRoutes.router).toEqual(_ROUTER);
     }); // should return the router
   }); // router
 
   describe('_sendError', () => {
-
     let err;
 
     beforeEach(() => {
@@ -217,19 +207,18 @@ describe('tSheetsRoutes', () => {
       beforeEach(() => {
         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(monthlyHours);
       });
-      it('should respond with a 200 and monthly hours', done => {
-        tSheetsRoutes._getMonthlyHours(req, res)
-          .then(data => {
-            expect(data).toEqual(timesheets);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(timesheets);
-            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
-            done();
-          });
+      it('should respond with a 200 and monthly hours', (done) => {
+        tSheetsRoutes._getMonthlyHours(req, res).then((data) => {
+          expect(data).toEqual(timesheets);
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(timesheets);
+          expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+          done();
+        });
       });
     }); // successfully returns monthly hours
 
-    describe('when it fails to return monthly hours', ()=> {
+    describe('when it fails to return monthly hours', () => {
       let err;
       beforeEach(() => {
         err = {
@@ -239,14 +228,13 @@ describe('tSheetsRoutes', () => {
         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(MONTHLY_HOURS_ERR);
         spyOn(tSheetsRoutes, '_sendError').and.returnValue(err);
       });
-      it('should respond with 404 and err', done => {
-        tSheetsRoutes._getMonthlyHours(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(tSheetsRoutes._sendError).toHaveBeenCalled();
-            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
-            done();
-          });
+      it('should respond with 404 and err', (done) => {
+        tSheetsRoutes._getMonthlyHours(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(tSheetsRoutes._sendError).toHaveBeenCalled();
+          expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+          done();
+        });
       });
     }); // fails to return monthly hours
   }); // _getMonthlyHours
@@ -259,18 +247,17 @@ describe('tSheetsRoutes', () => {
       ptoBalances = _.cloneDeep(PTO_BALANCES);
     });
     describe('when successfully return pto balances', () => {
-      beforeEach(()=> {
+      beforeEach(() => {
         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(ptoBalancesPayload);
       });
-      it('should respond with a 200 and pto balances', done => {
-        tSheetsRoutes._getPTOBalances(req, res)
-          .then(data => {
-            expect(data).toEqual(ptoBalances);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(ptoBalances);
-            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
-            done();
-          });
+      it('should respond with a 200 and pto balances', (done) => {
+        tSheetsRoutes._getPTOBalances(req, res).then((data) => {
+          expect(data).toEqual(ptoBalances);
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(ptoBalances);
+          expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+          done();
+        });
       });
     }); // successfully returns pto balances
 
@@ -278,20 +265,19 @@ describe('tSheetsRoutes', () => {
       let err;
       beforeEach(() => {
         err = {
-          code: 404, 
+          code: 404,
           message: 'Failed to get pto balances'
         };
         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(PTO_BALANCES_ERR);
         spyOn(tSheetsRoutes, '_sendError').and.returnValue(err);
       });
-      it('should respond with 404 and err', done => {
-        tSheetsRoutes._getPTOBalances(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(tSheetsRoutes._sendError).toHaveBeenCalled();
-            expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
-            done();
-          });
+      it('should respond with 404 and err', (done) => {
+        tSheetsRoutes._getPTOBalances(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(tSheetsRoutes._sendError).toHaveBeenCalled();
+          expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
+          done();
+        });
       });
     }); // fails to return pto balances
   }); // _getPToBalances

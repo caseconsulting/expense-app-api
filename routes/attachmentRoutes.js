@@ -65,6 +65,7 @@ const fileFilter = function (req, file, cb) {
     'image/gif', //.gif
     'image/jpeg', //.jpeg
     'image/png', //.png
+    'image/bmp', //.bmp
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //xlsx
     'application/vnd.ms-excel', //.xls, .xlt, xla
     'application/xml', //.xml
@@ -425,9 +426,9 @@ class Attachment {
           //             key_map[block_id] = block
           //         else:
           //             value_map[block_id] = block
-      
+
           // return key_map, value_map, block_map
-          
+
           let keyMap = {};
           let valueMap = {};
           let blockMap = {};
@@ -441,7 +442,7 @@ class Attachment {
               } else {
                 valueMap[blockId] = block;
               }
-            }  
+            }
           });
 
           // def get_kv_relationship(key_map, value_map, block_map):
@@ -454,7 +455,7 @@ class Attachment {
           // return kvs
 
           let keyValueSets = [];
-          for(let key in keyMap){
+          for (let key in keyMap) {
             let valueBlock = this.findValueBlock(keyMap[key], valueMap);
             let KVSkey = this.getText(keyMap[key], blockMap);
             let KVSval = this.getText(valueBlock, blockMap);
@@ -462,14 +463,14 @@ class Attachment {
             let keys = {};
             let values = {};
 
-            for(let i = 0; i < KVSkey.ids.length; i++){
-              keys[KVSkey.ids[i]] = {Text: KVSkey.Text[i], Confidence: KVSkey.Confidences[i]};
+            for (let i = 0; i < KVSkey.ids.length; i++) {
+              keys[KVSkey.ids[i]] = { Text: KVSkey.Text[i], Confidence: KVSkey.Confidences[i] };
             }
-            for(let i = 0; i < KVSval.ids.length; i++){
-              values[KVSval.ids[i]] = {Text: KVSval.Text[i], Confidence: KVSval.Confidences[i]};
+            for (let i = 0; i < KVSval.ids.length; i++) {
+              values[KVSval.ids[i]] = { Text: KVSval.Text[i], Confidence: KVSval.Confidences[i] };
             }
 
-            keyValueSets.push({ Keys: keys, Values: values});
+            keyValueSets.push({ Keys: keys, Values: values });
           }
           /**
            * {
@@ -479,9 +480,9 @@ class Attachment {
            *   Values: {
            *     id: {Text: '$100', Confidence: 99.1237187237}
            * }
-           * 
+           *
            */
-          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets, Words: words};
+          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets, Words: words };
           // send successful 200 status with the uploaded file and text
           res.status(200).send(payload);
 
@@ -511,8 +512,8 @@ class Attachment {
     //             value_block = value_map[value_id]
     // return value_block
     let valueBlock;
-    _.forEach(keyBlock.Relationships, (relationship)=> {
-      if(relationship.Type === 'VALUE'){
+    _.forEach(keyBlock.Relationships, (relationship) => {
+      if (relationship.Type === 'VALUE') {
         _.forEach(relationship.Ids, (valueId) => {
           valueBlock = valueMap[valueId];
         });
@@ -529,27 +530,26 @@ class Attachment {
     //         if relationship['Type'] == 'CHILD':
     //             for child_id in relationship['Ids']:
     //                 word = blocks_map[child_id]
-    //                 if word['BlockType'] == 'WORD': 
+    //                 if word['BlockType'] == 'WORD':
     //                     text += word['Text'] + ' '
     //                 if word['BlockType'] == 'SELECTION_ELEMENT':
     //                     if word['SelectionStatus'] == 'SELECTED':
-    //                         text += 'X '    
+    //                         text += 'X '
 
-                                
     // return text
     let text = [];
     let Ids = [];
     let confidences = [];
     if (Object.prototype.hasOwnProperty.call(result, 'Relationships')) {
       _.forEach(result.Relationships, (relationship) => {
-        if  (relationship.Type === 'CHILD'){
+        if (relationship.Type === 'CHILD') {
           _.forEach(relationship.Ids, (childId) => {
             let word = blocksMap[childId];
             if (word.BlockType === 'WORD') {
               text.push(word.Text);
               Ids.push(word.Id);
               confidences.push(word.Confidence);
-            } 
+            }
             if (word.BlockType === 'SELECTION_ELEMENT') {
               if (word.SelectionStatus === 'SELECTED') {
                 text.push('X ');
@@ -561,9 +561,9 @@ class Attachment {
         }
       });
     }
-    return {ids: Ids, Text: text, Confidences: confidences};
+    return { ids: Ids, Text: text, Confidences: confidences };
   }
-  
+
   /**
    * Gets an attachment from S3.
 
