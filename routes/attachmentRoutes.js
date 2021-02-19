@@ -68,7 +68,6 @@ const fileFilter = function (req, file, cb) {
     'image/bmp', //.bmp
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //xlsx
     'application/vnd.ms-excel', //.xls, .xlt, xla
-    'application/xml', //.xml
     'application/msword', //.doc
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document' //.docx
   ];
