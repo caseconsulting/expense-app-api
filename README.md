@@ -30,6 +30,13 @@ Download this file to the project root directory:
 npm run download:local:env
 ```
 
+To download a specific environment's .env file:
+
+```bash
+npm run download:{Stage}:env
+```
+
+Where Stage is the name of the environment (local, dev, test, prod, etc.)
 ## Application tasks
 
 To run locally (using pm2 configuration defined in `services.yml`):
@@ -244,3 +251,32 @@ npm install
 
 ## Next time deploying v3.1.0 to test or prod
 Deploy mysterio to test or prod
+
+## Documentation
+
+**AWS_SDK:**
+
+https://docs.aws.amazon.com/sdk-for-javascript/
+
+we're currently using version 2
+
+**Axios:**
+
+https://github.com/axios/axios
+
+
+**Express:**
+
+https://expressjs.com/
+
+**Metascraper:**
+
+https://metascraper.js.org/#/
+
+**Lodash:**
+
+https://vuetifyjs.com/en/
+
+**Moment:**
+
+https://momentjs.com/docs/
