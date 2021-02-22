@@ -275,8 +275,12 @@ https://metascraper.js.org/#/
 
 **Lodash:**
 
-https://vuetifyjs.com/en/
+https://lodash.com/
 
 **Moment:**
 
 https://momentjs.com/docs/
+
+**Cloudformation:**
+
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
