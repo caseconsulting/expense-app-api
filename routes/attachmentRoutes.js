@@ -40,7 +40,6 @@ const storage = multerS3({
   s3: s3,
   bucket: BUCKET,
   acl: 'bucket-owner-full-control',
-  contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
   key: function (req, file, cb) {
     cb(null, `${req.params.employeeId}/${req.params.expenseId}/${file.originalname}`);
