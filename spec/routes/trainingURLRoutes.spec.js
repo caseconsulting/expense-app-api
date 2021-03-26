@@ -1,4 +1,5 @@
-// const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const TrainingUrl = require('../../models/trainingUrls');
 const TrainingUrlRoutes = require('../../routes/trainingUrlRoutes');
 const _ = require('lodash');

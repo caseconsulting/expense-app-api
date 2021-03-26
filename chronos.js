@@ -3,7 +3,8 @@ let lib;
 const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 

@@ -3,7 +3,8 @@ const _ = require('lodash');
 
 const Budget = require('../models/budget');
 const ExpenseType = require('../models/expenseType');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 
 const ID = '{id}';
 const NAME = '{name}';

@@ -8,7 +8,8 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 const Basecamp = require('../routes/basecampRoutes');
 

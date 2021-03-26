@@ -23,7 +23,9 @@ const TRAINING_URLS_TABLE = `${STAGE}-training-urls`;
 
 const _ = require('lodash');
 // const { v4: uuid } = require('uuid');
-// const moment = require('moment');
+// const moment = require('moment-timezone');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
 const readlineSync = require('readline-sync');
 const Budget = require('./../../models/budget.js');
 const Employee = require('./../../models/employee.js');
@@ -106,23 +108,23 @@ async function removeNull(table) {
   let entries;
 
   if (table == BUDGETS_TABLE) {
-    entries = _.map(entriesData, entry => {
+    entries = _.map(entriesData, (entry) => {
       return new Budget(entry);
     });
   } else if (table == EMPLOYEES_TABLE) {
-    entries = _.map(entriesData, entry => {
+    entries = _.map(entriesData, (entry) => {
       return new Employee(entry);
     });
   } else if (table == EXPENSES_TABLE) {
-    entries = _.map(entriesData, entry => {
+    entries = _.map(entriesData, (entry) => {
       return new Expense(entry);
     });
   } else if (table == EXPENSE_TYPES_TABLE) {
-    entries = _.map(entriesData, entry => {
+    entries = _.map(entriesData, (entry) => {
       return new ExpenseType(entry);
     });
   } else if (table == TRAINING_URLS_TABLE) {
-    entries = _.map(entriesData, entry => {
+    entries = _.map(entriesData, (entry) => {
       return new TrainingUrl(entry);
     });
   }

@@ -205,6 +205,12 @@ class BlogAttachmentRoutes {
     });
   } // deleteBlogAttachmentFromS3*/
 
+  /**
+   * uploads attachment for rekognition and comprehend analysis
+   * 
+   * @param {*} req - api request
+   * @param {*} res - api response
+   */
   uploadBlogAttachmentToS3(req, res) {
     logger.log(1, 'uploadBlogAttachmentToS3', `Attempting to upload blog attachment ${req.params.img}`);
 
