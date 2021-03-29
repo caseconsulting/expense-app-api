@@ -103,6 +103,28 @@ describe('basecampRoutes', () => {
     data: [SCHEDULE]
   };
 
+  const RAW_FULL_SCHEDULE_DATA = [
+    {data: '1'},
+    {data: '2'},
+    {data: '3'},
+    {data: '4'},
+    {data: '5'},
+    {data: '6'},
+    {data: '7'},
+    {data: '8'},
+    {data: '9'},
+    {data: '10'},
+    {data: '11'},
+    {data: '12'},
+    {data: '13'},
+    {data: '14'},
+    {data: '15'}
+  ];
+
+  const RAW_FULL_SCHEDULE = {
+    data: RAW_FULL_SCHEDULE_DATA
+  };
+
   const EMPTY_SCHEDULE = {
     data: []
   };
@@ -232,8 +254,9 @@ describe('basecampRoutes', () => {
       
       beforeEach(() => {
         spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+         //we have two returns because it makes sure there isn't another page of avatars. 
         spyOn(basecampRoutes, 'callAxios').and
-          .returnValues(Promise.resolve(basecampRawAvatar), Promise.resolve(basecampEmptyAvatar));
+          .returnValues(Promise.resolve(basecampRawAvatar), Promise.resolve(basecampEmptyAvatar)); 
       });
 
       it('should respond with the data', done => {
@@ -244,14 +267,15 @@ describe('basecampRoutes', () => {
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith([basecampAvatar]);
             expect(basecampRoutes.callAxios).toHaveBeenCalled();
-            expect(basecampRoutes.callAxios).toHaveBeenCalledTimes(2);
+            //Called twice to make sure there aren't more avatars.
+            expect(basecampRoutes.callAxios).toHaveBeenCalledTimes(2); 
             done();
           });
       });// it should respond with the data
     });
 
-    describe('when it fails to get the avatars', () => {
-      
+    describe('when it fails to get the token', () => {
+
       let err, req;
 
       beforeEach(() => {
@@ -273,17 +297,56 @@ describe('basecampRoutes', () => {
             done();
           });
       });
+    }); // should return 404 error
+
+    describe('when it fails to get the avatars', () => {
+      
+      let err, req;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get basecamp avatars.'
+        };
+        basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
+        req = _.cloneDeep(REQ_DATA);
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+        //we have two returns because it makes sure there isn't another page of avatars.
+        spyOn(basecampRoutes, 'callAxios').and
+          .returnValue(Promise.reject(err)); 
+      });
+
+      it('should return 404 error', done => {
+        basecampRoutes._getBasecampAvatars(req, res)
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+            expect(basecampRoutes.callAxios).toHaveBeenCalled();
+            done();
+          });
+      });
     });// should return 404 error
 
   });
 
   describe('_getScheduleEntries', () => {
-    let basecampToken, basecampSchedule, basecampRawSchedule, basecampEmptySchedule, projects;
+    let basecampToken,
+        basecampSchedule,
+        basecampRawSchedule,
+        basecampEmptySchedule,
+        basecampRawFullSchedule,
+        basecampRawFullScheduleData,
+        projects;
+
     beforeEach(() => {
       basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
       basecampSchedule = _.cloneDeep(SCHEDULE);
       basecampRawSchedule = _.cloneDeep(RAW_SCHEDULE);
       basecampEmptySchedule = _.cloneDeep(EMPTY_SCHEDULE);
+      basecampRawFullSchedule = _.cloneDeep(RAW_FULL_SCHEDULE);
+      basecampRawFullScheduleData = _.cloneDeep(RAW_FULL_SCHEDULE_DATA);
       projects = _.cloneDeep(BASECAMP_PROJECTS.CASE_CARES);
     });
 
@@ -292,7 +355,7 @@ describe('basecampRoutes', () => {
       beforeEach(() => {
         spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
         spyOn(basecampRoutes, 'callAxios').and
-          .returnValues(Promise.resolve(basecampRawSchedule), Promise.resolve(basecampEmptySchedule));
+          .returnValue(Promise.resolve(basecampRawSchedule));
       });
 
       it('should respond with the data', done => {
@@ -303,8 +366,84 @@ describe('basecampRoutes', () => {
             expect(basecampRoutes.callAxios).toHaveBeenCalledTimes(1);
             done();
           });
-      });// it should respond with the data
-    });
+      });
+    });// it should respond with the data
+
+    describe('when it gets called more than once and succeeds', () => {
+
+      beforeEach(() => {
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+        spyOn(basecampRoutes, 'callAxios').and
+          .returnValues(Promise.resolve(basecampRawFullSchedule), Promise.resolve(basecampEmptySchedule));
+      });
+
+      it('should respond with the data', done => {
+        basecampRoutes._getScheduleEntries(basecampToken, projects)
+          .then(data => {
+            console.log(data);
+            expect(data).toEqual(basecampRawFullScheduleData);
+            expect(basecampRoutes.callAxios).toHaveBeenCalled();
+            expect(basecampRoutes.callAxios).toHaveBeenCalledTimes(2);
+            done();
+          });
+      });
+    });// it should respond with the data
+
+    describe('when it fails to get the token', () => {
+
+      let err, req;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get basecamp schedule entries.'
+        };
+        req = _.cloneDeep(REQ_DATA);
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.reject(err));
+      });
+
+      it('should return 404 error', done => {
+        basecampRoutes._getBasecampAvatars(req, res)
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+            done();
+          });
+      });
+    }); // should return 404 error
+
+    describe('when it fails to get the schedule entries', () => {
+
+      let err, req;
+
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to get basecamp schedule entries.'
+        };
+        basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
+        req = _.cloneDeep(REQ_DATA);
+        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
+        //we have two returns because it makes sure there isn't another page of entries.
+        spyOn(basecampRoutes, 'callAxios').and
+          .returnValue(Promise.reject(err)); 
+      });
+
+      it('should return 404 error', done => {
+        basecampRoutes._getBasecampAvatars(req, res)
+          .then(data => {
+            expect(data).toEqual(err);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+            expect(basecampRoutes.callAxios).toHaveBeenCalled();
+            done();
+          });
+      });
+    });// should return 404 error
+
   });
 
   describe('_getFeedEvents', () => {

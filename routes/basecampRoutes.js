@@ -193,7 +193,8 @@ class BasecampRoutes {
 
   /**
    * Get basecamp Campfires for the info@consultwithcase.com basecamp account.
-   *
+   * @param req - api request
+   * @param res - api respone
    * @return object - Employee Basecamp Campfires
    */
   async _getBasecampCampfires(req, res) {
@@ -260,6 +261,12 @@ class BasecampRoutes {
     }
   } // _getBasecampCampfires
 
+  /**
+   * Get basecamp Schedule entries for the info@consultwithcase.com basecamp account.
+   * @param token - api token
+   * @param project - basecamp project
+   * @return object - Employee Basecamp Campfires
+   */
   async _getScheduleEntries(token, project) {
     logger.log(1, '_getScheduleEntries', 'Attempting to get Basecamp Events');
     try{
@@ -295,8 +302,14 @@ class BasecampRoutes {
 
       throw err;
     }
-  }
+  } // _getScheduleEntries
 
+  /**
+   * Get basecamp schedule entries for all the selected projects for the info@consultwithcase.com basecamp account.
+   * @param req - api request
+   * @param res - api respone
+   * @return object - Employee Basecamp Campfires
+   */
   async _getFeedEvents(req, res) {
     logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
     try{
@@ -320,7 +333,14 @@ class BasecampRoutes {
     return BASECAMP_PROJECTS;
   }
 
-  //used to check if we need to make another API call to basecamp for paginated things
+  /**
+   * Check to see if we need to make another call for paginated things
+   *
+   * @param currentPage - the current page
+   * @param responseLength - the amount of responses that were returned
+   * @returns - true if the number of responses is the max for that page(and therefore there might be more entries to
+   *            get) and false otherwise
+   */
   getNextPage(currentPage, responseLength){
     if(currentPage === 1){
       return responseLength === 15 ? true : false;
@@ -331,7 +351,8 @@ class BasecampRoutes {
     } else if (currentPage >= 4) {
       return responseLength === 100 ? true : false;
     }
-  }
+  } // getNextPage
+
   /**
    * Returns the instace express router.
    *
