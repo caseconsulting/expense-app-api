@@ -254,7 +254,7 @@ describe('basecampRoutes', () => {
       
       beforeEach(() => {
         spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
-         //we have two returns because it makes sure there isn't another page of avatars. 
+        //we have two returns because it makes sure there isn't another page of avatars. 
         spyOn(basecampRoutes, 'callAxios').and
           .returnValues(Promise.resolve(basecampRawAvatar), Promise.resolve(basecampEmptyAvatar)); 
       });
@@ -333,12 +333,12 @@ describe('basecampRoutes', () => {
 
   describe('_getScheduleEntries', () => {
     let basecampToken,
-        basecampSchedule,
-        basecampRawSchedule,
-        basecampEmptySchedule,
-        basecampRawFullSchedule,
-        basecampRawFullScheduleData,
-        projects;
+      basecampSchedule,
+      basecampRawSchedule,
+      basecampEmptySchedule,
+      basecampRawFullSchedule,
+      basecampRawFullScheduleData,
+      projects;
 
     beforeEach(() => {
       basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
