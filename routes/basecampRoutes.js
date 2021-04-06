@@ -300,7 +300,12 @@ class BasecampRoutes {
     } catch(err) {
       logger.log(1, '_getScheduleEntries', `${err.code}: ${err.message}`);
 
-      throw err;
+      let error = {
+        code: 404,
+        message: 'Failed to get schedule entries'
+      };
+
+      throw error;
     }
   } // _getScheduleEntries
 

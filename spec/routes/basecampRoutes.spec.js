@@ -389,56 +389,28 @@ describe('basecampRoutes', () => {
       });
     });// it should respond with the data
 
-    describe('when it fails to get the token', () => {
-
-      let err, req;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          message: 'Failed to get basecamp schedule entries.'
-        };
-        req = _.cloneDeep(REQ_DATA);
-        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.reject(err));
-      });
-
-      it('should return 404 error', done => {
-        basecampRoutes._getBasecampAvatars(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(404);
-            expect(res.send).toHaveBeenCalledWith(err);
-            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
-            done();
-          });
-      });
-    }); // should return 404 error
-
     describe('when it fails to get the schedule entries', () => {
 
-      let err, req;
+      let err;
 
       beforeEach(() => {
         err = {
           code: 404,
-          message: 'Failed to get basecamp schedule entries.'
+          message: 'Failed to get schedule entries'
         };
         basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
-        req = _.cloneDeep(REQ_DATA);
-        spyOn(basecampRoutes, '_getBasecampToken').and.returnValue(Promise.resolve(basecampToken));
-        //we have two returns because it makes sure there isn't another page of entries.
-        spyOn(basecampRoutes, 'callAxios').and
-          .returnValue(Promise.reject(err)); 
+        spyOn(basecampRoutes, 'callAxios').and.returnValue(Promise.reject(err));
       });
 
       it('should return 404 error', done => {
-        basecampRoutes._getBasecampAvatars(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(404);
-            expect(res.send).toHaveBeenCalledWith(err);
-            expect(basecampRoutes._getBasecampToken).toHaveBeenCalled();
+        basecampRoutes._getScheduleEntries(basecampToken, projects)
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch((error) => {
             expect(basecampRoutes.callAxios).toHaveBeenCalled();
+            expect(error).toEqual(err);
             done();
           });
       });
