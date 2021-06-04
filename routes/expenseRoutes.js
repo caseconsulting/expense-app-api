@@ -868,9 +868,10 @@ class ExpenseRoutes extends Crud {
           );
 
           // throw error
+          const ERRFORMAT = 'MM/DD/YYYY';
           err.message =
             'Purchase date must be in current annual budget range from ' +
-            `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}.`;
+            `${dates.startDate.format(ERRFORMAT)} to ${dates.endDate.format(ERRFORMAT)}.`;
           throw err;
         }
       }

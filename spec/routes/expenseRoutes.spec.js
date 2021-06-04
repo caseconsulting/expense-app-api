@@ -691,7 +691,7 @@ describe('expenseRoutes', () => {
       beforeEach(() => {
         err = {
           code: 403,
-          message: 'Purchase date must be in current annual budget range from 2021-01-01 to 2021-12-31.'
+          message: 'Purchase date must be in current annual budget range from 01/01/2021 to 12/31/2021.'
         };
         employee.hireDate = '2000-01-01';
         delete expense.reimbursedDate;
@@ -3694,11 +3694,12 @@ describe('expenseRoutes', () => {
 
         beforeEach(() => {
           dates = expenseRoutes.getBudgetDates(employee.hireDate);
+          const ERRFORMAT = 'MM/DD/YYYY';
           err = {
             code: 403,
             message:
               'Purchase date must be in current annual budget range from ' +
-              `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}.`
+              `${dates.startDate.format(ERRFORMAT)} to ${dates.endDate.format(ERRFORMAT)}.`
           };
           expense.purchaseDate = '2000-08-18';
         });
