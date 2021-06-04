@@ -36,7 +36,7 @@ class ExpenseRoutes extends Crud {
   async _addToBudget(expense, employee, expenseType, budget) {
     // log method
     logger.log(2, '_addToBudget', `Attempting to add expense ${expense.id} to budget ${budget.id}`);
-
+    console.log(budget, expense);
     // compute method
     try {
       if (!this._isValidCostChange(undefined, expense, expenseType, budget)) {
@@ -45,7 +45,14 @@ class ExpenseRoutes extends Crud {
           code: 403,
           message: 'Expense is over the budget limit.'
         };
-      } else {
+      } else if (expense.cost < 0 && employee.employeeRole !== 'admin') {
+        // Only admin have the ability of inputting negative cost for a new expense
+        throw {
+          code: 403,
+          message: 'Only admin can input a negative cost.'
+        }
+      } 
+      else {
         let updatedBudget = _.cloneDeep(budget);
         if (expense.isReimbursed()) {
           // if expense is remibursed, update the budgets reimbursed amount
