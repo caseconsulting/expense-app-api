@@ -12,7 +12,7 @@ const pathTo = (file) => require('./' + file);
 function done(result) {
   console.log('\n****************************\n');
   console.log('\n 🏁 Response 🏁 :');
-  console.log(JSON.stringify(result));
+  console.log(JSON.stringify(result, null, 2));
   console.log('\n---------------------------DONE---------------------------\n');
 }
 
