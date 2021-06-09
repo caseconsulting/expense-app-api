@@ -30,6 +30,7 @@ const _ = require('lodash');
  * - icTimeFrames
  * - jobRole
  * - jobs
+ * - languages
  * - middleName
  * - nickname
  * - prime
@@ -66,6 +67,7 @@ class Employee {
     this.setOptionalAttribute(data, 'icTimeFrames');
     this.setOptionalAttribute(data, 'jobRole');
     this.setOptionalAttribute(data, 'jobs');
+    this.setOptionalAttribute(data, 'languages');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'prime');
