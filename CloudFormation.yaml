@@ -569,7 +569,7 @@ Resources:
       Description: Provides the nightly update to employee budgets.
       Handler: chronos.handler
       Timeout: 900
-      CodeUri: ./
+      CodeUri: ./chronos.js
       Events:
         ChronosSchedule:
           Type: Schedule
@@ -625,7 +625,7 @@ Resources:
       Handler: chiron.handler
       Timeout: 900
       MemorySize: 256
-      CodeUri: ./
+      CodeUri: ./chiron.js
       Events:
         ChironSchedule:
           Type: Schedule
