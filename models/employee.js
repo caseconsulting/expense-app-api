@@ -30,7 +30,11 @@ const _ = require('lodash');
  * - icTimeFrames
  * - jobRole
  * - jobs
+<<<<<<< HEAD
  * - languages
+=======
+ * - linkedIn
+>>>>>>> 1938-Add-linkedIn-to-employee-model: Added linkedIn to the employee model
  * - middleName
  * - nickname
  * - prime
@@ -67,7 +71,11 @@ class Employee {
     this.setOptionalAttribute(data, 'icTimeFrames');
     this.setOptionalAttribute(data, 'jobRole');
     this.setOptionalAttribute(data, 'jobs');
+<<<<<<< HEAD
     this.setOptionalAttribute(data, 'languages');
+=======
+    this.setOptionalAttribute(data, 'linkedIn');
+>>>>>>> 1938-Add-linkedIn-to-employee-model: Added linkedIn to the employee model
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'prime');
