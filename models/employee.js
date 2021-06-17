@@ -20,6 +20,7 @@ const _ = require('lodash');
  * - certifications
  * - city
  * - clearances
+ * - companies
  * - contract
  * - contracts
  * - country
@@ -31,7 +32,10 @@ const _ = require('lodash');
  * - jobRole
  * - jobs
  * - languages
+<<<<<<< HEAD
  * - linkedIn
+=======
+>>>>>>> 1316-multiple-job-positions-entry: added optional field companies used for job experiences tab
  * - middleName
  * - nickname
  * - prime
@@ -58,6 +62,7 @@ class Employee {
     this.setOptionalAttribute(data, 'certifications');
     this.setOptionalAttribute(data, 'city');
     this.setOptionalAttribute(data, 'clearances');
+    this.setOptionalAttribute(data, 'companies');
     this.setOptionalAttribute(data, 'contract');
     this.setOptionalAttribute(data, 'contracts');
     this.setOptionalAttribute(data, 'country');
