@@ -102,8 +102,9 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
       && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
+    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
-    let result = userPermissions || adminPermissions;
+    let result = userPermissions || adminPermissions || internPermissions;
 
     // log result
     if (result) {
@@ -138,8 +139,9 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses']);
     let adminPermissions =
       this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'blog-posts']);
+    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
 
-    let result = userPermissions || adminPermissions;
+    let result = userPermissions || adminPermissions || internPermissions;
 
     // log result
     if (result) {
@@ -174,8 +176,11 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'expense-types', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
       && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
+    let internPermissions = this.isIntern(employee)
+      && this._checkTableName(['expense-types', 'employees', 'training-urls']);
 
-    let result = userPermissions || adminPermissions;
+    let result = userPermissions || adminPermissions || internPermissions;
+
 
     // log result
     if (result) {
@@ -210,8 +215,10 @@ class Crud {
       && this._checkTableName(['expense-types', 'employees', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
       && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
+    let internPermissions = this.isIntern(employee)
+      && this._checkTableName(['expense-types', 'employees', 'training-urls']);
 
-    let result = userPermissions || adminPermissions;
+    let result = userPermissions || adminPermissions || internPermissions;
 
     // log result
     if (result) {
@@ -246,8 +253,9 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let adminPermissions = this.isAdmin(employee)
       && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
+    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
 
-    let result = userPermissions || adminPermissions;
+    let result = userPermissions || adminPermissions || internPermissions;
 
     // log result
     if (result) {
@@ -631,6 +639,30 @@ class Crud {
     // return result
     return result;
   } // isAdmin
+
+  /**
+   * Check if an employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is intern
+   */
+  isIntern(employee) {
+  // log method
+    logger.log(5, 'isIntern', `Checking if employee ${employee.id} is an intern`);
+
+    // compute method
+    let result = employee.employeeRole === 'intern';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isIntern', `Employee ${employee.id} is an intern`);
+    } else {
+      logger.log(5, 'isIntern', `Employee ${employee.id} is not an intern`);
+    }
+
+    // return result
+    return result;
+  } // isIntern
 
   /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns

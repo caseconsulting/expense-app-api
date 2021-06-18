@@ -30,11 +30,8 @@ const _ = require('lodash');
  * - icTimeFrames
  * - jobRole
  * - jobs
-<<<<<<< HEAD
  * - languages
-=======
  * - linkedIn
->>>>>>> 1938-Add-linkedIn-to-employee-model: Added linkedIn to the employee model
  * - middleName
  * - nickname
  * - prime
@@ -126,6 +123,15 @@ class Employee {
   isInactive() {
     return this.workStatus == 0;
   } // isInactive
+
+  /**
+   * Check if the employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @return boolean - employee is an intern
+   */
+  isIntern(){
+    return this.employeeRole == 'intern';
+  } // isIntern
 
   /**
    * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
