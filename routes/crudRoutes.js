@@ -478,7 +478,7 @@ class Crud {
           `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`
         );
 
-        // send sucessful 200 status
+        // send successful 200 status
         res.status(200).send(dataDeleted);
 
         // return object removed

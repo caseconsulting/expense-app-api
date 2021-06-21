@@ -310,7 +310,7 @@ class Utility {
         `Successfully got all active budgets for employee ${req.params.id}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(activeBudgets);
 
       // return active budgets
@@ -413,7 +413,7 @@ class Utility {
         // log success
         logger.log(1, '_getAllExpenses', 'Successfully got all aggregate expenses');
 
-        // send sucessful 200 status
+        // send successful 200 status
         res.status(200).send(aggregateExpenses);
 
         // return aggregate expenses
@@ -513,7 +513,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(payload);
 
       return payload;
@@ -597,7 +597,7 @@ class Utility {
         // log success
         logger.log(1, '_getAllAggregateExpenses', 'Successfully got all aggregate expenses');
 
-        // send sucessful 200 status
+        // send successful 200 status
         res.status(200).send(aggregateExpenses);
 
         // return aggregate expenses
@@ -648,7 +648,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllEmployeeExpenses', `Successfully got all expenses for employee ${req.params.id}`);
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(expenses);
 
       // return expenses
@@ -690,7 +690,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllExpenseTypeExpenses', `Successfully got all expenses for expense type ${req.params.id}`);
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(expenses);
 
       // return expenses
@@ -804,7 +804,7 @@ class Utility {
         `containing the date ${req.params.date}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(budget);
 
       // return budget
@@ -906,7 +906,7 @@ class Utility {
         `Successfully got budgets for employee ${req.params.id} anniversary date ${req.params.fiscalStartDate}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(budgets);
 
       // return budgets

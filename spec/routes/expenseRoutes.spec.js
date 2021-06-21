@@ -497,7 +497,7 @@ describe('expenseRoutes', () => {
       expectedBudget.pendingAmount = 3;
     });
 
-    describe('when sucessfully creates an expense', () => {
+    describe('when successfully creates an expense', () => {
       beforeEach(() => {
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getEntry.and.returnValue(Promise.resolve(expenseType));
@@ -1704,7 +1704,7 @@ describe('expenseRoutes', () => {
               done();
             });
           }); // should return the expense updated and update budgets
-        }); // and sucessfully updating expense
+        }); // and successfully updating expense
 
         describe('and reimbursed date is before purchase date', () => {
           let err;
