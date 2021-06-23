@@ -29,7 +29,7 @@ const _ = require('lodash');
 
 class ExpenseType {
   constructor(data) {
-    this.setRequiredAttribute(data, 'accessibleBy', 'ALL'); // default: accessible by all employees
+    this.setRequiredAttribute(data, 'accessibleBy', ['FullTime']); // default: accessible by all employees
     this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
     this.setRequiredNumberAttribute(data, 'budget', undefined, 2); // fixed 2 decimal places
     this.setRequiredAttribute(data, 'budgetName');
@@ -42,6 +42,7 @@ class ExpenseType {
     this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring
     this.setRequiredAttribute(data, 'requiredFlag', true); // default: receipt required
     this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
+    this.setRequiredAttribute(data, 'proRated', false);
 
     this.setOptionalAttribute(data, 'campfire');
     this.setOptionalAttribute(data, 'endDate');
