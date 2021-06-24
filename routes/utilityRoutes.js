@@ -118,7 +118,7 @@ class Utility {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
-      if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+      if (!expenseType.proRated) {
         result = expenseType.budget;
       } else {
         result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
@@ -943,10 +943,20 @@ class Utility {
 
     if (employee.workStatus == 0) {
       result = false;
-    } else if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
+    } else if (expenseType.accessibleBy.includes('Intern') && employee.employeeRole == 'intern') {
       result = true;
-    } else if (expenseType.accessibleBy == 'FULL TIME') {
-      result = employee.workStatus == 100;
+    } else if (
+      expenseType.accessibleBy.includes('FullTime') &&
+      employee.employeeRole != 'intern' &&
+      employee.workStatus == 100
+    ) {
+      result = true;
+    } else if (
+      expenseType.accessibleBy.includes('PartTime') &&
+      employee.employeeRole != 'intern' &&
+      employee.workStatus < 100
+    ) {
+      result = true;
     } else {
       result = expenseType.accessibleBy.includes(employee.id);
     }
@@ -1009,7 +1019,7 @@ class Utility {
     // return result
     return result;
   } // isIntern
-  
+
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
    *
