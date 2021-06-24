@@ -1965,7 +1965,8 @@
 //                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
 //                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
 //                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
+//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
+//                    undefined, employee, expenseType);
 //                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
 //                 done();
 //               });
@@ -1985,7 +1986,8 @@
 //                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
 //                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
 //                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
+//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
+//                    undefined, employee, expenseType);
 //                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
 //                 done();
 //               });
@@ -2112,7 +2114,8 @@
 //                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
 //                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
 //                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
+//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
+//                    undefined, employee, expenseType);
 //                 done();
 //               });
 //           }); // should return a 404 rejected promise
@@ -2145,7 +2148,8 @@
 //                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
 //                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
 //                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
+//                 expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
+//                    undefined, employee, expenseType);
 //                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
 //                 done();
 //               });
@@ -4166,7 +4170,8 @@
 //           otherBudget.id = 'OTHER_ID';
 //           otherBudget.fiscalStartDate = '2001-08-18';
 //           otherBudget.fiscalEndDate = '2002-08-17';
-//           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.resolve(otherBudget));
+//           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), 
+//              Promise.resolve(otherBudget));
 //         });
 
 //         it('should return a 403 rejected promise', (done) => {
@@ -4409,7 +4414,8 @@
 //           otherBudget.id = 'OTHER_ID';
 //           budget.fiscalStartDate = '2001-08-18';
 //           budget.fiscalEndDate = '2002-08-17';
-//           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.resolve(otherBudget));
+//           spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), 
+//              Promise.resolve(otherBudget));
 //         });
 
 //         it('should return a 403 rejected promise', (done) => {
