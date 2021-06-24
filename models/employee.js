@@ -32,10 +32,7 @@ const _ = require('lodash');
  * - jobRole
  * - jobs
  * - languages
-<<<<<<< HEAD
  * - linkedIn
-=======
->>>>>>> 1316-multiple-job-positions-entry: added optional field companies used for job experiences tab
  * - middleName
  * - nickname
  * - prime
