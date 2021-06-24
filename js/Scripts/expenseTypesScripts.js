@@ -11,7 +11,8 @@ const actions = [
   '2. Change expense type categories to JSON objects',
   '3. Add alwaysOnFeed to DynamoDB table',
   '4. Delete disableShowOnFeedToggle attribute from Expense Type Table',
-  '5. Add requireURL attribute to Expense Type categories'
+  '5. Add requireURL attribute to Expense Type categories',
+  '6. Change Expense Type accessibilities'
 ];
 
 // check for stage argument
@@ -150,6 +151,52 @@ async function categoryFixer() {
     });
   });
 } // categoryFixer
+
+/**
+ * Changes the older expense accessibility types to the new accessibility types.
+ */
+async function convertExpenseTypeAccessibilities() {
+  let expenseTypes = await getAllEntries();
+  let accessibleBy = [];
+  let proRated = false;
+  _.forEach(expenseTypes, (expenseType) => {
+    if (expenseType.accessibleBy == 'FULL') {
+      accessibleBy = ['FullTime', 'PartTime'];
+      proRated = false;
+    } else if (expenseType.accessibleBy == 'ALL') {
+      accessibleBy = ['FullTime', 'PartTime'];
+      proRated = true;
+    } else if (expenseType.accessibleBy == 'FULL TIME') {
+      accessibleBy = ['FullTime'];
+      proRated = false;
+    } else {
+      accessibleBy = expenseType.accessibleBy.concat('Custom');
+      proRated = false;
+    }
+    //accessibleBy = JSON.stringify(accessibleBy);
+    let params = {
+      TableName: TABLE,
+      Key: {
+        'id': expenseType.id
+      },
+      UpdateExpression: 'set accessibleBy = :a, proRated = :b',
+      ExpressionAttributeValues: {
+        ':a': accessibleBy,
+        ':b': proRated
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb.update(params, function(err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Updated expense type id ${expenseType.id}`);
+      }
+    });
+  });
+} // convertExpenseTypeAccessibilities
 
 /**
  * Removes given attribute from all expense type data
@@ -303,6 +350,12 @@ async function main() {
       if(confirmAction('Add requireURL attribute to Expense Type categories?')) {
         console.log('Adding requireURL attribute to Expense Type categories');
         addRequireURLAttrToCategories();
+      }
+      break;
+    case 6:
+      if(confirmAction('Change Expense Types accessibilities?')) {
+        console.log('Changing Expense Type accessibilites');
+        convertExpenseTypeAccessibilities();
       }
       break;
     default:
