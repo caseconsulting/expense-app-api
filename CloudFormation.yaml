@@ -304,6 +304,8 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: 'NEW_AND_OLD_IMAGES'
       Tags:
         - Key: Application
           Value: expense-app
@@ -637,3 +639,72 @@ Resources:
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
+  MifiStatusLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-mifi-status-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  MifiStatusFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Publishes sns message based on if mifiStatus changed for employee
+      Handler: mifiStatus.handler
+      Timeout: 900
+      MemorySize: 256
+      CodeUri: ./mifiStatus.js
+      Events:
+        MifiStream:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: TRIM_HORIZON
+            Stream: !GetAtt employeeTable.StreamArn
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+      Role: !GetAtt
+        - MifiStatusLambdaRole
+        - Arn
+  MifiTopic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: 'Mifi status change'
+      TopicName: 'MifiStatus'
+  MifiSubscription:
+    Type: AWS::SNS::Subscription
+    Properties: 
+      Endpoint: 'pturriagol@consultwithcase.com'
+      Protocol: 'email'
+      Region: 'us-east-1'
+      TopicArn: !Ref MifiTopic
