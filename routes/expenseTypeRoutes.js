@@ -546,7 +546,8 @@ class ExpenseTypeRoutes extends Crud {
         );
 
         // throw error
-        err.message = 'Cannot change expense type overdraft flag.';
+        err.message = 'Cannot change expense type overdraft flag. \
+          This is to avoid conflicts with people who already have overdrafted.';
         throw err;
       }
 
