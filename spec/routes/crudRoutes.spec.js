@@ -32,13 +32,6 @@ describe('crudRoutes', () => {
   const FISCAL_END_DATE = '{fiscalEndDate}';
   const AMOUNT = 0;
 
-  const PURCHASE_DATE = '{purchaseDate}';
-  const REIMBURSED_DATE = '{reimbursedDate}';
-  const NOTE = '{note}';
-  const URL = '{url}';
-  const CREATED_AT = '{createdAt}';
-  const RECEIPT = '{receipt}';
-  const COST = 0;
   const CATEGORY = '{category}';
 
   const NAME = '{name}';
