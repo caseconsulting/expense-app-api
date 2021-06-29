@@ -188,6 +188,8 @@ class ExpenseTypeRoutes extends Crud {
    * @return Array - Array of Budgets updated
    */
   async _updateBudgets(oldExpenseType, newExpenseType) {
+    console.log(oldExpenseType);
+    console.log(newExpenseType);
     // log method
     logger.log(2, '_updateBudgets', `Attempting to update budgets for expense type ${oldExpenseType.id}`);
 
@@ -198,7 +200,6 @@ class ExpenseTypeRoutes extends Crud {
       let diffEnd = oldExpenseType.endDate != newExpenseType.endDate;
       let diffBudget = oldExpenseType.budget != newExpenseType.budget;
       let diffAccessibleBy = oldExpenseType.accessibleBy != newExpenseType.accessibleBy;
-
       if (diffStart || diffEnd || diffBudget || diffAccessibleBy) {
         // need to update budgets
         let budgetsData =
