@@ -671,6 +671,13 @@ Resources:
               - Effect: Allow
                 Action: 'logs:*'
                 Resource: '*'
+        - PolicyName: SNS
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sns:*'
+                Resource: '*'
       Tags:
         - Key: Application
           Value: expense-app
