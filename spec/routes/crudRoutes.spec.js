@@ -1080,7 +1080,7 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`)
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when called without error', () => {
