@@ -861,6 +861,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(basecampEvent);
+        spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
 
       it('should respond with a 200 and the data', (done) => {
@@ -973,6 +974,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(Promise.reject(err));
+        spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
 
       it('should respond with a 404 and error', (done) => {
@@ -1005,6 +1007,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(Promise.reject(err));
+        spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
 
       it('should respond witha  404 and error', (done) => {
@@ -1105,7 +1108,9 @@ describe('utilityRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(utilityRoutes, 'isAdmin').and.returnValue(true);
+        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
+        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1206,7 +1211,9 @@ describe('utilityRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        req.employee.employeeRole = 'user';
+        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
+        spyOn(utilityRoutes, 'isUser').and.returnValue(true);
+        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1308,7 +1315,9 @@ describe('utilityRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        req.employee.employeeRole = 'intern';
+        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
+        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
+        spyOn(utilityRoutes, 'isIntern').and.returnValue(true);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1406,7 +1415,7 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // and fails to get employee expenses
     }); // when employee is a user
-    describe('when employee is not an admin or user or intern', () => {
+    describe('when employee is not an admin nor user nor intern', () => {
       let err;
 
       beforeEach(() => {
@@ -1414,8 +1423,9 @@ describe('utilityRoutes', () => {
           code: 403,
           message: 'Unable to get all aggregate expenses due to insufficient employee permissions.'
         };
-
-        req.params.employeeRole = 'INVALID_ROLE';
+        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
+        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
+        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
       });
 
       it('should respond with a 403 and error', (done) => {

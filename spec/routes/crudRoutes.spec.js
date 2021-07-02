@@ -303,13 +303,15 @@ describe('crudRoutes', () => {
     describe('when employee is a user', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'user';
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -320,7 +322,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -332,13 +334,15 @@ describe('crudRoutes', () => {
     describe('when employee is an admin', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'admin';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -349,7 +353,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -361,13 +365,15 @@ describe('crudRoutes', () => {
     describe('when employee is an intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'intern';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -378,7 +384,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -390,7 +396,9 @@ describe('crudRoutes', () => {
     describe('when employee is not a user or admin or intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       it('should return false', () => {
@@ -410,72 +418,15 @@ describe('crudRoutes', () => {
     describe('when employee is a user', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      describe('and valid table name', () => {
-
-        beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
-        });
-
-        it('should return true', () => {
-          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(true);
-        }); // should return true
-      }); // and valid table name
-
-      describe('and invalid table name', () => {
-
-        beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
-        });
-
-        it('should return false', () => {
-          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(false);
-        }); // should return true
-      }); // and invalid table name
-    }); // when employee is a user
-
-    describe('when employee is an admin', () => {
-
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      describe('and valid table name', () => {
-
-        beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
-        });
-
-        it('should return true', () => {
-          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(true);
-        }); // should return true
-      }); // and valid table name
-
-      describe('and invalid table name', () => {
-
-        beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
-        });
-
-        it('should return false', () => {
-          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(false);
-        }); // should return true
-      }); // and invalid table name
-    }); // when employee is an admin
-
-    describe('when employee is an intern', () => {
-
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
         });
 
         it('should return true', () => {
@@ -487,7 +438,68 @@ describe('crudRoutes', () => {
 
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+        });
+
+        it('should return false', () => {
+          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(false);
+        }); // should return true
+      }); // and invalid table name
+    }); // when employee is a user
+
+    describe('when employee is an admin', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
+      });
+
+      describe('and valid table name', () => {
+
+        beforeEach(() => {
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+        });
+
+        it('should return true', () => {
+          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(true);
+        }); // should return true
+      }); // and valid table name
+
+      describe('and invalid table name', () => {
+
+        beforeEach(() => {
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
+        });
+
+        it('should return false', () => {
+          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(false);
+        }); // should return true
+      }); // and invalid table name
+    }); // when employee is an admin
+
+    describe('when employee is an intern', () => {
+
+      beforeEach(() => {
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
+      });
+
+      describe('and valid table name', () => {
+
+        beforeEach(() => {
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
+        });
+
+        it('should return true', () => {
+          expect(crudRoutes._checkPermissionToDelete(employee)).toEqual(true);
+        }); // should return true
+      }); // and valid table name
+
+      describe('and invalid table name', () => {
+
+        beforeEach(() => {
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -499,7 +511,9 @@ describe('crudRoutes', () => {
     describe('when employee is not a user or admin or intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       it('should return false', () => {
@@ -519,13 +533,15 @@ describe('crudRoutes', () => {
     describe('when employee is a user', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'user';
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -536,7 +552,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -548,14 +564,15 @@ describe('crudRoutes', () => {
     describe('when employee is an intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'intern';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
         });
 
         it('should return true', () => {
@@ -566,7 +583,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -578,13 +595,15 @@ describe('crudRoutes', () => {
     describe('when employee is an admin', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'admin';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -595,7 +614,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -607,7 +626,9 @@ describe('crudRoutes', () => {
     describe('when employee is not a user or admin', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       it('should return false', () => {
@@ -627,13 +648,15 @@ describe('crudRoutes', () => {
     describe('when employee is a user', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'user';
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expense-types`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -644,7 +667,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -656,13 +679,15 @@ describe('crudRoutes', () => {
     describe('when employee is an admin', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'admin';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -673,7 +698,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -685,13 +710,15 @@ describe('crudRoutes', () => {
     describe('when employee is an intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'intern';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expense-types`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -702,7 +729,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -714,7 +741,9 @@ describe('crudRoutes', () => {
     describe('when employee is not a user or admin or intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       it('should return false', () => {
@@ -734,13 +763,15 @@ describe('crudRoutes', () => {
     describe('when employee is a user', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'user';
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -751,7 +782,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -763,13 +794,15 @@ describe('crudRoutes', () => {
     describe('when employee is an intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'intern';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -781,13 +814,15 @@ describe('crudRoutes', () => {
     describe('when employee is an admin', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'admin';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
       });
 
       describe('and valid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
 
         it('should return true', () => {
@@ -798,7 +833,7 @@ describe('crudRoutes', () => {
       describe('and invalid table name', () => {
 
         beforeEach(() => {
-          crudRoutes.databaseModify.tableName = 'invalid-table-name';
+          spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
 
         it('should return false', () => {
@@ -810,7 +845,9 @@ describe('crudRoutes', () => {
     describe('when employee is not a user or admin or intern', () => {
 
       beforeEach(() => {
-        employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, 'isUser').and.returnValue(false);
+        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
+        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
       });
 
       it('should return false', () => {
@@ -822,7 +859,7 @@ describe('crudRoutes', () => {
   describe('_checkTableName', () => {
 
     beforeEach(() => {
-      crudRoutes.databaseModify.tableName =  `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when database table is in list of table names', () => {
@@ -1043,7 +1080,7 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`)
     });
 
     describe('when called without error', () => {
@@ -1051,6 +1088,8 @@ describe('crudRoutes', () => {
       beforeEach(() => {
         req.employee.employeeRole = 'admin';
         spyOn(crudRoutes, '_create').and.returnValue(Promise.resolve(BODY_DATA));
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(BODY_DATA));
+        spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
       });
 
       describe('creating a Training URL', () => {
@@ -1181,6 +1220,7 @@ describe('crudRoutes', () => {
           message: 'Error adding object to database.'
         };
         spyOn(crudRoutes, '_create').and.returnValue(Promise.resolve(BODY_DATA));
+        spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(BODY_DATA));
         databaseModify.addToDB.and.returnValue(Promise.reject(err));
       });
 
@@ -1204,7 +1244,7 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when called without error', () => {
@@ -1213,6 +1253,7 @@ describe('crudRoutes', () => {
         req.employee.employeeRole = 'admin';
         spyOn(crudRoutes, '_delete').and.returnValue(Promise.resolve(BODY_DATA));
         databaseModify.removeFromDB.and.returnValue(Promise.resolve(BODY_DATA));
+        spyOn(crudRoutes, '_checkPermissionToDelete').and.returnValue(true);
       });
 
       it('should respond with a 200 and data', done => {
@@ -1233,7 +1274,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, '_checkPermissionToDelete').and.returnValue(false);
         err = {
           code: 403,
           message: 'Unable to delete object from database due to insufficient employee permissions.'
@@ -1256,8 +1297,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
-        crudRoutes.databaseModify.tableName =  `${STAGE}-expenses`;
+        spyOn(crudRoutes, '_checkPermissionToDelete').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error deleting object.'
@@ -1281,7 +1321,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToDelete').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error removing object from database.'
@@ -1648,7 +1688,7 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when called without error', () => {
@@ -1658,10 +1698,11 @@ describe('crudRoutes', () => {
         let objectRead;
 
         beforeEach(() => {
-          req.employee.employeeRole = 'user';
+          spyOn(crudRoutes, 'isUser').and.returnValue(true);
           req.employee.id = 'id';
           objectRead = _.cloneDeep(BODY_DATA);
           objectRead.employeeId = 'id';
+          spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(objectRead));
         });
 
@@ -1682,7 +1723,7 @@ describe('crudRoutes', () => {
         let trainingUrl;
 
         beforeEach(() => {
-          req.employee.employeeRole = 'admin';
+          spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           trainingUrl = new TrainingUrls({id: 'id', category: 'category'});
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(trainingUrl));
         });
@@ -1702,7 +1743,7 @@ describe('crudRoutes', () => {
       describe('reading something other than a Training URL', () => {
 
         beforeEach(() => {
-          req.employee.employeeRole = 'admin';
+          spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(BODY_DATA));
         });
 
@@ -1724,7 +1765,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(false);
         err = {
           code: 403,
           message: 'Unable to read object from database due to insufficient employee permissions.'
@@ -1747,7 +1788,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error reading object.'
@@ -1772,7 +1813,8 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'user';
+        spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
+        spyOn(crudRoutes, 'isUser').and.returnValue(true);
         req.employee.id = 'invalid-id';
         err = {
           code: 403,
@@ -1800,13 +1842,13 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when called without error', () => {
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToReadAll').and.returnValue(true);
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(BODY_DATA));
       });
 
@@ -1827,7 +1869,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, '_checkPermissionToReadAll').and.returnValue(false);
         err = {
           code: 403,
           message: 'Unable to read all objects from database due to insufficient employee permissions.'
@@ -1850,7 +1892,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToReadAll').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error reading all objects from database.'
@@ -1905,13 +1947,13 @@ describe('crudRoutes', () => {
 
     beforeEach(() => {
       req = _.cloneDeep(REQ_DATA);
-      crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
+      spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when called without error', () => {
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
       });
 
       describe('and updating a Training URL', () => {
@@ -1987,7 +2029,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'invalid-role';
+        spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(false);
         err = {
           code: 403,
           message: 'Unable to update object in database due to insufficient employee permissions.'
@@ -2010,7 +2052,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error updating object.'
@@ -2035,7 +2077,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error validating inputs.'
@@ -2062,7 +2104,7 @@ describe('crudRoutes', () => {
       let err;
 
       beforeEach(() => {
-        req.employee.employeeRole = 'admin';
+        spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
         err = {
           code: 403,
           message: 'Error updating object to database.'

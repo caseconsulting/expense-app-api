@@ -103,6 +103,7 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
+
     let adminPermissions =
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);

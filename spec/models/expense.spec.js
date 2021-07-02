@@ -84,6 +84,10 @@ describe('expense', () => {
   describe('hasReceipt', () => {
 
     describe('when expense has a receipt', () => {
+      
+      beforeEach(() => {
+        spyOn(expense, '_isEmpty').and.returnValue(false);
+      });
 
       it('should return true', () => {
         expect(expense.hasReceipt()).toBe(true);
@@ -93,6 +97,7 @@ describe('expense', () => {
     describe('when expense does not have a receipt', () => {
 
       beforeEach(() => {
+        spyOn(expense, '_isEmpty').and.returnValue(true);
         expense.receipt = null;
       });
 
@@ -136,6 +141,10 @@ describe('expense', () => {
   describe('isReimbursed', () => {
 
     describe('when expense is reimbursed', () => {
+      
+      beforeEach(() => {
+        spyOn(expense, '_isEmpty').and.returnValue(false);
+      });
 
       it('should return true', () => {
         expect(expense.isReimbursed()).toBe(true);
@@ -145,6 +154,7 @@ describe('expense', () => {
     describe('when expense is not reimbursed', () => {
 
       beforeEach(() => {
+        spyOn(expense, '_isEmpty').and.returnValue(true);
         expense.reimbursedDate = null;
       });
 
