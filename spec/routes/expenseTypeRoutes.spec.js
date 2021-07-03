@@ -1781,7 +1781,8 @@ describe('expenseTypeRoutes', () => {
       beforeEach(() => {
         err = {
           code: 403,
-          message: 'Cannot change expense type overdraft flag.'
+          message: 'Cannot change expense type overdraft flag. \
+          This is to avoid conflicts with people who already have overdrafted.'
         };
 
         oldExpenseType.odFlag = false;
