@@ -1,8 +1,8 @@
-const chronos = require('../chronos');
+const chronos = require('../chronos/chronos');
 const _ = require('lodash');
 
-const Budget = require('../models/budget');
-const ExpenseType = require('../models/expenseType');
+const Budget = require('../chronos/models/budget');
+const ExpenseType = require('../chronos/models/expenseType');
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 
@@ -17,12 +17,16 @@ const RECURRING_FLAG = '{recurringFlag}';
 const IS_INACTIVE = '{isInactive}';
 const DESCRIPTION = '{description}';
 const CATEGORIES = [];
-const ACCESSIBLE_BY = '{accessibleBy}';
+const ACCESSIBLE_BY = ['{accessibleBy}'];
 const REIMBURSED_AMOUNT = 0;
 const PENDING_AMOUNT = 0;
 const FISCAL_START_DATE = '{fiscalStartDate}';
 const FISCAL_END_DATE = '{fiscalEndDate}';
 const AMOUNT = 0;
+const PRORATED = false;
+const ALWAYS_ON_FEED = false;
+const HAS_RECIPIENT = false;
+const REQUIRE_URL = false;
 
 const EXPENSE_TYPE_DATA = {
   id: ID,
@@ -36,7 +40,11 @@ const EXPENSE_TYPE_DATA = {
   isInactive: IS_INACTIVE,
   description: DESCRIPTION,
   categories: CATEGORIES,
-  accessibleBy: ACCESSIBLE_BY
+  accessibleBy: ACCESSIBLE_BY,
+  proRated: PRORATED,
+  alwaysOnFeed: ALWAYS_ON_FEED,
+  hasRecipeint: HAS_RECIPIENT,
+  requireURL: REQUIRE_URL
 };
 
 const BUDGET_DATA = {
@@ -110,7 +118,7 @@ describe('chronos', () => {
 
       it('should return all the expense types', (done) => {
         return chronos._getAllExpenseTypes().then((data) => {
-          expect(data).toEqual([etReturned]);
+          expect(data[0]).toEqual(etReturned);
           done();
         });
       }); // should return all the expense types
