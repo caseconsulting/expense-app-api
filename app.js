@@ -59,6 +59,9 @@ const blogFileRoutes = new BlogFileRoutes();
 const EmsiRoutes = require('./routes/emsiRoutes');
 const emsiRoutes = new EmsiRoutes();
 
+const HippoLabsRoutes = require('./routes/hippoLabsRoutes');
+const hippoLabsRoutes = new HippoLabsRoutes();
+
 var app = express();
 
 // view engine setup
@@ -97,6 +100,7 @@ app.use('/blog', blogRoutes.router);
 app.use('/blogFile', blogFileRoutes.router);
 app.use('/blogAttachments', blogAttachtmentRoutes.router);
 app.use('/emsi', emsiRoutes.router);
+app.use('/hippoLabs', hippoLabsRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');
