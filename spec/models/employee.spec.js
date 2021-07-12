@@ -23,6 +23,10 @@ describe('employee', () => {
   const STREET = 'st';
   const COUNTRY = 'country';
   const DEPARTURE_DATE = 'deptDate';
+  const CURRENT_CITY = 'currentCity';
+  const CURRENT_STATE = 'currentState';
+  const CURRENT_STREET = 'currentStreet';
+  const CURRENT_ZIP = 'currentZIP';
 
   const EMPLOYEE_DATA = {
     id: ID,
@@ -44,7 +48,11 @@ describe('employee', () => {
     city: CITY,
     st: STREET,
     country: COUNTRY,
-    deptDate: DEPARTURE_DATE
+    deptDate: DEPARTURE_DATE,
+    currentCity: CURRENT_CITY,
+    currentState: CURRENT_STATE,
+    currentStreet: CURRENT_STREET,
+    currentZIP: CURRENT_ZIP
   };
 
   let employee;
