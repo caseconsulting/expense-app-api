@@ -1021,6 +1021,30 @@ class Utility {
   } // isIntern
 
   /**
+   * Check if an employee is an manager. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is intern
+   */
+  isManager(employee) {
+    // log method
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is an intern`);
+
+    // compute method
+    let result = employee.employeeRole === 'manager';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isManager', `Employee ${employee.id} is an intern`);
+    } else {
+      logger.log(5, 'isManager', `Employee ${employee.id} is not an intern`);
+    }
+
+    // return result
+    return result;
+  } // isManager
+
+  /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
    *
    * @param employee - Employee to check

@@ -103,13 +103,13 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
-
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['training-urls']);
     let adminPermissions =
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
-    let result = userPermissions || adminPermissions || internPermissions;
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -151,8 +151,9 @@ class Crud {
     let adminPermissions =
       this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['training-urls']);
 
-    let result = userPermissions || adminPermissions || internPermissions;
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -196,8 +197,9 @@ class Crud {
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -241,8 +243,9 @@ class Crud {
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -285,8 +288,9 @@ class Crud {
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -712,6 +716,30 @@ class Crud {
     // return result
     return result;
   } // isIntern
+
+  /**
+   * Check if an employee is an manager. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is intern
+   */
+  isManager(employee) {
+    // log method
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is an manager`);
+  
+    // compute method
+    let result = employee.employeeRole === 'manager';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
+    } else {
+      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
+    }
+
+    // return result
+    return result;
+    } // isManager
 
   /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns

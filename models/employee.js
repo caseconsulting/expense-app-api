@@ -146,6 +146,15 @@ class Employee {
   } // isIntern
 
   /**
+   * Check if the employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
+   *
+   * @return boolean - employee is an manager
+   */
+  isManager() {
+    return this.employeeRole == 'manager';
+  } //isManager
+
+  /**
    * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
    * otherwise returns false.
    *
