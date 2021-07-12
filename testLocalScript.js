@@ -18,8 +18,8 @@ function done(result) {
 
 //list of lambda parent folder names
 const lambdas = {
-  chron: { function: pathTo('chronos.js'), event: null },
-  chiron: { function: pathTo('chiron.js'), event: null }
+  chron: { function: pathTo('chronos/chronos.js'), event: null },
+  chiron: { function: pathTo('chiron/chiron.js'), event: null }
 };
 
 //reads arguments
