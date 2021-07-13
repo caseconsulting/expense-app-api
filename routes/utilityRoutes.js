@@ -389,7 +389,8 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee)) {
+      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
+        this.isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -563,7 +564,8 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee)) {
+      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
+      this.isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -1028,16 +1030,16 @@ class Utility {
    */
   isManager(employee) {
     // log method
-    logger.log(5, 'isManager', `Checking if employee ${employee.id} is an intern`);
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is a manager`);
 
     // compute method
     let result = employee.employeeRole === 'manager';
 
     // log result
     if (result) {
-      logger.log(5, 'isManager', `Employee ${employee.id} is an intern`);
+      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
     } else {
-      logger.log(5, 'isManager', `Employee ${employee.id} is not an intern`);
+      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
     }
 
     // return result

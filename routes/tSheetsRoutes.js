@@ -248,6 +248,30 @@ class TSheetsRoutes {
   } // isUser
 
   /**
+   * Check if an employee is a user. Returns true if employee role is 'manager', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is manager
+   */
+  isManager(employee) {
+    // log method
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is a manager`);
+
+    // compute method
+    let result = employee.employeeRole === 'manager';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
+    } else {
+      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
+    }
+
+    // return result
+    return result;
+  } // isManager
+
+  /**
    * Returns the instace express router.
    *
    * @return Router Object - express router
