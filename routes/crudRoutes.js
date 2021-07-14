@@ -103,7 +103,8 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
-    let managerPermissions = this.isManager(employee) && this._checkTableName(['training-urls', 'expenses']);
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['training-urls',
+      'expenses', 'employees']);
     let adminPermissions =
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
@@ -151,7 +152,7 @@ class Crud {
     let adminPermissions =
       this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
-    let managerPermissions = this.isManager(employee) && this._checkTableName(['expenses']);
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['expenses', 'employees']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
