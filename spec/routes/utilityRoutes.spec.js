@@ -1111,6 +1111,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'isAdmin').and.returnValue(true);
         spyOn(utilityRoutes, 'isUser').and.returnValue(false);
         spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
+        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1208,12 +1209,117 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // when fails to get expenses
     }); // when employee is an admin
+    
+    describe('when employee is an manager', () => {
+      beforeEach(() => {
+        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
+        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
+        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
+        spyOn(utilityRoutes, 'isManager').and.returnValue(true);
+      });
+  
+      describe('and successfully gets all aggregate expenses', () => {
+        beforeEach(() => {
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+          employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
+          expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([expense]));
+        });
+
+        it('should respond with a 200 and the aggregate expenses', (done) => {
+          utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
+            expect(data).toEqual([aggregateExpense]);
+            expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith([aggregateExpense]);
+            done();
+          });
+        }); // should respond with a 200 and the aggregate expenses
+      }); // and successfully gets all aggregate expenses
+  
+      describe('and fails to get expense types', () => {
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to get expense types.'
+          };
+
+          spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue(Promise.reject(err));
+        });
+
+        it('should respond with a 404 and error', (done) => {
+          utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
+            expect(data).toEqual(err);
+            expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            done();
+          });
+        }); // should respond with a 404 and error
+      }); // and fails to get expense types
+  
+      describe('and fails to get employee', () => {
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to get employee.'
+          };
+
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+          employeeDynamo.getEntry.and.returnValue(Promise.reject(err));
+        });
+
+        it('should respond with a 404 and error', (done) => {
+          utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
+            expect(data).toEqual(err);
+            expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            done();
+          });
+        }); // should respond with a 404 and error
+      }); // and fails to get employee
+  
+      describe('and fails to get employee expenses', () => {
+        let err;
+
+        beforeEach(() => {
+          err = {
+            code: 404,
+            message: 'Failed to get employee expenses.'
+          };
+
+          expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
+          employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
+          expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+        });
+
+        it('should respond with a 404 and error', (done) => {
+          utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
+            expect(data).toEqual(err);
+            expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith(err);
+            done();
+          });
+        }); // should respond with a 404 and error
+      }); // and fails to get employee expenses
+    }); // when employee is an manager
 
     describe('when employee is a user', () => {
       beforeEach(() => {
         spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
         spyOn(utilityRoutes, 'isUser').and.returnValue(true);
         spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
+        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1318,6 +1424,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
         spyOn(utilityRoutes, 'isUser').and.returnValue(false);
         spyOn(utilityRoutes, 'isIntern').and.returnValue(true);
+        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1415,7 +1522,7 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // and fails to get employee expenses
     }); // when employee is a user
-    describe('when employee is not an admin nor user nor intern', () => {
+    describe('when employee is not an admin nor user nor intern nor Manager', () => {
       let err;
 
       beforeEach(() => {
@@ -1426,6 +1533,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
         spyOn(utilityRoutes, 'isUser').and.returnValue(false);
         spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
+        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
       });
 
       it('should respond with a 403 and error', (done) => {
@@ -2199,6 +2307,82 @@ describe('utilityRoutes', () => {
       }); // should return true
     }); // when the employee is an intern
   }); // isUser
+
+  describe('isIntern', () => {
+    let employee;
+
+    beforeEach(() => {
+      employee = _.cloneDeep(EMPLOYEE_DATA);
+    });
+
+    describe('when the employee is a user', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'intern';
+      });
+
+      it('should return true', () => {
+        expect(utilityRoutes.isIntern(employee)).toBe(true);
+      }); // should return true
+    }); // when the employee is a user
+
+    describe('when the employee is an admin', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'admin';
+      });
+
+      it('should return false', () => {
+        expect(utilityRoutes.isIntern(employee)).toBe(false);
+      }); // should return false
+    }); // when the employee is an admin
+
+    describe('when the employee is an user', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'user';
+      });
+
+      it('should return false', () => {
+        expect(utilityRoutes.isIntern(employee)).toBe(false);
+      }); // should return true
+    }); // when the employee is an intern
+  }); // isIntern
+
+  describe('isManager', () => {
+    let employee;
+
+    beforeEach(() => {
+      employee = _.cloneDeep(EMPLOYEE_DATA);
+    });
+
+    describe('when the employee is a manager', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'manager';
+      });
+
+      it('should return true', () => {
+        expect(utilityRoutes.isManager(employee)).toBe(true);
+      }); // should return true
+    }); // when the employee is a user
+
+    describe('when the employee is an admin', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'admin';
+      });
+
+      it('should return false', () => {
+        expect(utilityRoutes.isManager(employee)).toBe(false);
+      }); // should return false
+    }); // when the employee is an admin
+
+    describe('when the employee is an intern', () => {
+      beforeEach(() => {
+        employee.employeeRole = 'intern';
+      });
+
+      it('should return false', () => {
+        expect(utilityRoutes.isManager(employee)).toBe(false);
+      }); // should return false
+    }); // when the employee is an intern
+  }); // isManager
 
   describe('router', () => {
     it('should return the router', () => {
