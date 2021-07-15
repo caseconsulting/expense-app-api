@@ -19,6 +19,7 @@ const _ = require('lodash');
  * - receipt
  * - note
  * - url
+ * - canDelete
  */
 class Expense {
   constructor(data) {
@@ -37,6 +38,7 @@ class Expense {
     this.setOptionalAttribute(data, 'receipt');
     this.setOptionalAttribute(data, 'note');
     this.setOptionalAttribute(data, 'url');
+    this.setOptionalAttribute(data, 'canDelete');
   } // constructor
 
   /**

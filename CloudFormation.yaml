@@ -678,6 +678,13 @@ Resources:
               - Effect: Allow
                 Action: 'sns:*'
                 Resource: '*'
+        - PolicyName: S3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
       Tags:
         - Key: Application
           Value: expense-app
@@ -690,7 +697,7 @@ Resources:
       Handler: mifiStatus.handler
       Timeout: 900
       MemorySize: 256
-      CodeUri: ./mifiStatus.js
+      CodeUri: ./mifiStatus
       Events:
         MifiStream:
           Type: DynamoDB
@@ -700,6 +707,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          MifiTopicArn: !Ref MifiTopic
       Role: !GetAtt
         - MifiStatusLambdaRole
         - Arn

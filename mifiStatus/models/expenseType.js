@@ -1,54 +1,73 @@
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
+const ISOFORMAT = 'YYYY-MM-DD';
 const _ = require('lodash');
 
 /**
- * Expense model
+ * ExpenseType model
  *
  * Required Fields:
- * - id
- * - employeeId
- * - createdAt
- * - expenseTypeId
- * - cost
+ * - accessiblyBy
+ * - alwaysOnFeed
+ * - budget
+ * - budgetName
+ * - categories
  * - description
- * - purchaseDate
- * - showOnFeed
+ * - hasRecipient
+ * - id
+ * - isInactive
+ * - odFlag
+ * - recurringFlag
+ * - requiredFlag
+ * - requireURL
  *
  * Optional Fields:
- * - category
- * - reimbursedDate
- * - receipt
- * - note
- * - url
- * - canDelete
+ * - campfire
+ * - endDate
+ * - startDate
  */
-class Expense {
-  constructor(data) {
-    this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'employeeId');
-    this.setRequiredAttribute(data, 'createdAt');
-    this.setRequiredAttribute(data, 'expenseTypeId');
-    this.setRequiredAttribute(data, 'description');
-    this.setRequiredAttribute(data, 'purchaseDate');
-    this.setRequiredAttribute(data, 'showOnFeed', false);
-    this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
 
-    this.setOptionalAttribute(data, 'category');
-    this.setOptionalAttribute(data, 'recipient');
-    this.setOptionalAttribute(data, 'reimbursedDate');
-    this.setOptionalAttribute(data, 'receipt');
-    this.setOptionalAttribute(data, 'note');
-    this.setOptionalAttribute(data, 'url');
-    this.setOptionalAttribute(data, 'canDelete');
+class ExpenseType {
+  constructor(data) {
+    this.setRequiredAttribute(data, 'accessibleBy', ['FullTime']); // default: accessible by all employees
+    this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
+    this.setRequiredNumberAttribute(data, 'budget', undefined, 2); // fixed 2 decimal places
+    this.setRequiredAttribute(data, 'budgetName');
+    this.setRequiredAttribute(data, 'categories', []); // default: no categories
+    this.setRequiredAttribute(data, 'description');
+    this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
+    this.setRequiredAttribute(data, 'id');
+    this.setRequiredAttribute(data, 'isInactive', false); // default: active
+    this.setRequiredAttribute(data, 'odFlag', false); // default: overdraft not allowed
+    this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring
+    this.setRequiredAttribute(data, 'requiredFlag', true); // default: receipt required
+    this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
+    this.setRequiredAttribute(data, 'proRated', false);
+
+    this.setOptionalAttribute(data, 'campfire');
+    this.setOptionalAttribute(data, 'endDate');
+    this.setOptionalAttribute(data, 'startDate');
   } // constructor
 
   /**
-   * Check if the expense has a receipt. Returns true if the receipt exists, otherwise returns false.
+   * Check if a date is in the expense type date range. Returns true if the expense type is recurring or the date is
+   * between the expense type start and end date. Returns false otherwise.
    *
-   * @return boolean - expense has receipt
+   * @param date - moment of date to be checked
+   * @return Boolean - date is in range
    */
-  hasReceipt() {
-    return !this._isEmpty(this.receipt);
-  }
+  isDateInRange(dateStr) {
+    if (this.recurringFlag) {
+      return true;
+    } else if (_.isNil(dateStr)) {
+      return false;
+    } else {
+      let date = moment(dateStr, ISOFORMAT);
+      let start = moment(this.startDate, ISOFORMAT);
+      let end = moment(this.endDate, ISOFORMAT);
+      return date.isBetween(start, end, null, '[]');
+    }
+  } // isDateInRange
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -59,15 +78,6 @@ class Expense {
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
-
-  /**
-   * Check if the expense is reimbursed. Returns true if reimburse date exists, otherwise returns false.
-   *
-   * @return boolean - expense is reimbursed
-   */
-  isReimbursed() {
-    return !this._isEmpty(this.reimbursedDate);
-  } // isReimbursed
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
@@ -126,4 +136,4 @@ class Expense {
   } // setRequiredNumberAttribute
 }
 
-module.exports = Expense;
+module.exports = ExpenseType;

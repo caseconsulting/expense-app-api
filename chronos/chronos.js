@@ -7,20 +7,28 @@ const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
+const Employee = require('../models/employee');
 
 /**
  * Returns a new DatabaseModify for budgets
  */
 function _budgetDynamo() {
   return new DatabaseModify('budgets');
-}
+} //_budgetDynamo
 
 /**
  * Returns a new DatabaseModify for expense-types
  */
 function _expenseTypeDynamo() {
   return new DatabaseModify('expense-types');
-}
+} //_expenseTypeDynamo
+
+/**
+ * Returns a new DatabaseModify for employees
+ */
+function _employeeDynamo() {
+  return new DatabaseModify('employees');
+} //_employeeDynamo
 
 /*
  * Async function to loop an array.
@@ -48,6 +56,17 @@ async function _getAllExpenseTypes() {
 
   return expenseTypes;
 }
+
+/**
+ * Gets the employee tied to the budget
+ *
+ * @param {*} employeeId = id of the employee tied to the budget
+ * @returns employee tied to the budget
+ */
+async function _getBudgetEmployee(employeeId) {
+  let employee = await lib._employeeDynamo().getEntry(employeeId);
+  return new Employee(employee);
+} //_getBudgetEmployee
 
 /**
  * Finds an expense type given an id from a list of expense types.
@@ -85,6 +104,20 @@ function _getUUID() {
  */
 async function _makeNewBudget(oldBudget, expenseType) {
   let updatedBudget = _.cloneDeep(oldBudget);
+  let mifiAddition = 0;
+
+  if (expenseType.budgetName === 'Technology') {
+    let budgetEmployee = lib._getBudgetEmployee(oldBudget.employeeId);
+    if (
+      budgetEmployee.mifiStatus !== undefined &&
+      budgetEmployee.mifiStatus !== null &&
+      budgetEmployee.mifiStatus === false
+    ) {
+      //opted out of mifi add 150 dollars
+      console.info('Mifi status is set to false, adding tech budget for employee');
+      mifiAddition = 150;
+    }
+  }
   let newBudgetData = {
     id: lib._getUUID(),
     expenseTypeId: oldBudget.expenseTypeId,
@@ -95,7 +128,7 @@ async function _makeNewBudget(oldBudget, expenseType) {
     fiscalStartDate: moment(oldBudget.fiscalStartDate).add(1, 'years').format('YYYY-MM-DD'),
     //increment the budgets fiscal end day by one year
     fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD'),
-    amount: expenseType.budget
+    amount: expenseType.budget + mifiAddition
   };
   let newBudget = new Budget(newBudgetData); // convert to budget object
   if (oldBudget.reimbursedAmount > expenseType.budget) {
@@ -140,7 +173,7 @@ async function start() {
     });
     expenseTypes = await lib._getAllExpenseTypes();
 
-    if (budgets.length != 0) {
+    if (budgets.length !== 0) {
       await lib._asyncForEach(budgets, async (oldBudget) => {
         if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
           // old budget has overdraft
@@ -183,8 +216,10 @@ async function handler(event) {
 lib = {
   _budgetDynamo,
   _expenseTypeDynamo,
+  _employeeDynamo,
   _asyncForEach,
   _getAllExpenseTypes,
+  _getBudgetEmployee,
   _getExpenseType,
   _getUUID,
   _makeNewBudget,

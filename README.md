@@ -229,8 +229,8 @@ Claudia.js requires a one time initialization after the CloudFormation stack has
 Make sure you do not have a claudia.json file and that you do have a .env set up for the environment.
 
 ```bash
-npm run package:chronos:test
-npm run deploy:chronos:test
+npm run package:cloudformation:test
+npm run deploy:cloudformation:test
 npm run create:claudia:test
 ```
 

@@ -1,54 +1,32 @@
 const _ = require('lodash');
 
 /**
- * Expense model
+ * TrainingURLs model
  *
  * Required Fields:
- * - id
- * - employeeId
- * - createdAt
- * - expenseTypeId
- * - cost
- * - description
- * - purchaseDate
- * - showOnFeed
- *
- * Optional Fields:
+ * - id (the url)
+ * - hits
  * - category
- * - reimbursedDate
- * - receipt
- * - note
- * - url
- * - canDelete
+ *
+ * Additional Fields:
+ * - title
+ * - description
+ * - image
+ * - logo
+ * - publisher
  */
-class Expense {
+class TrainingUrls {
   constructor(data) {
     this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'employeeId');
-    this.setRequiredAttribute(data, 'createdAt');
-    this.setRequiredAttribute(data, 'expenseTypeId');
-    this.setRequiredAttribute(data, 'description');
-    this.setRequiredAttribute(data, 'purchaseDate');
-    this.setRequiredAttribute(data, 'showOnFeed', false);
-    this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
+    this.setRequiredAttribute(data, 'category');
+    this.setRequiredNumberAttribute(data, 'hits', 0);
 
-    this.setOptionalAttribute(data, 'category');
-    this.setOptionalAttribute(data, 'recipient');
-    this.setOptionalAttribute(data, 'reimbursedDate');
-    this.setOptionalAttribute(data, 'receipt');
-    this.setOptionalAttribute(data, 'note');
-    this.setOptionalAttribute(data, 'url');
-    this.setOptionalAttribute(data, 'canDelete');
+    this.setOptionalAttribute(data, 'description');
+    this.setOptionalAttribute(data, 'image');
+    this.setOptionalAttribute(data, 'logo');
+    this.setOptionalAttribute(data, 'publisher');
+    this.setOptionalAttribute(data, 'title');
   } // constructor
-
-  /**
-   * Check if the expense has a receipt. Returns true if the receipt exists, otherwise returns false.
-   *
-   * @return boolean - expense has receipt
-   */
-  hasReceipt() {
-    return !this._isEmpty(this.receipt);
-  }
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -59,15 +37,6 @@ class Expense {
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // isEmpty
-
-  /**
-   * Check if the expense is reimbursed. Returns true if reimburse date exists, otherwise returns false.
-   *
-   * @return boolean - expense is reimbursed
-   */
-  isReimbursed() {
-    return !this._isEmpty(this.reimbursedDate);
-  } // isReimbursed
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
@@ -126,4 +95,4 @@ class Expense {
   } // setRequiredNumberAttribute
 }
 
-module.exports = Expense;
+module.exports = TrainingUrls;
