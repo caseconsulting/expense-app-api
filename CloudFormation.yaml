@@ -715,7 +715,10 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: 
       DisplayName: 'Mifi status change'
-      TopicName: 'MifiStatus'
+      TopicName: !Join
+        - ''
+        - - mifi-status-
+          - !Ref Stage
   MifiSubscription:
     Type: AWS::SNS::Subscription
     Properties: 
