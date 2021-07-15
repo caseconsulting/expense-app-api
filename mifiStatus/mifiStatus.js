@@ -33,7 +33,7 @@ async function checkMifiChange(event, context) {
   let expenseTypeModify = new DatabaseModify('expense-types');
   let expenseTypes = await expenseTypeModify.getAllEntriesInDB();
 
-  let technologyExpenseType, data, expense;
+  let technologyExpenseType, expense;
 
   let now = moment().format(ISOFORMAT);
 
