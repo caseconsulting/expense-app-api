@@ -22,13 +22,13 @@ const checkJwt = jwt({
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
   algorithms: ['RS256']
 });
-
 class GoogleMapRoutes {
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.get('/getLocation/:location', this._checkJwt, this._getUserInfo, this._getLocation.bind(this));
+    this._router.get('/getZipCode/:addressId', this._checkJwt, this._getUserInfo, this._getZipCode.bind(this));
   }
 
   /**
@@ -68,7 +68,34 @@ class GoogleMapRoutes {
       };
       this._sendError(res, error);
     }
-  }
+  } //_getLocation
+
+  /**
+   * Obtains an object that contains the zip code of a given address ID
+   * @param {*} req: holds params.addressId of the location to get the zip code of
+   * @param {*} res: object of multiple fields about the given location
+   */
+  async _getZipCode(req, res) {
+    let addressId = req.params.addressId;
+    let googleKey = process.env.GOOGLE_MAPS_KEY.replace('&libraries=places', '');
+    let baseURL = `https://maps.googleapis.com/maps/api/place/details/json?key=${googleKey}`;
+    logger.log(1, '_getZipCode', `Attempting to get requested zip code for ${addressId}`);
+    var config = {
+      method: 'get',
+      url: `${baseURL}&fields=address_component&place_id=${addressId}`
+    };
+    try {
+      let response = await this.callAxios(config);
+      logger.log(1, '_getZipCode', 'Successfully obtained zip code!');
+      res.status(200).send(response.data);
+    } catch(err) {
+      let error = {
+        code: 400,
+        message: err.message
+      };
+      this._sendError(res, error);
+    }
+  } //_getZipCode
 
   async callAxios(options) {
     return axios(options);
@@ -89,6 +116,4 @@ class GoogleMapRoutes {
   } // _sendError
 }
 
-
 module.exports = GoogleMapRoutes;
-
