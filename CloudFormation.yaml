@@ -193,6 +193,30 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  s3Resumes:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-portal-resumes-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove Deleted Expense Resumes
+            NoncurrentVersionExpirationInDays: 30
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/resumes/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: portal
+        - Key: Stage
+          Value: !Ref Stage
   s3BlogPosts:
     DependsOn: s3Logs
     Type: 'AWS::S3::Bucket'

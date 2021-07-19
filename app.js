@@ -38,6 +38,9 @@ const utilityRoutes = new UtilityRoutes();
 const AttachmentRoutes = require('./routes/attachmentRoutes');
 const attachmentRoutes = new AttachmentRoutes();
 
+const ResumeRoutes = require('./routes/resumeRoutes');
+const resumeRoutes = new ResumeRoutes();
+
 const TSheetsRoutes = require('./routes/tSheetsRoutes');
 const tSheetsRoutes = new TSheetsRoutes();
 
@@ -92,6 +95,7 @@ app.use('/expenses', expenseRoutes.router);
 app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
+app.use('/resume', resumeRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
