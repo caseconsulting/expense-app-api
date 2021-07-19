@@ -445,7 +445,7 @@ class Attachment {
   //       cb(null, true);
   //     } else {
   //       // invalid file type
-//   logger.log(2, 'fileFilter', `Failed to validate Mimetype ${file.mimetype} of attachment ${file.originalname}`);
+  //   logger.log(2, 'fileFilter', `Failed to validate Mimetype ${file.mimetype} of attachment ${file.originalname}`);
 
   //       cb(new Error(`Invalid file type ${file.mimetype}. Text can only be extracted from jpg or png files.`));
   //     }
