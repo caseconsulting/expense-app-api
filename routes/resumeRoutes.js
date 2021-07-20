@@ -265,12 +265,6 @@ class Resume {
           //////
 
           let textEntities = await this.comprehendText(textExtracted);
-          let words = [];
-          _.forEach(textExtracted.Blocks, (block) => {
-            if (block.BlockType === 'WORD') {
-              words.push({ Text: block.Text, Confidence: block.Confidence });
-            }
-          });
 
           let keyMap = {};
           let valueMap = {};
@@ -307,7 +301,7 @@ class Resume {
             keyValueSets.push({ Keys: keys, Values: values });
           }
 
-          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets, Words: words };
+          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets };
   
           //////
           ////// End Synchronous Document Analysis
@@ -339,20 +333,31 @@ class Resume {
    *
    */
   async comprehendText(textExtracted) {
-    let text = '';
 
-    _.forEach(textExtracted.Blocks, (block) => {
-      if (block.BlockType === 'LINE') {
-        text += block.Text + '\n';
+    let returnEntities = [];
+    while (textExtracted.Blocks.length > 0) {
+      let text = [];
+  
+      for (let i = 0 ; i < (textExtracted.Blocks.length && 25); i++) {
+        let block = textExtracted.Blocks.shift();
+        if (block.BlockType === 'LINE') {
+          text.push(block.Text + ' ');
+        }
       }
-    });
+      if (text.length > 0)
+      {
+        let comprehendParams = {
+          LanguageCode: 'en',
+          TextList: text
+        };
 
-    let comprehendParams = {
-      LanguageCode: 'en',
-      Text: text
-    };
-
-    return comprehend.detectEntities(comprehendParams).promise();
+        let entities = await comprehend.batchDetectEntities(comprehendParams).promise();
+        _.forEach(entities.ResultList, (entity) => {
+          returnEntities.push(...entity.Entities);
+        });
+      }
+    }
+    return returnEntities;
   } // comprehendText
 
   findValueBlock(keyBlock, valueMap) {
