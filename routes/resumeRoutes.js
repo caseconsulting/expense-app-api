@@ -410,32 +410,49 @@ class Resume {
     // compute method
     let filePath = `${req.params.employeeId}/resume`;
     let params = { Bucket: BUCKET, Key: filePath, Expires: 60 };
-    s3.getSignedUrl('getObject', params, (err, data) => {
-      if (err) {
-        // log error
-        logger.log(1, 'getResumeFromS3', 'Failed to read resume');
-
+    let headParams = { Bucket: BUCKET, Key: filePath };
+    // We check if resume exists, if it does, then we get the resume
+    s3.headObject(headParams, function (err) {
+      if (err && err.code === 'NotFound') {
+        // No object found
+        logger.log(1, 'getREsumeFromS3', `No resume found for ${req.params.employeeId}`);
         let error = {
-          code: 403,
-          message: `${err.message}`
+          code: 404,
+          message: `No resume found for ${req.params.employeeId}`
         };
-
-        // send error status
-        res.status(error.code).send(error);
-
-        // return error
+        //res.status(error.code).send(error);
         return error;
+        
       } else {
-        // log success
-        logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
-
-        // send successful 200 status
-        res.status(200).send(data);
-
-        // return file read
-        return data;
+        s3.getSignedUrl('getObject', params, (err, data) => {
+          if (err) {
+            // log error
+            logger.log(1, 'getResumeFromS3', 'Failed to read resume');
+    
+            let error = {
+              code: 403,
+              message: `${err.message}`
+            };
+    
+            // send error status
+            res.status(error.code).send(error);
+    
+            // return error
+            return error;
+          } else {
+            // log success
+            logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
+    
+            // send successful 200 status
+            res.status(200).send(data);
+    
+            // return file read
+            return data;
+          }
+        });
       }
     });
+
   } // getResumeFromS3
 
   /**
