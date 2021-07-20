@@ -37,9 +37,10 @@ const storage = multerS3({
   s3: s3,
   bucket: BUCKET,
   acl: 'bucket-owner-full-control',
+  contentType: multerS3.AUTO_CONTENT_TYPE,
   serverSideEncryption: 'AES256',
   key: function (req, file, cb) {
-    cb(null, `${req.params.employeeId}/resume`);
+    cb(null, `${req.params.employeeId}/${file.originalname}`);
   }
 });
 
@@ -94,19 +95,19 @@ class Resume {
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.delete(
-      '/:employeeId/resume',
+      '/:employeeId',
       this._checkJwt,
       this._getUserInfo,
       this.deleteResumeFromS3.bind(this)
     );
-    this._router.get('/:employeeId/resume', this._checkJwt, this._getUserInfo, this.getResumeFromS3.bind(this));
+    this._router.get('/:employeeId', this._checkJwt, this._getUserInfo, this.getResumeFromS3.bind(this));
     this._router.post(
-      '/:employeeId/:resume',
+      '/:employeeId',
       this._checkJwt,
       this._getUserInfo,
       this.uploadResumeToS3.bind(this)
     );
-    this._router.put('/:employeeId/resume', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
+    this._router.put('/:employeeId', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
   } // constructor
 
   /**
@@ -187,7 +188,7 @@ class Resume {
       contentType: multerS3.AUTO_CONTENT_TYPE,
       serverSideEncryption: 'AES256',
       key: function (req, file, cb) {
-        cb(null, `${req.params.employeeId}/${file.originalname}`);
+        cb(null, `${req.params.employeeId}/resume`);
       }
     });
   
@@ -459,9 +460,15 @@ class Resume {
   uploadResumeToS3(req, res) {
     // log method
     logger.log(1, 'uploadResumeToS3', `Attempting to upload resume for employee ${req.params.employeeId}`);
+    //let x = JSON.stringify(req);
+    //logger.log(1, 'uploadResumeToS3', `req: ${x}`);
 
     // compute method
+    logger.log(1, 'uploadResumeToS3', `req outside multer: ${req}`);
+    logger.log(1, 'uploadResumeToS3', `req.data outside multer: ${req.data}`);
     upload(req, res, async (err) => {
+      logger.log(1, 'uploadResumeToS3', `req inside multer: ${req}`);
+      logger.log(1, 'uploadResumeToS3', `req.data inside multer: ${req.data}`);
       if (err) {
         // log error
         logger.log(1, 'uploadResumeToS3', 'Failed to upload file');
