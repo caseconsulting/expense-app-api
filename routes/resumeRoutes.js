@@ -264,44 +264,16 @@ class Resume {
           ////// Does not support pdf, takes ~5 seconds
           //////
 
+          let threshold = .70;
           let textEntities = await this.comprehendText(textExtracted);
-
-          let keyMap = {};
-          let valueMap = {};
-          let blockMap = {};
-
-          _.forEach(textExtracted.Blocks, (block) => {
-            let blockId = block.Id;
-            blockMap[blockId] = block;
-            if (block.BlockType === 'KEY_VALUE_SET') {
-              if (_.includes(block.EntityTypes, 'KEY')) {
-                keyMap[blockId] = block;
-              } else {
-                valueMap[blockId] = block;
-              }
-            }
+          textEntities = _.filter(textEntities, (textEntity) => {
+            return (textEntity.Score > threshold && (
+              textEntity.Type === 'LOCATION' ||
+              textEntity.Type === 'TITLE' ||
+              textEntity.Type === 'ORGANIZATION' ||
+              textEntity.Type === 'PERSON'));
           });
-
-          let keyValueSets = [];
-          for (let key in keyMap) {
-            let valueBlock = this.findValueBlock(keyMap[key], valueMap);
-            let KVSkey = this.getText(keyMap[key], blockMap);
-            let KVSval = this.getText(valueBlock, blockMap);
-            //keyValueSets[KVSkey] = KVSval;
-            let keys = {};
-            let values = {};
-
-            for (let i = 0; i < KVSkey.ids.length; i++) {
-              keys[KVSkey.ids[i]] = { Text: KVSkey.Text[i], Confidence: KVSkey.Confidences[i] };
-            }
-            for (let i = 0; i < KVSval.ids.length; i++) {
-              values[KVSval.ids[i]] = { Text: KVSval.Text[i], Confidence: KVSval.Confidences[i] };
-            }
-
-            keyValueSets.push({ Keys: keys, Values: values });
-          }
-
-          let payload = { comprehend: textEntities, textract: textExtracted, KeyValueSets: keyValueSets };
+          let payload = { comprehend: textEntities };
   
           //////
           ////// End Synchronous Document Analysis
@@ -330,27 +302,32 @@ class Resume {
   } // extractText
 
   /**
-   *
+   * Convert the text to categories
    */
   async comprehendText(textExtracted) {
 
     let returnEntities = [];
+
     while (textExtracted.Blocks.length > 0) {
       let text = [];
   
+      //Get 25 LINE blocks (comprehend has a max of 25 per batch)
       for (let i = 0 ; i < (textExtracted.Blocks.length && 25); i++) {
         let block = textExtracted.Blocks.shift();
         if (block.BlockType === 'LINE') {
           text.push(block.Text + ' ');
         }
       }
+
+      // We should only comprehend text if there were LINE blocks
       if (text.length > 0)
       {
         let comprehendParams = {
           LanguageCode: 'en',
           TextList: text
         };
-
+        
+        //Get the entities for this batch of 25 items
         let entities = await comprehend.batchDetectEntities(comprehendParams).promise();
         _.forEach(entities.ResultList, (entity) => {
           returnEntities.push(...entity.Entities);
