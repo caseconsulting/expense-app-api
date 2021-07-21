@@ -8,16 +8,7 @@
     "dotenv": "^8.2.0",
     "got": "^11.8.1",
     "lodash": "^4.17.20",
-    "metascraper": "^5.16.7",
-    "metascraper-author": "^5.16.7",
-    "metascraper-clearbit": "^5.16.7",
-    "metascraper-date": "^5.16.7",
-    "metascraper-description": "^5.16.7",
-    "metascraper-image": "^5.16.7",
-    "metascraper-logo": "^5.16.7",
-    "metascraper-publisher": "^5.16.7",
-    "metascraper-title": "^5.16.7",
-    "metascraper-url": "^5.16.7",
+    "metadata-scraper": "^0.2.30",
     "moment-timezone": "^0.5.33",
     "url-exist": "^2.0.2"
   }

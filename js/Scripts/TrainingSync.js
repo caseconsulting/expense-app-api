@@ -14,15 +14,7 @@ if (process.argv.length > 2) {
 const AWS = require('aws-sdk');
 const got = require('got');
 const Logger = require('../Logger');
-const metascraper = require('metascraper')([
-  require('metascraper-description')(),
-  require('metascraper-image')(),
-  require('metascraper-logo')(),
-  require('metascraper-clearbit')(),
-  require('metascraper-publisher')(),
-  require('metascraper-title')(),
-  require('metascraper-url')()
-]);
+const metascraper = require('metadata-scraper');
 const TrainingUrl = require('../../models/trainingUrls');
 const _ = require('lodash');
 
