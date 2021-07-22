@@ -19,6 +19,7 @@ describe('employee', () => {
   const CONTRACT = 'contract';
   const GITHUB = 'github';
   const TWITTER = 'twitter';
+  const PHONE_NUMBER = 'phoneNumber';
   const CITY = 'city';
   const STREET = 'st';
   const COUNTRY = 'country';
@@ -45,6 +46,7 @@ describe('employee', () => {
     contract: CONTRACT,
     github: GITHUB,
     twitter: TWITTER,
+    phoneNumber: PHONE_NUMBER,
     city: CITY,
     st: STREET,
     country: COUNTRY,

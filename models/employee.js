@@ -40,6 +40,7 @@ const _ = require('lodash');
  * - linkedIn
  * - middleName
  * - nickname
+ * - phoneNumber
  * - prime
  * - st
  * - technologies
@@ -85,6 +86,7 @@ class Employee {
     this.setOptionalAttribute(data, 'linkedIn');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
+    this.setOptionalAttribute(data, 'phoneNumber');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
