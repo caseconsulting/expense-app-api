@@ -109,7 +109,7 @@ class Attachment {
       this._getUserInfo,
       this.uploadAttachmentToS3.bind(this)
     );
-    this._router.put('/:fileName', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
+    this._router.put('/:employeeId/:fileName', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
     this.expenseDynamo = expenseDynamo;
   } // constructor
 
@@ -252,7 +252,6 @@ class Attachment {
           let textExtracted;
           
           do {
-            await this.timeout(5000);
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
             console.log('getAnalysisData');
             console.log(textExtracted);

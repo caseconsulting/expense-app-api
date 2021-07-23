@@ -248,7 +248,6 @@ class Resume {
           let textExtracted;
           
           do {
-            await this.timeout(5000);
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
             console.log('getAnalysisData');
             console.log(textExtracted);
