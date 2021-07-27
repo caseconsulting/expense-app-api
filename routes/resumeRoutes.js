@@ -270,7 +270,8 @@ class Resume {
               textEntity.Type === 'LOCATION' ||
               textEntity.Type === 'TITLE' ||
               textEntity.Type === 'ORGANIZATION' ||
-              textEntity.Type === 'PERSON'));
+              textEntity.Type === 'PERSON' ||
+              textEntity.Type === 'OTHER'));
           });
           let payload = { comprehend: textEntities };
   
