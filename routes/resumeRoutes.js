@@ -33,16 +33,16 @@ const BUCKET = `case-consulting-portal-resumes-${STAGE}`;
 const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
 const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
 
-const storage = multerS3({
-  s3: s3,
-  bucket: BUCKET,
-  acl: 'bucket-owner-full-control',
-  contentType: multerS3.AUTO_CONTENT_TYPE,
-  serverSideEncryption: 'AES256',
-  key: function (req, file, cb) {
-    cb(null, `${req.params.employeeId}/${file.originalname}`);
-  }
-});
+// const storage = multerS3({
+//   s3: s3,
+//   bucket: BUCKET,
+//   acl: 'bucket-owner-full-control',
+//   contentType: multerS3.AUTO_CONTENT_TYPE,
+//   serverSideEncryption: 'AES256',
+//   key: function (req, file, cb) {
+//     cb(null, `${req.params.employeeId}/${file.originalname}`);
+//   }
+// });
 
 // file limits
 const limits = {
@@ -83,11 +83,11 @@ const fileFilter = function (req, file, cb) {
 };
 
 // s3 fild upload multer
-const upload = multer({
-  storage: storage,
-  limits: limits,
-  fileFilter: fileFilter
-}).single('resume');
+// const upload = multer({
+//   storage: storage,
+//   limits: limits,
+//   fileFilter: fileFilter
+// }).single('resume');
 
 class Resume {
   constructor() {
@@ -237,9 +237,6 @@ class Resume {
           let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
           let jobId = startAnalysisData.JobId;
           
-          console.log('startAnalysisData');
-          console.log(startAnalysisData);
-          
           let getAnalysisParams = {
             JobId: jobId
           };
@@ -249,8 +246,6 @@ class Resume {
           
           do {
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
-            console.log('getAnalysisData');
-            console.log(textExtracted);
           } while (textExtracted.JobStatus === 'IN_PROGRESS');
   
           //////
@@ -270,8 +265,7 @@ class Resume {
               textEntity.Type === 'LOCATION' ||
               textEntity.Type === 'TITLE' ||
               textEntity.Type === 'ORGANIZATION' ||
-              textEntity.Type === 'PERSON' ||
-              textEntity.Type === 'OTHER'));
+              textEntity.Type === 'PERSON'));
           });
           let payload = { comprehend: textEntities };
   
@@ -457,17 +451,29 @@ class Resume {
    * @return Object - file uploaded
    */
   uploadResumeToS3(req, res) {
+    const textractStorage = multerS3({
+      s3: s3,
+      bucket: BUCKET,
+      acl: 'bucket-owner-full-control',
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      serverSideEncryption: 'AES256',
+      key: function (req, file, cb) {
+        cb(null, `${req.params.employeeId}/resume`);
+      }
+    });
+    // s3 file upload multer
+    const textractUpload = multer({
+      storage: textractStorage,
+      limits: limits,
+      fileFilter: fileFilter
+    }).single('resume');
     // log method
     logger.log(1, 'uploadResumeToS3', `Attempting to upload resume for employee ${req.params.employeeId}`);
     //let x = JSON.stringify(req);
     //logger.log(1, 'uploadResumeToS3', `req: ${x}`);
 
     // compute method
-    logger.log(1, 'uploadResumeToS3', `req outside multer: ${req}`);
-    logger.log(1, 'uploadResumeToS3', `req.data outside multer: ${req.data}`);
-    upload(req, res, async (err) => {
-      logger.log(1, 'uploadResumeToS3', `req inside multer: ${req}`);
-      logger.log(1, 'uploadResumeToS3', `req.data inside multer: ${req.data}`);
+    textractUpload(req, res, async (err) => {
       if (err) {
         // log error
         logger.log(1, 'uploadResumeToS3', 'Failed to upload file');
@@ -502,4 +508,3 @@ class Resume {
 } // Resume
 
 module.exports = Resume;
-
