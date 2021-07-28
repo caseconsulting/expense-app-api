@@ -10,7 +10,8 @@ const actions = [
   '1. Sets all employee\'s work status active = 100 (Full Time) or inactive = 0',
   '2. Removes isInactive attribute from all employees',
   '3. Removes expenseTypes attribute from all employees',
-  '4. Set any null birthdayFeed attributes to true'
+  '4. Set any null birthdayFeed attributes to true',
+  '5. Add years attribute to all employee technologies'
 ];
 
 // check for stage argument
@@ -115,6 +116,55 @@ async function removeAttribute(attribute) {
       }
     });
   });
+}
+
+async function addYearsToTechnologies() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.firstName === 'Spencer') {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id,
+        },
+        UpdateExpression: 'set technologies = :tech',
+        ExpressionAttributeValues: {
+          ':tech': calculateYears(employee.technologies)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+  
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+function calculateYears(technologies) {
+  _.forEach(technologies, (technology) => {
+    let totalYears = 0;
+    _.forEach(technology.dateIntervals, (dateInterval) => {
+      let startDate = new Date(dateInterval.startDate);
+      let endDate;
+      if (dateInterval.endDate === null) {
+        endDate = new Date();
+      } else {
+        endDate = new Date(dateInterval.endDate);
+      }
+      let yearDiff = endDate.getFullYear() - startDate.getFullYear();
+      let yearsDiff = (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12 ;
+      totalYears += yearsDiff;
+    });
+    //delete technology.dateIntervals;  //TODO uncomment once dateIntervals are no longer supported
+    technology.years = totalYears.toFixed(2);
+  });
+  return technologies;
 }
 
 /**
@@ -239,6 +289,12 @@ async function main() {
       if (confirmAction('Set null birthdayFeed attributes to true?')) {
         console.log('Setting null birthdayFeed attributes to true');
         setBirthdayFeed('birthdayFeed');
+      }
+      break;
+    case 5:
+      if (confirmAction('Add years attribute to all employee technologies?')) {
+        console.log('Adding years attribute to all employee technologies');
+        addYearsToTechnologies();
       }
       break;
     default:
