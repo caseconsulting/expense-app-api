@@ -118,10 +118,13 @@ async function removeAttribute(attribute) {
   });
 }
 
+/**
+ * Used to replace the old technologies field with a new object excluding dateIntervals
+ */
 async function addYearsToTechnologies() {
   let employees = await getAllEntries();
   _.forEach(employees, (employee) => {
-    if (employee.firstName === 'Spencer') {
+    if (employee.firstName === 'Spencer') { //TODO delete this condition once fully tested
       let params = {
         TableName: TABLE,
         Key: {
@@ -146,6 +149,14 @@ async function addYearsToTechnologies() {
   });
 }
 
+/**
+ * Takes the technologies object for each employee and calculates the date intervals
+ * and creates a new key called years, which is the sum of all of the years for the 
+ * list of dateIntervals. Also, it adds a field called currentStartDate which is used
+ * to update current technologies years field as time passes
+ * @param technologies 
+ * @returns new object not containing dateIntervals, rather contains years
+ */
 function calculateYears(technologies) {
   _.forEach(technologies, (technology) => {
     let totalDiff = 0;
