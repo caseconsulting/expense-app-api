@@ -233,7 +233,6 @@ class Resume {
               'FORMS'
             ]
           };
-          
           let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
           let jobId = startAnalysisData.JobId;
           
@@ -277,7 +276,6 @@ class Resume {
   
           // set a successful 200 response with uploaded file
           res.status(200).send(payload);
-        
   
           // return text extracted from resume
           return payload;

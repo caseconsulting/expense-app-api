@@ -148,25 +148,41 @@ async function addYearsToTechnologies() {
 
 function calculateYears(technologies) {
   _.forEach(technologies, (technology) => {
-    let totalYears = 0;
+    let totalDiff = 0;
+    technology.current = false;
     _.forEach(technology.dateIntervals, (dateInterval) => {
       let startDate = new Date(dateInterval.startDate);
       let endDate;
       if (dateInterval.endDate === null) {
         endDate = new Date();
+        technology.current = true;
+        technology.currentStartDate = dateToString();
+        totalDiff -= 1/12;
       } else {
         endDate = new Date(dateInterval.endDate);
       }
       let yearDiff = endDate.getFullYear() - startDate.getFullYear();
-      let yearsDiff = (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12 ;
-      totalYears += yearsDiff;
+      totalDiff += (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12;
     });
     //delete technology.dateIntervals;  //TODO uncomment once dateIntervals are no longer supported
-    technology.years = totalYears.toFixed(2);
+    technology.years = Number(totalDiff.toFixed(2));
   });
   return technologies;
 }
 
+/**
+ * Outputs today's date to YYYY-MM-DD format (used to calculate total years as time passes for current tech skills)
+ */
+function dateToString() {
+  let today = new Date();
+  let dd = today.getDate();
+  if (dd < 10) {
+    dd = '0' + dd;
+  } 
+  let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  let yyyy = today.getFullYear();
+  return `${yyyy}-${mm}-${dd}`;
+}
 /**
  * Removes given attribute from all employee data
  */
