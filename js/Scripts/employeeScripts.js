@@ -124,7 +124,7 @@ async function removeAttribute(attribute) {
 async function addYearsToTechnologies() {
   let employees = await getAllEntries();
   _.forEach(employees, (employee) => {
-    if (employee.firstName === 'Spencer') { //TODO delete this condition once fully tested
+    if (employee.technologies) {
       let params = {
         TableName: TABLE,
         Key: {
@@ -136,7 +136,7 @@ async function addYearsToTechnologies() {
         },
         ReturnValues: 'UPDATED_NEW'
       };
-  
+      console.log(employee.technologies);
       //update employee
       ddb.update(params, function(err) {
         if (err) {
@@ -167,11 +167,11 @@ function calculateYears(technologies) {
       if (dateInterval.endDate === null) {
         endDate = new Date();
         technology.current = true;
-        technology.currentStartDate = dateToString();
         totalDiff -= 1/12;
       } else {
         endDate = new Date(dateInterval.endDate);
       }
+      delete technology.currentStartDate;
       let yearDiff = endDate.getFullYear() - startDate.getFullYear();
       totalDiff += (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12;
     });
@@ -181,19 +181,6 @@ function calculateYears(technologies) {
   return technologies;
 }
 
-/**
- * Outputs today's date to YYYY-MM-DD format (used to calculate total years as time passes for current tech skills)
- */
-function dateToString() {
-  let today = new Date();
-  let dd = today.getDate();
-  if (dd < 10) {
-    dd = '0' + dd;
-  } 
-  let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-  let yyyy = today.getFullYear();
-  return `${yyyy}-${mm}-${dd}`;
-}
 /**
  * Removes given attribute from all employee data
  */

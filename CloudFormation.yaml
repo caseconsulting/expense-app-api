@@ -607,6 +607,24 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
+  ThanosFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Updates employee data that is listed as 'current' (supports technology only atm)
+      Handler: thanos.handler
+      Timeout: 900
+      CodeUri: ./thanos
+      Events:
+        ThanosSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 1 * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
