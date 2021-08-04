@@ -371,7 +371,7 @@ class Resume {
   }
 
   /**
-   * Gets an resume from S3.
+   * Gets a resume from S3.
 
    * @param req - api request
    * @param res - api response
@@ -394,9 +394,8 @@ class Resume {
           code: 404,
           message: `No resume found for ${req.params.employeeId}`
         };
-        //res.status(error.code).send(error);
+        res.status(error.code).send(error);
         return error;
-        
       } else {
         s3.getSignedUrl('getObject', params, (err, data) => {
           if (err) {
