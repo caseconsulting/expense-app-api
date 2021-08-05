@@ -5,6 +5,9 @@ const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
 const logger = new Logger('googleMapRoutes');
+require('dotenv').config({
+  silent: true
+});
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
@@ -50,7 +53,7 @@ class GoogleMapRoutes {
   async _getLocation(req, res) {
     let location = req.params.location;
     location = location.replace(' ', '+');
-    let googleKey = process.env.GOOGLE_MAPS_KEY;
+    let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
     let baseURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${googleKey}`;
     logger.log(1, '_getLocation', `Attempting to get requested location for ${location}`);
     var config = {
@@ -77,7 +80,7 @@ class GoogleMapRoutes {
    */
   async _getZipCode(req, res) {
     let addressId = req.params.addressId;
-    let googleKey = process.env.GOOGLE_MAPS_KEY;
+    let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
     let baseURL = `https://maps.googleapis.com/maps/api/place/details/json?key=${googleKey}`;
     logger.log(1, '_getZipCode', `Attempting to get requested zip code for ${addressId}`);
     var config = {
