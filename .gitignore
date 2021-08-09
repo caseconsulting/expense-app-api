@@ -11,3 +11,4 @@ coverage
 .vscode
 claudia.json
 packaged.yaml
+env-variables.json
