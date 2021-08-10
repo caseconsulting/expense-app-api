@@ -42,14 +42,31 @@ function _getUUID() {
  */
 async function _updateCurrentTechnologies(techs) {
   await _asyncForEach(techs, async (tech) => {
-    if (tech.current && tech.years) {
-      //represents 1 month
-      tech.years -= 1/12;
-      tech.years = Number(tech.years.toFixed(2));
+    if (tech.current && tech.years >= 0) {
+      // 1 / 12 represents 1 month
+      tech.years = Number(tech.years) + 1 / 12;
+      tech.years = tech.years.toFixed(2);
     }
   });
   return techs;
 } //_updateCurrentTechnologies
+
+/**
+ * Used to update customer org experience an employee has listed as current 
+ * @param {*} techs employee's customer org experience data
+ * @returns customer org experience object that would have updated 
+ *  years field if it contains current customer org experience
+ */
+async function _updateCurrentCustomerOrgExp(customerOrgExps) {
+  await _asyncForEach(customerOrgExps, async (customerOrgExp) => {
+    if (customerOrgExp.current && customerOrgExp.years) {
+      // 1 / 12 represents 1 month
+      customerOrgExp.years = Number(customerOrgExp.years) + 1 / 12;
+      customerOrgExp.years = customerOrgExp.years.toFixed(2);
+    }
+  });
+  return customerOrgExps;
+}
 
 /**
  * Used to update a variety of fields that involve time fields w/ current-listed dates
@@ -59,10 +76,20 @@ async function start() {
   let employees = await lib._employeeDynamo().getAllEntriesInDB();
   await _asyncForEach(employees, async (employee) => {
     let employeeEdited = _.cloneDeep(employee);
+
+    // Update the technology experience
     if (employee.technologies) {
       employeeEdited.technologies = await lib._updateCurrentTechnologies(employeeEdited.technologies);
       if (!_.isEqual(employeeEdited, employee)) {
-        //await _employeeDynamo().updateEntryInDB(employeeEdited);
+        await _employeeDynamo().updateEntryInDB(employeeEdited);
+      }
+    }
+
+    // Update the customer org experience experience
+    if (employee.customerOrgExp) {
+      employeeEdited.customerOrgExp = await lib._updateCurrentCustomerOrgExp(employeeEdited.customerOrgExp);
+      if (!_.isEqual(employeeEdited, employee)) {
+        await _employeeDynamo().updateEntryInDB(employeeEdited);
       }
     }
   });
@@ -85,6 +112,7 @@ lib = {
   _employeeDynamo,
   _asyncForEach,
   _getUUID,
+  _updateCurrentCustomerOrgExp,
   _updateCurrentTechnologies,
   start,
   handler
