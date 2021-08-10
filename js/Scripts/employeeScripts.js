@@ -12,7 +12,8 @@ const actions = [
   '3. Removes expenseTypes attribute from all employees',
   '4. Set any null birthdayFeed attributes to true',
   '5. Add years attribute to all employee technologies',
-  '6. Convert existing jobs object to updated JSON structure (AKA companies)'
+  '6. Convert existing jobs object to updated JSON structure (AKA companies)',
+  '7. Remove old BI date structure (AKA make them single dates not ranges)'
 ];
 
 // check for stage argument
@@ -147,6 +148,57 @@ async function convertJobsToCompanies() {
 }
 
 /**
+ * 
+ * @param {*} clearances
+ * @returns Converted clearances where if there was a range for the bi dates, it takes the
+ *  start date
+ */
+function updateBIDates(clearances) {
+  _.forEach(clearances, (clearance, clearanceIndex) => {
+    if (clearance.biDates) {
+      _.forEach(clearance.biDates, (biDate, biDateIndex) => {
+        if (biDate.range) {
+          clearances[clearanceIndex].biDates[biDateIndex] = biDate.range[0];
+        }
+      });
+    }
+  });
+  return clearances;
+}
+
+/**
+ * Converts the BI dates so that if there was a range, the bidate gets replaced with just
+ * the start date.
+ */
+async function convertBIDates() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.clearances) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id
+        },
+        UpdateExpression: 'set clearances = :clearance ',
+        ExpressionAttributeValues: {
+          ':clearance': updateBIDates(employee.clearances)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+/**
  * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
  * which is titled companies
  */
@@ -205,7 +257,6 @@ async function addYearsToTechnologies() {
         },
         ReturnValues: 'UPDATED_NEW'
       };
-      console.log(employee.technologies);
       //update employee
       ddb.update(params, function(err) {
         if (err) {
@@ -384,6 +435,12 @@ async function main() {
       if (confirmAction('Convert jobs to companies (the JSON is structured differently on the job exp tab for v3.3)')) {
         console.log('Converted jobs attribute to companies');
         convertJobsToCompanies();
+      }
+      break;
+    case 7:
+      if (confirmAction('7. Remove old BI date structure (AKA make them single dates not ranges)')) {
+        console.log('Converted BI date structure to single dates');
+        convertBIDates();
       }
       break;
     default:
