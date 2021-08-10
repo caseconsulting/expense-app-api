@@ -53,7 +53,7 @@ async function _updateCurrentTechnologies(techs) {
 
 /**
  * Used to update customer org experience an employee has listed as current 
- * @param {*} techs employee's customer org experience data
+ * @param {*} customerOrgExps employee's customer org experience data
  * @returns customer org experience object that would have updated 
  *  years field if it contains current customer org experience
  */
