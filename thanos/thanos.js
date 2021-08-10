@@ -59,7 +59,7 @@ async function _updateCurrentTechnologies(techs) {
  */
 async function _updateCurrentCustomerOrgExp(customerOrgExps) {
   await _asyncForEach(customerOrgExps, async (customerOrgExp) => {
-    if (customerOrgExp.current && customerOrgExp.years) {
+    if (customerOrgExp.current && customerOrgExp.years >= 0) {
       // 1 / 12 represents 1 month
       customerOrgExp.years = Number(customerOrgExp.years) + 1 / 12;
       customerOrgExp.years = customerOrgExp.years.toFixed(2);
