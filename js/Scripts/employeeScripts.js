@@ -11,7 +11,8 @@ const actions = [
   '2. Removes isInactive attribute from all employees',
   '3. Removes expenseTypes attribute from all employees',
   '4. Set any null birthdayFeed attributes to true',
-  '5. Add years attribute to all employee technologies'
+  '5. Add years attribute to all employee technologies',
+  '6. Convert existing jobs object to updated JSON structure (AKA companies)'
 ];
 
 // check for stage argument
@@ -116,6 +117,74 @@ async function removeAttribute(attribute) {
       }
     });
   });
+}
+
+async function convertJobsToCompanies() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.jobs) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id,
+        },
+        UpdateExpression: 'set companies = :comp',
+        ExpressionAttributeValues: {
+          ':comp': calculateCompanies(employee.jobs)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
+ * which is titled companies
+ */
+function calculateCompanies(jobs) {
+  let companies = [];
+  _.forEach(jobs, (job) => {
+    let found = false;
+    console.log(job);
+    _.forEach(companies, (company) => {
+      console.log(company);
+      if (company.companyName === job.company) {
+        let isPresent = job.endDate === null ? true : false;
+        let pos = {
+          title: job.position,
+          startDate: job.startDate,
+          endDate: job.endDate,
+          presentDate: isPresent
+        };
+        company.positions.push(pos);
+        found = true;
+      }
+    });
+    //company not already in the array of companies
+    if (!found) {
+      let isPresent = job.endDate === null ? true : false;
+      let company = {
+        companyName: job.company,
+        positions: [{
+          title: job.position,
+          startDate: job.startDate,
+          endDate: job.endDate,
+          presentDate: isPresent
+        }]
+      };
+      companies.push(company);
+    }
+  });
+  return companies;
 }
 
 /**
@@ -309,6 +378,12 @@ async function main() {
       if (confirmAction('Add years attribute to all employee technologies?')) {
         console.log('Adding years attribute to all employee technologies');
         addYearsToTechnologies();
+      }
+      break;
+    case 6:
+      if (confirmAction('Convert jobs to companies (the JSON is structured differently on the job exp tab for v3.3)')) {
+        console.log('Converted jobs attribute to companies');
+        convertJobsToCompanies();
       }
       break;
     default:
