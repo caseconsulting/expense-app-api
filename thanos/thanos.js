@@ -80,17 +80,15 @@ async function start() {
     // Update the technology experience
     if (employee.technologies) {
       employeeEdited.technologies = await lib._updateCurrentTechnologies(employeeEdited.technologies);
-      if (!_.isEqual(employeeEdited, employee)) {
-        await _employeeDynamo().updateEntryInDB(employeeEdited);
-      }
     }
 
     // Update the customer org experience experience
     if (employee.customerOrgExp) {
       employeeEdited.customerOrgExp = await lib._updateCurrentCustomerOrgExp(employeeEdited.customerOrgExp);
-      if (!_.isEqual(employeeEdited, employee)) {
-        await _employeeDynamo().updateEntryInDB(employeeEdited);
-      }
+    }
+    
+    if (!_.isEqual(employeeEdited, employee)) {
+      await _employeeDynamo().updateEntryInDB(employeeEdited);
     }
   });
   logger.log(2, 'start', 'Finished thanos');
