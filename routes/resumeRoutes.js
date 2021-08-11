@@ -245,8 +245,10 @@ class Resume {
           
           do {
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
+            // We should wait for a little bit of time so we don't get provision issues
+            await new Promise((resolve) => setTimeout(resolve, 200));
           } while (textExtracted.JobStatus === 'IN_PROGRESS');
-  
+          
           //////
           ////// End Asynchronous Document Analysis
           //////
