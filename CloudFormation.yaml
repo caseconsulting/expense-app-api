@@ -100,7 +100,7 @@ Resources:
             ErrorCachingMinTTL: '300'
         ViewerCertificate:
           AcmCertificateArn: !Ref AppCertificate
-          MinimumProtocolVersion: TLSv1.1_2016
+          MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
         Aliases:
           - !Ref AppDomain

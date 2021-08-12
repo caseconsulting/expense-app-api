@@ -17,8 +17,8 @@ for (let i = 0; i < listOfEnvToInclude.length; i++) {
 }
 
 var envStringify = JSON.stringify(envJson);
-fs.writeFile('env-varaibles.json', envStringify, 'utf8', (err) => {
+fs.writeFile('env-variables.json', envStringify, 'utf8', (err) => {
   if (err) throw err;
 });
 
-console.log('generated env-varaibles.json');
+console.log('generated env-variables.json');
