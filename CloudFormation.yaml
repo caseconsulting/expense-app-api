@@ -335,6 +335,44 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  auditTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - audits
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: dateCreated
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: type-dateCreated-index
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: dateCreated
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+          AttributeName: timeToLive
+          Enabled: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   blogTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
