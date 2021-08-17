@@ -68,6 +68,9 @@ const hippoLabsRoutes = new HippoLabsRoutes();
 const GoogleMapRoutes = require('./routes/googleMapsRoutes');
 const googleMapRoutes = new GoogleMapRoutes();
 
+const AuditRoutes = require('./routes/auditRoutes');
+const auditRoutes = new AuditRoutes();
+
 var app = express();
 
 // view engine setup
@@ -109,6 +112,7 @@ app.use('/blogAttachments', blogAttachtmentRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/hippoLabs', hippoLabsRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
+app.use('/audits', auditRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');
