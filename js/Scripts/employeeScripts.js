@@ -7,13 +7,14 @@
 // LIST OF ACTIONS
 const actions = [
   '0. Cancel',
-  '1. Sets all employee\'s work status active = 100 (Full Time) or inactive = 0',
+  "1. Sets all employee's work status active = 100 (Full Time) or inactive = 0",
   '2. Removes isInactive attribute from all employees',
   '3. Removes expenseTypes attribute from all employees',
   '4. Set any null birthdayFeed attributes to true',
   '5. Add years attribute to all employee technologies',
   '6. Convert existing jobs object to updated JSON structure (AKA companies)',
-  '7. Remove old BI date structure (AKA make them single dates not ranges)'
+  '7. Remove old BI date structure (AKA make them single dates not ranges)',
+  '8. Convert existing education entries to updated JSON structure'
 ];
 
 // check for stage argument
@@ -34,25 +35,29 @@ const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 const AWS = require('aws-sdk');
-AWS.config.update({region: 'us-east-1'});
-const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
+AWS.config.update({ region: 'us-east-1' });
+const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 
 // helper to get all entries in dynamodb table
-const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) => {
-  ddb.scan(params).promise()
-    .then(({Items, LastEvaluatedKey}) => {
-      out.push(...Items);
-      !LastEvaluatedKey ? resolve(out)
-        : resolve(getAllEntriesHelper(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
-    })
-    .catch(reject);
-});
+const getAllEntriesHelper = (params, out = []) =>
+  new Promise((resolve, reject) => {
+    ddb
+      .scan(params)
+      .promise()
+      .then(({ Items, LastEvaluatedKey }) => {
+        out.push(...Items);
+        !LastEvaluatedKey
+          ? resolve(out)
+          : resolve(getAllEntriesHelper(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), out));
+      })
+      .catch(reject);
+  });
 
 // get all entries in dynamodb table
 function getAllEntries() {
   console.log('Getting all entries in dynamodb employees table');
   let params = {
-    TableName: TABLE,
+    TableName: TABLE
   };
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
@@ -64,11 +69,11 @@ function getAllEntries() {
  */
 async function workStatusActive() {
   let employees = await getAllEntries();
-  _.forEach(employees, employee => {
+  _.forEach(employees, (employee) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': employee.id
+        id: employee.id
       },
       UpdateExpression: 'set workStatus = :ws',
       ExpressionAttributeValues: {
@@ -84,7 +89,7 @@ async function workStatusActive() {
     }
 
     // update employee
-    ddb.update(params, function(err, data) {
+    ddb.update(params, function (err, data) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -99,18 +104,18 @@ async function workStatusActive() {
  */
 async function removeAttribute(attribute) {
   let employees = await getAllEntries();
-  _.forEach(employees, employee => {
+  _.forEach(employees, (employee) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': employee.id
+        id: employee.id
       },
       UpdateExpression: `remove ${attribute}`,
       ReturnValues: 'UPDATED_NEW'
     };
 
     // update employee
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -127,7 +132,7 @@ async function convertJobsToCompanies() {
       let params = {
         TableName: TABLE,
         Key: {
-          'id': employee.id,
+          id: employee.id
         },
         UpdateExpression: 'set companies = :comp',
         ExpressionAttributeValues: {
@@ -136,19 +141,90 @@ async function convertJobsToCompanies() {
         ReturnValues: 'UPDATED_NEW'
       };
       //update employee
-      ddb.update(params, function(err) {
+      ddb.update(params, function (err) {
         if (err) {
           console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
         } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
         }
       });
     }
   });
 }
 
+async function convertEducation() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.degrees) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set schools = :deg',
+        ExpressionAttributeValues: {
+          ':deg': calculateEducation(employee.degrees)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      //update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
+        }
+      });
+    }
+  });
+}
+
+function calculateEducation(degrees) {
+  //updated degrees value
+  let schools = [];
+  //iterate thru every degree in a profile
+  _.forEach(degrees, (degree) => {
+    let found = false;
+    //iterate thru all entries in schools to see if the degree entry's school has already been added
+    _.forEach(schools, (school) => {
+      //if we found the school, then add its degree-related data (majors, degreeType, etc.) to the school.degrees field
+      if (degree.school === school.name) {
+        found = true;
+        let deg = {
+          degreeType: degree.name,
+          completionDate: degree.date,
+          majors: degree.majors,
+          minors: degree.minors,
+          concentrations: degree.concentrations
+        };
+        school.degrees.push(deg);
+        //add to school.degrees
+        //set found to true
+      }
+    });
+    //if we didn't find the degree in the schools object, we will add a brand new school entry
+    if (!found) {
+      let school = {
+        name: degree.school,
+        degrees: [
+          {
+            degreeType: degree.name,
+            completionDate: degree.date,
+            majors: degree.majors,
+            minors: degree.minors,
+            concentrations: degree.concentrations
+          }
+        ]
+      };
+      schools.push(school);
+      //add new school entry to schools
+    }
+  });
+  return schools;
+}
+
 /**
- * 
+ *
  * @param {*} clearances
  * @returns Converted clearances where if there was a range for the bi dates, it takes the
  *  start date
@@ -177,7 +253,7 @@ async function convertBIDates() {
       let params = {
         TableName: TABLE,
         Key: {
-          'id': employee.id
+          id: employee.id
         },
         UpdateExpression: 'set clearances = :clearance ',
         ExpressionAttributeValues: {
@@ -187,11 +263,11 @@ async function convertBIDates() {
       };
 
       //update employee
-      ddb.update(params, function(err) {
+      ddb.update(params, function (err) {
         if (err) {
           console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
         } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
         }
       });
     }
@@ -226,12 +302,14 @@ function calculateCompanies(jobs) {
       let isPresent = job.endDate === null ? true : false;
       let company = {
         companyName: job.company,
-        positions: [{
-          title: job.position,
-          startDate: job.startDate,
-          endDate: job.endDate,
-          presentDate: isPresent
-        }]
+        positions: [
+          {
+            title: job.position,
+            startDate: job.startDate,
+            endDate: job.endDate,
+            presentDate: isPresent
+          }
+        ]
       };
       companies.push(company);
     }
@@ -249,7 +327,7 @@ async function addYearsToTechnologies() {
       let params = {
         TableName: TABLE,
         Key: {
-          'id': employee.id,
+          id: employee.id
         },
         UpdateExpression: 'set technologies = :tech',
         ExpressionAttributeValues: {
@@ -258,11 +336,11 @@ async function addYearsToTechnologies() {
         ReturnValues: 'UPDATED_NEW'
       };
       //update employee
-      ddb.update(params, function(err) {
+      ddb.update(params, function (err) {
         if (err) {
           console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
         } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
         }
       });
     }
@@ -271,10 +349,10 @@ async function addYearsToTechnologies() {
 
 /**
  * Takes the technologies object for each employee and calculates the date intervals
- * and creates a new key called years, which is the sum of all of the years for the 
+ * and creates a new key called years, which is the sum of all of the years for the
  * list of dateIntervals. Also, it adds a field called currentStartDate which is used
  * to update current technologies years field as time passes
- * @param technologies 
+ * @param technologies
  * @returns new object not containing dateIntervals, rather contains years
  */
 function calculateYears(technologies) {
@@ -287,13 +365,13 @@ function calculateYears(technologies) {
       if (dateInterval.endDate === null) {
         endDate = new Date();
         technology.current = true;
-        totalDiff -= 1/12;
+        totalDiff -= 1 / 12;
       } else {
         endDate = new Date(dateInterval.endDate);
       }
       delete technology.currentStartDate;
       let yearDiff = endDate.getFullYear() - startDate.getFullYear();
-      totalDiff += (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12;
+      totalDiff += yearDiff + (endDate.getMonth() - startDate.getMonth()) / 12;
     });
     //delete technology.dateIntervals;  //TODO uncomment once dateIntervals are no longer supported
     technology.years = Number(totalDiff.toFixed(2));
@@ -307,7 +385,7 @@ function calculateYears(technologies) {
 async function setBirthdayFeed(attribute) {
   let employees = await getAllEntries();
   let showBirthday = true;
-  _.forEach(employees, employee => {
+  _.forEach(employees, (employee) => {
     showBirthday = true;
     if (!employee.birthday) {
       showBirthday = false;
@@ -318,7 +396,7 @@ async function setBirthdayFeed(attribute) {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': employee.id
+        id: employee.id
       },
       UpdateExpression: `set ${attribute} = :a`,
       ExpressionAttributeValues: {
@@ -328,7 +406,7 @@ async function setBirthdayFeed(attribute) {
     };
 
     // update employee
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -346,7 +424,7 @@ function chooseAction() {
   let valid;
 
   let prompt = `ACTIONS - ${STAGE}\n`;
-  actions.forEach(item => {
+  actions.forEach((item) => {
     prompt += `${item}\n`;
   });
   prompt += `Select an action number [0-${actions.length - 1}]`;
@@ -402,8 +480,8 @@ async function main() {
     case 0:
       break;
     case 1:
-      if (confirmAction('set all employee\'s work status active = 100 (Full Time) or inactive = 0?')) {
-        console.log('Setting all employee\'s work status active = 100 (Full Time) or inactive = 0');
+      if (confirmAction("set all employee's work status active = 100 (Full Time) or inactive = 0?")) {
+        console.log("Setting all employee's work status active = 100 (Full Time) or inactive = 0");
         workStatusActive();
       }
       break;
@@ -441,6 +519,12 @@ async function main() {
       if (confirmAction('7. Remove old BI date structure (AKA make them single dates not ranges)')) {
         console.log('Converted BI date structure to single dates');
         convertBIDates();
+      }
+      break;
+    case 8:
+      if (confirmAction('8. Convert existing education entries to updated JSON structure')) {
+        console.log('Converted education structure to updated JSON structure');
+        convertEducation();
       }
       break;
     default:

@@ -88,6 +88,7 @@ class Employee {
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'phoneNumber');
     this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'twitter');
@@ -145,7 +146,7 @@ class Employee {
    *
    * @return boolean - employee is an intern
    */
-  isIntern(){
+  isIntern() {
     return this.employeeRole == 'intern';
   } // isIntern
 
