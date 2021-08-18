@@ -20,6 +20,7 @@ describe('utilityRoutes', () => {
   const FIRST_NAME = '{firstName}';
   const MIDDLE_NAME = '{middleName}';
   const LAST_NAME = '{lastName}';
+  const NICKNAME = '{nickname}';
   const EMPLOYEE_NUMBER = 0;
   const HIRE_DATE = '{hireDate}';
   const EMAIL = '{email}';
@@ -75,6 +76,7 @@ describe('utilityRoutes', () => {
     firstName: FIRST_NAME,
     middleName: MIDDLE_NAME,
     lastName: LAST_NAME,
+    nickname: NICKNAME,
     employeeNumber: EMPLOYEE_NUMBER,
     hireDate: HIRE_DATE,
     email: EMAIL,
@@ -350,11 +352,13 @@ describe('utilityRoutes', () => {
       employee1.firstName = 'first_1';
       employee1.middleName = 'middle_1';
       employee1.lastName = 'last_1';
+      employee1.nickname = 'nick_1';
 
       employee2.id = 'EID_2';
       employee2.firstName = 'first_2';
       employee2.middleName = 'middle_2';
       employee2.lastName = 'last_2';
+      employee2.nickname = 'nick_2';
 
       expenseType1.id = 'ETID_1';
       expenseType1.budgetName = 'budgetName_1';
@@ -371,6 +375,7 @@ describe('utilityRoutes', () => {
       aggregateExpense1.firstName = 'first_1';
       aggregateExpense1.middleName = 'middle_1';
       aggregateExpense1.lastName = 'last_1';
+      aggregateExpense1.nickname = 'nick_1';
       aggregateExpense1.campfire = 'campfire_1';
 
       aggregateExpense2.employeeId = 'EID_2';
@@ -380,6 +385,7 @@ describe('utilityRoutes', () => {
       aggregateExpense2.firstName = 'first_2';
       aggregateExpense2.middleName = 'middle_2';
       aggregateExpense2.lastName = 'last_2';
+      aggregateExpense2.nickname = 'nick_2';
       aggregateExpense2.campfire = 'campfire_2';
 
       expenses = [expense1, expense2];
@@ -720,6 +726,7 @@ describe('utilityRoutes', () => {
       aggregateExpense.firstName = FIRST_NAME;
       aggregateExpense.middleName = MIDDLE_NAME;
       aggregateExpense.lastName = LAST_NAME;
+      aggregateExpense.nickname = NICKNAME;
       aggregateExpense.campfire = CAMPFIRE;
       req.employee.employeeRole = 'admin';
     });
@@ -846,6 +853,7 @@ describe('utilityRoutes', () => {
       aggregateExpense.firstName = FIRST_NAME;
       aggregateExpense.middleName = MIDDLE_NAME;
       aggregateExpense.lastName = LAST_NAME;
+      aggregateExpense.nickname = NICKNAME;
       aggregateExpense.campfire = CAMPFIRE;
       basecampEvent = _.cloneDeep(BASE_CAMP_DATA);
       basecampInfo = _.cloneDeep(BASE_CAMP_INFO);
@@ -1103,6 +1111,7 @@ describe('utilityRoutes', () => {
       aggregateExpense.firstName = FIRST_NAME;
       aggregateExpense.middleName = MIDDLE_NAME;
       aggregateExpense.lastName = LAST_NAME;
+      aggregateExpense.nickname = NICKNAME;
       aggregateExpense.campfire = CAMPFIRE;
     });
 

@@ -175,6 +175,7 @@ class Utility {
       expense.middleName = employee.middleName;
       expense.lastName = employee.lastName;
       expense.campfire = expenseType.campfire;
+      expense.nickname = employee.nickname;
     });
 
     // log complete
