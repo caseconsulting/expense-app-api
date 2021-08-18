@@ -28,32 +28,21 @@ const checkJwt = jwt({
 });
 
 class AuditRoutes {
-  
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getuserInfo = getUserInfo;
 
-    this._router.post(
-      '/',
-      this._checkJwt,
-      this._getuserInfo,
-      this._create.bind(this)
-    );
+    this._router.post('/', this._checkJwt, this._getuserInfo, this._create.bind(this));
 
-    this._router.get(
-      '/:type/:days',
-      this._checkJwt,
-      this._getuserInfo,
-      this._readByType.bind(this)
-    );
+    this._router.get('/:type/:startDate/:endDate', this._checkJwt, this._getuserInfo, this._readByType.bind(this));
 
     this.databaseModify = new DatabaseModify('audits');
   } //constructor
 
   /**
    * Prepares an audit to be created.
-   * 
+   *
    * The req body must have the following fields:
    *  - id
    *  - type
@@ -61,7 +50,7 @@ class AuditRoutes {
    *  - timeToLive (in days)
    * And optionally:
    *  - description
-   * 
+   *
    * @param {*} req the request object
    * @param {*} res the response object
    * @returns the error message or the new audit object
@@ -93,45 +82,51 @@ class AuditRoutes {
 
         let audit = new Audit(newAudit);
         logger.log(2, '_create', `Successfully created audit ${data.id}`);
-  
+
         this.databaseModify.addToDB(audit);
         res.status(200).send(audit);
       } else {
         throw {
           code: 400,
-          message: 'Bad request' 
+          message: 'Bad request'
         };
       }
     } catch (err) {
       logger.log(2, '_create', `Failed to create audit ${data.id}`);
-      
+
       return res.status(err.code).send({ code: err.code, message: err.message });
     }
   } // _create
 
   /**
    * Gets all audits of req.params.type type from the past req.params.days days
-   * 
+   *
    * @param {*} req the request object
    * @param {*} res the response object
    * @returns the query or an error
    */
   async _readByType(req, res) {
-    logger.log(2, '_readByType', `Attempting to read \
-     the past ${req.params.days} days of audit of type ${req.params.type}`); 
+    logger.log(
+      2,
+      '_readByType',
+      `Attempting to read \
+     the from ${req.params.startDate} to ${req.params.endDate} of audit of type ${req.params.type}`
+    );
 
-    // Audits after this date will be returned
-    let cutOffDate = moment().subtract(Number(req.params.days), 'd').format();
+    // // Audits after this date will be returned
+    let startDate = moment(req.params.startDate).format();
+    let endDate = moment(req.params.endDate).format();
 
     let expressionAttributes = {
-      ':typeName' : req.params.type,
-      ':cutOffDate': cutOffDate 
+      ':typeName': req.params.type,
+      ':startDate': startDate,
+      ':endDate': endDate
     };
 
     let additionalParams = {
       ExpressionAttributeValues: expressionAttributes,
-      ExpressionAttributeNames: { '#type' : 'type'},
-      KeyConditionExpression: '#type = :typeName and dateCreated >= :cutOffDate'
+      ExpressionAttributeNames: { '#type': 'type' },
+      KeyConditionExpression: '#type = :typeName AND dateCreated BETWEEN :startDate AND :endDate'
     };
 
     try {
@@ -146,9 +141,8 @@ class AuditRoutes {
     } catch (err) {
       res.status(err.code).send(err);
       return err;
-    }  
+    }
   } // _readByType
-
 
   /**
    * Returns the instace express router.
