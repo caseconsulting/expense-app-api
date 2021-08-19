@@ -642,7 +642,6 @@ class ExpenseRoutes extends Crud {
    * @return Array - Array of Budgets for the Employee Expense Type
    */
   async _updateBudgets(oldExpense, newExpense, employee, expenseType) {
-    logger.log(2, '_updateBudgets', 'hello :)');
     // log method
     logger.log(2, '_updateBudgets', `Attempting to update budgets for expense ${oldExpense.id}`);
 
@@ -653,7 +652,11 @@ class ExpenseRoutes extends Crud {
       let expenses = _.map(expensesData, (expenseData) => {
         return new Expense(expenseData);
       });
-      logger.log(2, '_updateBudgets', `Expenses ${JSON.stringify(expenses)}`);
+      // used to dertermine if deleting a budget is necessary
+      // let unreimbursedExpenses = _.filter(expenses, (exp) => {
+      //   return exp.id != oldExpense.id && exp.reimbursedDate == undefined;
+      // });
+      //logger.log(2, '_updateBudgets', `Unreimbursed Expenses ${JSON.stringify(unreimbursedExpenses)}`);
 
       // remove matching old expense
       _.remove(expenses, (exp) => {
@@ -732,8 +735,6 @@ class ExpenseRoutes extends Crud {
         // get current total pending and reimbursed amounts with carry
         let currPending = carryPending + mapExpToBud[i].pendingAmount;
         let currReimbursed = carryReimbursed + mapExpToBud[i].reimbursedAmount;
-        logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& currPending ${currPending}`);
-        logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& currReimbursed ${currReimbursed}`);
 
         // update carry over accumulators
         if (
@@ -775,8 +776,6 @@ class ExpenseRoutes extends Crud {
           }
           carryReimbursed = Math.max(currReimbursed - sortedBudgets[i].amount, 0);
           carryPending = Math.max(currPending + currReimbursed - carryReimbursed - sortedBudgets[i].amount, 0);
-          logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& carryReimbursed ${carryReimbursed}`);
-          logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& carryPending ${carryPending}`);
         } else {
           // clear carry over accumulators if budget is not full time or does not need to carry costs
           carryPending = 0;
@@ -787,18 +786,36 @@ class ExpenseRoutes extends Crud {
           // updated budget if passed expense budget
           sortedBudgets[i].pendingAmount = currPending - carryPending;
           sortedBudgets[i].reimbursedAmount = currReimbursed - carryReimbursed;
-          logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& pendingAmount ${sortedBudgets[i].pendingAmount}`);
-          logger.log(2, '_updateBudgets', `&&&&&&&&&&&&&&&&&&& sorted budgets ${JSON.stringify(sortedBudgets[i])}`);
 
-          // update the current budget if it is not empty
-          logger.log(3, '_updateBudgets', `Attempting to update budget ${sortedBudgets[i].id}`);
+          if (currPending + currReimbursed == 0 && expenses.length == 0) {
+            // delete the current budget if it is empty
+            logger.log(3, '_updateBudgets', `Attempting to delete budget ${sortedBudgets[i].id}`);
 
-          try {
-            await this.budgetDynamo.updateEntryInDB(sortedBudgets[i]);
-            logger.log(3, '_updateBudgets', `Successfully updated budget ${sortedBudgets[i].id}`);
-          } catch (err) {
-            logger.log(3, '_updateBudgets', `Failed update budget ${sortedBudgets[i].id}`);
-            throw err;
+            try {
+              await this.budgetDynamo.removeFromDB(sortedBudgets[i].id);
+              logger.log(3, '_updateBudgets', `Successfully deleted budget ${sortedBudgets[i].id}`);
+            } catch (err) {
+              logger.log(3, '_updateBudgets', `Failed delete budget ${sortedBudgets[i].id}`);
+              throw err;
+            }
+
+            // remove budget from sorted budgets
+            sortedBudgets.splice(i, 1);
+            mapExpToBud.splice(i, 1);
+
+            // decrement the sorted budgets loop index
+            i--;
+          } else {
+            // update the current budget if it is not empty
+            logger.log(3, '_updateBudgets', `Attempting to update budget ${sortedBudgets[i].id}`);
+
+            try {
+              await this.budgetDynamo.updateEntryInDB(sortedBudgets[i]);
+              logger.log(3, '_updateBudgets', `Successfully updated budget ${sortedBudgets[i].id}`);
+            } catch (err) {
+              logger.log(3, '_updateBudgets', `Failed update budget ${sortedBudgets[i].id}`);
+              throw err;
+            }
           }
         }
       }
