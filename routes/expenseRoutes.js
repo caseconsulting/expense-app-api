@@ -36,7 +36,6 @@ class ExpenseRoutes extends Crud {
   async _addToBudget(expense, employee, expenseType, budget) {
     // log method
     logger.log(2, '_addToBudget', `Attempting to add expense ${expense.id} to budget ${budget.id}`);
-
     // compute method
     try {
       if (!this._isValidCostChange(undefined, expense, expenseType, budget)) {
@@ -653,6 +652,11 @@ class ExpenseRoutes extends Crud {
       let expenses = _.map(expensesData, (expenseData) => {
         return new Expense(expenseData);
       });
+      // used to dertermine if deleting a budget is necessary
+      // let unreimbursedExpenses = _.filter(expenses, (exp) => {
+      //   return exp.id != oldExpense.id && exp.reimbursedDate == undefined;
+      // });
+      //logger.log(2, '_updateBudgets', `Unreimbursed Expenses ${JSON.stringify(unreimbursedExpenses)}`);
 
       // remove matching old expense
       _.remove(expenses, (exp) => {
@@ -783,7 +787,7 @@ class ExpenseRoutes extends Crud {
           sortedBudgets[i].pendingAmount = currPending - carryPending;
           sortedBudgets[i].reimbursedAmount = currReimbursed - carryReimbursed;
 
-          if (currPending + currReimbursed == 0) {
+          if (currPending + currReimbursed == 0 && expenses.length == 0) {
             // delete the current budget if it is empty
             logger.log(3, '_updateBudgets', `Attempting to delete budget ${sortedBudgets[i].id}`);
 
@@ -868,9 +872,10 @@ class ExpenseRoutes extends Crud {
           );
 
           // throw error
+          const ERRFORMAT = 'MM/DD/YYYY';
           err.message =
             'Purchase date must be in current annual budget range from ' +
-            `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}.`;
+            `${dates.startDate.format(ERRFORMAT)} to ${dates.endDate.format(ERRFORMAT)}.`;
           throw err;
         }
       }

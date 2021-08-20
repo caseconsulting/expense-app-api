@@ -118,7 +118,7 @@ class Utility {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
-      if (expenseType.accessibleBy == 'FULL' || expenseType.accessibleBy == 'FULL TIME') {
+      if (!expenseType.proRated) {
         result = expenseType.budget;
       } else {
         result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
@@ -310,7 +310,7 @@ class Utility {
         `Successfully got all active budgets for employee ${req.params.id}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(activeBudgets);
 
       // return active budgets
@@ -389,7 +389,8 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee)) {
+      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
+        this.isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -413,7 +414,7 @@ class Utility {
         // log success
         logger.log(1, '_getAllExpenses', 'Successfully got all aggregate expenses');
 
-        // send sucessful 200 status
+        // send successful 200 status
         res.status(200).send(aggregateExpenses);
 
         // return aggregate expenses
@@ -513,7 +514,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(payload);
 
       return payload;
@@ -563,7 +564,8 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee)) {
+      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
+      this.isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -597,7 +599,7 @@ class Utility {
         // log success
         logger.log(1, '_getAllAggregateExpenses', 'Successfully got all aggregate expenses');
 
-        // send sucessful 200 status
+        // send successful 200 status
         res.status(200).send(aggregateExpenses);
 
         // return aggregate expenses
@@ -648,7 +650,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllEmployeeExpenses', `Successfully got all expenses for employee ${req.params.id}`);
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(expenses);
 
       // return expenses
@@ -690,7 +692,7 @@ class Utility {
       // log success
       logger.log(1, '_getAllExpenseTypeExpenses', `Successfully got all expenses for expense type ${req.params.id}`);
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(expenses);
 
       // return expenses
@@ -804,7 +806,7 @@ class Utility {
         `containing the date ${req.params.date}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(budget);
 
       // return budget
@@ -906,7 +908,7 @@ class Utility {
         `Successfully got budgets for employee ${req.params.id} anniversary date ${req.params.fiscalStartDate}`
       );
 
-      // send sucessful 200 status
+      // send successful 200 status
       res.status(200).send(budgets);
 
       // return budgets
@@ -943,10 +945,20 @@ class Utility {
 
     if (employee.workStatus == 0) {
       result = false;
-    } else if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
+    } else if (expenseType.accessibleBy.includes('Intern') && employee.employeeRole == 'intern') {
       result = true;
-    } else if (expenseType.accessibleBy == 'FULL TIME') {
-      result = employee.workStatus == 100;
+    } else if (
+      expenseType.accessibleBy.includes('FullTime') &&
+      employee.employeeRole != 'intern' &&
+      employee.workStatus == 100
+    ) {
+      result = true;
+    } else if (
+      expenseType.accessibleBy.includes('PartTime') &&
+      employee.employeeRole != 'intern' &&
+      employee.workStatus < 100
+    ) {
+      result = true;
     } else {
       result = expenseType.accessibleBy.includes(employee.id);
     }
@@ -985,6 +997,54 @@ class Utility {
     // return result
     return result;
   } // isAdmin
+
+  /**
+   * Check if an employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is intern
+   */
+  isIntern(employee) {
+    // log method
+    logger.log(5, 'isIntern', `Checking if employee ${employee.id} is an intern`);
+
+    // compute method
+    let result = employee.employeeRole === 'intern';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isIntern', `Employee ${employee.id} is an intern`);
+    } else {
+      logger.log(5, 'isIntern', `Employee ${employee.id} is not an intern`);
+    }
+
+    // return result
+    return result;
+  } // isIntern
+
+  /**
+   * Check if an employee is an manager. Returns true if employee role is 'intern', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is intern
+   */
+  isManager(employee) {
+    // log method
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is a manager`);
+
+    // compute method
+    let result = employee.employeeRole === 'manager';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
+    } else {
+      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
+    }
+
+    // return result
+    return result;
+  } // isManager
 
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.

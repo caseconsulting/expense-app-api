@@ -10,7 +10,10 @@ const actions = [
   '1. Sets all employee\'s work status active = 100 (Full Time) or inactive = 0',
   '2. Removes isInactive attribute from all employees',
   '3. Removes expenseTypes attribute from all employees',
-  '4. Set any null birthdayFeed attributes to true'
+  '4. Set any null birthdayFeed attributes to true',
+  '5. Add years attribute to all employee technologies',
+  '6. Convert existing jobs object to updated JSON structure (AKA companies)',
+  '7. Remove old BI date structure (AKA make them single dates not ranges)'
 ];
 
 // check for stage argument
@@ -115,6 +118,187 @@ async function removeAttribute(attribute) {
       }
     });
   });
+}
+
+async function convertJobsToCompanies() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.jobs) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id,
+        },
+        UpdateExpression: 'set companies = :comp',
+        ExpressionAttributeValues: {
+          ':comp': calculateCompanies(employee.jobs)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+/**
+ * 
+ * @param {*} clearances
+ * @returns Converted clearances where if there was a range for the bi dates, it takes the
+ *  start date
+ */
+function updateBIDates(clearances) {
+  _.forEach(clearances, (clearance, clearanceIndex) => {
+    if (clearance.biDates) {
+      _.forEach(clearance.biDates, (biDate, biDateIndex) => {
+        if (biDate.range) {
+          clearances[clearanceIndex].biDates[biDateIndex] = biDate.range[0];
+        }
+      });
+    }
+  });
+  return clearances;
+}
+
+/**
+ * Converts the BI dates so that if there was a range, the bidate gets replaced with just
+ * the start date.
+ */
+async function convertBIDates() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.clearances) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id
+        },
+        UpdateExpression: 'set clearances = :clearance ',
+        ExpressionAttributeValues: {
+          ':clearance': updateBIDates(employee.clearances)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
+ * which is titled companies
+ */
+function calculateCompanies(jobs) {
+  let companies = [];
+  _.forEach(jobs, (job) => {
+    let found = false;
+    console.log(job);
+    _.forEach(companies, (company) => {
+      console.log(company);
+      if (company.companyName === job.company) {
+        let isPresent = job.endDate === null ? true : false;
+        let pos = {
+          title: job.position,
+          startDate: job.startDate,
+          endDate: job.endDate,
+          presentDate: isPresent
+        };
+        company.positions.push(pos);
+        found = true;
+      }
+    });
+    //company not already in the array of companies
+    if (!found) {
+      let isPresent = job.endDate === null ? true : false;
+      let company = {
+        companyName: job.company,
+        positions: [{
+          title: job.position,
+          startDate: job.startDate,
+          endDate: job.endDate,
+          presentDate: isPresent
+        }]
+      };
+      companies.push(company);
+    }
+  });
+  return companies;
+}
+
+/**
+ * Used to replace the old technologies field with a new object excluding dateIntervals
+ */
+async function addYearsToTechnologies() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.technologies) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          'id': employee.id,
+        },
+        UpdateExpression: 'set technologies = :tech',
+        ExpressionAttributeValues: {
+          ':tech': calculateYears(employee.technologies)
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      //update employee
+      ddb.update(params, function(err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n` );
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Takes the technologies object for each employee and calculates the date intervals
+ * and creates a new key called years, which is the sum of all of the years for the 
+ * list of dateIntervals. Also, it adds a field called currentStartDate which is used
+ * to update current technologies years field as time passes
+ * @param technologies 
+ * @returns new object not containing dateIntervals, rather contains years
+ */
+function calculateYears(technologies) {
+  _.forEach(technologies, (technology) => {
+    let totalDiff = 0;
+    technology.current = false;
+    _.forEach(technology.dateIntervals, (dateInterval) => {
+      let startDate = new Date(dateInterval.startDate);
+      let endDate;
+      if (dateInterval.endDate === null) {
+        endDate = new Date();
+        technology.current = true;
+        totalDiff -= 1/12;
+      } else {
+        endDate = new Date(dateInterval.endDate);
+      }
+      delete technology.currentStartDate;
+      let yearDiff = endDate.getFullYear() - startDate.getFullYear();
+      totalDiff += (yearDiff) + (endDate.getMonth() - startDate.getMonth())/12;
+    });
+    //delete technology.dateIntervals;  //TODO uncomment once dateIntervals are no longer supported
+    technology.years = Number(totalDiff.toFixed(2));
+  });
+  return technologies;
 }
 
 /**
@@ -239,6 +423,24 @@ async function main() {
       if (confirmAction('Set null birthdayFeed attributes to true?')) {
         console.log('Setting null birthdayFeed attributes to true');
         setBirthdayFeed('birthdayFeed');
+      }
+      break;
+    case 5:
+      if (confirmAction('Add years attribute to all employee technologies?')) {
+        console.log('Adding years attribute to all employee technologies');
+        addYearsToTechnologies();
+      }
+      break;
+    case 6:
+      if (confirmAction('Convert jobs to companies (the JSON is structured differently on the job exp tab for v3.3)')) {
+        console.log('Converted jobs attribute to companies');
+        convertJobsToCompanies();
+      }
+      break;
+    case 7:
+      if (confirmAction('7. Remove old BI date structure (AKA make them single dates not ranges)')) {
+        console.log('Converted BI date structure to single dates');
+        convertBIDates();
       }
       break;
     default:

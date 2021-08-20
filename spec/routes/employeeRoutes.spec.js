@@ -629,11 +629,11 @@ describe('employeeRoutes', () => {
         oldEmployee.workStatus = 100;
         newEmployee.workStatus = 50;
 
-        expenseType1.accessibleBy = 'FULL TIME';
+        expenseType1.accessibleBy = ['FullTime'];
         expenseType1.id = 'expenseType1_ID';
         expenseType1.budget = 100;
 
-        expenseType2.accessibleBy = 'ALL';
+        expenseType2.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
         expenseType2.id = 'expenseType2_ID';
         expenseType2.budget = 100;
 
@@ -668,7 +668,7 @@ describe('employeeRoutes', () => {
         expectedBudget3.fiscalStartDate = today;
         expectedBudget3.fiscalEndDate = today;
         expectedBudget3.expenseTypeId = 'expenseType2_ID';
-        expectedBudget3.amount = 50;
+        expectedBudget3.amount = 100;
 
         expenseTypes = [expenseType1, expenseType2];
         budgets = [budget1, budget2, budget3];

@@ -4,6 +4,7 @@ coverage
 .env
 .env.*
 .env_*
+.env-*
 *.log
 /logs
 .nyc_output
@@ -11,3 +12,4 @@ coverage
 .vscode
 claudia.json
 packaged.yaml
+env-variables.json

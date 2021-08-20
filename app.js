@@ -38,6 +38,9 @@ const utilityRoutes = new UtilityRoutes();
 const AttachmentRoutes = require('./routes/attachmentRoutes');
 const attachmentRoutes = new AttachmentRoutes();
 
+const ResumeRoutes = require('./routes/resumeRoutes');
+const resumeRoutes = new ResumeRoutes();
+
 const TSheetsRoutes = require('./routes/tSheetsRoutes');
 const tSheetsRoutes = new TSheetsRoutes();
 
@@ -55,6 +58,15 @@ const blogAttachtmentRoutes = new BlogAttachmentRoutes();
 
 const BlogFileRoutes = require('./routes/blogFileRoutes');
 const blogFileRoutes = new BlogFileRoutes();
+
+const EmsiRoutes = require('./routes/emsiRoutes');
+const emsiRoutes = new EmsiRoutes();
+
+const HippoLabsRoutes = require('./routes/hippoLabsRoutes');
+const hippoLabsRoutes = new HippoLabsRoutes();
+
+const GoogleMapRoutes = require('./routes/googleMapsRoutes');
+const googleMapRoutes = new GoogleMapRoutes();
 
 var app = express();
 
@@ -86,6 +98,7 @@ app.use('/expenses', expenseRoutes.router);
 app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
+app.use('/resume', resumeRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
@@ -93,7 +106,9 @@ app.use('/basecamp', basecampRoutes.router);
 app.use('/blog', blogRoutes.router);
 app.use('/blogFile', blogFileRoutes.router);
 app.use('/blogAttachments', blogAttachtmentRoutes.router);
-
+app.use('/emsi', emsiRoutes.router);
+app.use('/hippoLabs', hippoLabsRoutes.router);
+app.use('/googleMaps', googleMapRoutes.router);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error(' No Route Found');

@@ -11,15 +11,7 @@ const trainingUrlDynamo = new DatabaseModify('training-urls');
 const expenseTypeDynamo = new DatabaseModify('expense-types');
 const expenseDynamo = new DatabaseModify('expenses');
 
-const metascraper = require('metascraper')([
-  require('metascraper-description')(),
-  require('metascraper-image')(),
-  require('metascraper-logo')(),
-  require('metascraper-clearbit')(),
-  require('metascraper-publisher')(),
-  require('metascraper-title')(),
-  require('metascraper-url')()
-]);
+const metascraper = require('metadata-scraper');
 
 const logger = new Logger('TrainingSync');
 

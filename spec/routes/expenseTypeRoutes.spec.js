@@ -8,7 +8,6 @@ moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
 describe('expenseTypeRoutes', () => {
-
   const ISOFORMAT = 'YYYY-MM-DD';
   const ID = '{id}';
   const DESCRIPTION = '{description}';
@@ -161,7 +160,6 @@ describe('expenseTypeRoutes', () => {
   });
 
   describe('_create', () => {
-
     let data;
 
     beforeEach(() => {
@@ -169,7 +167,6 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when successfully creates an expense type', () => {
-
       let expenseType;
 
       beforeEach(() => {
@@ -178,18 +175,16 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.resolve(expenseType));
       });
 
-      it('should return the expense type created', done => {
-        expenseTypeRoutes._create(data)
-          .then(expenseTypeCreated => {
-            expect(expenseTypeCreated).toEqual(expenseType);
-            expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(expenseType);
-            done();
-          });
+      it('should return the expense type created', (done) => {
+        expenseTypeRoutes._create(data).then((expenseTypeCreated) => {
+          expect(expenseTypeCreated).toEqual(expenseType);
+          expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(expenseType);
+          done();
+        });
       }); // should return the expense type created
     }); // when successfully creates an expense type
 
     describe('when fails to validate expense type', () => {
-
       let err, expenseType;
 
       beforeEach(() => {
@@ -203,13 +198,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._create(data)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._create(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(expenseType);
             done();
@@ -219,9 +215,7 @@ describe('expenseTypeRoutes', () => {
   }); // _create
 
   describe('_delete', () => {
-
     describe('when successfully deletes an expense type', () => {
-
       let expenseType;
 
       beforeEach(() => {
@@ -231,19 +225,17 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateDelete').and.returnValue(Promise.resolve(expenseType));
       });
 
-      it('should return the expense type deleted', done => {
-        expenseTypeRoutes._delete(ID)
-          .then(data => {
-            expect(data).toEqual(expenseType);
-            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            expect(expenseTypeRoutes._validateDelete).toHaveBeenCalledWith(expenseType);
-            done();
-          });
+      it('should return the expense type deleted', (done) => {
+        expenseTypeRoutes._delete(ID).then((data) => {
+          expect(data).toEqual(expenseType);
+          expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+          expect(expenseTypeRoutes._validateDelete).toHaveBeenCalledWith(expenseType);
+          done();
+        });
       }); // should return the expense type deleted
     }); // when successfully deletes an expense type
 
     describe('when fails to find expense type', () => {
-
       let err;
 
       beforeEach(() => {
@@ -255,13 +247,14 @@ describe('expenseTypeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        expenseTypeRoutes._delete(ID)
+      it('should return a 404 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._delete(ID)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -270,7 +263,6 @@ describe('expenseTypeRoutes', () => {
     }); // when fails to find expense type
 
     describe('when fails to validate delete', () => {
-
       let err, expenseType;
 
       beforeEach(() => {
@@ -285,13 +277,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateDelete').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._delete(ID)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._delete(ID)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateDelete).toHaveBeenCalledWith(expenseType);
@@ -302,9 +295,7 @@ describe('expenseTypeRoutes', () => {
   }); // _delete
 
   describe('_read', () => {
-
     describe('when successfully reads expense type', () => {
-
       let expenseType;
 
       beforeEach(() => {
@@ -313,18 +304,16 @@ describe('expenseTypeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(EXPENSE_TYPE_DATA));
       });
 
-      it('should return the expense type read', done => {
-        expenseTypeRoutes._read(EXPENSE_TYPE_DATA)
-          .then(data => {
-            expect(data).toEqual(expenseType);
-            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            done();
-          });
+      it('should return the expense type read', (done) => {
+        expenseTypeRoutes._read(EXPENSE_TYPE_DATA).then((data) => {
+          expect(data).toEqual(expenseType);
+          expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+          done();
+        });
       }); // should return the expense type read
     }); // when successfully reads expense type
 
     describe('when fails to read expense type', () => {
-
       let err;
 
       beforeEach(() => {
@@ -336,13 +325,14 @@ describe('expenseTypeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._read(EXPENSE_TYPE_DATA)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._read(EXPENSE_TYPE_DATA)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -352,7 +342,6 @@ describe('expenseTypeRoutes', () => {
   }); // _read
 
   describe('_update', () => {
-
     let data, oldExpenseType, newExpenseType;
 
     beforeEach(() => {
@@ -362,9 +351,7 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when successfully updates an expense type', () => {
-
       describe('and expense type name is the same', () => {
-
         beforeEach(() => {
           databaseModify.getEntry.and.returnValue(Promise.resolve(oldExpenseType));
           spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.resolve(newExpenseType));
@@ -373,21 +360,19 @@ describe('expenseTypeRoutes', () => {
           spyOn(expenseTypeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
         });
 
-        it('should return the expense type updated', done => {
-          expenseTypeRoutes._update(data)
-            .then(updatedExpenseType => {
-              expect(updatedExpenseType).toEqual(newExpenseType);
-              expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
-              expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
-              expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              done();
-            });
+        it('should return the expense type updated', (done) => {
+          expenseTypeRoutes._update(data).then((updatedExpenseType) => {
+            expect(updatedExpenseType).toEqual(newExpenseType);
+            expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
+            expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
+            expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            done();
+          });
         }); // should return the expense type updated
       }); // and expense type name is the same
 
       describe('and expense type name is changed', () => {
-
         beforeEach(() => {
           oldExpenseType.budgetName = 'OTHER_NAME';
           databaseModify.getEntry.and.returnValue(Promise.resolve(oldExpenseType));
@@ -397,22 +382,20 @@ describe('expenseTypeRoutes', () => {
           spyOn(expenseTypeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
         });
 
-        it('should return the expense type updated', done => {
-          expenseTypeRoutes._update(data)
-            .then(updatedExpenseType => {
-              expect(updatedExpenseType).toEqual(newExpenseType);
-              expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
-              expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
-              expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
-              done();
-            });
+        it('should return the expense type updated', (done) => {
+          expenseTypeRoutes._update(data).then((updatedExpenseType) => {
+            expect(updatedExpenseType).toEqual(newExpenseType);
+            expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
+            expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            expect(expenseTypeRoutes._validateDates).toHaveBeenCalledWith(newExpenseType);
+            expect(expenseTypeRoutes._updateBudgets).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
+            done();
+          });
         }); // should return the expense type updated
       }); // and expense type name is changed
     }); // when successfully updates an expense type
 
     describe('when fails to find old expense type', () => {
-
       let err;
 
       beforeEach(() => {
@@ -424,13 +407,14 @@ describe('expenseTypeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        expenseTypeRoutes._update(data)
+      it('should return a 404 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._update(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -439,7 +423,6 @@ describe('expenseTypeRoutes', () => {
     }); // when fails to find old expense type
 
     describe('when fails to validate expense type', () => {
-
       let err;
 
       beforeEach(() => {
@@ -452,13 +435,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._update(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
@@ -468,7 +452,6 @@ describe('expenseTypeRoutes', () => {
     }); // when fails to validate expense type
 
     describe('when fails to validate update', () => {
-
       let err;
 
       beforeEach(() => {
@@ -482,13 +465,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateUpdate').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._update(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
@@ -499,7 +483,6 @@ describe('expenseTypeRoutes', () => {
     }); // when fails to validate update
 
     describe('when fails to validate dates', () => {
-
       let err;
 
       beforeEach(() => {
@@ -514,13 +497,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_validateDates').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._update(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
@@ -532,7 +516,6 @@ describe('expenseTypeRoutes', () => {
     }); // when fails to validate dates
 
     describe('when fails to update budgets', () => {
-
       let err;
 
       beforeEach(() => {
@@ -548,13 +531,14 @@ describe('expenseTypeRoutes', () => {
         spyOn(expenseTypeRoutes, '_updateBudgets').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._update(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
@@ -568,7 +552,6 @@ describe('expenseTypeRoutes', () => {
   }); // _update
 
   describe('_updateBudgets', () => {
-
     let oldExpenseType, newExpenseType, today;
 
     beforeEach(() => {
@@ -581,28 +564,25 @@ describe('expenseTypeRoutes', () => {
       oldExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
       oldExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
       oldExpenseType.budget = 100;
-      oldExpenseType.accessibleBy = 'ALL';
+      oldExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
 
       newExpenseType.recurringFlag = true;
       newExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
       newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
       newExpenseType.budget = 100;
-      newExpenseType.accessibleBy = 'ALL';
+      newExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
     });
 
     describe('when start date, end date, budgets, and accessible by are the same', () => {
-
-      it('should return an empty array', done => {
-        expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-          .then(data => {
-            expect(data).toEqual([]);
-            done();
-          });
+      it('should return an empty array', (done) => {
+        expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+          expect(data).toEqual([]);
+          done();
+        });
       }); // should return an empty array
     }); // when start date, end date, budgets, and accessible by are the same
 
     describe('when start date is different', () => {
-
       let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
@@ -622,7 +602,6 @@ describe('expenseTypeRoutes', () => {
       });
 
       describe('and successfully updates budgets', () => {
-
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValues(
@@ -631,20 +610,21 @@ describe('expenseTypeRoutes', () => {
           );
         });
 
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
-              done();
-            });
+        it('should return the array of updated budgets', (done) => {
+          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+            expect(data).toEqual(expectedBudgets);
+            expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'expenseTypeId-index',
+              'expenseTypeId',
+              ID
+            );
+            expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
+            done();
+          });
         }); // should return the array of updated budgets
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
-
         let err;
 
         beforeEach(() => {
@@ -656,23 +636,26 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to get budgets
 
       describe('and fails to update budget in database', () => {
-
         let err;
 
         beforeEach(() => {
@@ -685,16 +668,20 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
@@ -703,7 +690,6 @@ describe('expenseTypeRoutes', () => {
     }); // when start date is different
 
     describe('when end date is different', () => {
-
       let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
@@ -723,7 +709,6 @@ describe('expenseTypeRoutes', () => {
       });
 
       describe('and successfully updates budgets', () => {
-
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           budgetDynamo.updateEntryInDB.and.returnValues(
@@ -732,20 +717,21 @@ describe('expenseTypeRoutes', () => {
           );
         });
 
-        it('should return the array of updated budgets', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
-              done();
-            });
+        it('should return the array of updated budgets', (done) => {
+          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+            expect(data).toEqual(expectedBudgets);
+            expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'expenseTypeId-index',
+              'expenseTypeId',
+              ID
+            );
+            expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
+            done();
+          });
         }); // should return the array of updated budgets
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
-
         let err;
 
         beforeEach(() => {
@@ -757,23 +743,26 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to get budgets
 
       describe('and fails to update budget in database', () => {
-
         let err;
 
         beforeEach(() => {
@@ -786,16 +775,20 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
             });
@@ -804,7 +797,6 @@ describe('expenseTypeRoutes', () => {
     }); // when end date is different
 
     describe('when budget is different', () => {
-
       let budget1, budget2, budget3, budgets;
       let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
       let employee1, employee2, employees;
@@ -850,7 +842,6 @@ describe('expenseTypeRoutes', () => {
       });
 
       describe('and successfully updates budgets', () => {
-
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
@@ -862,16 +853,18 @@ describe('expenseTypeRoutes', () => {
         });
 
         describe('and expense type is recurring', () => {
-
           beforeEach(() => {
             expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
             expectedBudget1.employeeId = 'employee1_id';
-            expectedBudget1.amount = 5;
+            expectedBudget1.amount = 10;
 
             expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate =
-              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
+              .add(1, 'y')
+              .subtract(5, 'y')
+              .subtract(1, 'd')
+              .format(ISOFORMAT);
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 50;
 
@@ -881,37 +874,45 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.amount = 10;
           });
 
-          it('should return the array of updated budgets', done => {
-            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudgets);
-                expect(budgetDynamo.querySecondaryIndexInDB)
-                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
-                done();
-              });
+          it('should return the array of updated budgets', (done) => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+              expect(data).toEqual(expectedBudgets);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
+              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+              done();
+            });
           }); // should return the array of updated budgets
         }); // and expense type is recurring
 
         describe('and expense type is not recurring', () => {
-
           beforeEach(() => {
+            spyOn(expenseTypeRoutes, 'calcAdjustedAmount').and.returnValues(10, 5, 10);
+
             oldExpenseType.recurringFlag = false;
+            oldExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
             delete oldExpenseType.startDate;
             delete oldExpenseType.endDate;
             newExpenseType.recurringFlag = false;
+            newExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
             delete newExpenseType.startDate;
             delete newExpenseType.endDate;
 
             expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
             expectedBudget1.employeeId = 'employee1_id';
-            expectedBudget1.amount = 5;
+            expectedBudget1.amount = 10;
 
             expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate =
-              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
+              .add(1, 'y')
+              .subtract(5, 'y')
+              .subtract(1, 'd')
+              .format(ISOFORMAT);
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 5;
 
@@ -921,22 +922,23 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.amount = 10;
           });
 
-          it('should return the array of updated budgets', done => {
-            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudgets);
-                expect(budgetDynamo.querySecondaryIndexInDB)
-                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
-                done();
-              });
+          it('should return the array of updated budgets', (done) => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+              expect(data).toEqual(expectedBudgets);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
+              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+              done();
+            });
           }); // should return the array of updated budgets
         }); // and expense type is not recurring
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
-
         let err;
 
         beforeEach(() => {
@@ -948,23 +950,26 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to get budgets
 
       describe('and fails to get employees', () => {
-
         let err;
 
         beforeEach(() => {
@@ -977,16 +982,20 @@ describe('expenseTypeRoutes', () => {
           employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               done();
             });
@@ -994,7 +1003,6 @@ describe('expenseTypeRoutes', () => {
       }); // and fails to get employees
 
       describe('and fails to update budget in database', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1008,16 +1016,20 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
@@ -1027,13 +1039,12 @@ describe('expenseTypeRoutes', () => {
     }); // when budget is different
 
     describe('when accessible by is different', () => {
-
       let budget1, budget2, budget3, budgets;
       let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
       let employee1, employee2, employees;
 
       beforeEach(() => {
-        newExpenseType.accessibleBy = 'FULL TIME';
+        newExpenseType.accessibleBy = ['FullTime'];
 
         employee1 = new Employee(EMPLOYEE_DATA);
         employee2 = new Employee(EMPLOYEE_DATA);
@@ -1073,7 +1084,6 @@ describe('expenseTypeRoutes', () => {
       });
 
       describe('and successfully updates budgets', () => {
-
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
@@ -1085,7 +1095,6 @@ describe('expenseTypeRoutes', () => {
         });
 
         describe('and expense type is recurring', () => {
-
           beforeEach(() => {
             expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
             expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
@@ -1093,8 +1102,11 @@ describe('expenseTypeRoutes', () => {
             expectedBudget1.amount = 0;
 
             expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate =
-              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
+              .add(1, 'y')
+              .subtract(5, 'y')
+              .subtract(1, 'd')
+              .format(ISOFORMAT);
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 50;
 
@@ -1104,21 +1116,22 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.amount = 100;
           });
 
-          it('should return the array of updated budgets', done => {
-            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudgets);
-                expect(budgetDynamo.querySecondaryIndexInDB)
-                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
-                done();
-              });
+          it('should return the array of updated budgets', (done) => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+              expect(data).toEqual(expectedBudgets);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
+              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+              done();
+            });
           }); // should return the array of updated budgets
         }); // and expense type is recurring
 
         describe('and expense type is not recurring', () => {
-
           beforeEach(() => {
             oldExpenseType.recurringFlag = false;
             delete oldExpenseType.startDate;
@@ -1133,8 +1146,11 @@ describe('expenseTypeRoutes', () => {
             expectedBudget1.amount = 0;
 
             expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate =
-              _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
+              .add(1, 'y')
+              .subtract(5, 'y')
+              .subtract(1, 'd')
+              .format(ISOFORMAT);
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 0;
 
@@ -1144,22 +1160,23 @@ describe('expenseTypeRoutes', () => {
             expectedBudget3.amount = 100;
           });
 
-          it('should return the array of updated budgets', done => {
-            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudgets);
-                expect(budgetDynamo.querySecondaryIndexInDB)
-                  .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
-                expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-                expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
-                done();
-              });
+          it('should return the array of updated budgets', (done) => {
+            expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType).then((data) => {
+              expect(data).toEqual(expectedBudgets);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
+              expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(3);
+              done();
+            });
           }); // should return the array of updated budgets
         }); // and expense type is not recurring
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1171,23 +1188,26 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to get budgets
 
       describe('and fails to get employees', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1200,16 +1220,20 @@ describe('expenseTypeRoutes', () => {
           employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               done();
             });
@@ -1217,7 +1241,6 @@ describe('expenseTypeRoutes', () => {
       }); // and fails to get employees
 
       describe('and fails to update budget in database', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1231,16 +1254,20 @@ describe('expenseTypeRoutes', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          expenseTypeRoutes._updateBudgets(oldExpenseType, newExpenseType)
+        it('should return a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._updateBudgets(oldExpenseType, newExpenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
@@ -1251,7 +1278,6 @@ describe('expenseTypeRoutes', () => {
   }); // _updateBudgets
 
   describe('_validateDates', () => {
-
     let expenseType, expense1, expense2, expense3, expenses;
 
     beforeEach(() => {
@@ -1267,22 +1293,19 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when expense type is not recurring', () => {
-
       beforeEach(() => {
         expenseType.recurringFlag = true;
       });
 
-      it('should return the validated expense type', done => {
-        expenseTypeRoutes._validateDates(expenseType)
-          .then(data => {
-            expect(data).toEqual(expenseType);
-            done();
-          });
+      it('should return the validated expense type', (done) => {
+        expenseTypeRoutes._validateDates(expenseType).then((data) => {
+          expect(data).toEqual(expenseType);
+          done();
+        });
       }); // should return the validated expense type
     }); // when expense type is not recurring
 
     describe('when expense type is not recurring', () => {
-
       beforeEach(() => {
         expenseType.recurringFlag = false;
         expenseType.startDate = '2001-08-18';
@@ -1290,40 +1313,34 @@ describe('expenseTypeRoutes', () => {
       });
 
       describe('and successfully validates dates', () => {
-
         describe('and there are no expenses', () => {
-
           beforeEach(() => {
             expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
           });
 
-          it('should return the validated expense type', done => {
-            expenseTypeRoutes._validateDates(expenseType)
-              .then(data => {
-                expect(data).toEqual(expenseType);
-                done();
-              });
+          it('should return the validated expense type', (done) => {
+            expenseTypeRoutes._validateDates(expenseType).then((data) => {
+              expect(data).toEqual(expenseType);
+              done();
+            });
           }); // should return the validated expense type
         }); // and there are no expenses
 
         describe('and there are expenses', () => {
-
           beforeEach(() => {
             expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(expenses));
           });
 
-          it('should return the validated expense type', done => {
-            expenseTypeRoutes._validateDates(expenseType)
-              .then(data => {
-                expect(data).toEqual(expenseType);
-                done();
-              });
+          it('should return the validated expense type', (done) => {
+            expenseTypeRoutes._validateDates(expenseType).then((data) => {
+              expect(data).toEqual(expenseType);
+              done();
+            });
           }); // should return the validated expense type
         }); // and there are expenses
       }); // and successfully validates dates
 
       describe('and fails to get expenses', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1335,23 +1352,26 @@ describe('expenseTypeRoutes', () => {
           expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should throw a 404 rejected promise', done => {
-          expenseTypeRoutes._validateDates(expenseType)
+        it('should throw a 404 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._validateDates(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(expenseDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should throw a 404 rejected promise
       }); // and fails to get expenses
 
       describe('and start date is after first expense purchase date', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1364,23 +1384,26 @@ describe('expenseTypeRoutes', () => {
           expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(expenses));
         });
 
-        it('should throw a 403 rejected promise', done => {
-          expenseTypeRoutes._validateDates(expenseType)
+        it('should throw a 403 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._validateDates(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(expenseDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should throw a 403 rejected promise
       }); // and start date is after first expense purchase date
 
       describe('and end date is before the last expense purchase date', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1393,16 +1416,20 @@ describe('expenseTypeRoutes', () => {
           expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(expenses));
         });
 
-        it('should throw a 403 rejected promise', done => {
-          expenseTypeRoutes._validateDates(expenseType)
+        it('should throw a 403 rejected promise', (done) => {
+          expenseTypeRoutes
+            ._validateDates(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(expenseDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+              expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'expenseTypeId-index',
+                'expenseTypeId',
+                ID
+              );
               done();
             });
         }); // should throw a 403 rejected promise
@@ -1411,7 +1438,6 @@ describe('expenseTypeRoutes', () => {
   }); // _validateDates
 
   describe('_validateDelete', () => {
-
     let expenseType;
 
     beforeEach(() => {
@@ -1419,21 +1445,18 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when there are no expenses for the expense type', () => {
-
       beforeEach(() => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
       });
 
       it('should return the validated expense type', () => {
-        expenseTypeRoutes._validateDelete(expenseType)
-          .then(data => {
-            expect(data).toEqual(expenseType);
-          });
+        expenseTypeRoutes._validateDelete(expenseType).then((data) => {
+          expect(data).toEqual(expenseType);
+        });
       }); // should return the validated expense type
     }); // when there are no expenses fosr the expense type
 
     describe('when fails to get expenses', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1445,23 +1468,26 @@ describe('expenseTypeRoutes', () => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        expenseTypeRoutes._validateDelete(expenseType)
+      it('should return a 404 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._validateDelete(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
-            expect(expenseDynamo.querySecondaryIndexInDB)
-              .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'expenseTypeId-index',
+              'expenseTypeId',
+              ID
+            );
             done();
           });
       }); // should return a 404 rejected promise
     }); // when fails to get expenses
 
     describe('when there are expenses for the expense type', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1473,16 +1499,20 @@ describe('expenseTypeRoutes', () => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([new Expense(EXPENSE_DATA)]));
       });
 
-      it('should return a 403 rejected promise', done => {
-        expenseTypeRoutes._validateDelete(expenseType)
+      it('should return a 403 rejected promise', (done) => {
+        expenseTypeRoutes
+          ._validateDelete(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
-            expect(expenseDynamo.querySecondaryIndexInDB)
-              .toHaveBeenCalledWith('expenseTypeId-index', 'expenseTypeId', ID);
+            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'expenseTypeId-index',
+              'expenseTypeId',
+              ID
+            );
             done();
           });
       }); // should return a 403 rejected promise
@@ -1490,7 +1520,6 @@ describe('expenseTypeRoutes', () => {
   }); // _validateDelete
 
   describe('_validateExpenseType', () => {
-
     let expenseType;
 
     beforeEach(() => {
@@ -1498,7 +1527,6 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when id is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1511,18 +1539,18 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
+        expenseTypeRoutes
+          ._validateExpenseType(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when id is missing
 
     describe('when budgetName is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1535,18 +1563,18 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
+        expenseTypeRoutes
+          ._validateExpenseType(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when budgetName is missing
 
     describe('when budget is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1559,18 +1587,18 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
+        expenseTypeRoutes
+          ._validateExpenseType(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when budget is missing
 
     describe('when description is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1583,18 +1611,18 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
+        expenseTypeRoutes
+          ._validateExpenseType(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when description is missing
 
     describe('when accessibleBy is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1607,53 +1635,48 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
+        expenseTypeRoutes
+          ._validateExpenseType(expenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when accessibleBy is missing
 
     describe('when expense type is recurring', () => {
-
       beforeEach(() => {
         expenseType.recurringFlag = true;
       });
 
       it('should return the validated expense type', () => {
-        expenseTypeRoutes._validateExpenseType(expenseType)
-          .then(data => {
-            expect(data).toEqual(expenseType);
-          });
+        expenseTypeRoutes._validateExpenseType(expenseType).then((data) => {
+          expect(data).toEqual(expenseType);
+        });
       }); // should return the validated expense type
     }); // when expense type is recurring
 
     describe('when expense type is non recurring', () => {
-
       beforeEach(() => {
         expenseType.recurringFlag = false;
       });
 
       describe('and successfully validates expense type', () => {
-
         beforeEach(() => {
           expenseType.startDate = '2000-08-18';
           expenseType.endDate = '2001-08-18';
         });
 
         it('should return the validated expense type', () => {
-          expenseTypeRoutes._validateExpenseType(expenseType)
-            .then(data => {
-              expect(data).toEqual(expenseType);
-            });
+          expenseTypeRoutes._validateExpenseType(expenseType).then((data) => {
+            expect(data).toEqual(expenseType);
+          });
         }); // should return the validated expense type
       }); // and successfully validates expense type
 
       describe('and start date is missing', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1666,18 +1689,18 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return a 403 rejected promise', () => {
-          expenseTypeRoutes._validateExpenseType(expenseType)
+          expenseTypeRoutes
+            ._validateExpenseType(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
             });
         }); // should return a 403 rejected promise
       }); // and start date is missing
 
       describe('and end date is missing', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1690,18 +1713,18 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return a 403 rejected promise', () => {
-          expenseTypeRoutes._validateExpenseType(expenseType)
+          expenseTypeRoutes
+            ._validateExpenseType(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
             });
         }); // should return a 403 rejected promise
       }); // and end date is missing
 
       describe('and end date is before start date', () => {
-
         let err;
 
         beforeEach(() => {
@@ -1715,11 +1738,12 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return a 403 rejected promise', () => {
-          expenseTypeRoutes._validateExpenseType(expenseType)
+          expenseTypeRoutes
+            ._validateExpenseType(expenseType)
             .then(() => {
               fail('expected error to have been thrown');
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
             });
         }); // should return a 403 rejected promise
@@ -1728,7 +1752,6 @@ describe('expenseTypeRoutes', () => {
   }); // _validateExpenseType
 
   describe('_validateUpdate', () => {
-
     let oldExpenseType, newExpenseType;
 
     beforeEach(() => {
@@ -1737,17 +1760,14 @@ describe('expenseTypeRoutes', () => {
     });
 
     describe('when successfully validates update', () => {
-
       it('should return the new expense type', () => {
-        expenseTypeRoutes._validateUpdate(oldExpenseType, newExpenseType)
-          .then(data => {
-            expect(data).toEqual(newExpenseType);
-          });
+        expenseTypeRoutes._validateUpdate(oldExpenseType, newExpenseType).then((data) => {
+          expect(data).toEqual(newExpenseType);
+        });
       });
     }); // when successfully validates update
 
     describe('when old expense type id does not match the new expense type id', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1760,43 +1780,52 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateUpdate(oldExpenseType, newExpenseType)
+        expenseTypeRoutes
+          ._validateUpdate(oldExpenseType, newExpenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when old expense type id does not match the new expense type id
 
-    describe('when overdraft flag is changed', () => {
-
+    describe('when overdraft flag is changed to false and there are overdrafted expenses', () => {
       let err;
 
       beforeEach(() => {
+        let employee = new Employee(_.cloneDeep(EMPLOYEE_DATA));
+        let overdraftedExpense = new Expense(_.cloneDeep(EXPENSE_DATA));
+        oldExpenseType.budget = 2000;
+        overdraftedExpense.cost = 2001;
+        overdraftedExpense.employeeId = employee.id;
+        employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([overdraftedExpense]));
         err = {
           code: 403,
-          message: 'Cannot change expense type overdraft flag.'
+          message:
+            'Cannot change expense type overdraft flag. \
+            There are existing overdrafted expenses for the {name} expense type.'
         };
 
-        oldExpenseType.odFlag = false;
-        newExpenseType.odFlag = true;
+        oldExpenseType.odFlag = true;
+        newExpenseType.odFlag = false;
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateUpdate(oldExpenseType, newExpenseType)
+        expenseTypeRoutes
+          ._validateUpdate(oldExpenseType, newExpenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
     }); // when overdraft flag is changed
 
     describe('when recurring flag is changed', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1810,11 +1839,12 @@ describe('expenseTypeRoutes', () => {
       });
 
       it('should return a 403 rejected promise', () => {
-        expenseTypeRoutes._validateUpdate(oldExpenseType, newExpenseType)
+        expenseTypeRoutes
+          ._validateUpdate(oldExpenseType, newExpenseType)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise

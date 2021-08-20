@@ -13,7 +13,6 @@ const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseTypeRoutes');
 
 class ExpenseTypeRoutes extends Crud {
-
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expense-types');
@@ -116,8 +115,8 @@ class ExpenseTypeRoutes extends Crud {
     // compute method
     try {
       let expenseTypesData = await this.databaseModify.getAllEntriesInDB();
-      let expenseTypes = _.map(expenseTypesData, expenseType => {
-        expenseType.categories = _.map(expenseType.categories, category => {
+      let expenseTypes = _.map(expenseTypesData, (expenseType) => {
+        expenseType.categories = _.map(expenseType.categories, (category) => {
           return JSON.parse(category);
         });
         return new ExpenseType(expenseType);
@@ -159,11 +158,15 @@ class ExpenseTypeRoutes extends Crud {
 
       // log success
       if (oldExpenseType.budgetName == newExpenseType.budgetName) {
-        logger.log(2, '_update',
+        logger.log(
+          2,
+          '_update',
           `Successfully prepared to update expense type ${oldExpenseType.budgetName} with ID ${data.id}`
         );
       } else {
-        logger.log(2, '_update',
+        logger.log(
+          2,
+          '_update',
           `Successfully prepared to update expense type ${oldExpenseType.budgetName} to`,
           `${newExpenseType.budgetName} with ID ${data.id}`
         );
@@ -188,6 +191,8 @@ class ExpenseTypeRoutes extends Crud {
    * @return Array - Array of Budgets updated
    */
   async _updateBudgets(oldExpenseType, newExpenseType) {
+    console.log(oldExpenseType);
+    console.log(newExpenseType);
     // log method
     logger.log(2, '_updateBudgets', `Attempting to update budgets for expense type ${oldExpenseType.id}`);
 
@@ -198,13 +203,15 @@ class ExpenseTypeRoutes extends Crud {
       let diffEnd = oldExpenseType.endDate != newExpenseType.endDate;
       let diffBudget = oldExpenseType.budget != newExpenseType.budget;
       let diffAccessibleBy = oldExpenseType.accessibleBy != newExpenseType.accessibleBy;
-
       if (diffStart || diffEnd || diffBudget || diffAccessibleBy) {
         // need to update budgets
-        let budgetsData =
-          await this.budgetDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', newExpenseType.id);
+        let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+          'expenseTypeId-index',
+          'expenseTypeId',
+          newExpenseType.id
+        );
 
-        budgets = _.map(budgetsData, budgetData => {
+        budgets = _.map(budgetsData, (budgetData) => {
           return new Budget(budgetData);
         });
 
@@ -212,7 +219,7 @@ class ExpenseTypeRoutes extends Crud {
         if (diffBudget || diffAccessibleBy) {
           // get all employees if changing budget amount
           let employeesData = await this.employeeDynamo.getAllEntriesInDB();
-          employees = _.map(employeesData, employeeData => {
+          employees = _.map(employeesData, (employeeData) => {
             return new Employee(employeeData);
           });
         }
@@ -283,12 +290,15 @@ class ExpenseTypeRoutes extends Crud {
       if (!expenseType.recurringFlag) {
         // expense type is not recurring
         // get all the expense type expenses
-        let expenses =
-          await this.expenseDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
+        let expenses = await this.expenseDynamo.querySecondaryIndexInDB(
+          'expenseTypeId-index',
+          'expenseTypeId',
+          expenseType.id
+        );
 
         if (expenses.length > 0) {
           // map all purchase dates
-          let purchaseDates = _.map(expenses, expense => {
+          let purchaseDates = _.map(expenses, (expense) => {
             return moment(expense.purchaseDate, ISOFORMAT);
           });
 
@@ -296,7 +306,7 @@ class ExpenseTypeRoutes extends Crud {
           let lastPurchaseDate = _.first(purchaseDates); // current last purchase date
 
           // find first and last purchase dates
-          _.forEach(purchaseDates, purchaseDate => {
+          _.forEach(purchaseDates, (purchaseDate) => {
             if (purchaseDate.isBefore(firstPurchaseDate)) {
               // update the first purchase date
               firstPurchaseDate = purchaseDate;
@@ -311,7 +321,9 @@ class ExpenseTypeRoutes extends Crud {
             // expense type start date is after the first purchase date
             // log error
 
-            logger.log(2, '_validateDates',
+            logger.log(
+              2,
+              '_validateDates',
               `Expense type start date ${expenseType.startDate} is after first expense purchased on`,
               `${firstPurchaseDate.format(ISOFORMAT)}`
             );
@@ -324,7 +336,9 @@ class ExpenseTypeRoutes extends Crud {
           if (moment(expenseType.endDate, ISOFORMAT).isBefore(lastPurchaseDate)) {
             // expense type end date is before the last purchase date
             // log error
-            logger.log(2, '_validateDates',
+            logger.log(
+              2,
+              '_validateDates',
               `Expense type end date ${expenseType.endDate} is before last expense purchased on`,
               `${lastPurchaseDate.format(ISOFORMAT)}`
             );
@@ -351,12 +365,12 @@ class ExpenseTypeRoutes extends Crud {
   } // _validateDates
 
   /**
-  * Validate that an expense type can be deleted. Returns the expense type to be deleted if successfully validated,
-  * otherwise returns an error.
-  *
-  * @param expenseType - ExpenseType to validate delete
-  * @return ExpenseType - validated expense type
-  */
+   * Validate that an expense type can be deleted. Returns the expense type to be deleted if successfully validated,
+   * otherwise returns an error.
+   *
+   * @param expenseType - ExpenseType to validate delete
+   * @return ExpenseType - validated expense type
+   */
   async _validateDelete(expenseType) {
     // log method
     logger.log(3, '_validateDelete', `Validating delete for expense type ${expenseType.id}`);
@@ -369,8 +383,11 @@ class ExpenseTypeRoutes extends Crud {
       };
 
       // get all expenses for this expense type
-      let expenses =
-        await this.expenseDynamo.querySecondaryIndexInDB('expenseTypeId-index', 'expenseTypeId', expenseType.id);
+      let expenses = await this.expenseDynamo.querySecondaryIndexInDB(
+        'expenseTypeId-index',
+        'expenseTypeId',
+        expenseType.id
+      );
 
       // validate there are no expenses with this expense type
       if (expenses.length > 0) {
@@ -483,7 +500,9 @@ class ExpenseTypeRoutes extends Crud {
           throw err;
         } else if (moment(expenseType.endDate, ISOFORMAT).isBefore(expenseType.startDate, ISOFORMAT)) {
           // log error
-          logger.log(3, '_validateExpenseType',
+          logger.log(
+            3,
+            '_validateExpenseType',
             `Start date ${expenseType.startDate} is before end date ${expenseType.endDate}`
           );
 
@@ -514,7 +533,7 @@ class ExpenseTypeRoutes extends Crud {
    * @param newExpenseType - ExpenseType being updated to
    * @return ExpenseType - validated expense type
    */
-  _validateUpdate(oldExpenseType, newExpenseType) {
+  async _validateUpdate(oldExpenseType, newExpenseType) {
     // log method
     logger.log(3, '_validateUpdate', `Validating update for expense type ${oldExpenseType.id}`);
 
@@ -528,7 +547,9 @@ class ExpenseTypeRoutes extends Crud {
       // validate expense type id
       if (oldExpenseType.id != newExpenseType.id) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Old expense type id ${oldExpenseType.id} does not match new expense type id ${newExpenseType.id}`
         );
 
@@ -536,23 +557,56 @@ class ExpenseTypeRoutes extends Crud {
         err.message = 'Error validating expense type IDs.';
         throw err;
       }
-
       // validate expense type over draft flag
-      if (oldExpenseType.odFlag != newExpenseType.odFlag) {
-        // log error
-        logger.log(3, '_validateUpdate',
-          `Expense type odFlag cannot be changed from ${oldExpenseType.odFlag} to ${newExpenseType.odFlag}`
+      if (oldExpenseType.odFlag != newExpenseType.odFlag && oldExpenseType.odFlag) {
+        // get all the employees
+        let employeesData = await this.employeeDynamo.getAllEntriesInDB();
+        let employees = _.map(employeesData, (employeeData) => {
+          return new Employee(employeeData);
+        });
+
+        // get all the expense type expenses
+        let expenses = await this.expenseDynamo.querySecondaryIndexInDB(
+          'expenseTypeId-index',
+          'expenseTypeId',
+          oldExpenseType.id
         );
 
-        // throw error
-        err.message = 'Cannot change expense type overdraft flag.';
-        throw err;
+        let amount = 0;
+        let changeOdFlag = true;
+        // If overdraftable
+        _.forEach(employees, (employee) => {
+          let tempEmployeeExpenses = _.filter(expenses, (currentExpense) => employee.id === currentExpense.employeeId);
+          _.forEach(tempEmployeeExpenses, (expense) => {
+            amount += expense.cost;
+          });
+          if (amount > newExpenseType.budget) {
+            // DONT allow change to overdraft!
+            changeOdFlag = false;
+          }
+          amount = 0;
+        });
+
+        if (!changeOdFlag) {
+          // log error
+          logger.log(
+            3,
+            '_validateUpdate',
+            `Expense type odFlag cannot be changed from ${oldExpenseType.odFlag} to ${newExpenseType.odFlag}`
+          );
+          // throw error
+          err.message = `Cannot change expense type overdraft flag. \
+            There are existing overdrafted expenses for the ${newExpenseType.budgetName} expense type.`;
+          throw err;
+        }
       }
 
       // validate expense type recurring flag
       if (oldExpenseType.recurringFlag != newExpenseType.recurringFlag) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Expense type recurringFlag cannot be changed from ${oldExpenseType.recurringFlag} to`,
           `${newExpenseType.recurringFlag}`
         );

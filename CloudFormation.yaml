@@ -30,7 +30,7 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: nodejs12.x
+    Runtime: nodejs14.x
     Tags:
       Application: expense-app
       Stage: !Ref Stage
@@ -100,7 +100,7 @@ Resources:
             ErrorCachingMinTTL: '300'
         ViewerCertificate:
           AcmCertificateArn: !Ref AppCertificate
-          MinimumProtocolVersion: TLSv1.1_2016
+          MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
         Aliases:
           - !Ref AppDomain
@@ -191,6 +191,30 @@ Resources:
       Tags:
         - Key: Application
           Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  s3Resumes:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Join
+        - ''
+        - - case-consulting-portal-resumes-
+          - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove Deleted Expense Resumes
+            NoncurrentVersionExpirationInDays: 30
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/resumes/
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: portal
         - Key: Stage
           Value: !Ref Stage
   s3BlogPosts:
@@ -304,6 +328,8 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: 'NEW_AND_OLD_IMAGES'
       Tags:
         - Key: Application
           Value: expense-app
@@ -569,12 +595,30 @@ Resources:
       Description: Provides the nightly update to employee budgets.
       Handler: chronos.handler
       Timeout: 900
-      CodeUri: ./
+      CodeUri: ./chronos
       Events:
         ChronosSchedule:
           Type: Schedule
           Properties:
             Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn
+  ThanosFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Updates employee data that is listed as 'current' (supports technology only atm)
+      Handler: thanos.handler
+      Timeout: 900
+      CodeUri: ./thanos
+      Events:
+        ThanosSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 1 * ? *)
       Environment:
         Variables:
           STAGE: !Ref Stage
@@ -625,7 +669,7 @@ Resources:
       Handler: chiron.handler
       Timeout: 900
       MemorySize: 256
-      CodeUri: ./
+      CodeUri: ./chiron
       Events:
         ChironSchedule:
           Type: Schedule
@@ -637,3 +681,83 @@ Resources:
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
+  MifiStatusLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-mifi-status-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
+        - PolicyName: SNS
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sns:*'
+                Resource: '*'
+        - PolicyName: S3
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  MifiStatusFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Publishes sns message based on if mifiStatus changed for employee
+      Handler: mifiStatus.handler
+      Timeout: 900
+      MemorySize: 256
+      CodeUri: ./mifiStatus
+      Events:
+        MifiStream:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: TRIM_HORIZON
+            Stream: !GetAtt employeeTable.StreamArn
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          MifiTopicArn: !Ref MifiTopic
+      Role: !GetAtt
+        - MifiStatusLambdaRole
+        - Arn
+  MifiTopic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: 'Mifi status change'
+      TopicName: !Join
+        - ''
+        - - mifi-status-
+          - !Ref Stage
