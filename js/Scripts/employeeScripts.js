@@ -62,7 +62,7 @@ function getAllEntries() {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-}
+} //getAllEntries
 
 /**
  * Sets all employee's work status active = 100 (Full Time) or inactive = 0
@@ -97,7 +97,7 @@ async function workStatusActive() {
       }
     });
   });
-}
+} //workStatusActive
 
 /**
  * Removes given attribute from all employee data
@@ -123,8 +123,11 @@ async function removeAttribute(attribute) {
       }
     });
   });
-}
+} // removeAttribute
 
+/**
+ * Used to convert the previous jobs attribute to a different JSON structure titled companies
+ */
 async function convertJobsToCompanies() {
   let employees = await getAllEntries();
   _.forEach(employees, (employee) => {
@@ -150,8 +153,12 @@ async function convertJobsToCompanies() {
       });
     }
   });
-}
+} //convertJobsToCompanies
 
+/**
+ * Used to convert the attribute 'degrees' JSON structure to an updated structure titled 'schools' in 
+ * the employees table
+ */
 async function convertEducation() {
   let employees = await getAllEntries();
   _.forEach(employees, (employee) => {
@@ -177,8 +184,13 @@ async function convertEducation() {
       });
     }
   });
-}
+} //convertEducation
 
+/**
+ * Used to convert degrees to the updated companies JSON structure
+ * @param {*} degrees an employee's education history (prior to v3.3)
+ * @returns a newly structured JSON titled companies, consisting of the same data previously in degrees
+ */
 function calculateEducation(degrees) {
   //updated degrees value
   let schools = [];
@@ -221,7 +233,7 @@ function calculateEducation(degrees) {
     }
   });
   return schools;
-}
+} //calculateEducation
 
 /**
  *
@@ -240,7 +252,7 @@ function updateBIDates(clearances) {
     }
   });
   return clearances;
-}
+} //updateBIDates
 
 /**
  * Converts the BI dates so that if there was a range, the bidate gets replaced with just
@@ -272,7 +284,7 @@ async function convertBIDates() {
       });
     }
   });
-}
+} //convertBIDates
 
 /**
  * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
@@ -282,9 +294,7 @@ function calculateCompanies(jobs) {
   let companies = [];
   _.forEach(jobs, (job) => {
     let found = false;
-    console.log(job);
     _.forEach(companies, (company) => {
-      console.log(company);
       if (company.companyName === job.company) {
         let isPresent = job.endDate === null ? true : false;
         let pos = {
@@ -315,7 +325,7 @@ function calculateCompanies(jobs) {
     }
   });
   return companies;
-}
+} //calculateCompanies
 
 /**
  * Used to replace the old technologies field with a new object excluding dateIntervals
@@ -345,7 +355,7 @@ async function addYearsToTechnologies() {
       });
     }
   });
-}
+} //addYearsToTechnologies
 
 /**
  * Takes the technologies object for each employee and calculates the date intervals
@@ -377,7 +387,7 @@ function calculateYears(technologies) {
     technology.years = Number(totalDiff.toFixed(2));
   });
   return technologies;
-}
+} //calculateYears
 
 /**
  * Removes given attribute from all employee data
