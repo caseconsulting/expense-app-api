@@ -262,7 +262,7 @@ async function asyncForEach(array, callback) {
  * @param {*} messageEnd = the ending to the message after the employee info
  */
 function getSNSParams(newImage, messageEnd) {
-  let eventText = newImage.firstName + ' ' + newImage.lastName + ' (employee Id: ' + newImage.id + ') ' + messageEnd;
+  let eventText = newImage.firstName + ' ' + newImage.lastName + ' ' + messageEnd;
 
   return {
     eventText: eventText,
