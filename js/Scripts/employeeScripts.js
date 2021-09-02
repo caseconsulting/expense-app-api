@@ -14,7 +14,8 @@ const actions = [
   '5. Add years attribute to all employee technologies',
   '6. Convert existing jobs object to updated JSON structure (AKA companies)',
   '7. Remove old BI date structure (AKA make them single dates not ranges)',
-  '8. Convert existing education entries to updated JSON structure'
+  '8. Convert existing education entries to updated JSON structure',
+  '9. Remove unused contract data left from old JSON structure'
 ];
 
 // check for stage argument
@@ -156,7 +157,7 @@ async function convertJobsToCompanies() {
 } //convertJobsToCompanies
 
 /**
- * Used to convert the attribute 'degrees' JSON structure to an updated structure titled 'schools' in 
+ * Used to convert the attribute 'degrees' JSON structure to an updated structure titled 'schools' in
  * the employees table
  */
 async function convertEducation() {
@@ -427,6 +428,14 @@ async function setBirthdayFeed(attribute) {
 }
 
 /*
+ * Delete old contract data that is no longer used due to a new JSON data structure.
+ */
+
+function deleteUnusedContractData() {
+  removeAttribute('contract');
+  removeAttribute('prime');
+}
+/*
  * User chooses an action
  */
 function chooseAction() {
@@ -459,7 +468,7 @@ function chooseAction() {
     }
   }
   return input;
-}
+} // chooseAction
 
 /*
  * Prompts the user and confirm action
@@ -535,6 +544,12 @@ async function main() {
       if (confirmAction('8. Convert existing education entries to updated JSON structure')) {
         console.log('Converted education structure to updated JSON structure');
         convertEducation();
+      }
+      break;
+    case 9:
+      if (confirmAction('9. Remove unused contract data left from old JSON structure')) {
+        console.log('Removed unused contract data left from old JSON structure');
+        deleteUnusedContractData();
       }
       break;
     default:
