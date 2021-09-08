@@ -50,6 +50,7 @@
     "receiptSync:dev": "node ./js/Scripts/ReceiptSync.js dev",
     "receiptSync:prod": "node ./js/Scripts/ReceiptSync.js prod --profile prod",
     "receiptSync:test": "node ./js/Scripts/ReceiptSync.js test",
+    "reinstall": "npm ci && cd chiron && npm ci && cd ../chronos && npm ci && cd ../mifiStatus && npm ci && cd ../thanos && npm ci && cd ..",
     "restart": "pm2 restart services.yml",
     "start": "pm2 start services.yml",
     "stop": "pm2 stop services.yml",
