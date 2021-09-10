@@ -74,7 +74,7 @@
     "atob": "^2.1.2",
     "aws-sdk": "^2.822.0",
     "aws-serverless-express": "^3.4.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "axios-oauth-client": "^1.4.2",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
