@@ -31,7 +31,7 @@ class EmsiRoutes {
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.get('/getTechSkills/:tech', this._checkJwt, this._getUserInfo, this._getTechSkills.bind(this));
-  }
+  } // constructor
 
   /**
    * Returns the instace express router.
@@ -47,7 +47,10 @@ class EmsiRoutes {
   /**
    * Used to retrieve a list of skills related to the user's query on their Technology profile form,
    * utilizes EMSI's skills API: https://api.emsidata.com/apis/skills
-   * @returns JSON of tech skills, else it returns an error if failed to retrieve
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return - JSON of tech skills, else it returns an error if failed to retrieve
    */
   async _getTechSkills(req, res) {
     logger.log(1, '_getTechSkills', `Attempting to get requested skill list for ${req.params.tech}`);
@@ -71,15 +74,21 @@ class EmsiRoutes {
       this._sendError(res, error);
       return err;
     }
-  }
+  } // _getTechSkills
 
+  /**
+   * makes a call to axios
+   *
+   * @param options - parameters of the axios call
+   * @return promise - response from axios
+   */
   async callAxios(options) {
     return axios(options);
-  }
+  } // callAxios
 
   /**
    * Gets a token for the EMSI service
-   * @returns token, else it returns an error if failed to retrieve
+   * @return - token, else it returns an error if failed to retrieve
    */
   async getEmsiToken() {
     logger.log(1, 'getEmsiToken', 'Attempting to retrieve emsi token');
@@ -98,7 +107,7 @@ class EmsiRoutes {
       logger.log(1, 'getEsmiToken', 'Failed to retrieve emsi token');
       return err;
     }
-  }
+  } // getEmsiToken
 
   /**
    * Send api response error status.
@@ -113,7 +122,7 @@ class EmsiRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
-}
+} // EmsiRoutes
 
 
 module.exports = EmsiRoutes;

@@ -28,7 +28,7 @@ class ExpenseRoutes extends Crud {
    * Adds expense cost to budget. Returns the budget if successfully added the expense cost, otherwise returns error.
    *
    * @param expense - Expense to add to budget
-   * @param employee - Employee of expense
+   * @param employee - Employee of expense TODO: figure out if this should be removed?
    * @param expenseType - ExpenseType of expense
    * @param budget - Budget to add expense to
    * @return Budget - budget with added expense
@@ -452,7 +452,7 @@ class ExpenseRoutes extends Crud {
         logger.log(2, '_logUpdate', 'AN ERROR SHOULD HAVE BEEN THROWN IN VALIDATE UPDATE');
       }
     }
-  } // _logUpdate
+  } // _logUpdateType
 
   /**
    * Reads an expense from the database. Returns the expense read.
@@ -479,7 +479,7 @@ class ExpenseRoutes extends Crud {
       // return error
       return Promise.reject(err);
     }
-  }
+  } // _read
 
   /**
    * Reads all expenses from the database. Returns all expenses.
@@ -509,9 +509,9 @@ class ExpenseRoutes extends Crud {
       // return error
       return Promise.reject(err);
     }
-  } // readAll
+  } // _readAll
 
-  /*
+  /**
    * Sorts array of budgets by fiscal start date. Returns sorted budgets.
    *
    * @param budgets - Array of budgets

@@ -53,7 +53,12 @@ const getAllEntriesHelper = (params, out = []) =>
       .catch(reject);
   });
 
-// get all entries in dynamodb table
+/**
+ * get all entries in dynamodb table
+ * 
+ * @param table - the dynamo table
+ * @return - all the entries
+ */
 function getAllEntries(table) {
   console.log('Getting all entries in dynamodb expenses table');
   let params = {
@@ -109,7 +114,11 @@ async function addShowOnFeed() {
   });
 } // addShowOnFeed
 
-// Used for testing dynamo limitations - populates data table with expenses
+/**
+ * Used for testing dynamo limitations - populates data table with expenses
+ * 
+ * @param numberOfItems - number of expenses to populate
+ */
 function createItems(numberOfItems) {
   for (let i = 0; i < numberOfItems; i++) {
     let newId = uuid();
@@ -140,7 +149,9 @@ function createItems(numberOfItems) {
   }
 } // createItems
 
-// Used for testing dynamo limitations - deletes all expenses
+/**
+ * Used for testing dynamo limitations - deletes all expenses
+ */
 async function deleteAllExpenses() {
   let expenses = await getAllEntries(TABLE);
   _.forEach(expenses, (expense) => {
@@ -161,6 +172,9 @@ async function deleteAllExpenses() {
 
 /**
  * Copies values from old attribute name to new attribute name
+ * 
+ * @param oldName - the old attribute name
+ * @param newName - the new attribute name
  */
 async function copyValues(oldName, newName) {
   let expenses = await getAllEntries(TABLE);
@@ -197,6 +211,8 @@ async function copyValues(oldName, newName) {
 
 /**
  * Removes given attribute from all expense data
+ * 
+ * @param attribute - attribute to be removed
  */
 async function removeAttribute(attribute) {
   let expenses = await getAllEntries(TABLE);
@@ -221,14 +237,19 @@ async function removeAttribute(attribute) {
 
 /**
  * Changes attribute name
+ * 
+ * @param oldName - the old attribute name
+ * @param newName - the new attribute name
  */
 async function changeAttributeName(oldName, newName) {
   copyValues(oldName, newName);
   removeAttribute(oldName);
 } // changeAttributeName
 
-/*
+/**
  * User chooses an action
+ * 
+ * @return - the action that the user chooses
  */
 function chooseAction() {
   let input;
@@ -262,8 +283,11 @@ function chooseAction() {
   return input;
 } // chooseAction
 
-/*
+/**
  * Prompts the user and confirm action
+ * 
+ * @param prompt - the string representing the action
+ * @return boolean - whether the option is or isn't confirmed
  */
 function confirmAction(prompt) {
   let input;
@@ -283,6 +307,11 @@ function confirmAction(prompt) {
   }
 } // confirmAction
 
+/**
+ * gets the number of expenses to create from the user
+ *
+ * @return - user's decision
+ */
 function getNumExpenses() {
   let input;
   let valid;

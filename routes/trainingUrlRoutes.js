@@ -44,15 +44,15 @@ class TrainingUrlRoutes extends Crud {
   } // _create
 
   /**
-   * Decodes a url. Converts url from ascii to binary.
+   * Decodes a URL. Converts id from ascii to binary.
    *
-   * @param url - encoded url
+   * @param id - encoded url
    * @return String - decoded url
    */
   async _decodeUrl(id) {
     // return atob(id.replace(/%2F/g, '/'));
     return atob(id);
-  }
+  } // _decodeUrl
 
   /**
    * Reads a training url from the database. Returns the training url read.

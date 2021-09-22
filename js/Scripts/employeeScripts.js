@@ -54,7 +54,11 @@ const getAllEntriesHelper = (params, out = []) =>
       .catch(reject);
   });
 
-// get all entries in dynamodb table
+/**
+ * get all entries in dynamodb table
+ * 
+ * @return - all the entries in the table
+ */
 function getAllEntries() {
   console.log('Getting all entries in dynamodb employees table');
   let params = {
@@ -63,7 +67,7 @@ function getAllEntries() {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-} //getAllEntries
+} // getAllEntries
 
 /**
  * Sets all employee's work status active = 100 (Full Time) or inactive = 0
@@ -98,10 +102,12 @@ async function workStatusActive() {
       }
     });
   });
-} //workStatusActive
+} // workStatusActive
 
 /**
  * Removes given attribute from all employee data
+ * 
+ * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
   let employees = await getAllEntries();
@@ -185,12 +191,13 @@ async function convertEducation() {
       });
     }
   });
-} //convertEducation
+} // convertEducation
 
 /**
  * Used to convert degrees to the updated companies JSON structure
- * @param {*} degrees an employee's education history (prior to v3.3)
- * @returns a newly structured JSON titled companies, consisting of the same data previously in degrees
+ *
+ * @param degrees - an employee's education history (prior to v3.3)
+ * @return - a newly structured JSON titled companies, consisting of the same data previously in degrees
  */
 function calculateEducation(degrees) {
   //updated degrees value
@@ -234,12 +241,13 @@ function calculateEducation(degrees) {
     }
   });
   return schools;
-} //calculateEducation
+} // calculateEducation
 
 /**
- *
- * @param {*} clearances
- * @returns Converted clearances where if there was a range for the bi dates, it takes the
+ * updates the new discreet bi dates based on previous range values
+ * 
+ * @param clearances
+ * @return - Converted clearances where if there was a range for the bi dates, it takes the
  *  start date
  */
 function updateBIDates(clearances) {
@@ -253,7 +261,7 @@ function updateBIDates(clearances) {
     }
   });
   return clearances;
-} //updateBIDates
+} // updateBIDates
 
 /**
  * Converts the BI dates so that if there was a range, the bidate gets replaced with just
@@ -285,11 +293,14 @@ async function convertBIDates() {
       });
     }
   });
-} //convertBIDates
+} // convertBIDates
 
 /**
  * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
  * which is titled companies
+ *
+ * @param jobs - jobs object
+ * @return - companies new structure
  */
 function calculateCompanies(jobs) {
   let companies = [];
@@ -326,7 +337,7 @@ function calculateCompanies(jobs) {
     }
   });
   return companies;
-} //calculateCompanies
+} // calculateCompanies
 
 /**
  * Used to replace the old technologies field with a new object excluding dateIntervals
@@ -356,15 +367,16 @@ async function addYearsToTechnologies() {
       });
     }
   });
-} //addYearsToTechnologies
+} // addYearsToTechnologies
 
 /**
  * Takes the technologies object for each employee and calculates the date intervals
  * and creates a new key called years, which is the sum of all of the years for the
  * list of dateIntervals. Also, it adds a field called currentStartDate which is used
  * to update current technologies years field as time passes
+ *
  * @param technologies
- * @returns new object not containing dateIntervals, rather contains years
+ * @return - new object not containing dateIntervals, rather contains years
  */
 function calculateYears(technologies) {
   _.forEach(technologies, (technology) => {
@@ -388,10 +400,12 @@ function calculateYears(technologies) {
     technology.years = Number(totalDiff.toFixed(2));
   });
   return technologies;
-} //calculateYears
+} // calculateYears
 
 /**
  * Removes given attribute from all employee data
+ * 
+ * @param attribute - attribute to be removed
  */
 async function setBirthdayFeed(attribute) {
   let employees = await getAllEntries();
@@ -425,18 +439,20 @@ async function setBirthdayFeed(attribute) {
       }
     });
   });
-}
+} // setBirthdayFeed
 
 /*
  * Delete old contract data that is no longer used due to a new JSON data structure.
  */
-
 function deleteUnusedContractData() {
   removeAttribute('contract');
   removeAttribute('prime');
-}
-/*
+} // deleteUnusedContractData
+
+/**
  * User chooses an action
+ * 
+ * @return - the user input
  */
 function chooseAction() {
   let input;
@@ -470,8 +486,11 @@ function chooseAction() {
   return input;
 } // chooseAction
 
-/*
+/**
  * Prompts the user and confirm action
+ * 
+ * @param prompt - the string of the choice the user is confirming
+ * @return boolean - if the action was confirmed
  */
 function confirmAction(prompt) {
   let input;
@@ -489,7 +508,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 /**
  * main - action selector
@@ -555,6 +574,6 @@ async function main() {
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();

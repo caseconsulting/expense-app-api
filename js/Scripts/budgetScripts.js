@@ -44,7 +44,11 @@ const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) 
     .catch(reject);
 });
 
-// get all entries in dynamodb table
+/**
+ * get all entries in dynamodb table
+ * 
+ * @return - the entries in the table 
+ */
 function getAllEntries() {
   console.log('Getting all entries in dynamodb budgets table');
   let params = {
@@ -53,8 +57,15 @@ function getAllEntries() {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-}
+} // getAllEntries
 
+/**
+ * check to see if employee has access to the expenseType
+ * 
+ * @param employee - the employee
+ * @param expenseType - the expenseType
+ * @return boolean - has access 
+ */
 function hasAccess(employee, expenseType) {
   if (expenseType.accessibleBy == 'ALL' || expenseType.accessibleBy == 'FULL') {
     return true;
@@ -65,38 +76,60 @@ function hasAccess(employee, expenseType) {
   }
 } // hasAccess
 
-/*
+/**
  * Get all expense types
+ * 
+ * @return - all the employees
  */
 async function getAllExpenseTypes() {
   let param = {
     TableName: `${STAGE}-expense-types`
   };
   return getAllEntriesHelper(param);
-}
+} // getAllExpenseTypes
 
 const expenseTypes = getAllExpenseTypes();
 
+/**
+ * gets the expenseType object for a specific expenseType id
+ * 
+ * @param expenseTypeId - the id of the expenseType
+ * @return - the expenseType
+ */
 async function getExpenseType(expenseTypeId) {
   return _.find(await expenseTypes, ['id', expenseTypeId]);
-}
+} // getExpenseType
 
-/*
+/**
  * Get all employees
+ * 
+ * @return - all the employees
  */
 async function getAllEmployees() {
   let param = {
     TableName: `${STAGE}-employees`
   };
   return getAllEntriesHelper(param);
-}
+} // getAllEmployees
 
 const employees = getAllEmployees();
 
+/**
+ * gets the employee object for a specific employee id
+ * 
+ * @param employeeId - the id of the employee
+ * @return - the employee
+ */
 async function getEmployee(employeeId) {
   return _.find(await employees, ['id', employeeId]);
-}
+} // getEmployee
 
+/**
+ * calulates the adjusted budget based on accessability TODO: Fix or mark as deprecated?
+ * 
+ * @param budget - the budget
+ * @return - adjusted budget
+ */
 async function calculateAdjustedBudget(budget) {
   let expenseType = await getExpenseType(budget.expenseTypeId);
   let employee = await getEmployee(budget.employeeId);
@@ -109,7 +142,7 @@ async function calculateAdjustedBudget(budget) {
   } else {
     return 0;
   }
-}
+} // calculateAdjustedBudget
 
 /**
  * Sets the amount of all budgets to 100% of its expense type
@@ -139,7 +172,7 @@ async function maxAmount() {
       }
     });
   });
-}
+} // maxAmount
 
 /**
  * Deletes all budgets that have no pending or reimbursed amounts.
@@ -169,6 +202,9 @@ async function deleteEmptyBudgets() {
 
 /**
  * Copies values from old attribute name to new attribute name
+ *
+ * @param oldName - the old attribute's name
+ * @param newName - the new attribute's name
  */
 async function copyValues(oldName, newName) {
   let budgets = await getAllEntries();
@@ -201,10 +237,12 @@ async function copyValues(oldName, newName) {
       }
     });
   });
-}
+} // copyValues
 
 /**
  * Removes given attribute from all budget data
+ * 
+ * @param attribute - the given attribute to remove
  */
 async function removeAttribute(attribute) {
   let budgets = await getAllEntries();
@@ -225,18 +263,23 @@ async function removeAttribute(attribute) {
       }
     });
   });
-}
+} // removeAttribute
 
 /**
  * Changes attribute name
+ * 
+ * @param oldName - the old attribute name
+ * @param newName - the new attribute name
  */
 async function changeAttributeName(oldName, newName) {
   copyValues(oldName, newName);
   removeAttribute(oldName);
-}
+} // changeAttributeName
 
-/*
+/**
  * User chooses an action
+ *
+ * @return boolean - user input
  */
 function chooseAction() {
   let input;
@@ -268,10 +311,13 @@ function chooseAction() {
     }
   }
   return input;
-}
+} //chooseAction
 
-/*
+/**
  * Prompts the user and confirm action
+ * 
+ * @param prompt - the string representation of the action that the user is confirming
+ * @return boolean - if the action is confirmed
  */
 function confirmAction(prompt) {
   let input;
@@ -289,7 +335,7 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 /**
  * main - action selector
@@ -319,6 +365,6 @@ async function main() {
     default:
       throw new Error('Invalid Action Number');
   }
-}
+} // main
 
 main();

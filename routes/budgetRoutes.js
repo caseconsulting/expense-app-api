@@ -80,7 +80,7 @@ class Budgets {
       // return error
       return Promise.reject(err);
     }
-  } // getCallerBudgets
+  } // _getCallerBudgets
 
   /**
    * Read all budgets for employee. If successful, sends 200 status request with the budgets read and returns the
@@ -124,7 +124,7 @@ class Budgets {
       // return error
       return Promise.reject(err);
     }
-  } // getEmployeeBudgets
+  } // _getEmployeeBudgets
 
   /**
    * Returns the instace express router.

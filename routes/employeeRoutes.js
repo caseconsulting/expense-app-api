@@ -92,7 +92,7 @@ class EmployeeRoutes extends Crud {
     });
 
     return expenseTypes;
-  }
+  } // getAllExpenseTypes
 
   /**
    * Reads an employee from the database. Returns the employee read.
@@ -570,6 +570,6 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateUpdate
-}
+} // EmployeeRoutes
 
 module.exports = EmployeeRoutes;

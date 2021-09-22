@@ -7,7 +7,7 @@ const _ = require('lodash');
  * ExpenseType model
  *
  * Required Fields:
- * - accessiblyBy
+ * - accessibleBy
  * - alwaysOnFeed
  * - budget
  * - budgetName
@@ -20,6 +20,7 @@ const _ = require('lodash');
  * - recurringFlag
  * - requiredFlag
  * - requireURL
+ * - proRated
  *
  * Optional Fields:
  * - campfire
@@ -53,7 +54,7 @@ class ExpenseType {
    * Check if a date is in the expense type date range. Returns true if the expense type is recurring or the date is
    * between the expense type start and end date. Returns false otherwise.
    *
-   * @param date - moment of date to be checked
+   * @param dateStr - moment of date to be checked
    * @return Boolean - date is in range
    */
   isDateInRange(dateStr) {
@@ -102,7 +103,7 @@ class ExpenseType {
     if (!this._isEmpty(data[attribute])) {
       this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     }
-  } // setNumberAttribute
+  } // setOptionalNumberAttribute
 
   /**
    * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
@@ -134,6 +135,6 @@ class ExpenseType {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-}
+} // ExpenseType
 
 module.exports = ExpenseType;

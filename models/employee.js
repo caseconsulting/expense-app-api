@@ -43,6 +43,7 @@ const _ = require('lodash');
  * - noMiddleName
  * - phoneNumber
  * - prime
+ * - schools
  * - st
  * - technologies
  * - twitter
@@ -123,7 +124,7 @@ class Employee {
    */
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
-  } // isEmpty
+  } // _isEmpty
 
   /**
    * Check if the employee is full time. Returns true if employee work status is 100, otherwise returns false.
@@ -235,6 +236,6 @@ class Employee {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-}
+} // Employee
 
 module.exports = Employee;

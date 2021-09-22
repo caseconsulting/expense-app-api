@@ -103,13 +103,14 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
-
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['training-urls',
+      'expenses', 'employees']);
     let adminPermissions =
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
-    let result = userPermissions || adminPermissions || internPermissions;
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -151,8 +152,9 @@ class Crud {
     let adminPermissions =
       this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
+    let managerPermissions = this.isManager(employee) && this._checkTableName(['expenses', 'employees']);
 
-    let result = userPermissions || adminPermissions || internPermissions;
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -196,8 +198,9 @@ class Crud {
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -241,8 +244,9 @@ class Crud {
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -285,8 +289,9 @@ class Crud {
       this.isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'blog-posts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
-
-    let result = userPermissions || adminPermissions || internPermissions;
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expenses']);
+    let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
     if (result) {
@@ -361,6 +366,7 @@ class Crud {
    *
    * @param employee - Employee to create budget for
    * @param expenseType - ExpenseType of the budget
+   * @param annualStart - the start date of the budget if it is annual
    * @return Budget - budget created
    */
   async createNewBudget(employee, expenseType, annualStart) {
@@ -546,7 +552,7 @@ class Crud {
   /**
    * Get the current annual budget start and end dates based on a given hire date.
    *
-   * @param hireDate - ISO formatted hire date String
+   * @param date - ISO formatted hire date String
    * @return Object - moment start date and moment end date
    */
   getBudgetDates(date) {
@@ -618,7 +624,7 @@ class Crud {
    */
   getUUID() {
     return uuid();
-  }
+  } // getUUID
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
@@ -714,6 +720,30 @@ class Crud {
   } // isIntern
 
   /**
+   * Check if an employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
+   *
+   * @param employee - Employee to check
+   * @return boolean - employee is manager
+   */
+  isManager(employee) {
+    // log method
+    logger.log(5, 'isManager', `Checking if employee ${employee.id} is an manager`);
+  
+    // compute method
+    let result = employee.employeeRole === 'manager';
+
+    // log result
+    if (result) {
+      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
+    } else {
+      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
+    }
+
+    // return result
+    return result;
+  } // isManager
+
+  /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
    * false.
    *
@@ -785,7 +815,7 @@ class Crud {
         let dataRead = await this._read(req.params); // read object
 
         // validate user permission to the read expense
-        if (this.isUser(req.employee) && this._checkTableName(['expenses'])) {
+        if ((this.isUser(req.employee) || this.isManager(req.employee)) && this._checkTableName(['expenses'])) {
           // user is reading an expense
           // check the expense belongs to the user
           if (dataRead.employeeId !== req.employee.id) {
@@ -829,9 +859,14 @@ class Crud {
   } // _readWrapper
 
   // temporary
+  /**
+   * gets all entries in the DB
+   * 
+   * @return all entries 
+   */
   async _readAll() {
     return await this.databaseModify.getAllEntriesInDB();
-  }
+  } // _readAll
 
   /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
@@ -992,7 +1027,6 @@ class Crud {
   /**
    * Validate inputs. Returns the object if all inputs are valid.
    *
-   * @param res - api response
    * @param object - object to be validated
    * @return Object - object validated
    */

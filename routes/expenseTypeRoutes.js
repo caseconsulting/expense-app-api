@@ -134,7 +134,7 @@ class ExpenseTypeRoutes extends Crud {
       // return error
       return Promise.reject(err);
     }
-  } // readAll
+  } // _readAll
 
   /**
    * Update expense type and budgets. Returns the expense type updated.
@@ -411,7 +411,7 @@ class ExpenseTypeRoutes extends Crud {
       // return rejected promise
       return Promise.reject(err);
     }
-  } // _validatDelete
+  } // _validateDelete
 
   /**
    * Validate that an expense type is valid. Returns the expense type if the expense type is successfully validated,

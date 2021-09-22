@@ -39,7 +39,7 @@ const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 
-/*
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -66,7 +66,12 @@ const getAllEntriesHelper = (params, out = []) =>
       .catch(reject);
   });
 
-// get all entries in dynamodb table
+/**
+ * gets all the entries in the table
+ *
+ * @param table - the table 
+ * @return - all the entries
+ */
 function getAllEntries(table) {
   console.log(`Getting all entries from dynamodb ${table} table`);
   let params = {
@@ -75,10 +80,13 @@ function getAllEntries(table) {
   let entries = getAllEntriesHelper(params);
   console.log(`Finished getting all entries from ${table}`);
   return entries;
-}
+} // getAllEntries
 
-/*
+/**
  * Prompts the user and confirm action
+ * 
+ * @param prompt - the string representing the action
+ * @return boolean - whether the option is or isn't confirmed
  */
 function confirmAction(prompt) {
   let input;
@@ -96,10 +104,12 @@ function confirmAction(prompt) {
     console.log('Action Canceled');
     return false;
   }
-}
+} // confirmAction
 
 /**
  * Remove empty attributes (null or single space) from table entries
+ * 
+ * @param table - the table to remobe attributes from
  */
 async function removeNull(table) {
   console.log(`Removing empty attributes from ${table}`);
@@ -162,6 +172,9 @@ async function removeNull(table) {
   console.log(`Finished removing empty attributes from ${table}`);
 } // removeNull
 
+/**
+ * main - action selector
+ */
 async function main() {
   if (confirmAction('update expense app dynamodb data for v3.1?')) {
     await removeNull(BUDGETS_TABLE); // remove null attributes from budgets table

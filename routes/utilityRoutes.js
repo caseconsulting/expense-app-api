@@ -192,8 +192,8 @@ class Utility {
   /**
    * Gets the active aggregate budget for an employee with a given expense type.
    *
-   * @param req - api request
-   * @param res - api response
+   * @param employee - the employee
+   * @param expenseType - the expense type
    * @return Object - employee active aggregate Budget
    */
   async _getActiveBudget(employee, expenseType) {
@@ -358,23 +358,40 @@ class Utility {
     }
   } // queryExpenses
 
+  /**
+   * gets the basecamp token
+   * 
+   * @return - the basecamp authorization token 
+   */
   async getBasecampToken() {
     const basecamp = new Basecamp();
 
     return await basecamp._getBasecampToken();
-  }
+  } // getBasecampToken
 
+  /**
+   * gets the basecamp info
+   *
+   * @return - the info for basecamp 
+   */
   getBasecampInfo() {
     const basecamp = new Basecamp();
 
     return basecamp.getBasecampInfo();
-  }
+  } // getBasecampInfo
 
+  /**
+   * get the entries in the basecamp schedule for a given project
+   *
+   * @param accessToken - the basecamp access token
+   * @param project - the basecamp project
+   * @return - the schedule entries
+   */
   async getScheduleEntries(accessToken, project) {
     const basecamp = new Basecamp();
 
     return await basecamp._getScheduleEntries(accessToken, project);
-  }
+  } // getScheduleEntries
 
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and
@@ -442,11 +459,11 @@ class Utility {
   } // _getAllExpenses
 
   /**
-   * Getting all expense data that fits the criteria for the feed as well as all employees and
+   * Getting all expense data that fits the criteria for the feed as well as all employees and other events
    *
    * @param req - api request
    * @param res - api response
-   * @return all info needed for activity feed
+   * @return - all info needed for activity feed
    */
   async _getAllEvents(req, res) {
     // log method
@@ -529,10 +546,12 @@ class Utility {
       // return error
       return err;
     }
-  } // getAllEvents
+  } // _getAllEvents
 
   /**
    * Gets all expensetype data and then parses the categories
+   *
+   * @return - all the expenseTypes
    */
   async getAllExpenseTypes() {
     try {
@@ -713,7 +732,7 @@ class Utility {
   /**
    * Get the current annual budget start and end dates based on a given hire date.
    *
-   * @param hireDate - ISO formatted hire date String
+   * @param date - ISO formatted hire date String
    * @return Object - moment start date and moment end date
    */
   getBudgetDates(date) {
@@ -1024,7 +1043,7 @@ class Utility {
   } // isIntern
 
   /**
-   * Check if an employee is an manager. Returns true if employee role is 'intern', otherwise returns false.
+   * Check if an employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee is intern

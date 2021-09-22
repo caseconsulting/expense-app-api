@@ -15,6 +15,7 @@ const _ = require('lodash');
  *
  * Optional Fields:
  * - category
+ * - recipient
  * - reimbursedDate
  * - receipt
  * - note
@@ -48,7 +49,7 @@ class Expense {
    */
   hasReceipt() {
     return !this._isEmpty(this.receipt);
-  }
+  } // hasReceipt
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -58,7 +59,7 @@ class Expense {
    */
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
-  } // isEmpty
+  } // _isEmpty
 
   /**
    * Check if the expense is reimbursed. Returns true if reimburse date exists, otherwise returns false.
@@ -124,6 +125,6 @@ class Expense {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-}
+} // Expense
 
 module.exports = Expense;

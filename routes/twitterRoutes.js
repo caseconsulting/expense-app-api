@@ -46,8 +46,15 @@ class TwitterRoutes {
       this._getUserInfo,
       this._getCaseTimeline.bind(this)
     );
-  }
+  } // constructor
 
+  /**
+   * gets the twitter token
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return - twitter token 
+   */
   async _getTwitterToken(req, res) {
     //log the attempt
     logger.log(1, '_getTwitterToken', 'Attempting to get Twitter Token');
@@ -87,8 +94,15 @@ class TwitterRoutes {
 
       return err;
     }
-  }
+  } // _getTwitterToken
 
+  /**
+   * gets the case twitter timeline
+   *
+   * @param req 
+   * @param res 
+   * @return - gets the case twitter account's timeline 
+   */
   async _getCaseTimeline(req, res) {
     //log the attempt
     logger.log(1, '_getCaseTimeline', 'Attempting to get Case Consulting timeline');
@@ -135,7 +149,7 @@ class TwitterRoutes {
 
       return err;
     }
-  }
+  } // _getCaseTimeline
 
   /**
    * Send api response error status.
@@ -163,6 +177,6 @@ class TwitterRoutes {
 
     return this._router;
   } // router
-}
+} // TwitterRoutes
 
 module.exports = TwitterRoutes;

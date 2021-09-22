@@ -6,6 +6,11 @@ const _ = require('lodash');
  * Fields:
  * - id
  * - dateCreated
+ * - type
+ * - employeeId
+ * - description
+ * - timeToLive
+ * - tags
  */
 
 class Audit {
@@ -17,7 +22,7 @@ class Audit {
     this.setOptionalAttribute(data, 'description');
     this.setOptionalAttribute(data, 'timeToLive');
     this.setOptionalAttribute(data, 'tags');
-  }
+  } // constructor
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -55,7 +60,7 @@ class Audit {
       this[attribute] = data[attribute];
     }
   } // setOptionalAttribute
-}
+} // Audit
 
 
 

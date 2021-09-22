@@ -366,6 +366,7 @@ class Crud {
    *
    * @param employee - Employee to create budget for
    * @param expenseType - ExpenseType of the budget
+   * @param annualStart - the start date of the budget if it is annual
    * @return Budget - budget created
    */
   async createNewBudget(employee, expenseType, annualStart) {
@@ -551,7 +552,7 @@ class Crud {
   /**
    * Get the current annual budget start and end dates based on a given hire date.
    *
-   * @param hireDate - ISO formatted hire date String
+   * @param date - ISO formatted hire date String
    * @return Object - moment start date and moment end date
    */
   getBudgetDates(date) {
@@ -623,7 +624,7 @@ class Crud {
    */
   getUUID() {
     return uuid();
-  }
+  } // getUUID
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
@@ -858,9 +859,14 @@ class Crud {
   } // _readWrapper
 
   // temporary
+  /**
+   * gets all entries in the DB
+   * 
+   * @return all entries 
+   */
   async _readAll() {
     return await this.databaseModify.getAllEntriesInDB();
-  }
+  } // _readAll
 
   /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
@@ -1021,7 +1027,6 @@ class Crud {
   /**
    * Validate inputs. Returns the object if all inputs are valid.
    *
-   * @param res - api response
    * @param object - object to be validated
    * @return Object - object validated
    */

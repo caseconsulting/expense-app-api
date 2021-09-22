@@ -118,7 +118,7 @@ class Attachment {
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - file deleted from s3
+   * @return Object - file deleted from s3 or error
    */
   async deleteAttachmentFromS3(req, res) {
     // log method
@@ -170,9 +170,14 @@ class Attachment {
     });
   } // deleteAttachmentFromS3
 
+  /**
+   * 
+   * @param ms - time in milliseconds to timeout 
+   * @return promise - a timeout 
+   */
   timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+  } // timeout
 
   /**
    * Extracts text from a file using AWS Textract.
@@ -388,7 +393,10 @@ class Attachment {
   } // extractText
 
   /**
+   * returns detected entities from extracted text
    *
+   * @param textExtracted - the extracted text from the image
+   * @return - the detected entities
    */
   async comprehendText(textExtracted) {
     let text = '';
@@ -582,7 +590,14 @@ class Attachment {
   //     }
   //   });
   // } // extractText
-
+  
+  /**
+   * returns the value block 
+   * 
+   * @param keyBlock - array containing relationships
+   * @param valueMap - map of values
+   * @return - value block from value map based on key block
+   */
   findValueBlock(keyBlock, valueMap) {
     // for relationship in key_block['Relationships']:
     //     if relationship['Type'] == 'VALUE':
@@ -598,8 +613,15 @@ class Attachment {
       }
     });
     return valueBlock;
-  }
+  } // findValueBlock
 
+  /**
+   * gets the text from the the result whether it is a key or value
+   *
+   * @param result - the part of the relationship that you want the string text for
+   * @param blocksMap - the map of relationship blocks
+   * @return - the text of the result 
+   */
   getText(result, blocksMap) {
     // def get_text(result, blocks_map):
     // text = ''
@@ -640,7 +662,7 @@ class Attachment {
       });
     }
     return { ids: Ids, Text: text, Confidences: confidences };
-  }
+  } // getText
 
   /**
    * Gets an attachment from S3.

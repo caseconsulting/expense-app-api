@@ -47,7 +47,11 @@ const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) 
     .catch(reject);
 });
 
-// get all entries in dynamodb table
+/**
+ * gets all entries in the table
+ *
+ * @return - all the entries
+ */
 function getAllEntries() {
   console.log('Getting all entries in dynamodb expense type table');
   let params = {
@@ -87,6 +91,9 @@ async function accessibleByAll() {
   });
 } // accessibleByAll
 
+/**
+ * adds always on feed flag to entries
+ */
 async function addAlwaysOnFeed() {
   let expenseTypes = await getAllEntries();
   _.forEach(expenseTypes, expenseType => {
@@ -200,6 +207,8 @@ async function convertExpenseTypeAccessibilities() {
 
 /**
  * Removes given attribute from all expense type data
+ * 
+ * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
   let expenseTypes = await getAllEntries(TABLE);
@@ -257,10 +266,12 @@ async function addRequireURLAttrToCategories()
       }
     });
   });
-}
+} // addRequireURLAttrToCategories
 
-/*
+/**
  * User chooses an action
+ * 
+ * @return - the action that the user chooses
  */
 function chooseAction() {
   let input;
@@ -294,8 +305,11 @@ function chooseAction() {
   return input;
 } // chooseAction
 
-/*
+/**
  * Prompts the user and confirm action
+ * 
+ * @param prompt - the string representing the action
+ * @return boolean - whether the option is or isn't confirmed
  */
 function confirmAction(prompt) {
   let input;

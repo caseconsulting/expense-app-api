@@ -36,7 +36,7 @@ class TrainingUrls {
    */
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
-  } // isEmpty
+  } // _isEmpty
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
@@ -61,7 +61,7 @@ class TrainingUrls {
     if (!this._isEmpty(data[attribute])) {
       this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     }
-  } // setNumberAttribute
+  } // setOptionalNumberAttribute
 
   /**
    * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
@@ -93,6 +93,6 @@ class TrainingUrls {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-}
+} // TrainingUrls
 
 module.exports = TrainingUrls;

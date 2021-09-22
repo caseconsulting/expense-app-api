@@ -166,9 +166,14 @@ class Resume {
     });
   } // deleteResumeFromS3
 
+  /**
+   * 
+   * @param ms - time in milliseconds to timeout 
+   * @return promise - a timeout 
+   */
   timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+  } // timeout
 
   /**
    * Extracts text from a file using AWS Textract.
@@ -298,6 +303,9 @@ class Resume {
 
   /**
    * Convert the text to categories
+   * 
+   * @param textExtracted - extracted text
+   * @return array - the entities
    */
   async comprehendText(textExtracted) {
 
@@ -332,6 +340,13 @@ class Resume {
     return returnEntities;
   } // comprehendText
 
+  /**
+   * returns the value block 
+   * 
+   * @param keyBlock - array containing relationships
+   * @param valueMap - map of values
+   * @return - value block from value map based on key block
+   */
   findValueBlock(keyBlock, valueMap) {
     let valueBlock;
     _.forEach(keyBlock.Relationships, (relationship) => {
@@ -342,8 +357,15 @@ class Resume {
       }
     });
     return valueBlock;
-  }
+  } // findValueBlock
 
+  /**
+   * gets the text from the the result whether it is a key or value
+   *
+   * @param result - the part of the relationship that you want the string text for
+   * @param blocksMap - the map of relationship blocks
+   * @return - the text of the result 
+   */
   getText(result, blocksMap) {
     // return text
     let text = [];
@@ -371,7 +393,7 @@ class Resume {
       });
     }
     return { ids: Ids, Text: text, Confidences: confidences };
-  }
+  } // getText
 
   /**
    * Gets a resume from S3.

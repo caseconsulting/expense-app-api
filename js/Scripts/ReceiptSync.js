@@ -36,14 +36,18 @@ const getAllEntries = (params, out = []) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
-// get all expenses in the expense table
+/**
+ * get all entries in the db
+ *
+ * @return - all the entries
+ */
 function getAllEntriesInDB() {
   console.log('Getting all entries in dynamodb expense table');
   let params = {
     TableName: table,
   };
   return getAllEntries(params);
-}
+} // getAllEntriesInDB
 
 // get all the keys in S3
 const listAllKeys = (params, out = []) => new Promise((resolve, reject) => {
@@ -56,7 +60,12 @@ const listAllKeys = (params, out = []) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
-// create a mapping of employeeId/expense to receipt name
+/**
+ * create a mapping of employeeId/expense to receipt name
+ * 
+ * @param keys - the s3 keys
+ * @return - the new mapping
+ */
 function s3PathMap(keys) {
   console.log('Creating s3 map for employeeId/expense to receipt name');
   let map = [];
@@ -86,9 +95,11 @@ function s3PathMap(keys) {
     }
   });
   return map;
-}
+} // s3PathMap
 
-// update the receipt fields of each expense
+/**
+ * update the receipt fields of each expense
+ */
 async function updateReceiptFields() {
   console.log('Getting all attachment keys in s3');
   // get all the keys
@@ -142,6 +153,6 @@ async function updateReceiptFields() {
       });
     })
     .catch(console.log);
-}
+} // updateReceiptFields
 
 updateReceiptFields();

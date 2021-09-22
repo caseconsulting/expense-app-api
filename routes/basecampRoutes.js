@@ -76,12 +76,23 @@ class BasecampRoutes {
       this._getUserInfo,
       this._getBasecampCampfires.bind(this)
     );
-  }
+  } // constructor
 
+  /**
+   * gets the token
+   *
+   * @param params - params for the lambda invoke call 
+   * @return - promise containing token 
+   */
   async getToken(params){
     return lambda.invoke(params).promise();
-  }
+  } // getToken
 
+  /**
+   * get the basecamp token
+   * 
+   * @return - the basecamp token from mysterio 
+   */
   async _getBasecampToken() {
     //log the attempt
     logger.log(1, '_getBasecampToken', 'Attempting to get Basecamp Token');
@@ -117,11 +128,17 @@ class BasecampRoutes {
 
       return err;
     }
-  }
+  } // _getBasecampToken
 
+  /**
+   * make a call to axios
+   * 
+   * @param options - options for the axios call
+   * @return promise - axios return
+   */
   async callAxios(options) {
     return axios(options);
-  }
+  } // callAxios
 
   /**
    * Get basecamp avatars for all employees in the Case Consulting Basecamp.
@@ -193,6 +210,7 @@ class BasecampRoutes {
 
   /**
    * Get basecamp Campfires for the info@consultwithcase.com basecamp account.
+   *
    * @param req - api request
    * @param res - api respone
    * @return object - Employee Basecamp Campfires
@@ -263,6 +281,7 @@ class BasecampRoutes {
 
   /**
    * Get basecamp Schedule entries for the info@consultwithcase.com basecamp account.
+   *
    * @param token - api token
    * @param project - basecamp project
    * @return object - Employee Basecamp Campfires
@@ -332,18 +351,23 @@ class BasecampRoutes {
       logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
       return err;
     }
-  }
+  } // _getFeedEvents
 
+  /**
+   * returns the current basecamp projects - used for testing
+   *
+   * @return - the basecamp projects 
+   */
   getBasecampInfo(){
     return BASECAMP_PROJECTS;
-  }
+  } // getBasecampInfo
 
   /**
    * Check to see if we need to make another call for paginated things
    *
    * @param currentPage - the current page
    * @param responseLength - the amount of responses that were returned
-   * @returns - true if the number of responses is the max for that page(and therefore there might be more entries to
+   * @return - true if the number of responses is the max for that page(and therefore there might be more entries to
    *            get) and false otherwise
    */
   getNextPage(currentPage, responseLength){
@@ -384,8 +408,6 @@ class BasecampRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
-
-
-}
+} // BasecampRoutes
 
 module.exports = BasecampRoutes;
