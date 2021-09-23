@@ -178,8 +178,8 @@ async function getAllTrainingUrls() {
 
 /**
  * Handler to execute lamba function.
+ * 
  * @param event - request
- * @return Object - response
  */
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
