@@ -12,7 +12,7 @@ class Logger {
    * log(priorty, caller, description...)
    *
    * @param priority - first argument is the priority level
-   * @param caller - second argument is the method caller
+   * @param method - second argument is the method caller
    * @param description - all following arguments make up the description
    *
    * [TIMESTAMP] [description] | Processing handled by function [caller]

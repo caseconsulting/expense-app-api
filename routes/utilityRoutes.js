@@ -329,9 +329,11 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
-   *
+   * queries the expenses based on expenseTypes and cutOffDate
+   * 
    * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
+   * @return - the queried expenses
    */
   async queryExpenses(expenseType, cutOffDate) {
     //use additional params option of querySecondaryIndex to filter things.

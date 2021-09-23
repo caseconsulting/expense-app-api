@@ -283,7 +283,6 @@ function getSNSParams(newImage, messageEnd) {
  * 
  * @param event - request
  * @param context - context
- * @return Object - response
  */
 async function handler(event, context) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console

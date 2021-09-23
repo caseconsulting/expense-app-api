@@ -81,6 +81,8 @@ class EmployeeRoutes extends Crud {
 
   /**
    * Gets all expensetype data and then parses the categories
+   * 
+   * @return - all the expense types
    */
   async getAllExpenseTypes() {
     let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();

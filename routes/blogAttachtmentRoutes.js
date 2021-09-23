@@ -113,7 +113,6 @@ class BlogAttachmentRoutes {
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - file uploaded
    */
   detectKeyPhrases(req, res) {
     var params = {
@@ -144,7 +143,6 @@ class BlogAttachmentRoutes {
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - text data
    */
   detectModeration(req, res) {
     var params = {

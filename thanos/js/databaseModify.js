@@ -228,6 +228,7 @@ class databaseModify {
    * @param queryKey - key attribute to query by
    * @param queryParam - parameter value of entries
    * @param additionalParams - optional parameter to add or overwrite default param values
+   * @return - queried entries
    */
   async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam, additionalParams = {}) {
     // log method
@@ -280,6 +281,7 @@ class databaseModify {
    *
    * @param employeeId - Employee ID
    * @param expenseTypeId - ExpenseType ID
+   * @return - the queried entries
    */
   async queryWithTwoIndexesInDB(employeeId, expenseTypeId) {
     // log method

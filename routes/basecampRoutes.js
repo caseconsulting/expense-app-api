@@ -143,6 +143,8 @@ class BasecampRoutes {
   /**
    * Get basecamp avatars for all employees in the Case Consulting Basecamp.
    *
+   * @param req - api request
+   * @param res - api response
    * @return object - Employee Basecamp avatar data
    */
   async _getBasecampAvatars(req, res) {
