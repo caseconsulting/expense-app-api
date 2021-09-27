@@ -8,7 +8,7 @@
     "dotenv": "^8.2.0",
     "got": "^11.8.1",
     "lodash": "^4.17.20",
-    "metadata-scraper": "^0.2.30",
+    "metadata-scraper": "0.2.41",
     "moment-timezone": "^0.5.33",
     "url-exist": "^2.0.2"
   }
