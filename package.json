@@ -97,7 +97,7 @@
   "devDependencies": {
     "acorn": "^8.0.4",
     "aws-sdk-mock": "^5.1.0",
-    "claudia": "^5.13.0",
+    "claudia": "5.13.1",
     "eslint": "^7.17.0",
     "jasmine": "^3.6.3",
     "nodemon": "2.0.13",
