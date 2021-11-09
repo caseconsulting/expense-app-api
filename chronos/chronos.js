@@ -7,7 +7,7 @@ const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
-const Employee = require('../models/employee');
+const Employee = require('./models/employee');
 
 /**
  * Returns a new DatabaseModify for budgets
