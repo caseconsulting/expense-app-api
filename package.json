@@ -38,6 +38,7 @@
     "invoke:chiron": "sam local invoke ChironFunction --env-vars env.json --no-event --template CloudFormation.yaml",
     "invoke:chronos": "sam local invoke ChronosFunction --env-vars env.json --no-event --template CloudFormation.yaml",
     "invoke:mifiStatus": "sam local invoke MifiStatusFunction --env-vars env.json --no-event --template CloudFormation.yaml",
+    "invoke:thanos": "sam local invoke ThanosFunction --env-vars env.json --no-event --template CloudFormation.yaml",
     "lint": "npm run eslint",
     "package:cloudformation:dev": "aws cloudformation package --template-file CloudFormation.yaml --s3-bucket case-consulting-expense-app-resources-dev --s3-prefix expense-app-api --output-template-file packaged.yaml",
     "package:cloudformation:prod": "aws cloudformation package --template-file CloudFormation.yaml --s3-bucket case-consulting-expense-app-resources-prod --s3-prefix expense-app-api --output-template-file packaged.yaml --profile prod",
