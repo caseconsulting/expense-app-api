@@ -2,14 +2,5 @@
   "name": "chronos",
   "version": "3.5.0",
   "private": true,
-  "main": "chronos.js",
-  "dependencies": {
-    "aws-sdk": "^2.822.0",
-    "dotenv": "^8.2.0",
-    "lodash": "^4.17.20",
-    "moment": "^2.29.1",
-    "moment-range": "^4.0.2",
-    "moment-timezone": "^0.5.33",
-    "uuid": "^8.3.2"
-  }
+  "main": "chronos.js"
 }
