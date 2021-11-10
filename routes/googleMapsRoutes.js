@@ -32,7 +32,7 @@ class GoogleMapRoutes {
     this._getUserInfo = getUserInfo;
     this._router.get('/getLocation/:location', this._checkJwt, this._getUserInfo, this._getLocation.bind(this));
     this._router.get('/getZipCode/:addressId', this._checkJwt, this._getUserInfo, this._getZipCode.bind(this));
-  }
+  } // constructor
 
   /**
    * Returns the instace express router.
@@ -46,9 +46,10 @@ class GoogleMapRoutes {
   } // router
 
   /**
-   * Used to return a list of 'predictions' of addresses according to the user's input. 
-   * @param {*} req - contains string of location typed by user
-   * @param {*} res - returns Google Maps API object according to the user's input in the street field
+   * Used to return a list of 'predictions' of addresses according to the user's input.
+   *
+   * @param req - contains string of location typed by user
+   * @param res - returns Google Maps API object according to the user's input in the street field
    */
   async _getLocation(req, res) {
     let location = req.params.location;
@@ -75,8 +76,9 @@ class GoogleMapRoutes {
 
   /**
    * Obtains an object that contains the zip code of a given address ID
-   * @param {*} req: holds params.addressId of the location to get the zip code of
-   * @param {*} res: object of multiple fields about the given location
+   *
+   * @param req: holds params.addressId of the location to get the zip code of
+   * @param res: object of multiple fields about the given location
    */
   async _getZipCode(req, res) {
     let addressId = req.params.addressId;
@@ -100,9 +102,14 @@ class GoogleMapRoutes {
     }
   } //_getZipCode
 
+  /**
+   * 
+   * @param options - parameters for axios call 
+   * @return promise - axios response
+   */
   async callAxios(options) {
     return axios(options);
-  }
+  } // callAxios
 
   /**
    * Send api response error status.
@@ -117,6 +124,6 @@ class GoogleMapRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
-}
+} // GoogleMapRoutes
 
 module.exports = GoogleMapRoutes;

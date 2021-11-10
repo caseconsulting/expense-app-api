@@ -228,6 +228,7 @@ class databaseModify {
    * @param queryKey - key attribute to query by
    * @param queryParam - parameter value of entries
    * @param additionalParams - optional parameter to add or overwrite default param values
+   * @return - queried entries
    */
   async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam, additionalParams = {}) {
     // log method
@@ -280,7 +281,7 @@ class databaseModify {
    *
    * @param employeeId - Employee ID
    * @param expenseTypeId - ExpenseType ID
-   * @param queryParam - parameter value of entries
+   * @return - the queried entries
    */
   async queryWithTwoIndexesInDB(employeeId, expenseTypeId) {
     // log method
@@ -428,6 +429,7 @@ class databaseModify {
    * Deletes entries from the dynamodb table by an ID and category.
    *
    * @param passedID - ID of entry to delete
+   * @param category - category of entry to delete
    * @return Object - entries deleted
    */
   async removeFromDBUrl(passedID, category) {

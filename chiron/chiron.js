@@ -3,7 +3,7 @@ const Logger = require('./js/Logger');
 const DatabaseModify = require('./js/databaseModify');
 const TrainingUrl = require('./models/trainingUrls');
 const ExpenseType = require('./models/expenseType');
-const Expense = require('./models/expense');
+const Expense = require('expense-model');
 const _ = require('lodash');
 const urlExist = require('url-exist');
 
@@ -17,6 +17,8 @@ const logger = new Logger('TrainingSync');
 
 /**
  * Gets all expensetype data and then parses the categories
+ *
+ * @return - the expense types
  */
 async function getAllExpenseTypes() {
   let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
@@ -29,7 +31,7 @@ async function getAllExpenseTypes() {
   return expenseTypes;
 } // getAllExpenseTypes
 
-/*
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -119,7 +121,9 @@ async function _metascraper(data) {
   return metascraper(data);
 } // _metascraper
 
-// repopulate all expense training urls
+/**
+ * repopulate all expense training urls
+ */
 async function getAllTrainingUrls() {
   logger.log(2, 'getAllTrainingUrls', 'Attempting to update all Training Urls');
 
@@ -170,12 +174,12 @@ async function getAllTrainingUrls() {
   });
 
   logger.log(2, 'getAllTrainingUrls', 'Finished updating all Training Urls');
-}
+} // getAllTrainingUrls
 
 /**
  * Handler to execute lamba function.
+ * 
  * @param event - request
- * @return Object - response
  */
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console

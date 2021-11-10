@@ -30,7 +30,7 @@ class BlogPost {
     this.setRequiredAttribute(data, 'lastModifiedDate');
     this.setRequiredAttribute(data, 'fileName');
     this.setOptionalAttribute(data, 'tags');
-  }
+  } // constructor
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -68,7 +68,7 @@ class BlogPost {
       this[attribute] = data[attribute];
     }
   } // setOptionalAttribute
-}
+} // BlogPost
 
 
 

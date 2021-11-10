@@ -68,7 +68,8 @@ class BlogRoutes extends Crud {
       // return error
       return Promise.reject(err);
     }
-  } // readAll
+  } // _readAll
+
   /**
    * Prepares a blog post to be created. Returns the blog post if it can be successfully created.
    *
@@ -404,6 +405,6 @@ class BlogRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateUpdate
-}
+} // BlogRoutes
 
 module.exports = BlogRoutes;

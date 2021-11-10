@@ -248,7 +248,7 @@ class TSheetsRoutes {
   } // isUser
 
   /**
-   * Check if an employee is a user. Returns true if employee role is 'manager', otherwise returns false.
+   * Check if an employee is a manager. Returns true if employee role is 'manager', otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee is manager
@@ -300,6 +300,7 @@ class TSheetsRoutes {
 
   /**
    * Invokes lambda function with given params
+   *
    * @param params - params to invoke lambda function with 
    * @return object if successful, error otherwise
    */

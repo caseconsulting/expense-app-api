@@ -1,13 +1,6 @@
 {
   "name": "thanos",
-  "version": "3.3.0",
+  "version": "3.5.0",
   "private": true,
-  "main": "thanos.js",
-  "dependencies": {
-    "aws-sdk": "^2.822.0",
-    "dotenv": "^8.2.0",
-    "lodash": "^4.17.20",
-    "moment-timezone": "^0.5.33",
-    "url-exist": "^2.0.2"
-  }
+  "main": "thanos.js"
 }

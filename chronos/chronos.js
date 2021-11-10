@@ -7,17 +7,21 @@ const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
-const Employee = require('../models/employee');
+const Employee = require('./models/employee');
 
 /**
  * Returns a new DatabaseModify for budgets
+ * 
+ * @return - database modify for budgets
  */
 function _budgetDynamo() {
   return new DatabaseModify('budgets');
 } //_budgetDynamo
 
 /**
- * Returns a new DatabaseModify for expense-types
+ * Returns a new DatabaseModify for expense-types 
+ *  
+ * @return - database modify for expenseTypes
  */
 function _expenseTypeDynamo() {
   return new DatabaseModify('expense-types');
@@ -25,12 +29,14 @@ function _expenseTypeDynamo() {
 
 /**
  * Returns a new DatabaseModify for employees
+ * 
+ * @return - database modify for employees
  */
 function _employeeDynamo() {
   return new DatabaseModify('employees');
-} //_employeeDynamo
+} // _employeeDynamo
 
-/*
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -44,6 +50,8 @@ async function _asyncForEach(array, callback) {
 
 /**
  * Gets all expensetype data and then parses the categories
+ * 
+ * @return - all the expenseType data
  */
 async function _getAllExpenseTypes() {
   let expenseTypesData = await lib._expenseTypeDynamo().getAllEntriesInDB();
@@ -55,13 +63,13 @@ async function _getAllExpenseTypes() {
   });
 
   return expenseTypes;
-}
+} // _getAllExpenseTypes
 
 /**
  * Gets the employee tied to the budget
  *
  * @param {*} employeeId = id of the employee tied to the budget
- * @returns employee tied to the budget
+ * @return - employee tied to the budget
  */
 async function _getBudgetEmployee(employeeId) {
   let employee = await lib._employeeDynamo().getEntry(employeeId);
@@ -73,7 +81,7 @@ async function _getBudgetEmployee(employeeId) {
  *
  * @param expenseTypes - list of ExpenseTypes
  * @param expenseTypeId - id of ExpenseType to find
- * @return ExpenseType - ExpenseType found
+ * @return - ExpenseType - ExpenseType found
  */
 function _getExpenseType(expenseTypes, expenseTypeId) {
   let expenseType = _.find(expenseTypes, (expenseType) => {

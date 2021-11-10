@@ -8,13 +8,17 @@ console.log('⌛️ INITIALIZING ..\n');
 //creates function called path to that directs to file location
 const pathTo = (file) => require('./' + file);
 
-//function to print final response
+/**
+ * function to print final response
+ * 
+ * @param result - the response to print
+ */
 function done(result) {
   console.log('\n****************************\n');
   console.log('\n 🏁 Response 🏁 :');
   console.log(JSON.stringify(result, null, 2));
   console.log('\n---------------------------DONE---------------------------\n');
-}
+} // done
 
 //list of lambda parent folder names
 const lambdas = {

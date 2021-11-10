@@ -113,7 +113,6 @@ class BlogAttachmentRoutes {
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - file uploaded
    */
   detectKeyPhrases(req, res) {
     var params = {
@@ -144,7 +143,6 @@ class BlogAttachmentRoutes {
    *
    * @param req - api request
    * @param res - api response
-   * @return Object - text data
    */
   detectModeration(req, res) {
     var params = {
@@ -208,8 +206,8 @@ class BlogAttachmentRoutes {
   /**
    * uploads attachment for rekognition and comprehend analysis
    * 
-   * @param {*} req - api request
-   * @param {*} res - api response
+   * @param req - api request
+   * @param res - api response
    */
   uploadBlogAttachmentToS3(req, res) {
     logger.log(1, 'uploadBlogAttachmentToS3', `Attempting to upload blog attachment ${req.params.img}`);
@@ -249,7 +247,6 @@ class BlogAttachmentRoutes {
       }
     });
   } // uploadBlogAttachmentToS3
-
 } // BlogAttachments
 
 module.exports = BlogAttachmentRoutes;

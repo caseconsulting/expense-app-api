@@ -81,6 +81,8 @@ class EmployeeRoutes extends Crud {
 
   /**
    * Gets all expensetype data and then parses the categories
+   * 
+   * @return - all the expense types
    */
   async getAllExpenseTypes() {
     let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
@@ -92,7 +94,7 @@ class EmployeeRoutes extends Crud {
     });
 
     return expenseTypes;
-  }
+  } // getAllExpenseTypes
 
   /**
    * Reads an employee from the database. Returns the employee read.
@@ -570,6 +572,6 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateUpdate
-}
+} // EmployeeRoutes
 
 module.exports = EmployeeRoutes;

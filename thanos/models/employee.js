@@ -40,8 +40,10 @@ const _ = require('lodash');
  * - linkedIn
  * - middleName
  * - nickname
+ * - noMiddleName
  * - phoneNumber
  * - prime
+ * - schools
  * - st
  * - technologies
  * - twitter
@@ -86,8 +88,10 @@ class Employee {
     this.setOptionalAttribute(data, 'linkedIn');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
+    this.setOptionalAttribute(data, 'noMiddleName');
     this.setOptionalAttribute(data, 'phoneNumber');
     this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'twitter');
@@ -120,7 +124,7 @@ class Employee {
    */
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
-  } // isEmpty
+  } // _isEmpty
 
   /**
    * Check if the employee is full time. Returns true if employee work status is 100, otherwise returns false.
@@ -145,7 +149,7 @@ class Employee {
    *
    * @return boolean - employee is an intern
    */
-  isIntern(){
+  isIntern() {
     return this.employeeRole == 'intern';
   } // isIntern
 
@@ -232,6 +236,6 @@ class Employee {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-}
+} // Employee
 
 module.exports = Employee;

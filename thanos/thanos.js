@@ -9,12 +9,14 @@ const _ = require('lodash');
 const logger = new Logger('TrainingSync');
 /**
  * Returns a new DatabaseModify for employees
+ * 
+ * @return - the databasemodify for employees
  */
 function _employeeDynamo() {
   return new DatabaseModify('employees');
 } //_employeeDynamo
 
-/*
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -36,9 +38,10 @@ function _getUUID() {
 } // _getUUID
 
 /**
- * Used to update technology an employee has listed as current 
- * @param {*} techs employee's technology data
- * @returns technology object that would have updated years field if it contains current tech
+ * Used to update technology an employee has listed as current
+ * 
+ * @param techs employee's technology data
+ * @return - technology object that would have updated years field if it contains current tech
  */
 async function _updateCurrentTechnologies(techs) {
   await _asyncForEach(techs, async (tech) => {
@@ -52,9 +55,10 @@ async function _updateCurrentTechnologies(techs) {
 } //_updateCurrentTechnologies
 
 /**
- * Used to update customer org experience an employee has listed as current 
- * @param {*} customerOrgExps employee's customer org experience data
- * @returns customer org experience object that would have updated 
+ * Used to update customer org experience an employee has listed as current
+ * 
+ * @param customerOrgExps employee's customer org experience data
+ * @return - customer org experience object that would have updated 
  *  years field if it contains current customer org experience
  */
 async function _updateCurrentCustomerOrgExp(customerOrgExps) {
@@ -66,7 +70,7 @@ async function _updateCurrentCustomerOrgExp(customerOrgExps) {
     }
   });
   return customerOrgExps;
-}
+} // _updateCurrentCustomerOrgExp
 
 /**
  * Used to update a variety of fields that involve time fields w/ current-listed dates

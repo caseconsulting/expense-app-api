@@ -31,7 +31,7 @@ class HippoLabsRoutes {
     this._getUserInfo = getUserInfo;
     this._router.get('/getColleges/:college', this._checkJwt, this._getUserInfo, this._getColleges.bind(this));
     this._router.get('/getColleges/', this._checkJwt, this._getUserInfo, this._getColleges.bind(this));
-  }
+  } // constructor
 
   /**
    * Returns the instace express router.
@@ -47,7 +47,8 @@ class HippoLabsRoutes {
   /**
    * Used to retrieve a list of colleges related to the user's query on their Education profile form,
    * We use the api described here https://github.com/Hipo/university-domains-list
-   * @returns JSON of colleges, else it returns an error if failed to retrieve
+   *
+   * @return -  JSON of colleges, else it returns an error if failed to retrieve
    */
   async _getColleges(req, res) {
     req.params.college = req.params.college ? req.params.college : '';
@@ -72,11 +73,16 @@ class HippoLabsRoutes {
       this._sendError(res, error);
       return err;
     }
-  }
+  } // _getColleges
 
+  /**
+   * 
+   * @param options - parameters for axios call 
+   * @return promise - axios response
+   */
   async callAxios(options) {
     return axios(options);
-  }
+  } // callAxios
 
   /**
    * Send api response error status.
@@ -91,7 +97,7 @@ class HippoLabsRoutes {
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
-}
+} // HippoLabsRoutes
 
 
 module.exports = HippoLabsRoutes;

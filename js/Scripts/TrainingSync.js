@@ -40,7 +40,7 @@ const getAllEntries = (params, out = []) =>
       .catch(reject);
   });
 
-/*
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -95,7 +95,7 @@ async function deleteAllTrainingUrls() {
   logger.log(2, 'deleteAllTrainingUrls', `Finished deleting all entries in ${TRAINING_TABLE}`);
 } // deleteAllTrainingUrls
 
-/*
+/**
  * Get all expenses in a given table.
  *
  * @param table - Dynamo table to get entries from
@@ -168,7 +168,9 @@ async function _metascraper(data) {
   // return {};
 } // _metascraper
 
-// repopulate all expense training urls
+/**
+ * gets all training urls
+ */
 async function getAllTrainingUrls() {
   logger.log(2, 'getAllTrainingUrls', 'Attempting to update all Training Urls');
   // delete all old entries in training table
@@ -236,6 +238,6 @@ async function getAllTrainingUrls() {
       });
   });
   logger.log(2, 'getAllTrainingUrls', 'Finished updating all Training Urls');
-}
+} // getAllTrainingUrls
 
 getAllTrainingUrls();

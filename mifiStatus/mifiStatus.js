@@ -15,6 +15,9 @@ const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * Change the mifi status
+ * 
+ * @param event - the event of the trigger
+ * @param context - the context of the trigger
  */
 async function checkMifiChange(event, context) {
   //intake dynamodb stream data
@@ -220,12 +223,12 @@ async function checkMifiChange(event, context) {
     }
   });
   context.done();
-}
+} // checkMifiChange
 
 /**
  * upload tiny attachment to s3 for later
- * @param {*} file - file to upload
- * @param {*} key - where to upload it to
+ * @param file - file to upload
+ * @param key - where to upload it to
  */
 async function uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
@@ -258,8 +261,9 @@ async function asyncForEach(array, callback) {
 /**
  * generate the params for sns
  *
- * @param {*} newImage - the new dynamodb entry
- * @param {*} messageEnd = the ending to the message after the employee info
+ * @param newImage - the new dynamodb entry
+ * @param messageEnd = the ending to the message after the employee info
+ * @return - the params for sns
  */
 function getSNSParams(newImage, messageEnd) {
   let eventText = newImage.firstName + ' ' + newImage.lastName + ' ' + messageEnd;
@@ -276,8 +280,9 @@ function getSNSParams(newImage, messageEnd) {
 
 /**
  * Handler to execute lamba function.
+ * 
  * @param event - request
- * @return Object - response
+ * @param context - context
  */
 async function handler(event, context) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console

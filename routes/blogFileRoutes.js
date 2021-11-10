@@ -269,7 +269,7 @@ class BlogFileRoutes{
       // return file read
       return data;
     });
-  } // getBlogFileFromS3
+  } // getPictureFileFromS3
 
   /**
    * Returns the instace express router.
@@ -327,7 +327,6 @@ class BlogFileRoutes{
     });
 
   } // uploadBlogFileToS3
-
-}
+} // BlogFileRoutes
 
 module.exports = BlogFileRoutes;

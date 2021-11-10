@@ -632,6 +632,8 @@ Resources:
     Properties:
       Description: Provides the nightly update to employee budgets.
       Handler: chronos.handler
+      Layers:
+        - !Ref DependenciesLayer
       Timeout: 900
       CodeUri: ./chronos
       Events:
@@ -650,6 +652,8 @@ Resources:
     Properties:
       Description: Updates employee data that is listed as 'current' (supports technology only atm)
       Handler: thanos.handler
+      Layers:
+        - !Ref DependenciesLayer
       Timeout: 900
       CodeUri: ./thanos
       Events:
@@ -705,9 +709,12 @@ Resources:
     Properties:
       Description: Provides the nightly update to training section with extracted expense data.
       Handler: chiron.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref ExpenseModelLayer
       Timeout: 900
       MemorySize: 256
-      CodeUri: ./chiron
+      CodeUri: chiron/
       Events:
         ChironSchedule:
           Type: Schedule
@@ -775,6 +782,8 @@ Resources:
     Properties:
       Description: Publishes sns message based on if mifiStatus changed for employee
       Handler: mifiStatus.handler
+      Layers:
+        - !Ref DependenciesLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: ./mifiStatus
@@ -799,3 +808,27 @@ Resources:
         - ''
         - - mifi-status-
           - !Ref Stage
+  ExpenseModelLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join
+        - ''
+        - - expense-api-expense-model-
+          - !Ref Stage
+      Description: Model for an expense.
+      ContentUri: expense-model/
+      CompatibleRuntimes:
+          - nodejs12.x
+      RetentionPolicy: Retain
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join
+        - ''
+        - - expense-api-dependencies-
+          - !Ref Stage
+      Description: Packages for lambda functions.
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+          - nodejs12.x
+      RetentionPolicy: Retain

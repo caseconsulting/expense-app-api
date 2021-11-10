@@ -51,9 +51,9 @@ class AuditRoutes {
    * And optionally:
    *  - description
    *
-   * @param {*} req the request object
-   * @param {*} res the response object
-   * @returns the error message or the new audit object
+   * @param req the request object
+   * @param res the response object
+   * @return - the error message or the new audit object
    */
   async _create(req, res) {
     let data = req.body;
@@ -101,9 +101,9 @@ class AuditRoutes {
   /**
    * Gets all audits of req.params.type type from the past req.params.days days
    *
-   * @param {*} req the request object
-   * @param {*} res the response object
-   * @returns the query or an error
+   * @param req the request object
+   * @param res the response object
+   * @return - the query or an error
    */
   async _readByType(req, res) {
     logger.log(
@@ -155,6 +155,6 @@ class AuditRoutes {
 
     return this._router;
   } // router
-}
+} // AuditRoutes
 
 module.exports = AuditRoutes;
