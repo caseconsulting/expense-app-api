@@ -1,7 +1,4 @@
-/node_modules
-/chronos/node_modules
-/chiron/node_modules
-/mifiStatus/node_modules
+**/node_modules
 coverage
 .DS_Store
 .env
