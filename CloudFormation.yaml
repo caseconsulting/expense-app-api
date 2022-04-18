@@ -366,8 +366,8 @@ Resources:
           Projection:
             ProjectionType: ALL
       TimeToLiveSpecification:
-          AttributeName: timeToLive
-          Enabled: true
+        AttributeName: timeToLive
+        Enabled: true
       Tags:
         - Key: Application
           Value: expense-app
@@ -802,7 +802,7 @@ Resources:
         - Arn
   MifiTopic:
     Type: AWS::SNS::Topic
-    Properties: 
+    Properties:
       DisplayName: 'Mifi status change'
       TopicName: !Join
         - ''
@@ -818,7 +818,7 @@ Resources:
       Description: Model for an expense.
       ContentUri: expense-model/
       CompatibleRuntimes:
-          - nodejs12.x
+        - nodejs14.x
       RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -830,5 +830,5 @@ Resources:
       Description: Packages for lambda functions.
       ContentUri: dependencies/
       CompatibleRuntimes:
-          - nodejs12.x
+        - nodejs14.x
       RetentionPolicy: Retain
