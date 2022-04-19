@@ -50,15 +50,6 @@ const twitterRoutes = new TwitterRoutes();
 const BasecampRoutes = require('./routes/basecampRoutes');
 const basecampRoutes = new BasecampRoutes();
 
-const BlogRoutes = require('./routes/blogRoutes');
-const blogRoutes = new BlogRoutes();
-
-const BlogAttachmentRoutes = require('./routes/blogAttachtmentRoutes');
-const blogAttachtmentRoutes = new BlogAttachmentRoutes();
-
-const BlogFileRoutes = require('./routes/blogFileRoutes');
-const blogFileRoutes = new BlogFileRoutes();
-
 const EmsiRoutes = require('./routes/emsiRoutes');
 const emsiRoutes = new EmsiRoutes();
 
@@ -81,7 +72,9 @@ let corsConfig = {
   allowedHeaders: ['Authorization', 'Content-Type']
 };
 
-morganLogger.token('timestamp', () => { return `[${moment().format()}]`; });
+morganLogger.token('timestamp', () => {
+  return `[${moment().format()}]`;
+});
 
 app.use(morganLogger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));
 app.use(cors(corsConfig));
@@ -106,15 +99,12 @@ app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
 app.use('/twitter', twitterRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
-app.use('/blog', blogRoutes.router);
-app.use('/blogFile', blogFileRoutes.router);
-app.use('/blogAttachments', blogAttachtmentRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/hippoLabs', hippoLabsRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var err = new Error(' No Route Found');
   err.status = 404;
   next(err);
@@ -122,7 +112,7 @@ app.use(function(req, res, next) {
 
 // error handler
 //eslint is disabled because we need 4th param but never use it
-/*eslint-disable*/ app.use(function(err, req, res, next) {
+/*eslint-disable*/ app.use(function (err, req, res, next) {
   /*eslint-enable*/
 
   // set locals, only providing error in development

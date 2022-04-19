@@ -94,19 +94,9 @@ class Resume {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    this._router.delete(
-      '/:employeeId',
-      this._checkJwt,
-      this._getUserInfo,
-      this.deleteResumeFromS3.bind(this)
-    );
+    this._router.delete('/:employeeId', this._checkJwt, this._getUserInfo, this.deleteResumeFromS3.bind(this));
     this._router.get('/:employeeId', this._checkJwt, this._getUserInfo, this.getResumeFromS3.bind(this));
-    this._router.post(
-      '/:employeeId',
-      this._checkJwt,
-      this._getUserInfo,
-      this.uploadResumeToS3.bind(this)
-    );
+    this._router.post('/:employeeId', this._checkJwt, this._getUserInfo, this.uploadResumeToS3.bind(this));
     this._router.put('/:employeeId', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
   } // constructor
 
@@ -119,11 +109,7 @@ class Resume {
    */
   async deleteResumeFromS3(req, res) {
     // log method
-    logger.log(
-      1,
-      'deleteResumeFromS3',
-      `Attempting to delete resume for employee ${req.params.employeeId}`
-    );
+    logger.log(1, 'deleteResumeFromS3', `Attempting to delete resume for employee ${req.params.employeeId}`);
 
     // set up params
     let filePath = `${req.params.employeeId}/resume`;
@@ -167,9 +153,9 @@ class Resume {
   } // deleteResumeFromS3
 
   /**
-   * 
-   * @param ms - time in milliseconds to timeout 
-   * @return promise - a timeout 
+   *
+   * @param ms - time in milliseconds to timeout
+   * @return promise - a timeout
    */
   timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -185,7 +171,7 @@ class Resume {
   async extractText(req, res) {
     // log method
     logger.log(1, 'extractText', 'Attempting to upload resume and extract text');
-  
+
     const textractStorage = multerS3({
       s3: s3,
       bucket: BUCKET,
@@ -196,21 +182,21 @@ class Resume {
         cb(null, `${req.params.employeeId}/resume`);
       }
     });
-  
+
     // s3 file upload multer
     const textractUpload = multer({
       storage: textractStorage,
       limits: limits,
       fileFilter: fileFilter
     }).single('resume');
-  
+
     // compute method
     try {
       textractUpload(req, res, async (err) => {
         if (err) {
           // log error
           logger.log(2, 'extractText', 'Failed to upload file');
-  
+
           throw err;
         } else {
           // log success
@@ -220,12 +206,12 @@ class Resume {
             `Successfully uploaded resume ${req.file.originalname} with file key ${req.file.key}`,
             `to S3 bucket ${req.file.bucket}`
           );
-  
+
           //////
           ////// Asynchronous Document Analysis
           ////// Supports pdf, takes ~25 seconds
           //////
-  
+
           let startAnalysisParams = {
             DocumentLocation: {
               /* required */
@@ -234,88 +220,85 @@ class Resume {
                 Name: req.file.key
               }
             },
-            FeatureTypes: [
-              'FORMS'
-            ]
+            FeatureTypes: ['FORMS']
           };
           let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
           let jobId = startAnalysisData.JobId;
-          
+
           let getAnalysisParams = {
             JobId: jobId
           };
-          
-          
+
           let textExtracted;
-          
+
           do {
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
             // We should wait for a little bit of time so we don't get provision issues
             await new Promise((resolve) => setTimeout(resolve, 200));
           } while (textExtracted.JobStatus === 'IN_PROGRESS');
-          
+
           //////
           ////// End Asynchronous Document Analysis
           //////
-  
-  
+
           //////
           ////// Synchronous Document Analysis
           ////// Does not support pdf, takes ~5 seconds
           //////
 
-          let threshold = .70;
+          let threshold = 0.7;
           let textEntities = await this.comprehendText(textExtracted);
           textEntities = _.filter(textEntities, (textEntity) => {
-            return (textEntity.Score > threshold && (
-              textEntity.Type === 'LOCATION' ||
-              textEntity.Type === 'TITLE' ||
-              textEntity.Type === 'ORGANIZATION' ||
-              textEntity.Type === 'PERSON' || 
-              textEntity.Type === 'OTHER'));
+            return (
+              textEntity.Score > threshold &&
+              (textEntity.Type === 'LOCATION' ||
+                textEntity.Type === 'TITLE' ||
+                textEntity.Type === 'ORGANIZATION' ||
+                textEntity.Type === 'PERSON' ||
+                textEntity.Type === 'OTHER')
+            );
           });
           let payload = { comprehend: textEntities };
-  
+
           //////
           ////// End Synchronous Document Analysis
           //////
-  
+
           logger.log(1, 'extractText', `Successfully uploaded and extracted text from ${req.file.originalname}`);
-  
+
           // set a successful 200 response with uploaded file
           res.status(200).send(payload);
-  
+
           // return text extracted from resume
           return payload;
         }
       });
     } catch (err) {
       logger.log(1, 'extractText', 'Failed to upload resume and extract text');
-  
+
       let error = {
         code: 403,
         message: `${err.message}`
       };
-  
+
       res.status(error.code).send(error);
     }
   } // extractText
 
   /**
    * Convert the text to categories
-   * 
+   *
    * @param textExtracted - extracted text
    * @return array - the entities
    */
   async comprehendText(textExtracted) {
-
     let returnEntities = [];
 
     while (textExtracted.Blocks.length > 0) {
       let text = [];
-  
+
       //Get 25 LINE blocks (comprehend has a max of 25 per batch)
-      for (let i = 0 ; i < (textExtracted.Blocks.length && 25); i++) {
+      for (let i = 0; i < (textExtracted.Blocks.length && 25); i++) {
         let block = textExtracted.Blocks.shift();
         if (block.BlockType === 'LINE') {
           text.push(block.Text + ' ');
@@ -323,13 +306,12 @@ class Resume {
       }
 
       // We should only comprehend text if there were LINE blocks
-      if (text.length > 0)
-      {
+      if (text.length > 0) {
         let comprehendParams = {
           LanguageCode: 'en',
           TextList: text
         };
-        
+
         //Get the entities for this batch of 25 items
         let entities = await comprehend.batchDetectEntities(comprehendParams).promise();
         _.forEach(entities.ResultList, (entity) => {
@@ -341,8 +323,8 @@ class Resume {
   } // comprehendText
 
   /**
-   * returns the value block 
-   * 
+   * returns the value block
+   *
    * @param keyBlock - array containing relationships
    * @param valueMap - map of values
    * @return - value block from value map based on key block
@@ -364,7 +346,7 @@ class Resume {
    *
    * @param result - the part of the relationship that you want the string text for
    * @param blocksMap - the map of relationship blocks
-   * @return - the text of the result 
+   * @return - the text of the result
    */
   getText(result, blocksMap) {
     // return text
@@ -426,31 +408,30 @@ class Resume {
           if (err) {
             // log error
             logger.log(1, 'getResumeFromS3', 'Failed to read resume');
-    
+
             let error = {
               code: 403,
               message: `${err.message}`
             };
-    
+
             // send error status
             res.status(error.code).send(error);
-    
+
             // return error
             return error;
           } else {
             // log success
             logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
-    
+
             // send successful 200 status
             res.status(200).send(data);
-    
+
             // return file read
             return data;
           }
         });
       }
     });
-
   } // getResumeFromS3
 
   /**
