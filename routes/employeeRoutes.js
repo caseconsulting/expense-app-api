@@ -13,7 +13,6 @@ const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
 
 class EmployeeRoutes extends Crud {
-
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('employees');
@@ -81,13 +80,13 @@ class EmployeeRoutes extends Crud {
 
   /**
    * Gets all expensetype data and then parses the categories
-   * 
+   *
    * @return - all the expense types
    */
   async getAllExpenseTypes() {
     let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+    let expenseTypes = _.map(expenseTypesData, (expenseTypeData) => {
+      expenseTypeData.categories = _.map(expenseTypeData.categories, (category) => {
         return JSON.parse(category);
       });
       return new ExpenseType(expenseTypeData);
@@ -126,17 +125,23 @@ class EmployeeRoutes extends Crud {
   /**
    * Reads all employees from the database. Returns all employees.
    *
+   * @param currentEmployee - employee user invoking the call
    * @return Array - all employees
    */
-  async _readAll() {
+  async _readAll(currentEmployee) {
     // log method
-    logger.log(2, '_readAll', 'Attempting to read all employees');
+    logger.log(2, '_readAll', 'Attempting to read all employeesS');
 
     // compute method
     try {
       let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, employee => {
-        return new Employee(employee);
+      let employees = _.map(employeesData, (employee) => {
+        let e = new Employee(employee);
+        if (currentEmployee.id == e.id || this.isAdmin(currentEmployee)) {
+          return e;
+        } else {
+          return e.hideSensitiveInfo();
+        }
       });
 
       // log success
@@ -177,7 +182,6 @@ class EmployeeRoutes extends Crud {
 
       // return employee to update
       return newEmployee;
-
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
@@ -206,14 +210,13 @@ class EmployeeRoutes extends Crud {
 
       if (diffWorkStatus) {
         // need to update budgets
-        let budgetsData =
-          await this.budgetDynamo.querySecondaryIndexInDB(
-            'employeeId-expenseTypeId-index',
-            'employeeId',
-            oldEmployee.id
-          );
+        let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+          'employeeId-expenseTypeId-index',
+          'employeeId',
+          oldEmployee.id
+        );
 
-        budgets = _.map(budgetsData, budgetData => {
+        budgets = _.map(budgetsData, (budgetData) => {
           return new Budget(budgetData);
         });
 
@@ -322,12 +325,12 @@ class EmployeeRoutes extends Crud {
   } // _validateCreate
 
   /**
-  * Validate that an employee can be deleted. Returns the employee if successfully validated, otherwise returns an
-  * error.
-  *
-  * @param employee - employee to validate delete
-  * @return Employee - validated employee
-  */
+   * Validate that an employee can be deleted. Returns the employee if successfully validated, otherwise returns an
+   * error.
+   *
+   * @param employee - employee to validate delete
+   * @return Employee - validated employee
+   */
   async _validateDelete(employee) {
     // log method
     logger.log(3, '_validateDelete', `Validating delete for employee ${employee.id}`);
@@ -340,8 +343,7 @@ class EmployeeRoutes extends Crud {
       };
 
       // get all expenses for this employee
-      let expenses =
-        await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
+      let expenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
 
       // validate the employee does not have any expenses
       if (expenses.length > 0) {
@@ -499,7 +501,9 @@ class EmployeeRoutes extends Crud {
       // validate employee id
       if (oldEmployee.id != newEmployee.id) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Old employee id ${oldEmployee.id} does not match new employee id ${newEmployee.id}`
         );
 
@@ -509,11 +513,11 @@ class EmployeeRoutes extends Crud {
       }
 
       let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, employeeData => {
+      let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
 
-      employees = _.reject(employees, e => {
+      employees = _.reject(employees, (e) => {
         return _.isEqual(e, oldEmployee);
       });
 
@@ -539,17 +543,18 @@ class EmployeeRoutes extends Crud {
 
       // validate no budgets exist when changing hire date
       if (oldEmployee.hireDate != newEmployee.hireDate) {
-        let budgets =
-          await this.budgetDynamo.querySecondaryIndexInDB(
-            'employeeId-expenseTypeId-index',
-            'employeeId',
-            oldEmployee.id
-          );
+        let budgets = await this.budgetDynamo.querySecondaryIndexInDB(
+          'employeeId-expenseTypeId-index',
+          'employeeId',
+          oldEmployee.id
+        );
 
         if (budgets.length > 0) {
           // budgets for employee exist
           // log error
-          logger.log(3, '_validateUpdate',
+          logger.log(
+            3,
+            '_validateUpdate',
             `Cannot change hire date for employee ${oldEmployee.id} because budgets exist`
           );
 

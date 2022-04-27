@@ -1,5 +1,7 @@
 const _ = require('lodash');
 
+const HIDDEN_FIELDS = ['phoneNumber', 'lastLogin'];
+
 /**
  * Employee model
  *
@@ -106,6 +108,23 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
+
+  /**
+   * Returns a new Employee object with sensitive fields hidden.
+   *
+   * @returns Employee - employee object with sensitive fields hidden.
+   */
+  hideSensitiveInfo() {
+    return Object.fromEntries(
+      Object.entries(this).filter(([key]) => {
+        if (key == 'birthday') {
+          return this['birthdayFeed'];
+        } else {
+          return !HIDDEN_FIELDS.includes(key);
+        }
+      })
+    );
+  }
 
   /**
    * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.

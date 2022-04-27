@@ -879,7 +879,7 @@ class Crud {
     try {
       if (this._checkPermissionToReadAll(req.employee)) {
         // employee has permission to read all objects from table
-        let dataRead = await this._readAll(); // read from database
+        let dataRead = await this._readAll(req.employee); // read from database
 
         // log success
         logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);
