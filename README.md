@@ -150,7 +150,7 @@ NOTE: After first time deployment of S3 'Remove Deleted Expense Attachments' lif
 
 In the S3 Console:
 
-1. Navigate to case-consulting-expense-app-attachment-{dev/test/prod} bucket
+1. Navigate to case-expense-app-attachment-{dev/test} or case-consulting-expense-app-attachment-{prod} bucket
 2. Click the Management tab
 3. Select the 'Remove Deleted Expense Attachments' lifecycle rule
 4. Click Edit

@@ -23,8 +23,8 @@ Parameters:
     Type: String
     ConstraintDescription: Must match app certificate name
     AllowedValues:
-      - dev.app.consultwithcase.com
-      - test.app.consultwithcase.com
+      - dev-app.consultwithcase.com
+      - test-app.consultwithcase.com
       - app.consultwithcase.com
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -57,7 +57,7 @@ Resources:
               - DomainName
             Id: !Join
               - ''
-              - - S3-case-consulting-expense-app-
+              - - S3-case-expense-app-
                 - !Ref Stage
             S3OriginConfig:
               OriginAccessIdentity: !Join
@@ -80,7 +80,7 @@ Resources:
             - OPTIONS
           TargetOriginId: !Join
             - ''
-            - - S3-case-consulting-expense-app-
+            - - S3-case-expense-app-
               - !Ref Stage
           ForwardedValues:
             QueryString: 'false'
@@ -116,7 +116,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-
+        - - case-expense-app-
           - !Ref Stage
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
@@ -157,7 +157,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-resources-
+        - - case-expense-app-resources-
           - !Ref Stage
       VersioningConfiguration:
         Status: Enabled
@@ -176,7 +176,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-attachments-
+        - - case-expense-app-attachments-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -200,7 +200,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-portal-resumes-
+        - - case-portal-resumes-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -223,7 +223,7 @@ Resources:
       AccessControl: LogDeliveryWrite
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-logs-
+        - - case-expense-app-logs-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -235,30 +235,6 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
-  # s3TextractAttachments:
-  #   DependsOn: s3Logs
-  #   Type: 'AWS::S3::Bucket'
-  #   Properties:
-  #     AccessControl: Private
-  #     BucketName: !Join
-  #       - ''
-  #       - - case-consulting-portal-app-textract-attachments-
-  #         - !Ref Stage
-  #     LifecycleConfiguration:
-  #       Rules:
-  #         - Id: Remove Textract Attachments After a Week
-  #           ExpirationInDays: 7
-  #           Status: Enabled
-  #     LoggingConfiguration:
-  #       DestinationBucketName: !Ref s3Logs
-  #       LogFilePrefix: s3-logs/textract-attachments/
-  #     VersioningConfiguration:
-  #       Status: Enabled
-  #     Tags:
-  #       - Key: Application
-  #         Value: portal-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
   employeeTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain

@@ -342,8 +342,8 @@ describe('expenseRoutes', () => {
             };
 
             expectedParams = {
-              Bucket: 'case-consulting-expense-app-attachments-dev',
-              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file2_id',
+              Bucket: 'case-expense-app-attachments-dev',
+              CopySource: 'case-expense-app-attachments-dev/Old_ID/file2_id',
               Key: 'New_ID/file2_id'
             };
             data = {
@@ -384,8 +384,8 @@ describe('expenseRoutes', () => {
             };
 
             expectedParams = {
-              Bucket: 'case-consulting-expense-app-attachments-dev',
-              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file1_id',
+              Bucket: 'case-expense-app-attachments-dev',
+              CopySource: 'case-expense-app-attachments-dev/Old_ID/file1_id',
               Key: 'New_ID/file1_id'
             };
             data = {
