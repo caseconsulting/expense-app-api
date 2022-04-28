@@ -377,7 +377,7 @@ describe('employeeRoutes', () => {
 
     beforeEach(() => {
       employees = [new Employee(EMPLOYEE_DATA)];
-      currentEmployee = new Employee({ employeeRole: 'admin' });
+      currentEmployee = new Employee({ id: 0, employeeRole: 'admin' });
     });
 
     describe('when successfully reads all entries', () => {

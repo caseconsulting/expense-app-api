@@ -125,23 +125,18 @@ class EmployeeRoutes extends Crud {
   /**
    * Reads all employees from the database. Returns all employees.
    *
-   * @param currentEmployee - employee user invoking the call
+   * @param employee - employee user signed in
    * @return Array - all employees
    */
-  async _readAll(currentEmployee) {
+  async _readAll(employee) {
     // log method
     logger.log(2, '_readAll', 'Attempting to read all employeesS');
 
     // compute method
     try {
       let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, (employee) => {
-        let e = new Employee(employee);
-        if (currentEmployee.id == e.id || this.isAdmin(currentEmployee)) {
-          return e;
-        } else {
-          return e.hideSensitiveInfo();
-        }
+      let employees = _.map(employeesData, (e) => {
+        return new Employee(e).hideFields(employee);
       });
 
       // log success

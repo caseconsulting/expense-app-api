@@ -1,6 +1,26 @@
 const _ = require('lodash');
 
-const HIDDEN_FIELDS = ['phoneNumber', 'lastLogin'];
+// Fields that should be hidden from other users when
+// accessing profile page (only visisble to signed-in
+// user, admin and manager)
+const PRIVATE_DATA = [
+  'employeeRole',
+  'hireDate',
+  'deptDate',
+  'birthday',
+  'birthdayFeed',
+  'city',
+  'st',
+  'country',
+  'currentCity',
+  'currentState',
+  'currentStreet',
+  'currentZIP',
+  'phoneNumber'
+];
+
+// Fields hidden from all users (only visible to admin and manager)
+const HIDDEN_DATA = ['lastLogin'];
 
 /**
  * Employee model
@@ -110,20 +130,30 @@ class Employee {
   } // fullName
 
   /**
-   * Returns a new Employee object with sensitive fields hidden.
+   * Returns a new Employee object with private fields hidden based
+   * on user signed in
    *
+   * @param employee - signed-in employee user
    * @returns Employee - employee object with sensitive fields hidden.
    */
-  hideSensitiveInfo() {
-    return Object.fromEntries(
+  hideFields(employee) {
+    let e = Object.fromEntries(
       Object.entries(this).filter(([key]) => {
-        if (key == 'birthday') {
-          return this['birthdayFeed'];
-        } else {
-          return !HIDDEN_FIELDS.includes(key);
+        if (employee.employeeRole == 'user') {
+          if (employee.id != this.id) {
+            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key);
+          } else {
+            return !HIDDEN_DATA.includes(key);
+          }
+        } else if (employee.employeeRole == 'admin') {
+          return true;
+        } else if (employee.employeeRole == 'manager') {
+          return true;
         }
+        return false;
       })
     );
+    return new Employee(e);
   }
 
   /**
