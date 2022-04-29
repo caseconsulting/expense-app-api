@@ -99,7 +99,7 @@
     "acorn": "8.7.1",
     "aws-sdk-mock": "5.7.0",
     "claudia": "git+https://github.com/claudiajs/claudia.git#pull/230/head",
-    "eslint": "7.32.0",
+    "eslint": "8.14.0",
     "jasmine": "3.99.0",
     "nodemon": "2.0.16",
     "nyc": "15.1.0",
