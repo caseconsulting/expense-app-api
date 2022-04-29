@@ -84,6 +84,11 @@ class Employee {
     this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
+    this.setRequiredAttribute(data, 'eeoGender');
+    this.setRequiredAttribute(data, 'eeoHispanicOrLatino');
+    this.setRequiredAttribute(data, 'eeoRaceOrEthnicity');
+    this.setRequiredAttribute(data, 'eeoJobCategory');
+    this.setRequiredAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
