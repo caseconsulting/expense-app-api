@@ -330,7 +330,7 @@ class Utility {
 
   /**
    * queries the expenses based on expenseTypes and cutOffDate
-   * 
+   *
    * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
    * @return - the queried expenses
@@ -362,8 +362,8 @@ class Utility {
 
   /**
    * gets the basecamp token
-   * 
-   * @return - the basecamp authorization token 
+   *
+   * @return - the basecamp authorization token
    */
   async getBasecampToken() {
     const basecamp = new Basecamp();
@@ -374,7 +374,7 @@ class Utility {
   /**
    * gets the basecamp info
    *
-   * @return - the info for basecamp 
+   * @return - the info for basecamp
    */
   getBasecampInfo() {
     const basecamp = new Basecamp();
@@ -409,8 +409,12 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
-        this.isManager(req.employee)) {
+      if (
+        this.isAdmin(req.employee) ||
+        this.isUser(req.employee) ||
+        this.isIntern(req.employee) ||
+        this.isManager(req.employee)
+      ) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -586,8 +590,12 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
-      this.isManager(req.employee)) {
+      if (
+        this.isAdmin(req.employee) ||
+        this.isUser(req.employee) ||
+        this.isIntern(req.employee) ||
+        this.isManager(req.employee)
+      ) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -702,6 +710,16 @@ class Utility {
 
     // compute method
     try {
+      // restrict access only to admin and manager
+      if (req.employee.employeeRole != 'admin' && req.employee.employeeRole != 'manager') {
+        let err = {
+          code: 403,
+          message: `Unable to get all expenses for expense type ${req.params.id} due to insufficient
+           employee permissions.`
+        };
+        throw err; // handled by try-catch
+      }
+
       let expensesData = await this.expenseDynamo.querySecondaryIndexInDB(
         'expenseTypeId-index',
         'expenseTypeId',
