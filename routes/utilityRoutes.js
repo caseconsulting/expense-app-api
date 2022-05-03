@@ -664,10 +664,20 @@ class Utility {
    */
   async _getAllEmployeeExpenses(req, res) {
     // log method
-    logger.log(1, '_getAllEmployeeExpenses', `Attempting to get all expesnes for employee ${req.params.id}`);
+    logger.log(1, '_getAllEmployeeExpenses', `Attempting to get all expenses for employee ${req.params.id}`);
 
     // compute method
     try {
+      // Restricts access to admin, manager and signed-in user
+      if (this.isUser(req.employee) && this.isIntern(req.employee) && req.params.id != req.employee.id) {
+        let err = {
+          code: 403,
+          message: `Unable to get all expenses for employee ${req.params.id} due to insufficient
+           employee permissions.`
+        };
+        throw err; // handled by try-catch
+      }
+
       let expensesData = await this.expenseDynamo.querySecondaryIndexInDB(
         'employeeId-index',
         'employeeId',
@@ -711,7 +721,7 @@ class Utility {
     // compute method
     try {
       // restrict access only to admin and manager
-      if (req.employee.employeeRole != 'admin' && req.employee.employeeRole != 'manager') {
+      if (!this.isAdmin(req.employee) && !this.isManager(req.employee)) {
         let err = {
           code: 403,
           message: `Unable to get all expenses for expense type ${req.params.id} due to insufficient
