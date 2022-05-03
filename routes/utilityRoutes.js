@@ -54,6 +54,12 @@ class Utility {
       this._getAllActiveEmployeeBudgets.bind(this)
     );
     this._router.get(
+      '/getEmployeeExpenseTypes/:id',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getEmployeeExpenseTypes.bind(this)
+    );
+    this._router.get(
       '/getEmployeeBudget/:id/:expenseTypeId/:date',
       this._checkJwt,
       this._getUserInfo,
@@ -877,6 +883,65 @@ class Utility {
       return err;
     }
   } // _getEmployeeBudget
+
+  /**
+   * Gets expense types for employee.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @returns expense types for employee
+   */
+  async _getEmployeeExpenseTypes(req, res) {
+    // log method
+    logger.log(1, '_getEmployeeExpenseTypes', `Attempting to get expense types for employee ${req.employee.id}`);
+
+    // compute method
+    try {
+      if (req.employee.id != req.params.id) {
+        let err = {
+          code: 403,
+          message: 'Unable to get all expense types due to insufficient employee permissions.'
+        };
+        throw err;
+      }
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, (expenseType) => {
+        expenseType.categories = _.map(expenseType.categories, (category) => {
+          return JSON.parse(category);
+        });
+        return new ExpenseType(expenseType);
+      });
+      expenseTypes = _.filter(expenseTypes, (expenseType) => {
+        let workStatus;
+        if (req.employee.workStatus == 100) {
+          workStatus = 'FullTime';
+        } else if (req.employee.workStatus == 50) {
+          workStatus = 'PartTime';
+        } else {
+          workStatus = 'Inactive';
+        }
+        return expenseType.accessibleBy.includes(req.params.id) || expenseType.accessibleBy.includes(workStatus);
+      });
+
+      // log success
+      logger.log(1, '_getEmployeeExpenseTypes', `Successfully got expense types for employee ${req.params.id}`);
+
+      // send successful 200 status
+      res.status(200).send(expenseTypes);
+
+      // return budget
+      return expenseTypes;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getEmployeeExpenseTypes', `Failed to get expense types for employee ${req.params.id}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  }
 
   /**
    * Gets an employee's budgets in a given anniversary range if recurring and budgets that are within the anniversary
