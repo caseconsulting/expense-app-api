@@ -721,7 +721,7 @@ class Utility {
     // compute method
     try {
       // restrict access only to admin and manager
-      if (!this.isAdmin(req.employee) && !this.isManager(req.employee)) {
+      if (!this.isAdmin(req.employee)) {
         let err = {
           code: 403,
           message: `Unable to get all expenses for expense type ${req.params.id} due to insufficient
