@@ -16,7 +16,12 @@ const PRIVATE_DATA = [
   'currentState',
   'currentStreet',
   'currentZIP',
-  'phoneNumber'
+  'phoneNumber',
+  'eeoDeclineSelfIdentify',
+  'eeoGender',
+  'eeoHispanicOrLatino',
+  'eeoJobCategory',
+  'eeoRaceOrEthnicity'
 ];
 
 // Fields hidden from all users (only visible to admin and manager)
