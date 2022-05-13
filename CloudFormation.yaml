@@ -23,8 +23,8 @@ Parameters:
     Type: String
     ConstraintDescription: Must match app certificate name
     AllowedValues:
-      - dev.app.consultwithcase.com
-      - test.app.consultwithcase.com
+      - dev-app.consultwithcase.com
+      - test-app.consultwithcase.com
       - app.consultwithcase.com
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -57,7 +57,7 @@ Resources:
               - DomainName
             Id: !Join
               - ''
-              - - S3-case-consulting-expense-app-
+              - - S3-case-expense-app-
                 - !Ref Stage
             S3OriginConfig:
               OriginAccessIdentity: !Join
@@ -80,7 +80,7 @@ Resources:
             - OPTIONS
           TargetOriginId: !Join
             - ''
-            - - S3-case-consulting-expense-app-
+            - - S3-case-expense-app-
               - !Ref Stage
           ForwardedValues:
             QueryString: 'false'
@@ -116,7 +116,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-
+        - - case-expense-app-
           - !Ref Stage
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
@@ -157,7 +157,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-resources-
+        - - case-expense-app-resources-
           - !Ref Stage
       VersioningConfiguration:
         Status: Enabled
@@ -176,7 +176,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-attachments-
+        - - case-expense-app-attachments-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -200,7 +200,7 @@ Resources:
       AccessControl: Private
       BucketName: !Join
         - ''
-        - - case-consulting-portal-resumes-
+        - - case-portal-resumes-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -217,37 +217,13 @@ Resources:
           Value: portal
         - Key: Stage
           Value: !Ref Stage
-  s3BlogPosts:
-    DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-consulting-expense-app-blog-posts-
-          - !Ref Stage
-      LifecycleConfiguration:
-        Rules:
-          - Id: Remove Deleted Blog Posts
-            NoncurrentVersionExpirationInDays: 30
-            Status: Enabled
-      LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
-        LogFilePrefix: s3-logs/blog-posts/
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
   s3Logs:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: LogDeliveryWrite
       BucketName: !Join
         - ''
-        - - case-consulting-expense-app-logs-
+        - - case-expense-app-logs-
           - !Ref Stage
       LifecycleConfiguration:
         Rules:
@@ -257,49 +233,6 @@ Resources:
       Tags:
         - Key: Application
           Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-  # s3TextractAttachments:
-  #   DependsOn: s3Logs
-  #   Type: 'AWS::S3::Bucket'
-  #   Properties:
-  #     AccessControl: Private
-  #     BucketName: !Join
-  #       - ''
-  #       - - case-consulting-portal-app-textract-attachments-
-  #         - !Ref Stage
-  #     LifecycleConfiguration:
-  #       Rules:
-  #         - Id: Remove Textract Attachments After a Week
-  #           ExpirationInDays: 7
-  #           Status: Enabled
-  #     LoggingConfiguration:
-  #       DestinationBucketName: !Ref s3Logs
-  #       LogFilePrefix: s3-logs/textract-attachments/
-  #     VersioningConfiguration:
-  #       Status: Enabled
-  #     Tags:
-  #       - Key: Application
-  #         Value: portal-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
-  s3BlogAttachments:
-    DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-consulting-portal-app-blog-attachments-
-          - !Ref Stage
-      LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
-        LogFilePrefix: s3-logs/blog-attachments/
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: Application
-          Value: portal-app
         - Key: Stage
           Value: !Ref Stage
   employeeTable:
@@ -366,30 +299,8 @@ Resources:
           Projection:
             ProjectionType: ALL
       TimeToLiveSpecification:
-          AttributeName: timeToLive
-          Enabled: true
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-  blogTable:
-    Type: 'AWS::DynamoDB::Table'
-    DeletionPolicy: Retain
-    Properties:
-      TableName: !Join
-        - '-'
-        - - !Ref Stage
-          - blog-posts
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
+        AttributeName: timeToLive
+        Enabled: true
       Tags:
         - Key: Application
           Value: expense-app
@@ -802,7 +713,7 @@ Resources:
         - Arn
   MifiTopic:
     Type: AWS::SNS::Topic
-    Properties: 
+    Properties:
       DisplayName: 'Mifi status change'
       TopicName: !Join
         - ''
@@ -818,7 +729,7 @@ Resources:
       Description: Model for an expense.
       ContentUri: expense-model/
       CompatibleRuntimes:
-          - nodejs12.x
+        - nodejs14.x
       RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -830,5 +741,5 @@ Resources:
       Description: Packages for lambda functions.
       ContentUri: dependencies/
       CompatibleRuntimes:
-          - nodejs12.x
+        - nodejs14.x
       RetentionPolicy: Retain

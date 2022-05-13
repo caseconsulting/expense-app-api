@@ -7,7 +7,13 @@ require('dotenv').config({
 });
 
 //include name of key to include in env-variables.json
-let listOfEnvToInclude = ['NODE_ENV_GOOGLE_MAPS_KEY', 'STAGE', 'VUE_APP_AUTH0_DOMAIN', 'VUE_APP_AUTH0_AUDIENCE'];
+let listOfEnvToInclude = [
+  'AWS_SDK_LOAD_CONFIG',
+  'NODE_ENV_GOOGLE_MAPS_KEY',
+  'STAGE',
+  'VUE_APP_AUTH0_DOMAIN',
+  'VUE_APP_AUTH0_AUDIENCE'
+];
 let envJson = {};
 //iterates thru lists of keys to include
 for (let i = 0; i < listOfEnvToInclude.length; i++) {

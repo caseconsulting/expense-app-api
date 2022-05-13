@@ -342,8 +342,8 @@ describe('expenseRoutes', () => {
             };
 
             expectedParams = {
-              Bucket: 'case-consulting-expense-app-attachments-dev',
-              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file2_id',
+              Bucket: 'case-expense-app-attachments-dev',
+              CopySource: 'case-expense-app-attachments-dev/Old_ID/file2_id',
               Key: 'New_ID/file2_id'
             };
             data = {
@@ -384,8 +384,8 @@ describe('expenseRoutes', () => {
             };
 
             expectedParams = {
-              Bucket: 'case-consulting-expense-app-attachments-dev',
-              CopySource: 'case-consulting-expense-app-attachments-dev/Old_ID/file1_id',
+              Bucket: 'case-expense-app-attachments-dev',
+              CopySource: 'case-expense-app-attachments-dev/Old_ID/file1_id',
               Key: 'New_ID/file1_id'
             };
             data = {
@@ -689,9 +689,10 @@ describe('expenseRoutes', () => {
       let err;
 
       beforeEach(() => {
+        // TODO: Fix the message below so this test works regardless of the actual year
         err = {
           code: 403,
-          message: 'Purchase date must be in current annual budget range from 01/01/2021 to 12/31/2021.'
+          message: 'Purchase date must be in current annual budget range from 01/01/2022 to 12/31/2022.'
         };
         employee.hireDate = '2000-01-01';
         delete expense.reimbursedDate;
@@ -1965,8 +1966,7 @@ describe('expenseRoutes', () => {
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
-                  undefined, employee, expenseType);
+                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
                 done();
               });
@@ -1986,8 +1986,7 @@ describe('expenseRoutes', () => {
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
-                  undefined, employee, expenseType);
+                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
                 done();
               });
@@ -2114,8 +2113,7 @@ describe('expenseRoutes', () => {
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
-                  undefined, employee, expenseType);
+                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
                 done();
               });
           }); // should return a 404 rejected promise
@@ -2148,8 +2146,7 @@ describe('expenseRoutes', () => {
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
                 expect(expenseRoutes._validateInputs).toHaveBeenCalledWith(newExpense);
                 expect(databaseModify.addToDB).toHaveBeenCalledWith(newExpense);
-                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, 
-                  undefined, employee, expenseType);
+                expect(expenseRoutes._updateBudgets).toHaveBeenCalledWith(oldExpense, undefined, employee, expenseType);
                 expect(databaseModify.removeFromDB).toHaveBeenCalledWith(oldExpense.id);
                 done();
               });
@@ -4170,8 +4167,7 @@ describe('expenseRoutes', () => {
           otherBudget.id = 'OTHER_ID';
           otherBudget.fiscalStartDate = '2001-08-18';
           otherBudget.fiscalEndDate = '2002-08-17';
-          spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), 
-            Promise.resolve(otherBudget));
+          spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.resolve(otherBudget));
         });
 
         it('should return a 403 rejected promise', (done) => {
@@ -4414,8 +4410,7 @@ describe('expenseRoutes', () => {
           otherBudget.id = 'OTHER_ID';
           budget.fiscalStartDate = '2001-08-18';
           budget.fiscalEndDate = '2002-08-17';
-          spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), 
-            Promise.resolve(otherBudget));
+          spyOn(expenseRoutes, '_findBudget').and.returnValues(Promise.resolve(budget), Promise.resolve(otherBudget));
         });
 
         it('should return a 403 rejected promise', (done) => {

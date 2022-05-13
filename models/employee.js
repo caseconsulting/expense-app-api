@@ -1,5 +1,32 @@
 const _ = require('lodash');
 
+// Fields that should be hidden from other users when
+// accessing profile page (only visisble to signed-in
+// user, admin and manager)
+const PRIVATE_DATA = [
+  'employeeRole',
+  'hireDate',
+  'deptDate',
+  'birthday',
+  'birthdayFeed',
+  'city',
+  'st',
+  'country',
+  'currentCity',
+  'currentState',
+  'currentStreet',
+  'currentZIP',
+  'phoneNumber',
+  'eeoDeclineSelfIdentify',
+  'eeoGender',
+  'eeoHispanicOrLatino',
+  'eeoJobCategory',
+  'eeoRaceOrEthnicity'
+];
+
+// Fields hidden from all users (only visible to admin and manager)
+const HIDDEN_DATA = ['lastLogin'];
+
 /**
  * Employee model
  *
@@ -62,6 +89,11 @@ class Employee {
     this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
+    this.setRequiredAttribute(data, 'eeoGender');
+    this.setRequiredAttribute(data, 'eeoHispanicOrLatino');
+    this.setRequiredAttribute(data, 'eeoRaceOrEthnicity');
+    this.setRequiredAttribute(data, 'eeoJobCategory');
+    this.setRequiredAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
@@ -106,6 +138,33 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
+
+  /**
+   * Returns a new Employee object with private fields hidden based
+   * on user signed in
+   *
+   * @param employee - signed-in employee user
+   * @returns Employee - employee object with sensitive fields hidden.
+   */
+  hideFields(employee) {
+    let e = Object.fromEntries(
+      Object.entries(this).filter(([key]) => {
+        if (employee.employeeRole == 'user') {
+          if (employee.id != this.id) {
+            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key);
+          } else {
+            return !HIDDEN_DATA.includes(key);
+          }
+        } else if (employee.employeeRole == 'admin') {
+          return true;
+        } else if (employee.employeeRole == 'manager') {
+          return true;
+        }
+        return false;
+      })
+    );
+    return new Employee(e);
+  }
 
   /**
    * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.

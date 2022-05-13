@@ -1218,7 +1218,7 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // when fails to get expenses
     }); // when employee is an admin
-    
+
     describe('when employee is an manager', () => {
       beforeEach(() => {
         spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
@@ -1226,7 +1226,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
         spyOn(utilityRoutes, 'isManager').and.returnValue(true);
       });
-  
+
       describe('and successfully gets all aggregate expenses', () => {
         beforeEach(() => {
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
@@ -1246,7 +1246,7 @@ describe('utilityRoutes', () => {
           });
         }); // should respond with a 200 and the aggregate expenses
       }); // and successfully gets all aggregate expenses
-  
+
       describe('and fails to get expense types', () => {
         let err;
 
@@ -1269,7 +1269,7 @@ describe('utilityRoutes', () => {
           });
         }); // should respond with a 404 and error
       }); // and fails to get expense types
-  
+
       describe('and fails to get employee', () => {
         let err;
 
@@ -1294,7 +1294,7 @@ describe('utilityRoutes', () => {
           });
         }); // should respond with a 404 and error
       }); // and fails to get employee
-  
+
       describe('and fails to get employee expenses', () => {
         let err;
 
@@ -1426,7 +1426,6 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // and fails to get employee expenses
     }); // when employee is a user
-
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
@@ -1602,17 +1601,22 @@ describe('utilityRoutes', () => {
   }); // _getAllEmployeeExpenses
 
   describe('_getAllExpenseTypeExpenses', () => {
+    let req;
+    beforeEach(() => {
+      req = _.clone(REQ_DATA);
+      req.employee.employeeRole = 'admin';
+    });
+
     describe('when successfully gets all expense type expenses', () => {
       let expenses;
 
       beforeEach(() => {
         expenses = [new Expense(EXPENSE_DATA)];
-
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([EXPENSE_DATA]));
       });
 
       it('should respond with a 200 and the expense type expenses', (done) => {
-        utilityRoutes._getAllExpenseTypeExpenses(REQ_DATA, res).then((data) => {
+        utilityRoutes._getAllExpenseTypeExpenses(req, res).then((data) => {
           expect(data).toEqual(expenses);
           expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
             'expenseTypeId-index',
@@ -1639,7 +1643,7 @@ describe('utilityRoutes', () => {
       });
 
       it('should respond with a 404 and error', (done) => {
-        utilityRoutes._getAllExpenseTypeExpenses(REQ_DATA, res).then((data) => {
+        utilityRoutes._getAllExpenseTypeExpenses(req, res).then((data) => {
           expect(data).toEqual(err);
           expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
             'expenseTypeId-index',
