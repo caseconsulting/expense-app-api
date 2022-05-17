@@ -14,7 +14,8 @@ const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
 
 const STAGE = process.env.STAGE;
-const BUCKET = `case-expense-app-attachments-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 const s3 = new AWS.S3({ params: { Bucket: BUCKET }, region: 'us-east-1', apiVersion: '2006-03-01' });
 
 class ExpenseRoutes extends Crud {

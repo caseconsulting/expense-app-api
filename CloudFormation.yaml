@@ -35,6 +35,11 @@ Globals:
       Application: expense-app
       Stage: !Ref Stage
 
+Conditions:
+  ProdDeployment: !Equals
+    - !Ref Stage
+    - prod
+
 Resources:
   cloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -55,10 +60,13 @@ Resources:
           - DomainName: !GetAtt
               - s3FrontEnd
               - DomainName
-            Id: !Join
-              - ''
-              - - S3-case-expense-app-
-                - !Ref Stage
+            Id: !If
+              - ProdDeployment
+              - S3-case-consulting-expense-app-prod
+              - !Join
+                - ''
+                - - S3-case-expense-app-
+                  - !Ref Stage
             S3OriginConfig:
               OriginAccessIdentity: !Join
                 - ''
@@ -78,10 +86,13 @@ Resources:
             - GET
             - HEAD
             - OPTIONS
-          TargetOriginId: !Join
-            - ''
-            - - S3-case-expense-app-
-              - !Ref Stage
+          TargetOriginId: !If
+            - ProdDeployment
+            - S3-case-consulting-expense-app-prod
+            - !Join
+              - ''
+              - - S3-case-expense-app-
+                - !Ref Stage
           ForwardedValues:
             QueryString: 'false'
             Cookies:
@@ -114,10 +125,13 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-expense-app-
-          - !Ref Stage
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-prod
+        - !Join
+          - ''
+          - - case-expense-app-
+            - !Ref Stage
       LoggingConfiguration:
         DestinationBucketName: !Ref s3Logs
         LogFilePrefix: s3-logs/app/
@@ -155,10 +169,13 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-expense-app-resources-
-          - !Ref Stage
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-resources-prod
+        - !Join
+          - ''
+          - - case-expense-app-resources-
+            - !Ref Stage
       VersioningConfiguration:
         Status: Enabled
       LoggingConfiguration:
@@ -174,10 +191,13 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-expense-app-attachments-
-          - !Ref Stage
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-attachments-prod
+        - !Join
+          - ''
+          - - case-expense-app-attachments-
+            - !Ref Stage
       LifecycleConfiguration:
         Rules:
           - Id: Remove Deleted Expense Attachments
@@ -198,10 +218,13 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: Private
-      BucketName: !Join
-        - ''
-        - - case-portal-resumes-
-          - !Ref Stage
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-resumes-prod
+        - !Join
+          - ''
+          - - case-expense-app-resumes-
+            - !Ref Stage
       LifecycleConfiguration:
         Rules:
           - Id: Remove Deleted Expense Resumes
@@ -221,10 +244,13 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       AccessControl: LogDeliveryWrite
-      BucketName: !Join
-        - ''
-        - - case-expense-app-logs-
-          - !Ref Stage
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-logs-prod
+        - !Join
+          - ''
+          - - case-expense-app-logs-
+            - !Ref Stage
       LifecycleConfiguration:
         Rules:
           - Id: Purge old log files

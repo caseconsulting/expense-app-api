@@ -29,7 +29,8 @@ const checkJwt = jwt({
 const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const BUCKET = `case-portal-resumes-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}portal-resumes-${STAGE}`;
 const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
 const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
 
