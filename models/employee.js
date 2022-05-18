@@ -149,15 +149,21 @@ class Employee {
   hideFields(employee) {
     let e = Object.fromEntries(
       Object.entries(this).filter(([key]) => {
-        if (employee.employeeRole == 'user') {
+        if (employee.employeeRole == 'user' || employee.employeeRole == 'intern') {
           if (employee.id != this.id) {
+            // A User or Intern viewing a users profile
+            // Don't include private or hidden data
             return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key);
           } else {
+            // A User or Intern viewing their own profile
+            // Don't include hidden data
             return !HIDDEN_DATA.includes(key);
           }
         } else if (employee.employeeRole == 'admin') {
+          // retrun everything
           return true;
         } else if (employee.employeeRole == 'manager') {
+          // return everything
           return true;
         }
         return false;

@@ -9,7 +9,8 @@ moment.tz.setDefault('America/New_York');
 const FormData = require('form-data');
 
 const STAGE = process.env.STAGE;
-const BUCKET = `case-expense-app-attachments-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 const ISOFORMAT = 'YYYY-MM-DD';
 

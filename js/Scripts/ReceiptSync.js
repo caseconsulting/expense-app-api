@@ -20,7 +20,8 @@ if (process.argv.length > 2) {
 }
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const BUCKET = `case-expense-app-attachments-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 const table = `${STAGE}-expenses`;
