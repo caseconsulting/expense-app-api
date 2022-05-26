@@ -16,7 +16,7 @@ const PRIVATE_DATA = [
   'currentState',
   'currentStreet',
   'currentZIP',
-  'phoneNumber',
+  'privatePhoneNumbers',
   'eeoDeclineSelfIdentify',
   'eeoGender',
   'eeoHispanicOrLatino',
@@ -68,8 +68,9 @@ const HIDDEN_DATA = ['lastLogin'];
  * - middleName
  * - nickname
  * - noMiddleName
- * - phoneNumber
+ * - privatePhoneNumbers
  * - prime
+ * - publicPhoneNumbers
  * - schools
  * - st
  * - technologies
@@ -121,8 +122,9 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'phoneNumber');
+    this.setOptionalAttribute(data, 'privatePhoneNumbers');
     this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
