@@ -18,11 +18,10 @@ const PRIVATE_DATA = [
   'currentZIP',
   'privatePhoneNumbers',
   'eeoDeclineSelfIdentify',
-  'eeoGender',
-  'eeoHispanicOrLatino',
-  'eeoJobCategory',
-  'eeoRaceOrEthnicity'
+  'eeoAdminHasFilledOutEeoForm'
 ];
+
+const CONDITIONAL_PRIVATE_DATA = ['eeoGender', 'eeoHispanicOrLatino', 'eeoJobCategory', 'eeoRaceOrEthnicity'];
 
 // Fields hidden from all users (only visible to admin and manager)
 const HIDDEN_DATA = ['lastLogin'];
@@ -90,11 +89,12 @@ class Employee {
     this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
-    this.setRequiredAttribute(data, 'eeoGender');
-    this.setRequiredAttribute(data, 'eeoHispanicOrLatino');
-    this.setRequiredAttribute(data, 'eeoRaceOrEthnicity');
-    this.setRequiredAttribute(data, 'eeoJobCategory');
-    this.setRequiredAttribute(data, 'eeoDeclineSelfIdentify');
+    this.setOptionalAttribute(data, 'eeoGender');
+    this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
+    this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
+    this.setOptionalAttribute(data, 'eeoJobCategory');
+    this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
+    this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
@@ -155,7 +155,9 @@ class Employee {
           if (employee.id != this.id) {
             // A User or Intern viewing a users profile
             // Don't include private or hidden data
-            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key);
+            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
+          } else if (employee.eeoDeclineSelfIdentify) {
+            return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
           } else {
             // A User or Intern viewing their own profile
             // Don't include hidden data
