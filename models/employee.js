@@ -96,7 +96,10 @@ class Employee {
     this.setOptionalAttribute(data, 'eeoJobCategory');
     this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
+<<<<<<< HEAD
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');
+=======
+>>>>>>> 7356fbe7 (3624-eeo-admin-only-fields: filter out some eeo data if an admin filled it out for a user)
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
