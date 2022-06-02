@@ -15,13 +15,19 @@ const actions = [
   '6. Convert existing jobs object to updated JSON structure (AKA companies)',
   '7. Remove old BI date structure (AKA make them single dates not ranges)',
   '8. Convert existing education entries to updated JSON structure',
-  '9. Remove unused contract data left from old JSON structure'
+  '9. Remove unused contract data left from old JSON structure',
+  '10. Migrate phoneNumber attribute to private phone number array column'
 ];
 
 // check for stage argument
 if (process.argv.length < 3) {
   throw new Error('Must include a stage');
 }
+
+process.on('unhandledRejection', (error) => {
+  //Won't execute
+  console.error('unhandledRejection', error);
+});
 
 // set and validate stage
 const STAGE = process.argv[2];
@@ -37,7 +43,7 @@ const readlineSync = require('readline-sync');
 
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const ddb = new AWS.DynamoDB.DocumentClient();
 
 // helper to get all entries in dynamodb table
 const getAllEntriesHelper = (params, out = []) =>
@@ -56,7 +62,7 @@ const getAllEntriesHelper = (params, out = []) =>
 
 /**
  * get all entries in dynamodb table
- * 
+ *
  * @return - all the entries in the table
  */
 function getAllEntries() {
@@ -105,8 +111,41 @@ async function workStatusActive() {
 } // workStatusActive
 
 /**
+ * Migrates the single phone number to the private phone numbers list.
+ */
+async function migratePhoneNumbers() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.phoneNumber) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set privatePhoneNumbers = :pr',
+        ExpressionAttributeValues: {
+          ':pr': [{ type: null, number: employee.phoneNumber, private: true, valid: false }]
+        }
+      };
+
+      // update employee
+      ddb.update(params, function (err, data) {
+        if (err) {
+          console.error('Unable to migrate phone number. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(
+            `Number Migrated\n  Employee ID: ${employee.id}\n
+              Private Phone Numbers: ${data.Attributes.privatePhoneNumbers}`
+          );
+        }
+      });
+    }
+  });
+} // migratePhoneNumbers
+
+/**
  * Removes given attribute from all employee data
- * 
+ *
  * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
@@ -245,7 +284,7 @@ function calculateEducation(degrees) {
 
 /**
  * updates the new discreet bi dates based on previous range values
- * 
+ *
  * @param clearances
  * @return - Converted clearances where if there was a range for the bi dates, it takes the
  *  start date
@@ -404,7 +443,7 @@ function calculateYears(technologies) {
 
 /**
  * Removes given attribute from all employee data
- * 
+ *
  * @param attribute - attribute to be removed
  */
 async function setBirthdayFeed(attribute) {
@@ -451,7 +490,7 @@ function deleteUnusedContractData() {
 
 /**
  * User chooses an action
- * 
+ *
  * @return - the user input
  */
 function chooseAction() {
@@ -488,7 +527,7 @@ function chooseAction() {
 
 /**
  * Prompts the user and confirm action
- * 
+ *
  * @param prompt - the string of the choice the user is confirming
  * @return boolean - if the action was confirmed
  */
@@ -569,6 +608,12 @@ async function main() {
       if (confirmAction('9. Remove unused contract data left from old JSON structure')) {
         console.log('Removed unused contract data left from old JSON structure');
         deleteUnusedContractData();
+      }
+      break;
+    case 10:
+      if (confirmAction('10. Migrate phoneNumber attribute to private phone number array column')) {
+        console.log('Migrated phoneNumber attribute to private phone number array column.');
+        migratePhoneNumbers();
       }
       break;
     default:
