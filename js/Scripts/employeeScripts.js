@@ -16,7 +16,8 @@ const actions = [
   '7. Remove old BI date structure (AKA make them single dates not ranges)',
   '8. Convert existing education entries to updated JSON structure',
   '9. Remove unused contract data left from old JSON structure',
-  '10. Migrate phoneNumber attribute to private phone number array column'
+  '10. Migrate phoneNumber attribute to private phone number array column',
+  '11. Remove phoneNumber attribute from database'
 ];
 
 // check for stage argument
@@ -142,6 +143,13 @@ async function migratePhoneNumbers() {
     }
   });
 } // migratePhoneNumbers
+
+/**
+ * Removes the old phoneNumber attribute
+ */
+async function removePhoneNumberAttribute() {
+  removeAttribute('phoneNumber');
+}
 
 /**
  * Removes given attribute from all employee data
@@ -614,6 +622,12 @@ async function main() {
       if (confirmAction('10. Migrate phoneNumber attribute to private phone number array column')) {
         console.log('Migrated phoneNumber attribute to private phone number array column.');
         migratePhoneNumbers();
+      }
+      break;
+    case 11:
+      if (confirmAction('11. Remove phoneNumber attribute from database')) {
+        console.log('`phoneNumber` attribute removed from the database.');
+        removePhoneNumberAttribute();
       }
       break;
     default:
