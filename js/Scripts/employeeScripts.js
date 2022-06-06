@@ -130,13 +130,13 @@ async function migratePhoneNumbers() {
       };
 
       // update employee
-      ddb.update(params, function (err, data) {
+      ddb.update(params, function (err) {
         if (err) {
           console.error('Unable to migrate phone number. Error JSON:', JSON.stringify(err, null, 2));
         } else {
           console.log(
             `Number Migrated\n  Employee ID: ${employee.id}\n
-              Private Phone Numbers: ${data.Attributes.privatePhoneNumbers}`
+              Private Phone Numbers: ${employee.phoneNumber}`
           );
         }
       });
