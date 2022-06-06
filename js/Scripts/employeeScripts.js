@@ -18,7 +18,8 @@ const actions = [
   '9. Remove old degrees attribute from database',
   '10. Remove unused contract data left from old JSON structure',
   '11. Migrate phoneNumber attribute to private phone number array column',
-  '12. Remove phoneNumber attribute from database'
+  '12. Remove phoneNumber attribute from database',
+  '13. Remove unused clearance expiration date left from old JSON structure'
 ];
 
 // check for stage argument
@@ -505,6 +506,48 @@ function deleteUnusedContractData() {
 } // deleteUnusedContractData
 
 /**
+ * Deletes the clearance expiration date for each employee's clearances.
+ */
+async function deleteUnusedClearanceExpirationDate() {
+  let employees = await getAllEntries();
+  let hasChanged = false;
+  _.forEach(employees, (employee) => {
+    if (employee.clearances) {
+      _.forEach(employee.clearances, (clearance) => {
+        if (clearance.expirationDate) {
+          delete clearance.expirationDate;
+          hasChanged = true;
+        }
+      });
+
+      if (hasChanged) {
+        let params = {
+          TableName: TABLE,
+          Key: {
+            id: employee.id
+          },
+          UpdateExpression: 'set clearances = :a',
+          ExpressionAttributeValues: {
+            ':a': employee.clearances
+          },
+          ReturnValues: 'UPDATED_NEW'
+        };
+
+        // update employee
+        ddb.update(params, function (err) {
+          if (err) {
+            console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+          } else {
+            console.log(`Refreshed Employee ID: ${employee.id}`);
+          }
+        });
+      }
+      hasChanged = false;
+    }
+  });
+} // deleteUnusedClearanceExpirationDate
+
+/**
  * User chooses an action
  *
  * @return - the user input
@@ -642,6 +685,12 @@ async function main() {
       if (confirmAction('12. Remove phoneNumber attribute from database')) {
         console.log('`phoneNumber` attribute removed from the database.');
         removePhoneNumberAttribute();
+      }
+      break;
+    case 13:
+      if (confirmAction('12. Remove unused clearance expiration date left from old JSON structure')) {
+        console.log('Removed unused clearance expiration date left from old JSON structure');
+        deleteUnusedClearanceExpirationDate();
       }
       break;
     default:
