@@ -509,7 +509,9 @@ function deleteUnusedContractData() {
  * Deletes the clearance expiration date for each employee's clearances.
  */
 async function deleteUnusedClearanceExpirationDate() {
+  console.log('before call');
   let employees = await getAllEntries();
+  console.log('after call');
   let hasChanged = false;
   _.forEach(employees, (employee) => {
     if (employee.clearances) {
@@ -533,6 +535,7 @@ async function deleteUnusedClearanceExpirationDate() {
           ReturnValues: 'UPDATED_NEW'
         };
 
+        console.log('before doc client');
         // update employee
         ddb.update(params, function (err) {
           if (err) {
