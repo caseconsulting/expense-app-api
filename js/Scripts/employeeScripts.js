@@ -691,7 +691,7 @@ async function main() {
       }
       break;
     case 13:
-      if (confirmAction('12. Remove unused clearance expiration date left from old JSON structure')) {
+      if (confirmAction('13. Remove unused clearance expiration date left from old JSON structure')) {
         console.log('Removed unused clearance expiration date left from old JSON structure');
         deleteUnusedClearanceExpirationDate();
       }
