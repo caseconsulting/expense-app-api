@@ -15,9 +15,10 @@ const actions = [
   '6. Convert existing jobs object to updated JSON structure (AKA companies)',
   '7. Remove old BI date structure (AKA make them single dates not ranges)',
   '8. Convert existing education entries to updated JSON structure',
-  '9. Remove unused contract data left from old JSON structure',
-  '10. Migrate phoneNumber attribute to private phone number array column',
-  '11. Remove phoneNumber attribute from database'
+  '9. Remove old degrees attribute from database',
+  '10. Remove unused contract data left from old JSON structure',
+  '11. Migrate phoneNumber attribute to private phone number array column',
+  '12. Remove phoneNumber attribute from database'
 ];
 
 // check for stage argument
@@ -289,6 +290,13 @@ function calculateEducation(degrees) {
   });
   return schools;
 } // calculateEducation
+
+/**
+ * Removes the degrees list attribute from the database. Degrees is now found under the schools attribute.
+ */
+function deleteDegreesAtrribute() {
+  removeAttribute('degrees');
+} // deleteDegreesAtrribute
 
 /**
  * updates the new discreet bi dates based on previous range values
@@ -613,19 +621,25 @@ async function main() {
       }
       break;
     case 9:
-      if (confirmAction('9. Remove unused contract data left from old JSON structure')) {
+      if (confirmAction('9. Remove old degrees attribute from database')) {
+        console.log('Removed old degrees attribute from database');
+        deleteDegreesAtrribute();
+      }
+      break;
+    case 10:
+      if (confirmAction('10. Remove unused contract data left from old JSON structure')) {
         console.log('Removed unused contract data left from old JSON structure');
         deleteUnusedContractData();
       }
       break;
-    case 10:
-      if (confirmAction('10. Migrate phoneNumber attribute to private phone number array column')) {
+    case 11:
+      if (confirmAction('11. Migrate phoneNumber attribute to private phone number array column')) {
         console.log('Migrated phoneNumber attribute to private phone number array column.');
         migratePhoneNumbers();
       }
       break;
-    case 11:
-      if (confirmAction('11. Remove phoneNumber attribute from database')) {
+    case 12:
+      if (confirmAction('12. Remove phoneNumber attribute from database')) {
         console.log('`phoneNumber` attribute removed from the database.');
         removePhoneNumberAttribute();
       }
