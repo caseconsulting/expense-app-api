@@ -5,7 +5,6 @@ const _ = require('lodash');
 // user, admin and manager)
 const PRIVATE_DATA = [
   'employeeRole',
-  'hireDate',
   'deptDate',
   'birthday',
   'birthdayFeed',
@@ -87,6 +86,7 @@ class Employee {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
+    this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
     this.setOptionalAttribute(data, 'eeoGender');
