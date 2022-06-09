@@ -95,6 +95,7 @@ class Employee {
     this.setOptionalAttribute(data, 'eeoJobCategory');
     this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
+    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');

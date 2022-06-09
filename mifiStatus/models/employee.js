@@ -62,6 +62,7 @@ class Employee {
     this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
+    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
