@@ -14,6 +14,7 @@ const _ = require('lodash');
  * - workStatus
  *
  * Optional Fields:
+ * - agencyIdentificationNumber
  * - awards
  * - birthday
  * - birthdayFeed

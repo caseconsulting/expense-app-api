@@ -39,6 +39,7 @@ const HIDDEN_DATA = ['lastLogin'];
  * - workStatus
  *
  * Optional Fields:
+ * - agencyIdentificationNumber
  * - awards
  * - birthday
  * - birthdayFeed
