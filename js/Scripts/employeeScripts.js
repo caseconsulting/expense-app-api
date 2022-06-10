@@ -2,6 +2,10 @@
  * node ./js/Scripts/employeeScripts.js dev
  * node ./js/Scripts/employeeScripts.js test
  * node ./js/Scripts/employeeScripts.js prod (must set aws credentials for prod as default)
+ *
+ * npm run employeeScripts:dev
+ * npm run employeeScripts:prod
+ * npm run employeeScripts:test
  */
 
 // LIST OF ACTIONS
