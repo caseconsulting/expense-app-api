@@ -131,7 +131,7 @@ async function migratePhoneNumbers() {
         },
         UpdateExpression: 'set privatePhoneNumbers = :pr',
         ExpressionAttributeValues: {
-          ':pr': [{ type: 'cell', number: employee.phoneNumber, private: true, valid: false }]
+          ':pr': [{ type: 'Cell', number: employee.phoneNumber, private: true, valid: false }]
         }
       };
 
