@@ -451,4 +451,46 @@ describe('trainingUrlRoutes', () => {
       }); // should return a 403 rejected promise
     }); // when the category does not match the new category
   }); // _validateUpdate
+
+  describe('_readAll', () => {
+    let trainingUrl;
+    beforeEach(() => {
+      trainingUrl = _.cloneDeep(TRAINING_URL_DATA);
+    });
+
+    describe('read all training urls from dynamoDB', () => {
+      beforeEach(() => {
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([trainingUrl]));
+      });
+
+      it('should successfully return training urls', (done) => {
+        trainingUrlRoutes._readAll().then((data) => {
+          expect(data).toEqual([new TrainingUrl(trainingUrl)]);
+          expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+          done();
+        });
+      });
+    });
+
+    describe('failed to get all training urls from dynamoDB', () => {
+      let err;
+      beforeEach(() => {
+        err = new Error('failed to get training urls');
+        databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+      });
+
+      it('should return an error', (done) => {
+        trainingUrlRoutes
+          ._readAll()
+          .then(() => {
+            fail('expected error to have been thrown');
+            done();
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+            done();
+          });
+      });
+    });
+  });
 }); // trainingUrlRoutes
