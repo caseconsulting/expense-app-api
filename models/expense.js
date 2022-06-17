@@ -41,13 +41,7 @@ class Expense {
     this.setOptionalAttribute(data, 'note');
     this.setOptionalAttribute(data, 'url');
     this.setOptionalAttribute(data, 'canDelete');
-<<<<<<< Updated upstream
-    this.setOptionalAttribute(data, 'wasSeen');
-
-    // TODO: Compare keys from this to keys from data and log any discrepancies
-=======
     this.setOptionalAttribute(data, 'reimbursementWasSeen');
->>>>>>> Stashed changes
   } // constructor
 
   /**
