@@ -42,6 +42,8 @@ class Expense {
     this.setOptionalAttribute(data, 'url');
     this.setOptionalAttribute(data, 'canDelete');
     this.setOptionalAttribute(data, 'wasSeen');
+
+    // TODO: Compare keys from this to keys from data and log any discrepancies
   } // constructor
 
   /**
