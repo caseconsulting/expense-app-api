@@ -201,43 +201,39 @@ class EmployeeRoutes extends Crud {
     try {
       let budgets = [];
 
-      let diffWorkStatus = oldEmployee.workStatus != newEmployee.workStatus;
+      // need to update budgets
+      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+        'employeeId-expenseTypeId-index',
+        'employeeId',
+        oldEmployee.id
+      );
 
-      if (diffWorkStatus) {
-        // need to update budgets
-        let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
-          'employeeId-expenseTypeId-index',
-          'employeeId',
-          oldEmployee.id
-        );
+      budgets = _.map(budgetsData, (budgetData) => {
+        return new Budget(budgetData);
+      });
 
-        budgets = _.map(budgetsData, (budgetData) => {
-          return new Budget(budgetData);
-        });
+      let expenseTypes = await this.getAllExpenseTypes();
 
-        let expenseTypes = await this.getAllExpenseTypes();
+      let i; // index of budgets
+      for (i = 0; i < budgets.length; i++) {
+        // update budget amount
+        let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
+        let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
+        if (moment().isBetween(start, end, 'day', '[]')) {
+          // only update active budgets
+          let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
+          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
+          logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
+          // update budget in database
+          try {
+            await this.budgetDynamo.updateEntryInDB(budgets[i]);
 
-        let i; // index of budgets
-        for (i = 0; i < budgets.length; i++) {
-          // update budget amount
-          let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
-          let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
-          if (moment().isBetween(start, end, 'day', '[]')) {
-            // only update active budgets
-            let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-            budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
-
-            // update budget in database
-            try {
-              await this.budgetDynamo.updateEntryInDB(budgets[i]);
-
-              // log budget update success
-              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
-            } catch (err) {
-              // log and throw budget update failure
-              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
-              throw err;
-            }
+            // log budget update success
+            logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+          } catch (err) {
+            // log and throw budget update failure
+            logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+            throw err;
           }
         }
       }
