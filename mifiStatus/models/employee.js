@@ -14,6 +14,7 @@ const _ = require('lodash');
  * - workStatus
  *
  * Optional Fields:
+ * - agencyIdentificationNumber
  * - awards
  * - birthday
  * - birthdayFeed
@@ -62,6 +63,7 @@ class Employee {
     this.setRequiredAttribute(data, 'workStatus');
 
     // optional attributes
+    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');

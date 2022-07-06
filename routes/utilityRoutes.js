@@ -54,7 +54,7 @@ class Utility {
       this._getAllActiveEmployeeBudgets.bind(this)
     );
     this._router.get(
-      '/getEmployeeExpenseTypes/:id',
+      '/getEmployeeExpenseTypes',
       this._checkJwt,
       this._getUserInfo,
       this._getEmployeeExpenseTypes.bind(this)
@@ -897,13 +897,6 @@ class Utility {
 
     // compute method
     try {
-      if (req.employee.id != req.params.id) {
-        let err = {
-          code: 403,
-          message: 'Unable to get all expense types due to insufficient employee permissions.'
-        };
-        throw err;
-      }
       let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
       let expenseTypes = _.map(expenseTypesData, (expenseType) => {
         expenseType.categories = _.map(expenseType.categories, (category) => {
@@ -911,16 +904,24 @@ class Utility {
         });
         return new ExpenseType(expenseType);
       });
-      expenseTypes = _.filter(expenseTypes, (expenseType) => {
-        let workStatus;
-        if (req.employee.workStatus == 100) {
-          workStatus = 'FullTime';
-        } else if (req.employee.workStatus == 50) {
-          workStatus = 'PartTime';
-        } else {
-          workStatus = 'Inactive';
-        }
-        return expenseType.accessibleBy.includes(req.params.id) || expenseType.accessibleBy.includes(workStatus);
+
+      let employee = req.employee;
+      let workStatus;
+      if (employee.workStatus == 0) {
+        workStatus = 'Inactive';
+      } else if (employee.workStatus == 100) {
+        workStatus = 'FullTime';
+      } else if (employee.workStatus < 100) {
+        workStatus = 'PartTime';
+      }
+      let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+      let employeeRole = capitalize(employee.employeeRole);
+      expenseTypes = expenseTypes.filter((expenseType) => {
+        return (
+          expenseType.accessibleBy.includes(workStatus) ||
+          expenseType.accessibleBy.includes(employeeRole) ||
+          expenseType.accessibleBy.includes(employee.id)
+        );
       });
 
       // log success

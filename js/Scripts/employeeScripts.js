@@ -2,6 +2,10 @@
  * node ./js/Scripts/employeeScripts.js dev
  * node ./js/Scripts/employeeScripts.js test
  * node ./js/Scripts/employeeScripts.js prod (must set aws credentials for prod as default)
+ *
+ * npm run employeeScripts:dev
+ * npm run employeeScripts:prod
+ * npm run employeeScripts:test
  */
 
 // LIST OF ACTIONS
@@ -15,13 +19,22 @@ const actions = [
   '6. Convert existing jobs object to updated JSON structure (AKA companies)',
   '7. Remove old BI date structure (AKA make them single dates not ranges)',
   '8. Convert existing education entries to updated JSON structure',
-  '9. Remove unused contract data left from old JSON structure'
+  '9. Remove old degrees attribute from database',
+  '10. Remove unused contract data left from old JSON structure',
+  '11. Migrate phoneNumber attribute to private phone number array column',
+  '12. Remove phoneNumber attribute from database',
+  '13. Remove unused clearance expiration date left from old JSON structure'
 ];
 
 // check for stage argument
 if (process.argv.length < 3) {
   throw new Error('Must include a stage');
 }
+
+process.on('unhandledRejection', (error) => {
+  //Won't execute
+  console.error('unhandledRejection', error);
+});
 
 // set and validate stage
 const STAGE = process.argv[2];
@@ -37,7 +50,7 @@ const readlineSync = require('readline-sync');
 
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const ddb = new AWS.DynamoDB.DocumentClient();
 
 // helper to get all entries in dynamodb table
 const getAllEntriesHelper = (params, out = []) =>
@@ -56,7 +69,7 @@ const getAllEntriesHelper = (params, out = []) =>
 
 /**
  * get all entries in dynamodb table
- * 
+ *
  * @return - all the entries in the table
  */
 function getAllEntries() {
@@ -105,8 +118,48 @@ async function workStatusActive() {
 } // workStatusActive
 
 /**
+ * Migrates the single phone number to the private phone numbers list.
+ */
+async function migratePhoneNumbers() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.phoneNumber) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set privatePhoneNumbers = :pr',
+        ExpressionAttributeValues: {
+          ':pr': [{ type: 'Cell', number: employee.phoneNumber, private: true, valid: false }]
+        }
+      };
+
+      // update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to migrate phone number. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(
+            `Number Migrated\n  Employee ID: ${employee.id}\n
+              Private Phone Numbers: ${employee.phoneNumber}`
+          );
+        }
+      });
+    }
+  });
+} // migratePhoneNumbers
+
+/**
+ * Removes the old phoneNumber attribute
+ */
+async function removePhoneNumberAttribute() {
+  removeAttribute('phoneNumber');
+}
+
+/**
  * Removes given attribute from all employee data
- * 
+ *
  * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
@@ -244,8 +297,15 @@ function calculateEducation(degrees) {
 } // calculateEducation
 
 /**
+ * Removes the degrees list attribute from the database. Degrees is now found under the schools attribute.
+ */
+function deleteDegreesAtrribute() {
+  removeAttribute('degrees');
+} // deleteDegreesAtrribute
+
+/**
  * updates the new discreet bi dates based on previous range values
- * 
+ *
  * @param clearances
  * @return - Converted clearances where if there was a range for the bi dates, it takes the
  *  start date
@@ -404,7 +464,7 @@ function calculateYears(technologies) {
 
 /**
  * Removes given attribute from all employee data
- * 
+ *
  * @param attribute - attribute to be removed
  */
 async function setBirthdayFeed(attribute) {
@@ -450,8 +510,53 @@ function deleteUnusedContractData() {
 } // deleteUnusedContractData
 
 /**
+ * Deletes the clearance expiration date for each employee's clearances.
+ */
+async function deleteUnusedClearanceExpirationDate() {
+  console.log('before call');
+  let employees = await getAllEntries();
+  console.log('after call');
+  let hasChanged = false;
+  _.forEach(employees, (employee) => {
+    if (employee.clearances) {
+      _.forEach(employee.clearances, (clearance) => {
+        if (clearance.expirationDate) {
+          delete clearance.expirationDate;
+          hasChanged = true;
+        }
+      });
+
+      if (hasChanged) {
+        let params = {
+          TableName: TABLE,
+          Key: {
+            id: employee.id
+          },
+          UpdateExpression: 'set clearances = :a',
+          ExpressionAttributeValues: {
+            ':a': employee.clearances
+          },
+          ReturnValues: 'UPDATED_NEW'
+        };
+
+        console.log('before doc client');
+        // update employee
+        ddb.update(params, function (err) {
+          if (err) {
+            console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+          } else {
+            console.log(`Refreshed Employee ID: ${employee.id}`);
+          }
+        });
+      }
+      hasChanged = false;
+    }
+  });
+} // deleteUnusedClearanceExpirationDate
+
+/**
  * User chooses an action
- * 
+ *
  * @return - the user input
  */
 function chooseAction() {
@@ -488,7 +593,7 @@ function chooseAction() {
 
 /**
  * Prompts the user and confirm action
- * 
+ *
  * @param prompt - the string of the choice the user is confirming
  * @return boolean - if the action was confirmed
  */
@@ -566,9 +671,33 @@ async function main() {
       }
       break;
     case 9:
-      if (confirmAction('9. Remove unused contract data left from old JSON structure')) {
+      if (confirmAction('9. Remove old degrees attribute from database')) {
+        console.log('Removed old degrees attribute from database');
+        deleteDegreesAtrribute();
+      }
+      break;
+    case 10:
+      if (confirmAction('10. Remove unused contract data left from old JSON structure')) {
         console.log('Removed unused contract data left from old JSON structure');
         deleteUnusedContractData();
+      }
+      break;
+    case 11:
+      if (confirmAction('11. Migrate phoneNumber attribute to private phone number array column')) {
+        console.log('Migrated phoneNumber attribute to private phone number array column.');
+        migratePhoneNumbers();
+      }
+      break;
+    case 12:
+      if (confirmAction('12. Remove phoneNumber attribute from database')) {
+        console.log('`phoneNumber` attribute removed from the database.');
+        removePhoneNumberAttribute();
+      }
+      break;
+    case 13:
+      if (confirmAction('13. Remove unused clearance expiration date left from old JSON structure')) {
+        console.log('Removed unused clearance expiration date left from old JSON structure');
+        deleteUnusedClearanceExpirationDate();
       }
       break;
     default:

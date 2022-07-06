@@ -5,7 +5,6 @@ const _ = require('lodash');
 // user, admin and manager)
 const PRIVATE_DATA = [
   'employeeRole',
-  'hireDate',
   'deptDate',
   'birthday',
   'birthdayFeed',
@@ -16,13 +15,12 @@ const PRIVATE_DATA = [
   'currentState',
   'currentStreet',
   'currentZIP',
-  'phoneNumber',
+  'privatePhoneNumbers',
   'eeoDeclineSelfIdentify',
-  'eeoGender',
-  'eeoHispanicOrLatino',
-  'eeoJobCategory',
-  'eeoRaceOrEthnicity'
+  'eeoAdminHasFilledOutEeoForm'
 ];
+
+const CONDITIONAL_PRIVATE_DATA = ['eeoGender', 'eeoHispanicOrLatino', 'eeoJobCategory', 'eeoRaceOrEthnicity'];
 
 // Fields hidden from all users (only visible to admin and manager)
 const HIDDEN_DATA = ['lastLogin'];
@@ -41,6 +39,7 @@ const HIDDEN_DATA = ['lastLogin'];
  * - workStatus
  *
  * Optional Fields:
+ * - agencyIdentificationNumber
  * - awards
  * - birthday
  * - birthdayFeed
@@ -68,8 +67,9 @@ const HIDDEN_DATA = ['lastLogin'];
  * - middleName
  * - nickname
  * - noMiddleName
- * - phoneNumber
+ * - privatePhoneNumbers
  * - prime
+ * - publicPhoneNumbers
  * - schools
  * - st
  * - technologies
@@ -87,13 +87,16 @@ class Employee {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
+    this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
-    this.setRequiredAttribute(data, 'eeoGender');
-    this.setRequiredAttribute(data, 'eeoHispanicOrLatino');
-    this.setRequiredAttribute(data, 'eeoRaceOrEthnicity');
-    this.setRequiredAttribute(data, 'eeoJobCategory');
-    this.setRequiredAttribute(data, 'eeoDeclineSelfIdentify');
+    this.setOptionalAttribute(data, 'eeoGender');
+    this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
+    this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
+    this.setOptionalAttribute(data, 'eeoJobCategory');
+    this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
+    this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
+    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
@@ -121,8 +124,9 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'phoneNumber');
+    this.setOptionalAttribute(data, 'privatePhoneNumbers');
     this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
@@ -153,7 +157,9 @@ class Employee {
           if (employee.id != this.id) {
             // A User or Intern viewing a users profile
             // Don't include private or hidden data
-            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key);
+            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
+          } else if (employee.eeoDeclineSelfIdentify) {
+            return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
           } else {
             // A User or Intern viewing their own profile
             // Don't include hidden data
