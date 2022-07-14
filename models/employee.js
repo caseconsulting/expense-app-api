@@ -96,10 +96,7 @@ class Employee {
     this.setOptionalAttribute(data, 'eeoJobCategory');
     this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
-<<<<<<< HEAD
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');
-=======
->>>>>>> 7356fbe7 (3624-eeo-admin-only-fields: filter out some eeo data if an admin filled it out for a user)
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
@@ -145,6 +142,22 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
+
+  /**
+   * Prevents employee user from overriding admin filled out fields
+   * on the EEO form, when editing profile data unrelated to EEO form
+   *
+   * @param oldEmployee - old employee object data
+   * @param user - signed-in user
+   */
+  handleEEOData(oldEmployee, user) {
+    if (this.eeoDeclineSelfIdentify && oldEmployee.eeoDeclineSelfIdentify && user.id == this.id) {
+      this.setOptionalAttribute(oldEmployee, 'eeoGender');
+      this.setOptionalAttribute(oldEmployee, 'eeoHispanicOrLatino');
+      this.setOptionalAttribute(oldEmployee, 'eeoRaceOrEthnicity');
+      this.setOptionalAttribute(oldEmployee, 'eeoJobCategory');
+    }
+  } // handleEEOData
 
   /**
    * Returns a new Employee object with private fields hidden based

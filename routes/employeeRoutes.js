@@ -130,7 +130,7 @@ class EmployeeRoutes extends Crud {
    */
   async _readAll(employee) {
     // log method
-    logger.log(2, '_readAll', 'Attempting to read all employeesS');
+    logger.log(2, '_readAll', 'Attempting to read all employees');
 
     // compute method
     try {
@@ -156,18 +156,19 @@ class EmployeeRoutes extends Crud {
   /**
    * Prepares an employee to be updated. Returns the employee if it can be successfully updated.
    *
-   * @param data - data of employee
+   * @param req - request
    * @return Employee - employee prepared to update
    */
-  async _update(data) {
+  async _update(req) {
+    let data = req.body;
     // log method
     logger.log(2, '_update', `Preparing to update employee ${data.id}`);
 
     // compute method
     try {
-      let newEmployee = new Employee(data);
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
-
+      let newEmployee = new Employee(data);
+      newEmployee.handleEEOData(oldEmployee, req.employee);
       await this._validateEmployee(newEmployee);
       await this._validateUpdate(oldEmployee, newEmployee);
       await this._updateBudgets(oldEmployee, newEmployee);
@@ -185,6 +186,61 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _update
+
+  /**
+   * Update employee in database. If successful, sends 200 status request with the
+   * object updated and returns the object.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - object updated
+   */
+  async _updateWrapper(req, res) {
+    // log method
+    logger.log(1, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let employeeUpdated = await this._update(req); // update employee
+        let employeeValidated = await this._validateInputs(employeeUpdated); // validate inputs
+        let dataUpdated;
+        // add object to database
+        if (employeeValidated.id == req.body.id) {
+          // update database if the id's are the same
+          dataUpdated = await this.databaseModify.updateEntryInDB(employeeValidated);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = employeeValidated;
+        }
+
+        // log success
+        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+
+        // send successful 200 status
+        res.status(200).send(dataUpdated.hideFields(req.employee));
+
+        // return updated data
+        return dataUpdated.hideFields(req.employee);
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update object in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _updateWrapper
 
   /**
    * Updates budgets when changing an employee.
