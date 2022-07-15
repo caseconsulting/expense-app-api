@@ -174,9 +174,10 @@ class Employee {
             // A User or Intern viewing a users profile
             // Don't include private or hidden data
             return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-          } else if (employee.eeoDeclineSelfIdentify) {
-            return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
           } else {
+            if (this.eeoDeclineSelfIdentify) {
+              return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
+            }
             // A User or Intern viewing their own profile
             // Don't include hidden data
             return !HIDDEN_DATA.includes(key);
