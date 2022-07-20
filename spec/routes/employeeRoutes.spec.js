@@ -422,11 +422,15 @@ describe('employeeRoutes', () => {
 
   describe('_update', () => {
     let data, oldEmployee, newEmployee;
+    let param;
 
     beforeEach(() => {
       data = _.cloneDeep(EMPLOYEE_DATA);
       oldEmployee = new Employee(EMPLOYEE_DATA);
       newEmployee = new Employee(EMPLOYEE_DATA);
+      param = {
+        body: data
+      };
     });
 
     describe('when successfully prepares to update employee', () => {
@@ -438,7 +442,7 @@ describe('employeeRoutes', () => {
       });
 
       it('should return the prepared employee', (done) => {
-        employeeRoutes._update(data).then((employee) => {
+        employeeRoutes._update(param).then((employee) => {
           expect(employee).toEqual(newEmployee);
           expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
           expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
@@ -463,7 +467,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         employeeRoutes
-          ._update(data)
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -491,7 +495,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._update(data)
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -521,7 +525,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._update(data)
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -553,7 +557,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         employeeRoutes
-          ._update(data)
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
