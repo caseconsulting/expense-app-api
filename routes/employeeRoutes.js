@@ -13,7 +13,6 @@ const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
 
 class EmployeeRoutes extends Crud {
-
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('employees');
@@ -81,13 +80,13 @@ class EmployeeRoutes extends Crud {
 
   /**
    * Gets all expensetype data and then parses the categories
-   * 
+   *
    * @return - all the expense types
    */
   async getAllExpenseTypes() {
     let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
-    let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-      expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+    let expenseTypes = _.map(expenseTypesData, (expenseTypeData) => {
+      expenseTypeData.categories = _.map(expenseTypeData.categories, (category) => {
         return JSON.parse(category);
       });
       return new ExpenseType(expenseTypeData);
@@ -126,17 +125,18 @@ class EmployeeRoutes extends Crud {
   /**
    * Reads all employees from the database. Returns all employees.
    *
+   * @param employee - employee user signed in
    * @return Array - all employees
    */
-  async _readAll() {
+  async _readAll(employee) {
     // log method
     logger.log(2, '_readAll', 'Attempting to read all employees');
 
     // compute method
     try {
       let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, employee => {
-        return new Employee(employee);
+      let employees = _.map(employeesData, (e) => {
+        return new Employee(e).hideFields(employee);
       });
 
       // log success
@@ -156,18 +156,19 @@ class EmployeeRoutes extends Crud {
   /**
    * Prepares an employee to be updated. Returns the employee if it can be successfully updated.
    *
-   * @param data - data of employee
+   * @param req - request
    * @return Employee - employee prepared to update
    */
-  async _update(data) {
+  async _update(req) {
+    let data = req.body;
     // log method
     logger.log(2, '_update', `Preparing to update employee ${data.id}`);
 
     // compute method
     try {
-      let newEmployee = new Employee(data);
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
-
+      let newEmployee = new Employee(data);
+      newEmployee.handleEEOData(oldEmployee, req.employee);
       await this._validateEmployee(newEmployee);
       await this._validateUpdate(oldEmployee, newEmployee);
       await this._updateBudgets(oldEmployee, newEmployee);
@@ -177,7 +178,6 @@ class EmployeeRoutes extends Crud {
 
       // return employee to update
       return newEmployee;
-
     } catch (err) {
       // log error
       logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
@@ -186,6 +186,61 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _update
+
+  /**
+   * Update employee in database. If successful, sends 200 status request with the
+   * object updated and returns the object.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - object updated
+   */
+  async _updateWrapper(req, res) {
+    // log method
+    logger.log(1, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let employeeUpdated = await this._update(req); // update employee
+        let employeeValidated = await this._validateInputs(employeeUpdated); // validate inputs
+        let dataUpdated;
+        // add object to database
+        if (employeeValidated.id == req.body.id) {
+          // update database if the id's are the same
+          dataUpdated = await this.databaseModify.updateEntryInDB(employeeValidated);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = employeeValidated;
+        }
+
+        // log success
+        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+
+        // send successful 200 status
+        res.status(200).send(dataUpdated.hideFields(req.employee));
+
+        // return updated data
+        return dataUpdated.hideFields(req.employee);
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update object in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _updateWrapper
 
   /**
    * Updates budgets when changing an employee.
@@ -202,44 +257,39 @@ class EmployeeRoutes extends Crud {
     try {
       let budgets = [];
 
-      let diffWorkStatus = oldEmployee.workStatus != newEmployee.workStatus;
+      // need to update budgets
+      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+        'employeeId-expenseTypeId-index',
+        'employeeId',
+        oldEmployee.id
+      );
 
-      if (diffWorkStatus) {
-        // need to update budgets
-        let budgetsData =
-          await this.budgetDynamo.querySecondaryIndexInDB(
-            'employeeId-expenseTypeId-index',
-            'employeeId',
-            oldEmployee.id
-          );
+      budgets = _.map(budgetsData, (budgetData) => {
+        return new Budget(budgetData);
+      });
 
-        budgets = _.map(budgetsData, budgetData => {
-          return new Budget(budgetData);
-        });
+      let expenseTypes = await this.getAllExpenseTypes();
 
-        let expenseTypes = await this.getAllExpenseTypes();
+      let i; // index of budgets
+      for (i = 0; i < budgets.length; i++) {
+        // update budget amount
+        let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
+        let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
+        if (moment().isBetween(start, end, 'day', '[]')) {
+          // only update active budgets
+          let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
+          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
+          logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
+          // update budget in database
+          try {
+            await this.budgetDynamo.updateEntryInDB(budgets[i]);
 
-        let i; // index of budgets
-        for (i = 0; i < budgets.length; i++) {
-          // update budget amount
-          let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
-          let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
-          if (moment().isBetween(start, end, 'day', '[]')) {
-            // only update active budgets
-            let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-            budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
-
-            // update budget in database
-            try {
-              await this.budgetDynamo.updateEntryInDB(budgets[i]);
-
-              // log budget update success
-              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
-            } catch (err) {
-              // log and throw budget update failure
-              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
-              throw err;
-            }
+            // log budget update success
+            logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+          } catch (err) {
+            // log and throw budget update failure
+            logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+            throw err;
           }
         }
       }
@@ -322,12 +372,12 @@ class EmployeeRoutes extends Crud {
   } // _validateCreate
 
   /**
-  * Validate that an employee can be deleted. Returns the employee if successfully validated, otherwise returns an
-  * error.
-  *
-  * @param employee - employee to validate delete
-  * @return Employee - validated employee
-  */
+   * Validate that an employee can be deleted. Returns the employee if successfully validated, otherwise returns an
+   * error.
+   *
+   * @param employee - employee to validate delete
+   * @return Employee - validated employee
+   */
   async _validateDelete(employee) {
     // log method
     logger.log(3, '_validateDelete', `Validating delete for employee ${employee.id}`);
@@ -340,8 +390,7 @@ class EmployeeRoutes extends Crud {
       };
 
       // get all expenses for this employee
-      let expenses =
-        await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
+      let expenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
 
       // validate the employee does not have any expenses
       if (expenses.length > 0) {
@@ -499,7 +548,9 @@ class EmployeeRoutes extends Crud {
       // validate employee id
       if (oldEmployee.id != newEmployee.id) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Old employee id ${oldEmployee.id} does not match new employee id ${newEmployee.id}`
         );
 
@@ -509,11 +560,11 @@ class EmployeeRoutes extends Crud {
       }
 
       let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, employeeData => {
+      let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
 
-      employees = _.reject(employees, e => {
+      employees = _.reject(employees, (e) => {
         return _.isEqual(e, oldEmployee);
       });
 
@@ -539,17 +590,18 @@ class EmployeeRoutes extends Crud {
 
       // validate no budgets exist when changing hire date
       if (oldEmployee.hireDate != newEmployee.hireDate) {
-        let budgets =
-          await this.budgetDynamo.querySecondaryIndexInDB(
-            'employeeId-expenseTypeId-index',
-            'employeeId',
-            oldEmployee.id
-          );
+        let budgets = await this.budgetDynamo.querySecondaryIndexInDB(
+          'employeeId-expenseTypeId-index',
+          'employeeId',
+          oldEmployee.id
+        );
 
         if (budgets.length > 0) {
           // budgets for employee exist
           // log error
-          logger.log(3, '_validateUpdate',
+          logger.log(
+            3,
+            '_validateUpdate',
             `Cannot change hire date for employee ${oldEmployee.id} because budgets exist`
           );
 

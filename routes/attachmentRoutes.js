@@ -31,8 +31,8 @@ const checkJwt = jwt({
 const STAGE = process.env.STAGE;
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
-//const TEXTRACT_BUCKET = `case-consulting-portal-app-textract-attachments-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
 const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
 
@@ -171,9 +171,9 @@ class Attachment {
   } // deleteAttachmentFromS3
 
   /**
-   * 
-   * @param ms - time in milliseconds to timeout 
-   * @return promise - a timeout 
+   *
+   * @param ms - time in milliseconds to timeout
+   * @return promise - a timeout
    */
   timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -189,7 +189,7 @@ class Attachment {
   async extractText(req, res) {
     // log method
     logger.log(1, 'extractText', 'Attempting to upload attachment and extract text');
-  
+
     const textractStorage = multerS3({
       s3: s3,
       bucket: BUCKET,
@@ -200,21 +200,21 @@ class Attachment {
         cb(null, `${req.params.employeeId}/${file.originalname}`);
       }
     });
-  
+
     // s3 fild upload multer
     const textractUpload = multer({
       storage: textractStorage,
       limits: limits,
       fileFilter: fileFilter
     }).single('receipt');
-  
+
     // compute method
     try {
       textractUpload(req, res, async (err) => {
         if (err) {
           // log error
           logger.log(2, 'extractText', 'Failed to upload file');
-  
+
           throw err;
         } else {
           // log success
@@ -224,12 +224,12 @@ class Attachment {
             `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
             `to S3 bucket ${req.file.bucket}`
           );
-  
+
           //////
           ////// Asynchronous Document Analysis
           ////// Supports pdf, takes ~25 seconds
           //////
-  
+
           let startAnalysisParams = {
             DocumentLocation: {
               /* required */
@@ -238,40 +238,36 @@ class Attachment {
                 Name: req.file.key
               }
             },
-            FeatureTypes: [
-              'FORMS'
-            ]
+            FeatureTypes: ['FORMS']
           };
-          
+
           let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
           let jobId = startAnalysisData.JobId;
-          
+
           console.log('startAnalysisData');
           console.log(startAnalysisData);
-          
+
           let getAnalysisParams = {
             JobId: jobId
           };
-          
-          
+
           let textExtracted;
-          
+
           do {
             textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
             // We should wait for a little bit of time so we don't get provision issues
             await new Promise((resolve) => setTimeout(resolve, 200));
           } while (textExtracted.JobStatus === 'IN_PROGRESS');
-  
+
           //////
           ////// End Asynchronous Document Analysis
           //////
-  
-  
+
           //////
           ////// Synchronous Document Analysis
           ////// Does not support pdf, takes ~5 seconds
           //////
-  
+
           // let params = {
           //   Document: {
           //     S3Object: {
@@ -281,7 +277,7 @@ class Attachment {
           //   },
           //   FeatureTypes: ['TABLES', 'FORMS']
           // };
-  
+
           // textExtracted = await textract.analyzeDocument(params).promise();
           // console.log('TEXT EXTRACTED');
           // console.log(textExtracted);
@@ -365,29 +361,28 @@ class Attachment {
           // //let textExtracted = "hello world";
           // console.log('textExtracted');
           // console.log(textExtracted);
-  
+
           //////
           ////// End Synchronous Document Analysis
           //////
-  
+
           logger.log(1, 'extractText', `Successfully uploaded and extracted text from ${req.file.originalname}`);
-  
+
           // set a successful 200 response with uploaded file
           res.status(200).send(payload);
-        
-  
+
           // return text extracted from attachment
           return payload;
         }
       });
     } catch (err) {
       logger.log(1, 'extractText', 'Failed to upload attachment and extract text');
-  
+
       let error = {
         code: 403,
         message: `${err.message}`
       };
-  
+
       res.status(error.code).send(error);
     }
   } // extractText
@@ -567,7 +562,7 @@ class Attachment {
   //          * }
   //          *
   //          */
-  // let payload = { comprehend: textEntities, textract: textExtracted, 
+  // let payload = { comprehend: textEntities, textract: textExtracted,
   //   KeyValueSets: keyValueSets, Words: words };
   //         // send successful 200 status with the uploaded file and text
   //         res.status(200).send(payload);
@@ -590,10 +585,10 @@ class Attachment {
   //     }
   //   });
   // } // extractText
-  
+
   /**
-   * returns the value block 
-   * 
+   * returns the value block
+   *
    * @param keyBlock - array containing relationships
    * @param valueMap - map of values
    * @return - value block from value map based on key block
@@ -620,7 +615,7 @@ class Attachment {
    *
    * @param result - the part of the relationship that you want the string text for
    * @param blocksMap - the map of relationship blocks
-   * @return - the text of the result 
+   * @return - the text of the result
    */
   getText(result, blocksMap) {
     // def get_text(result, blocks_map):
@@ -767,4 +762,3 @@ class Attachment {
 } // Attachment
 
 module.exports = Attachment;
-

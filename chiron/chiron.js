@@ -3,7 +3,7 @@ const Logger = require('./js/Logger');
 const DatabaseModify = require('./js/databaseModify');
 const TrainingUrl = require('./models/trainingUrls');
 const ExpenseType = require('./models/expenseType');
-const Expense = require('./models/expense');
+const Expense = require('expense-model');
 const _ = require('lodash');
 const urlExist = require('url-exist');
 

@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "aws-sdk": "2.1176.0",
+    "dotenv": "8.6.0",
+    "express": "4.18.1",
+    "express-jwt": "6.1.2",
+    "express-jwt-authz": "2.4.1",
+    "form-data": "3.0.1",
+    "got": "11.8.5",
+    "jwks-rsa": "2.1.4",
+    "lodash": "4.17.21",
+    "metadata-scraper": "0.2.57",
+    "moment": "2.29.4",
+    "moment-range": "4.0.2",
+    "moment-timezone": "0.5.34",
+    "url-exist": "3.0.0",
+    "uuid": "8.3.2"
+  }
+}

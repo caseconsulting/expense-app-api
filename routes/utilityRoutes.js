@@ -54,6 +54,12 @@ class Utility {
       this._getAllActiveEmployeeBudgets.bind(this)
     );
     this._router.get(
+      '/getEmployeeExpenseTypes',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getEmployeeExpenseTypes.bind(this)
+    );
+    this._router.get(
       '/getEmployeeBudget/:id/:expenseTypeId/:date',
       this._checkJwt,
       this._getUserInfo,
@@ -330,7 +336,7 @@ class Utility {
 
   /**
    * queries the expenses based on expenseTypes and cutOffDate
-   * 
+   *
    * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
    * @return - the queried expenses
@@ -362,8 +368,8 @@ class Utility {
 
   /**
    * gets the basecamp token
-   * 
-   * @return - the basecamp authorization token 
+   *
+   * @return - the basecamp authorization token
    */
   async getBasecampToken() {
     const basecamp = new Basecamp();
@@ -374,7 +380,7 @@ class Utility {
   /**
    * gets the basecamp info
    *
-   * @return - the info for basecamp 
+   * @return - the info for basecamp
    */
   getBasecampInfo() {
     const basecamp = new Basecamp();
@@ -409,8 +415,12 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
-        this.isManager(req.employee)) {
+      if (
+        this.isAdmin(req.employee) ||
+        this.isUser(req.employee) ||
+        this.isIntern(req.employee) ||
+        this.isManager(req.employee)
+      ) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -586,8 +596,12 @@ class Utility {
 
     // compute method
     try {
-      if (this.isAdmin(req.employee) || this.isUser(req.employee) || this.isIntern(req.employee) ||
-      this.isManager(req.employee)) {
+      if (
+        this.isAdmin(req.employee) ||
+        this.isUser(req.employee) ||
+        this.isIntern(req.employee) ||
+        this.isManager(req.employee)
+      ) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -656,10 +670,20 @@ class Utility {
    */
   async _getAllEmployeeExpenses(req, res) {
     // log method
-    logger.log(1, '_getAllEmployeeExpenses', `Attempting to get all expesnes for employee ${req.params.id}`);
+    logger.log(1, '_getAllEmployeeExpenses', `Attempting to get all expenses for employee ${req.params.id}`);
 
     // compute method
     try {
+      // Restricts access to admin, manager and signed-in user
+      if (this.isUser(req.employee) && this.isIntern(req.employee) && req.params.id != req.employee.id) {
+        let err = {
+          code: 403,
+          message: `Unable to get all expenses for employee ${req.params.id} due to insufficient
+           employee permissions.`
+        };
+        throw err; // handled by try-catch
+      }
+
       let expensesData = await this.expenseDynamo.querySecondaryIndexInDB(
         'employeeId-index',
         'employeeId',
@@ -702,6 +726,16 @@ class Utility {
 
     // compute method
     try {
+      // restrict access only to admin and manager
+      if (!this.isAdmin(req.employee)) {
+        let err = {
+          code: 403,
+          message: `Unable to get all expenses for expense type ${req.params.id} due to insufficient
+           employee permissions.`
+        };
+        throw err; // handled by try-catch
+      }
+
       let expensesData = await this.expenseDynamo.querySecondaryIndexInDB(
         'expenseTypeId-index',
         'expenseTypeId',
@@ -849,6 +883,66 @@ class Utility {
       return err;
     }
   } // _getEmployeeBudget
+
+  /**
+   * Gets expense types for employee.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @returns expense types for employee
+   */
+  async _getEmployeeExpenseTypes(req, res) {
+    // log method
+    logger.log(1, '_getEmployeeExpenseTypes', `Attempting to get expense types for employee ${req.employee.id}`);
+
+    // compute method
+    try {
+      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let expenseTypes = _.map(expenseTypesData, (expenseType) => {
+        expenseType.categories = _.map(expenseType.categories, (category) => {
+          return JSON.parse(category);
+        });
+        return new ExpenseType(expenseType);
+      });
+
+      let employee = req.employee;
+      let workStatus;
+      if (employee.workStatus == 0) {
+        workStatus = 'Inactive';
+      } else if (employee.workStatus == 100) {
+        workStatus = 'FullTime';
+      } else if (employee.workStatus < 100) {
+        workStatus = 'PartTime';
+      }
+      let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+      let employeeRole = capitalize(employee.employeeRole);
+      expenseTypes = expenseTypes.filter((expenseType) => {
+        return (
+          expenseType.accessibleBy.includes(workStatus) ||
+          expenseType.accessibleBy.includes(employeeRole) ||
+          expenseType.accessibleBy.includes(employee.id)
+        );
+      });
+
+      // log success
+      logger.log(1, '_getEmployeeExpenseTypes', `Successfully got expense types for employee ${req.params.id}`);
+
+      // send successful 200 status
+      res.status(200).send(expenseTypes);
+
+      // return budget
+      return expenseTypes;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getEmployeeExpenseTypes', `Failed to get expense types for employee ${req.params.id}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  }
 
   /**
    * Gets an employee's budgets in a given anniversary range if recurring and budgets that are within the anniversary

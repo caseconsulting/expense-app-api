@@ -1,30 +1,5 @@
 const _ = require('lodash');
 
-// Fields that should be hidden from other users when
-// accessing profile page (only visisble to signed-in
-// user, admin and manager)
-const PRIVATE_DATA = [
-  'employeeRole',
-  'deptDate',
-  'birthday',
-  'birthdayFeed',
-  'city',
-  'st',
-  'country',
-  'currentCity',
-  'currentState',
-  'currentStreet',
-  'currentZIP',
-  'privatePhoneNumbers',
-  'eeoDeclineSelfIdentify',
-  'eeoAdminHasFilledOutEeoForm'
-];
-
-const CONDITIONAL_PRIVATE_DATA = ['eeoGender', 'eeoHispanicOrLatino', 'eeoJobCategory', 'eeoRaceOrEthnicity'];
-
-// Fields hidden from all users (only visible to admin and manager)
-const HIDDEN_DATA = ['lastLogin'];
-
 /**
  * Employee model
  *
@@ -39,7 +14,6 @@ const HIDDEN_DATA = ['lastLogin'];
  * - workStatus
  *
  * Optional Fields:
- * - agencyIdentificationNumber
  * - awards
  * - birthday
  * - birthdayFeed
@@ -67,9 +41,8 @@ const HIDDEN_DATA = ['lastLogin'];
  * - middleName
  * - nickname
  * - noMiddleName
- * - privatePhoneNumbers
+ * - phoneNumber
  * - prime
- * - publicPhoneNumbers
  * - schools
  * - st
  * - technologies
@@ -87,16 +60,8 @@ class Employee {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
-    this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
-    this.setOptionalAttribute(data, 'eeoGender');
-    this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
-    this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
-    this.setOptionalAttribute(data, 'eeoJobCategory');
-    this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
-    this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
-    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
     this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
@@ -124,9 +89,8 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'privatePhoneNumbers');
+    this.setOptionalAttribute(data, 'phoneNumber');
     this.setOptionalAttribute(data, 'prime');
-    this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
@@ -142,58 +106,6 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
-
-  /**
-   * Prevents employee user from overriding admin filled out fields
-   * on the EEO form, when editing profile data unrelated to EEO form
-   *
-   * @param oldEmployee - old employee object data
-   * @param user - signed-in user
-   */
-  handleEEOData(oldEmployee, user) {
-    if (this.eeoDeclineSelfIdentify && oldEmployee.eeoDeclineSelfIdentify && user.id == this.id) {
-      this.setOptionalAttribute(oldEmployee, 'eeoGender');
-      this.setOptionalAttribute(oldEmployee, 'eeoHispanicOrLatino');
-      this.setOptionalAttribute(oldEmployee, 'eeoRaceOrEthnicity');
-      this.setOptionalAttribute(oldEmployee, 'eeoJobCategory');
-    }
-  } // handleEEOData
-
-  /**
-   * Returns a new Employee object with private fields hidden based
-   * on user signed in
-   *
-   * @param employee - signed-in employee user
-   * @returns Employee - employee object with sensitive fields hidden.
-   */
-  hideFields(employee) {
-    let e = Object.fromEntries(
-      Object.entries(this).filter(([key]) => {
-        if (employee.employeeRole == 'user' || employee.employeeRole == 'intern') {
-          if (employee.id != this.id) {
-            // A User or Intern viewing a users profile
-            // Don't include private or hidden data
-            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-          } else {
-            if (this.eeoDeclineSelfIdentify) {
-              return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-            }
-            // A User or Intern viewing their own profile
-            // Don't include hidden data
-            return !HIDDEN_DATA.includes(key);
-          }
-        } else if (employee.employeeRole == 'admin') {
-          // retrun everything
-          return true;
-        } else if (employee.employeeRole == 'manager') {
-          // return everything
-          return true;
-        }
-        return false;
-      })
-    );
-    return new Employee(e);
-  }
 
   /**
    * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.

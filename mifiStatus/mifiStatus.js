@@ -9,13 +9,14 @@ moment.tz.setDefault('America/New_York');
 const FormData = require('form-data');
 
 const STAGE = process.env.STAGE;
-const BUCKET = `case-consulting-expense-app-attachments-${STAGE}`;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * Change the mifi status
- * 
+ *
  * @param event - the event of the trigger
  * @param context - the context of the trigger
  */
@@ -280,7 +281,7 @@ function getSNSParams(newImage, messageEnd) {
 
 /**
  * Handler to execute lamba function.
- * 
+ *
  * @param event - request
  * @param context - context
  */

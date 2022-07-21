@@ -8,7 +8,6 @@ moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
 describe('employeeRoutes', () => {
-
   // const ISOFORMAT = 'YYYY-MM-DD';
 
   const ID = '{id}';
@@ -162,7 +161,6 @@ describe('employeeRoutes', () => {
   });
 
   describe('_create', () => {
-
     let data, employee;
 
     beforeEach(() => {
@@ -171,25 +169,22 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully creates an employee', () => {
-
       beforeEach(() => {
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(employee));
         spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.resolve(employee));
       });
 
-      it('should return the employee created', done => {
-        employeeRoutes._create(data)
-          .then(employeeCreated => {
-            expect(employeeCreated).toEqual(employee);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
-            expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
-            done();
-          });
+      it('should return the employee created', (done) => {
+        employeeRoutes._create(data).then((employeeCreated) => {
+          expect(employeeCreated).toEqual(employee);
+          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+          expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
+          done();
+        });
       }); // should return the employee created
     }); // when successfully creates an employee
 
     describe('when fails to validate employee', () => {
-
       let err;
 
       beforeEach(() => {
@@ -202,13 +197,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateCreate').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._create(data)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._create(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
             expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
@@ -218,7 +214,6 @@ describe('employeeRoutes', () => {
     }); // when fails to validate employee
 
     describe('when fails to validate create', () => {
-
       let err;
 
       beforeEach(() => {
@@ -230,13 +225,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._create(data)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._create(data)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
             done();
@@ -246,7 +242,6 @@ describe('employeeRoutes', () => {
   }); // _create
 
   describe('_delete', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -254,24 +249,20 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully prepares delete for employee', () => {
-
       beforeEach(() => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(employee));
         spyOn(employeeRoutes, '_validateDelete').and.returnValue(Promise.resolve(employee));
       });
 
-      it('should return the employee to be deleted', done => {
-        employeeRoutes._delete(ID)
-          .then(data => {
-            expect(data).toEqual(employee);
-            done();
-          });
+      it('should return the employee to be deleted', (done) => {
+        employeeRoutes._delete(ID).then((data) => {
+          expect(data).toEqual(employee);
+          done();
+        });
       }); // should return the employee object to delete
-
     }); // when successfully prepares delete for employee
 
     describe('when fails to find employee', () => {
-
       let err;
 
       beforeEach(() => {
@@ -283,13 +274,14 @@ describe('employeeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected proimse', done => {
-        employeeRoutes._delete(ID)
+      it('should return a 403 rejected proimse', (done) => {
+        employeeRoutes
+          ._delete(ID)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -298,7 +290,6 @@ describe('employeeRoutes', () => {
     }); // when fails to find employee
 
     describe('when fails to validate delete', () => {
-
       let err;
 
       beforeEach(() => {
@@ -311,13 +302,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateDelete').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected proimse', done => {
-        employeeRoutes._delete(ID)
+      it('should return a 403 rejected proimse', (done) => {
+        employeeRoutes
+          ._delete(ID)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateDelete).toHaveBeenCalledWith(employee);
@@ -328,7 +320,6 @@ describe('employeeRoutes', () => {
   }); // _delete
 
   describe('_read', () => {
-
     let params, employee;
 
     beforeEach(() => {
@@ -340,22 +331,19 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully reads an employee', () => {
-
       beforeEach(() => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(employee));
       });
 
       it('should return the employee read', () => {
-        employeeRoutes._read(params)
-          .then(data => {
-            expect(data).toEqual(employee);
-            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-          });
+        employeeRoutes._read(params).then((data) => {
+          expect(data).toEqual(employee);
+          expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+        });
       }); // should return the employee read
     }); // when successfully reads and employee
 
     describe('when fails to read employee', () => {
-
       let err;
 
       beforeEach(() => {
@@ -367,13 +355,14 @@ describe('employeeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._read(params)
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._read(params)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -383,30 +372,28 @@ describe('employeeRoutes', () => {
   }); // _read
 
   describe('_readAll', () => {
-
     let employees;
+    let currentEmployee;
 
     beforeEach(() => {
       employees = [new Employee(EMPLOYEE_DATA)];
+      currentEmployee = new Employee({ id: 0, employeeRole: 'admin' });
     });
 
     describe('when successfully reads all entries', () => {
-
       beforeEach(() => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
       });
 
-      it('should return the employees', done => {
-        employeeRoutes._readAll()
-          .then(data => {
-            expect(data).toEqual(employees);
-            done();
-          });
+      it('should return the employees', (done) => {
+        employeeRoutes._readAll(currentEmployee).then((data) => {
+          expect(data).toEqual(employees);
+          done();
+        });
       }); // should return the employees
     }); // when successfully reads all entries
 
     describe('when fails to read all entries', () => {
-
       let err;
 
       beforeEach(() => {
@@ -417,13 +404,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._readAll()
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._readAll(currentEmployee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -433,17 +421,19 @@ describe('employeeRoutes', () => {
   }); // _readAll
 
   describe('_update', () => {
-
     let data, oldEmployee, newEmployee;
+    let param;
 
     beforeEach(() => {
       data = _.cloneDeep(EMPLOYEE_DATA);
       oldEmployee = new Employee(EMPLOYEE_DATA);
       newEmployee = new Employee(EMPLOYEE_DATA);
+      param = {
+        body: data
+      };
     });
 
     describe('when successfully prepares to update employee', () => {
-
       beforeEach(() => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
@@ -451,21 +441,19 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
       });
 
-      it('should return the prepared employee', done => {
-        employeeRoutes._update(data)
-          .then(employee => {
-            expect(employee).toEqual(newEmployee);
-            expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
-            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
-            expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
-            done();
-          });
+      it('should return the prepared employee', (done) => {
+        employeeRoutes._update(param).then((employee) => {
+          expect(employee).toEqual(newEmployee);
+          expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
+          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+          expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+          expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
+          done();
+        });
       }); // should return the prepared employee
     }); // when successfully prepares to update employee
 
     describe('when fails to find old employee', () => {
-
       let err;
 
       beforeEach(() => {
@@ -477,13 +465,14 @@ describe('employeeRoutes', () => {
         databaseModify.getEntry.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._update(data)
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             done();
@@ -492,7 +481,6 @@ describe('employeeRoutes', () => {
     }); // when fails to find old employee
 
     describe('when fails to validate new employee', () => {
-
       let err;
 
       beforeEach(() => {
@@ -505,13 +493,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
@@ -521,7 +510,6 @@ describe('employeeRoutes', () => {
     }); // when fails to validate new employee
 
     describe('when fails to validate update', () => {
-
       let err;
 
       beforeEach(() => {
@@ -535,13 +523,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._update(data)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
@@ -552,7 +541,6 @@ describe('employeeRoutes', () => {
     }); // when fais to validate update
 
     describe('when fails to update budgets', () => {
-
       let err;
 
       beforeEach(() => {
@@ -567,13 +555,14 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._update(data)
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._update(param)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
@@ -586,7 +575,6 @@ describe('employeeRoutes', () => {
   }); // _update
 
   describe('_updateBudgets', () => {
-
     let oldEmployee, newEmployee;
 
     beforeEach(() => {
@@ -595,23 +583,20 @@ describe('employeeRoutes', () => {
     });
 
     describe('when work status is the same', () => {
-
       beforeEach(() => {
         oldEmployee.workStatus = 100;
         newEmployee.workStatus = 100;
       });
 
-      it ('should return an empty array of budgets', done => {
-        employeeRoutes._updateBudgets(oldEmployee, newEmployee)
-          .then(data => {
-            expect(data).toEqual([]);
-            done();
-          });
+      it('should return an empty array of budgets', (done) => {
+        employeeRoutes._updateBudgets(oldEmployee, newEmployee).then((data) => {
+          expect(data).toEqual([]);
+          done();
+        });
       }); // should return an empty array of budgets
     }); // when work status is the same
 
     describe('when work status is changed', () => {
-
       let expenseType1, expenseType2, expenseTypes, today;
       let budget1, budget2, budget3, budgets, expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
 
@@ -676,7 +661,6 @@ describe('employeeRoutes', () => {
       });
 
       describe('and successfully updates budgets', () => {
-
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
@@ -687,21 +671,22 @@ describe('employeeRoutes', () => {
           );
         });
 
-        it('should return the employee budgets', done => {
-          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
-            .then(data => {
-              expect(data).toEqual(expectedBudgets);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
-              expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-              expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
-              done();
-            });
+        it('should return the employee budgets', (done) => {
+          employeeRoutes._updateBudgets(oldEmployee, newEmployee).then((data) => {
+            expect(data).toEqual(expectedBudgets);
+            expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'employeeId-expenseTypeId-index',
+              'employeeId',
+              ID
+            );
+            expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(budgetDynamo.updateEntryInDB).toHaveBeenCalledTimes(2);
+            done();
+          });
         });
       }); // and successfully updates budgets
 
       describe('and fails to get budgets', () => {
-
         let err;
 
         beforeEach(() => {
@@ -713,23 +698,26 @@ describe('employeeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+        it('should return a 404 rejected promise', (done) => {
+          employeeRoutes
+            ._updateBudgets(oldEmployee, newEmployee)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'employeeId-expenseTypeId-index',
+                'employeeId',
+                ID
+              );
               done();
             });
         }); // should return a 404 rejected promise
       }); // and fails to get budgets
 
       describe('and fails to get expense types', () => {
-
         let err;
 
         beforeEach(() => {
@@ -742,16 +730,20 @@ describe('employeeRoutes', () => {
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+        it('should return a 404 rejected promise', (done) => {
+          employeeRoutes
+            ._updateBudgets(oldEmployee, newEmployee)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'employeeId-expenseTypeId-index',
+                'employeeId',
+                ID
+              );
               expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               done();
             });
@@ -759,7 +751,6 @@ describe('employeeRoutes', () => {
       }); // and fails to get expense types
 
       describe('and fails to update entry in database', () => {
-
         let err;
 
         beforeEach(() => {
@@ -773,16 +764,20 @@ describe('employeeRoutes', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', done => {
-          employeeRoutes._updateBudgets(oldEmployee, newEmployee)
+        it('should return a 404 rejected promise', (done) => {
+          employeeRoutes
+            ._updateBudgets(oldEmployee, newEmployee)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+              expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+                'employeeId-expenseTypeId-index',
+                'employeeId',
+                ID
+              );
               expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
               expect(budgetDynamo.updateEntryInDB).toHaveBeenCalled();
               done();
@@ -793,7 +788,6 @@ describe('employeeRoutes', () => {
   }); // _updateBudgets
 
   describe('_validateCreate', () => {
-
     let employee, employee1, employees;
 
     beforeEach(() => {
@@ -803,7 +797,6 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully validates create', () => {
-
       beforeEach(() => {
         employee.id = 'OTHER_ID';
         employee.employeeNumber = 'OTHER_NUBMER';
@@ -812,17 +805,15 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
       });
 
-      it('should return the validated employee', done => {
-        employeeRoutes._validateCreate(employee)
-          .then(data => {
-            expect(data).toEqual(employee);
-            done();
-          });
+      it('should return the validated employee', (done) => {
+        employeeRoutes._validateCreate(employee).then((data) => {
+          expect(data).toEqual(employee);
+          done();
+        });
       }); // should return the validated employee
     }); // when successfully validates create
 
     describe('when there is a duplicate employee id', () => {
-
       let err;
 
       beforeEach(() => {
@@ -837,13 +828,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateCreate(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateCreate(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -852,7 +844,6 @@ describe('employeeRoutes', () => {
     }); // when there is a duplicate employee id
 
     describe('when there is a duplicate employee number', () => {
-
       let err;
 
       beforeEach(() => {
@@ -867,13 +858,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateCreate(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateCreate(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -882,7 +874,6 @@ describe('employeeRoutes', () => {
     }); // when there is a duplicate employee number
 
     describe('when there is a duplicate employee email', () => {
-
       let err;
 
       beforeEach(() => {
@@ -897,13 +888,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(employees));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateCreate(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateCreate(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -913,7 +905,6 @@ describe('employeeRoutes', () => {
   }); // _validateCreate
 
   describe('_validateDelete', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -921,23 +912,20 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully validates delete', () => {
-
       beforeEach(() => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
       });
 
-      it('should return the validated employee', done => {
-        employeeRoutes._validateDelete(employee)
-          .then(data => {
-            expect(data).toEqual(employee);
-            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
-            done();
-          });
+      it('should return the validated employee', (done) => {
+        employeeRoutes._validateDelete(employee).then((data) => {
+          expect(data).toEqual(employee);
+          expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+          done();
+        });
       }); // should return the validated employee
     }); // when successfully validates delete
 
     describe('when fails to get expenses', () => {
-
       let err;
 
       beforeEach(() => {
@@ -949,13 +937,14 @@ describe('employeeRoutes', () => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._validateDelete(employee)
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._validateDelete(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
             done();
@@ -964,7 +953,6 @@ describe('employeeRoutes', () => {
     }); // when fails to get expenses
 
     describe('when employee has expenses', () => {
-
       let err;
 
       beforeEach(() => {
@@ -976,13 +964,14 @@ describe('employeeRoutes', () => {
         expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([new Expense(EXPENSE_DATA)]));
       });
 
-      it('should return a 404 rejected promise', done => {
-        employeeRoutes._validateDelete(employee)
+      it('should return a 404 rejected promise', (done) => {
+        employeeRoutes
+          ._validateDelete(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
             done();
@@ -992,7 +981,6 @@ describe('employeeRoutes', () => {
   }); // _validateDelete
 
   describe('_validateEmployee', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -1000,17 +988,14 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully validates employee', () => {
-
       it('should return the validated employee', () => {
-        employeeRoutes._validateEmployee(employee)
-          .then(data => {
-            expect(data).toEqual(employee);
-          });
+        employeeRoutes._validateEmployee(employee).then((data) => {
+          expect(data).toEqual(employee);
+        });
       }); // should return the validated employee
     }); // when successfully validates employee
 
     describe('when employee id is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1022,13 +1007,14 @@ describe('employeeRoutes', () => {
         delete employee.id;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1036,7 +1022,6 @@ describe('employeeRoutes', () => {
     }); // when employee id is missing
 
     describe('when employee first name is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1048,13 +1033,14 @@ describe('employeeRoutes', () => {
         delete employee.firstName;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1062,7 +1048,6 @@ describe('employeeRoutes', () => {
     }); // when employee first name is missing
 
     describe('when employee last name is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1074,13 +1059,14 @@ describe('employeeRoutes', () => {
         delete employee.lastName;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1088,7 +1074,6 @@ describe('employeeRoutes', () => {
     }); // when employee last name is missing
 
     describe('when employee number is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1100,13 +1085,14 @@ describe('employeeRoutes', () => {
         delete employee.employeeNumber;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1114,7 +1100,6 @@ describe('employeeRoutes', () => {
     }); // when employee number is missing
 
     describe('when employee hire date is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1126,13 +1111,14 @@ describe('employeeRoutes', () => {
         delete employee.hireDate;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1140,7 +1126,6 @@ describe('employeeRoutes', () => {
     }); // when employee hire date is missing
 
     describe('when employee email is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1152,13 +1137,14 @@ describe('employeeRoutes', () => {
         delete employee.email;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1166,7 +1152,6 @@ describe('employeeRoutes', () => {
     }); // when employee email is missing
 
     describe('when employee role is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1178,13 +1163,14 @@ describe('employeeRoutes', () => {
         delete employee.employeeRole;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1192,7 +1178,6 @@ describe('employeeRoutes', () => {
     }); // when employee role is missing
 
     describe('when employee work status is missing', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1204,13 +1189,14 @@ describe('employeeRoutes', () => {
         delete employee.workStatus;
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateEmployee(employee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateEmployee(employee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1219,7 +1205,6 @@ describe('employeeRoutes', () => {
   }); // _validateEmployee
 
   describe('_validateUpdate', () => {
-
     let oldEmployee, newEmployee, budget1, budgets;
 
     beforeEach(() => {
@@ -1230,25 +1215,21 @@ describe('employeeRoutes', () => {
     });
 
     describe('when successfully validates update', () => {
-
       beforeEach(() => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee]));
       });
 
       describe('and hire date is the same', () => {
-
-        it('should return the validated employee', done => {
-          employeeRoutes._validateUpdate(oldEmployee, newEmployee)
-            .then(data => {
-              expect(data).toEqual(newEmployee);
-              expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-              done();
-            });
+        it('should return the validated employee', (done) => {
+          employeeRoutes._validateUpdate(oldEmployee, newEmployee).then((data) => {
+            expect(data).toEqual(newEmployee);
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
         }); // should return the validated employee
       }); // and hire date is the same
 
       describe('and hire date is changed', () => {
-
         beforeEach(() => {
           oldEmployee.hireDate = '2000-08-18';
           newEmployee.hireDate = '2001-08-18';
@@ -1256,21 +1237,22 @@ describe('employeeRoutes', () => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
         });
 
-        it('should return the validated employee', done => {
-          employeeRoutes._validateUpdate(oldEmployee, newEmployee)
-            .then(data => {
-              expect(data).toEqual(newEmployee);
-              expect(budgetDynamo.querySecondaryIndexInDB)
-                .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
-              expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-              done();
-            });
+        it('should return the validated employee', (done) => {
+          employeeRoutes._validateUpdate(oldEmployee, newEmployee).then((data) => {
+            expect(data).toEqual(newEmployee);
+            expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'employeeId-expenseTypeId-index',
+              'employeeId',
+              ID
+            );
+            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+            done();
+          });
         }); // should return the validated employee
       }); // and hire date is changed
     }); // when successfully validates update
 
     describe('when another employee already has the same employee number', () => {
-
       let err, otherEmployee;
 
       beforeEach(() => {
@@ -1285,13 +1267,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateUpdate(oldEmployee, newEmployee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -1300,7 +1283,6 @@ describe('employeeRoutes', () => {
     }); // when another employee already has the same employee number
 
     describe('when another employee already has the same employee email', () => {
-
       let err, otherEmployee;
 
       beforeEach(() => {
@@ -1315,13 +1297,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateUpdate(oldEmployee, newEmployee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
@@ -1330,7 +1313,6 @@ describe('employeeRoutes', () => {
     }); // when another employee already has the same employee email
 
     describe('when old employee id does not match the new employee id', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1343,13 +1325,14 @@ describe('employeeRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee]));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateUpdate(oldEmployee, newEmployee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });
@@ -1357,7 +1340,6 @@ describe('employeeRoutes', () => {
     }); // when old employee id does not match the new employee id
 
     describe('when employee hire date is changed and the employee has budgets', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1372,16 +1354,20 @@ describe('employeeRoutes', () => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
       });
 
-      it('should return a 403 rejected promise', done => {
-        employeeRoutes._validateUpdate(oldEmployee, newEmployee)
+      it('should return a 403 rejected promise', (done) => {
+        employeeRoutes
+          ._validateUpdate(oldEmployee, newEmployee)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
-            expect(budgetDynamo.querySecondaryIndexInDB)
-              .toHaveBeenCalledWith('employeeId-expenseTypeId-index', 'employeeId', ID);
+            expect(budgetDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'employeeId-expenseTypeId-index',
+              'employeeId',
+              ID
+            );
             expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
           });
