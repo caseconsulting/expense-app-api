@@ -798,32 +798,6 @@ describe('utilityRoutes', () => {
         });
       }); // should respond with a 404 and error
     }); // when it fails to get employees
-    describe('when it fails to get all expenses', () => {
-      let err;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          message: 'Failed to get all expenses.'
-        };
-
-        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
-        employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
-      });
-
-      it('should respond with a 404 and error', (done) => {
-        utilityRoutes._getAllExpenses(req, res).then((data) => {
-          expect(data).toEqual(err);
-          expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(expenseDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(res.status).toHaveBeenCalledWith(404);
-          expect(res.send).toHaveBeenCalledWith(err);
-          done();
-        });
-      }); // should respond with a 404 and error
-    }); // when it fails to get all expenses
   }); // _getAllExpenses
 
   describe('_getAllEvents', () => {
@@ -937,35 +911,6 @@ describe('utilityRoutes', () => {
       }); // should respond with a 404 and error
     }); // when fails to get employees
 
-    describe('when it fails to get all expenses', () => {
-      let err;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          message: 'Failed to get all expenses.'
-        };
-
-        // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
-        spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
-        employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        // utilityRoutes.queryExpenses.and.returnValue(Promise.reject(err)); TODO: queryExpense?
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.reject(err));
-      });
-
-      it('should respond with a 404 and error', (done) => {
-        utilityRoutes._getAllEvents(req, res).then((data) => {
-          expect(data).toEqual(err);
-          expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
-          expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
-          expect(res.status).toHaveBeenCalledWith(404);
-          expect(res.send).toHaveBeenCalledWith(err);
-          done();
-        });
-      }); // should respond with a 404 and error
-    }); // when it fails to get all expenses
-
     describe('when it fails to get basecamp token', () => {
       let err;
 
@@ -990,7 +935,6 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(404);
           expect(res.send).toHaveBeenCalledWith(err);
