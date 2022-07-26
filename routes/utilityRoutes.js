@@ -529,8 +529,6 @@ class Utility {
       });
       let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
 
-      //let accessToken = await this.getBasecampToken();
-
       let entries = [];
 
       const basecampInfo = this.getBasecampInfo();
@@ -607,7 +605,7 @@ class Utility {
       ) {
         // employee is an admin or user
         // get expense types
-        let expenseTypes; // = await this.getAllExpenseTypes();
+        let expenseTypes;
 
         let employeesData;
         let expensesData;
