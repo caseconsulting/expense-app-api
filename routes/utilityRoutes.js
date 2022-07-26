@@ -293,22 +293,24 @@ class Utility {
     // compute method
     try {
       // get employee
-      let employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
-
-      // get all expense types
-      let expenseTypes = await this.getAllExpenseTypes();
+      let [employee, expenseTypes] = await Promise.all([
+        this.employeeDynamo.getEntry(req.params.id),
+        this.getAllExpenseTypes()
+      ]);
 
       let activeBudgets = []; // store active budgets
       let today = moment().format(ISOFORMAT); // today isoformat string
 
       // loop all expense types
+      let promises = [];
       await this.asyncForEach(expenseTypes, async (expenseType) => {
         if (expenseType.isDateInRange(today) && this.hasAccess(employee, expenseType)) {
           // expense type is active today
           // push the current active budget
-          activeBudgets.push(await this._getActiveBudget(employee, expenseType));
+          promises.push(this._getActiveBudget(employee, expenseType));
         }
       });
+      activeBudgets = await Promise.all(promises);
 
       // log success
       logger.log(
@@ -480,9 +482,12 @@ class Utility {
   async _getAllEvents(req, res) {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
-
     try {
-      let expenseTypes = await this.getAllExpenseTypes();
+      let [expenseTypes, employeesData, accessToken] = await Promise.all([
+        this.getAllExpenseTypes(),
+        this.employeeDynamo.getAllEntriesInDB(),
+        this.getBasecampToken()
+      ]);
 
       let now = moment();
       let cutOff = now.subtract(6, 'months').startOf('day');
@@ -497,45 +502,44 @@ class Utility {
       });
       filteredExpenseTypes = _.compact(filteredExpenseTypes);
 
-      let employeesData;
       let expensesData = [];
-
-      employeesData = await this.employeeDynamo.getAllEntriesInDB();
-
-      await this.asyncForEach(filteredExpenseTypes, async (expenseType) => {
-        try {
-          let queryExpensesData = await this.queryExpenses(expenseType, cutOff);
-
+      let promises = [];
+      try {
+        await this.asyncForEach(filteredExpenseTypes, async (expenseType) => {
+          promises.push(this.queryExpenses(expenseType, cutOff));
           // log success
           logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
-
+        });
+        let expensesDataArr = await Promise.all(promises);
+        expensesDataArr.forEach((queryExpensesData) => {
           let expenses = _.map(queryExpensesData, (expenseData) => {
             return new Expense(expenseData);
           });
 
           expensesData = _.union(expensesData, expenses);
-        } catch (err) {
-          // log error
-          logger.log(1, 'getAllEvents', `Failed to read all expenses for expenseType ${expenseType.budgetName}`);
-          return Promise.reject(err);
-        }
-      });
+        });
+      } catch (err) {
+        // log error
+        logger.log(1, 'getAllEvents', 'Failed to read all expenses for expenseTypes');
+        return Promise.reject(err);
+      }
 
       let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
-
       let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
 
-      let accessToken = await this.getBasecampToken();
+      //let accessToken = await this.getBasecampToken();
 
       let entries = [];
 
       const basecampInfo = this.getBasecampInfo();
 
+      promises = [];
       for (let proj in basecampInfo) {
-        entries.push(await this.getScheduleEntries(accessToken, basecampInfo[proj]));
+        promises.push(this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
+      entries = await Promise.all(promises);
       let payload = {
         employees: employees,
         expenses: aggregateExpenses,
@@ -551,7 +555,6 @@ class Utility {
     } catch (err) {
       // log error
       logger.log(1, '_getAllEvents', 'Failed to get all event data');
-
       // send error status
       this._sendError(res, err);
 
@@ -604,24 +607,26 @@ class Utility {
       ) {
         // employee is an admin or user
         // get expense types
-        let expenseTypes = await this.getAllExpenseTypes();
+        let expenseTypes; // = await this.getAllExpenseTypes();
 
         let employeesData;
         let expensesData;
         if (this.isAdmin(req.employee)) {
           // get all employee and expense data if admin
-          employeesData = await this.employeeDynamo.getAllEntriesInDB();
-          expensesData = await this.expenseDynamo.getAllEntriesInDB();
+          [expenseTypes, employeesData, expensesData] = await Promise.all([
+            this.getAllExpenseTypes(),
+            this.employeeDynamo.getAllEntriesInDB(),
+            this.expenseDynamo.getAllEntriesInDB()
+          ]);
         } else {
           // get the requesting employee and expenses
-          employeesData = [await this.employeeDynamo.getEntry(req.employee.id)];
-          expensesData = await this.expenseDynamo.querySecondaryIndexInDB(
-            'employeeId-index',
-            'employeeId',
-            req.employee.id
-          );
+          [expenseTypes, employeesData, expensesData] = await Promise.all([
+            this.getAllExpenseTypes(),
+            this.employeeDynamo.getEntry(req.employee.id),
+            this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', req.employee.id)
+          ]);
+          employeesData = [employeesData];
         }
-
         let employees = _.map(employeesData, (employeeData) => {
           return new Employee(employeeData);
         });
