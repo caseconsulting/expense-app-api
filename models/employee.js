@@ -144,6 +144,22 @@ class Employee {
   } // fullName
 
   /**
+   * Prevents employee user from overriding admin filled out fields
+   * on the EEO form, when editing profile data unrelated to EEO form
+   *
+   * @param oldEmployee - old employee object data
+   * @param user - signed-in user
+   */
+  handleEEOData(oldEmployee, user) {
+    if (this.eeoDeclineSelfIdentify && oldEmployee.eeoDeclineSelfIdentify && user.id == this.id) {
+      this.setOptionalAttribute(oldEmployee, 'eeoGender');
+      this.setOptionalAttribute(oldEmployee, 'eeoHispanicOrLatino');
+      this.setOptionalAttribute(oldEmployee, 'eeoRaceOrEthnicity');
+      this.setOptionalAttribute(oldEmployee, 'eeoJobCategory');
+    }
+  } // handleEEOData
+
+  /**
    * Returns a new Employee object with private fields hidden based
    * on user signed in
    *
@@ -158,9 +174,10 @@ class Employee {
             // A User or Intern viewing a users profile
             // Don't include private or hidden data
             return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-          } else if (employee.eeoDeclineSelfIdentify) {
-            return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
           } else {
+            if (this.eeoDeclineSelfIdentify) {
+              return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
+            }
             // A User or Intern viewing their own profile
             // Don't include hidden data
             return !HIDDEN_DATA.includes(key);

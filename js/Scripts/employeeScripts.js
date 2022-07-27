@@ -23,7 +23,8 @@ const actions = [
   '10. Remove unused contract data left from old JSON structure',
   '11. Migrate phoneNumber attribute to private phone number array column',
   '12. Remove phoneNumber attribute from database',
-  '13. Remove unused clearance expiration date left from old JSON structure'
+  '13. Remove unused clearance expiration date left from old JSON structure',
+  '14. Change wording in level of proficiency for basic'
 ];
 
 // check for stage argument
@@ -555,6 +556,40 @@ async function deleteUnusedClearanceExpirationDate() {
 } // deleteUnusedClearanceExpirationDate
 
 /**
+ * Change wording in level of proficiency for basic.
+ */
+async function changeWordingForBasicProficiencyLevel() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.languages) {
+      _.forEach(employee.languages, (language) => {
+        if (language.proficiency.includes('Basic')) {
+          language.proficiency = language.proficiency.toLowerCase();
+          language.proficiency = language.proficiency.charAt(0).toUpperCase() + language.proficiency.slice(1);
+        }
+      });
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set languages = :s',
+        ExpressionAttributeValues: {
+          ':s': employee.languages
+        }
+      };
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Failed to update basic language proficiency. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Basic language proficiency updated\n  Employee ID: ${employee.id}\n`);
+        }
+      });
+    }
+  });
+} // changeWordingForBasicProficiencyLevel
+
+/**
  * User chooses an action
  *
  * @return - the user input
@@ -698,6 +733,12 @@ async function main() {
       if (confirmAction('13. Remove unused clearance expiration date left from old JSON structure')) {
         console.log('Removed unused clearance expiration date left from old JSON structure');
         deleteUnusedClearanceExpirationDate();
+      }
+      break;
+    case 14:
+      if (confirmAction('14. Change wording in level of proficiency for basic')) {
+        console.log('Changed wording in level of proficiency for basic');
+        changeWordingForBasicProficiencyLevel();
       }
       break;
     default:

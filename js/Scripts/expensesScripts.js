@@ -12,7 +12,8 @@ const actions = [
   '3. Delete all expenses',
   '4. Change all expense attributes labeled categories to category',
   '5. Change all expense attributes labeled userId to employeeId',
-  '6. Add showOnFeed attribute to DynamoDB'
+  '6. Add showOnFeed attribute to DynamoDB',
+  '7. Add receipts to legacy expenses of types that now require receipts'
 ];
 
 // check for stage argument
@@ -55,12 +56,12 @@ const getAllEntriesHelper = (params, out = []) =>
 
 /**
  * get all entries in dynamodb table
- * 
+ *
  * @param table - the dynamo table
  * @return - all the entries
  */
 function getAllEntries(table) {
-  console.log('Getting all entries in dynamodb expenses table');
+  console.log(`Getting all entries in dynamodb ${table} table`);
   let params = {
     TableName: table
   };
@@ -96,7 +97,7 @@ async function addShowOnFeed() {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expense.id
+        id: expense.id
       },
       UpdateExpression: 'set showOnFeed = :a',
       ExpressionAttributeValues: {
@@ -115,8 +116,45 @@ async function addShowOnFeed() {
 } // addShowOnFeed
 
 /**
+ * Adds receipts to all expenses that should have one, but don't for some reason.
+ * Most likely because they were created before the receipt requirement was in place.
+ */
+async function addReceipts() {
+  // check expenseType, then check categories, then set to false
+  let expenseTypes = await getAllEntries(ETTABLE);
+  let expenses = await getAllEntries(TABLE);
+  _.forEach(expenses, (expense) => {
+    let expenseType = _.find(expenseTypes, (eType) => {
+      return eType.id === expense.expenseTypeId;
+    });
+    // if receipt required and no receipt
+    if (expenseType.requiredFlag && expense.receipt === undefined) {
+      console.log(`Updating expense ${expense.id}`);
+      // add "receipt" url
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: expense.id
+        },
+        UpdateExpression: 'set receipt = :a',
+        ExpressionAttributeValues: {
+          ':a': 'doNotOpenNonExistant.png'
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      // update expense
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        }
+      });
+    }
+  });
+} // addReceipts
+
+/**
  * Used for testing dynamo limitations - populates data table with expenses
- * 
+ *
  * @param numberOfItems - number of expenses to populate
  */
 function createItems(numberOfItems) {
@@ -172,7 +210,7 @@ async function deleteAllExpenses() {
 
 /**
  * Copies values from old attribute name to new attribute name
- * 
+ *
  * @param oldName - the old attribute name
  * @param newName - the new attribute name
  */
@@ -211,7 +249,7 @@ async function copyValues(oldName, newName) {
 
 /**
  * Removes given attribute from all expense data
- * 
+ *
  * @param attribute - attribute to be removed
  */
 async function removeAttribute(attribute) {
@@ -237,7 +275,7 @@ async function removeAttribute(attribute) {
 
 /**
  * Changes attribute name
- * 
+ *
  * @param oldName - the old attribute name
  * @param newName - the new attribute name
  */
@@ -248,7 +286,7 @@ async function changeAttributeName(oldName, newName) {
 
 /**
  * User chooses an action
- * 
+ *
  * @return - the action that the user chooses
  */
 function chooseAction() {
@@ -285,7 +323,7 @@ function chooseAction() {
 
 /**
  * Prompts the user and confirm action
- * 
+ *
  * @param prompt - the string representing the action
  * @return boolean - whether the option is or isn't confirmed
  */
@@ -382,6 +420,12 @@ async function main() {
       if (confirmAction('Add showOnFeed attribute to all expenses?')) {
         console.log('Adding showOnFeed attribute to all expenses');
         addShowOnFeed();
+      }
+      break;
+    case 7:
+      if (confirmAction('Add receipts to legacy expenses of types that now require receipt?')) {
+        console.log('Adding receipts to legacy expenses of types that now require receipt');
+        addReceipts();
       }
       break;
     default:
