@@ -24,7 +24,8 @@ const actions = [
   '11. Migrate phoneNumber attribute to private phone number array column',
   '12. Remove phoneNumber attribute from database',
   '13. Remove unused clearance expiration date left from old JSON structure',
-  '14. Change wording in level of proficiency for basic'
+  '14. Change wording in level of proficiency for basic',
+  '15. Update Github/Twitter profile URLs to just names'
 ];
 
 // check for stage argument
@@ -627,6 +628,52 @@ function chooseAction() {
 } // chooseAction
 
 /**
+ * Updates Github/Twitter profile information to replace URLs with just usernames.
+ */
+async function replaceGithubTwitterUrls() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    // set values and command
+    let eaVals = {};
+    let updateExp = '';
+    let update = false;
+    if (employee.github && employee.github.indexOf('/') != -1) {
+      update = true;
+      updateExp += 'set github = :gh';
+      eaVals[':gh'] = employee.github.substring(employee.github.lastIndexOf('/') + 1, employee.github.length);
+    }
+    if (employee.twitter && employee.twitter.indexOf('/') != -1) {
+      update = true;
+      let and = updateExp === '' ? 'set ' : ', ';
+      updateExp += `${and}twitter = :tw`;
+      eaVals[':tw'] = employee.twitter.substring(employee.twitter.lastIndexOf('/') + 1, employee.twitter.length);
+    }
+
+    // build and execute command
+    if (update) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: updateExp,
+        ExpressionAttributeValues: eaVals,
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      // update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Updated Employee ID: ${employee.id}`);
+        }
+      });
+    }
+  });
+} // deleteUnusedClearanceExpirationDate
+
+/**
  * Prompts the user and confirm action
  *
  * @param prompt - the string of the choice the user is confirming
@@ -739,6 +786,12 @@ async function main() {
       if (confirmAction('14. Change wording in level of proficiency for basic')) {
         console.log('Changed wording in level of proficiency for basic');
         changeWordingForBasicProficiencyLevel();
+      }
+      break;
+    case 15:
+      if (confirmAction('15. Update Github/Twitter profile URLs to just names')) {
+        console.log('Updated Github/Twitter proflie URLs to just names');
+        replaceGithubTwitterUrls();
       }
       break;
     default:
