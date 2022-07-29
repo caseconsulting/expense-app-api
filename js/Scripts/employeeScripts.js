@@ -640,12 +640,14 @@ async function replaceGithubTwitterUrls() {
     if (employee.github && employee.github.indexOf('/') != -1) {
       update = true;
       updateExp += 'set github = :gh';
+      if (employee.github.slice(-1) === '/') employee.github = employee.github.slice(0, -1);
       eaVals[':gh'] = employee.github.substring(employee.github.lastIndexOf('/') + 1, employee.github.length);
     }
     if (employee.twitter && employee.twitter.indexOf('/') != -1) {
       update = true;
       let and = updateExp === '' ? 'set ' : ', ';
       updateExp += `${and}twitter = :tw`;
+      if (employee.twitter.slice(-1) === '/') employee.twitter = employee.twitter.slice(0, -1);
       eaVals[':tw'] = employee.twitter.substring(employee.twitter.lastIndexOf('/') + 1, employee.twitter.length);
     }
 
