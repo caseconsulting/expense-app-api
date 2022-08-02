@@ -25,7 +25,8 @@ const actions = [
   '12. Remove phoneNumber attribute from database',
   '13. Remove unused clearance expiration date left from old JSON structure',
   '14. Change wording in level of proficiency for basic',
-  '15. Update Github/Twitter profile URLs to just names'
+  '15. Update Github/Twitter profile URLs to just names',
+  '17. Update awards with no dates to have dates'
 ];
 
 // check for stage argument
@@ -676,6 +677,45 @@ async function replaceGithubTwitterUrls() {
 } // deleteUnusedClearanceExpirationDate
 
 /**
+ * Updates awards to have dates if they have no dates, fixing the stuck on activity feed issue.
+ * This would be easily portable to expenses if needed.
+ */
+async function addAwardDates() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    let update = false;
+    _.forEach(employee.awards, (award, i) => {
+      if ([undefined, null].includes(award.dateReceived)) {
+        employee.awards[i].dateReceived = '1970-01'; // set to beginning of time
+        update = true;
+      }
+    });
+
+    // build and execute command
+    if (update) {
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set awards = :aw',
+        ExpressionAttributeValues: { ':aw': employee.awards },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      // update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Updated Employee ID: ${employee.id}`);
+        }
+      });
+    }
+  });
+} // addAwardDates
+
+/**
  * Prompts the user and confirm action
  *
  * @param prompt - the string of the choice the user is confirming
@@ -794,6 +834,12 @@ async function main() {
       if (confirmAction('15. Update Github/Twitter profile URLs to just names')) {
         console.log('Updated Github/Twitter proflie URLs to just names');
         replaceGithubTwitterUrls();
+      }
+      break;
+    case 17:
+      if (confirmAction('17. Update awards with no dates to have dates')) {
+        console.log('Updated dateless awards to have a date');
+        addAwardDates();
       }
       break;
     default:
