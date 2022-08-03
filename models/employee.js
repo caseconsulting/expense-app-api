@@ -57,6 +57,7 @@ const HIDDEN_DATA = ['lastLogin'];
  * - customerOrgExp
  * - degrees
  * - deptDate
+ * - education
  * - github
  * - icTimeFrames
  * - jobRole
@@ -114,6 +115,7 @@ class Employee {
     this.setOptionalAttribute(data, 'customerOrgExp');
     this.setOptionalAttribute(data, 'degrees');
     this.setOptionalAttribute(data, 'deptDate');
+    this.setOptionalAttribute(data, 'education');
     this.setOptionalAttribute(data, 'github');
     this.setOptionalAttribute(data, 'icTimeFrames');
     this.setOptionalAttribute(data, 'jobRole');

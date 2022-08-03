@@ -26,7 +26,9 @@ const actions = [
   '13. Remove unused clearance expiration date left from old JSON structure',
   '14. Change wording in level of proficiency for basic',
   '15. Update Github/Twitter profile URLs to just names',
-  '17. Update awards with no dates to have dates'
+  '16. Migrate schools attribute into education',
+  '17. Remove old schools attribute',
+  '18. Update awards with no dates to have dates'
 ];
 
 // check for stage argument
@@ -592,43 +594,6 @@ async function changeWordingForBasicProficiencyLevel() {
 } // changeWordingForBasicProficiencyLevel
 
 /**
- * User chooses an action
- *
- * @return - the user input
- */
-function chooseAction() {
-  let input;
-  let valid;
-
-  let prompt = `ACTIONS - ${STAGE}\n`;
-  actions.forEach((item) => {
-    prompt += `${item}\n`;
-  });
-  prompt += `Select an action number [0-${actions.length - 1}]`;
-
-  input = readlineSync.question(`${prompt} `);
-  valid = !isNaN(input);
-  if (valid) {
-    input = parseInt(input);
-    if (input < 0 || input > actions.length) {
-      valid = false;
-    }
-  }
-
-  while (!valid) {
-    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
-    valid = !isNaN(input);
-    if (valid) {
-      input = parseInt(input);
-      if (input < 0 || input > actions.length - 1) {
-        valid = false;
-      }
-    }
-  }
-  return input;
-} // chooseAction
-
-/**
  * Updates Github/Twitter profile information to replace URLs with just usernames.
  */
 async function replaceGithubTwitterUrls() {
@@ -677,6 +642,51 @@ async function replaceGithubTwitterUrls() {
 } // deleteUnusedClearanceExpirationDate
 
 /**
+ * Removes the old schools attribute
+ */
+async function removeSchoolsAttribute() {
+  removeAttribute('schools');
+} // removeSchoolsAttribute
+
+/**
+ * Moves school attribute to education, adding type
+ */
+async function moveSchoolsToEducation() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.schools) {
+      let education = _.map(employee.schools, (s) => {
+        return {
+          ...s,
+          type: 'university'
+        };
+      });
+
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set education = :edu',
+        ExpressionAttributeValues: {
+          ':edu': education
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      //update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
+        }
+      });
+    }
+  });
+} // moveSchoolsToEducation
+
+/**
  * Updates awards to have dates if they have no dates, fixing the stuck on activity feed issue.
  * This would be easily portable to expenses if needed.
  */
@@ -714,6 +724,43 @@ async function addAwardDates() {
     }
   });
 } // addAwardDates
+
+/**
+ * User chooses an action
+ *
+ * @return - the user input
+ */
+function chooseAction() {
+  let input;
+  let valid;
+
+  let prompt = `ACTIONS - ${STAGE}\n`;
+  actions.forEach((item) => {
+    prompt += `${item}\n`;
+  });
+  prompt += `Select an action number [0-${actions.length - 1}]`;
+
+  input = readlineSync.question(`${prompt} `);
+  valid = !isNaN(input);
+  if (valid) {
+    input = parseInt(input);
+    if (input < 0 || input > actions.length) {
+      valid = false;
+    }
+  }
+
+  while (!valid) {
+    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
+    valid = !isNaN(input);
+    if (valid) {
+      input = parseInt(input);
+      if (input < 0 || input > actions.length - 1) {
+        valid = false;
+      }
+    }
+  }
+  return input;
+} // chooseAction
 
 /**
  * Prompts the user and confirm action
@@ -836,7 +883,19 @@ async function main() {
         replaceGithubTwitterUrls();
       }
       break;
+    case 16:
+      if (confirmAction('16. Migrate schools attribute into education')) {
+        console.log('Migrated schools to education');
+        moveSchoolsToEducation();
+      }
+      break;
     case 17:
+      if (confirmAction('17. Remove old schools attribute')) {
+        console.log('Removed schools attribute');
+        removeSchoolsAttribute();
+      }
+      break;
+    case 18:
       if (confirmAction('17. Update awards with no dates to have dates')) {
         console.log('Updated dateless awards to have a date');
         addAwardDates();
