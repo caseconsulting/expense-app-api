@@ -685,7 +685,7 @@ async function addAwardDates() {
   _.forEach(employees, (employee) => {
     let update = false;
     _.forEach(employee.awards, (award, i) => {
-      if ([undefined, null].includes(award.dateReceived)) {
+      if (_.isEmpty(award.dateReceived)) {
         employee.awards[i].dateReceived = '1970-01'; // set to beginning of time
         update = true;
       }
