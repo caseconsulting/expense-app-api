@@ -1,19 +1,13 @@
-/*
+/**
  * node ./js/Scripts/expenseTypesScripts.js dev
  * node ./js/Scripts/expenseTypesScripts.js test
  * node ./js/Scripts/expenseTypesScripts.js prod (must set aws credentials for prod as default)
  */
 
-// LIST OF ACTIONS
-const actions = [
-  '0. Cancel',
-  '1. Set all expense type\'s accessible by value to \'ALL\'',
-  '2. Change expense type categories to JSON objects',
-  '3. Add alwaysOnFeed to DynamoDB table',
-  '4. Delete disableShowOnFeedToggle attribute from Expense Type Table',
-  '5. Add requireURL attribute to Expense Type categories',
-  '6. Change Expense Type accessibilities'
-];
+// handles unhandled rejection errors
+process.on('unhandledRejection', (error) => {
+  console.error('unhandledRejection', error);
+});
 
 // check for stage argument
 if (process.argv.length < 3) {
@@ -29,23 +23,48 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 // set expense types table
 const TABLE = `${STAGE}-expense-types`;
 
+// imports
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
+// set up  AWS DynamoDB
 const AWS = require('aws-sdk');
-AWS.config.update({region: 'us-east-1'});
-const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
+AWS.config.update({ region: 'us-east-1' });
+const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+
+// colors for console logging
+const colors = {
+  RED: '\x1b[31m',
+  GREEN: '\x1b[32m',
+  BLUE: '\x1b[34m',
+  CYAN: '\x1b[36m',
+  YELLOW: '\x1b[33m',
+  BOLD: '\x1b[1m',
+  NC: '\x1b[0m' // clear
+};
+
+/**
+ * =================================================
+ * |                                               |
+ * |            Begin helper functions             |
+ * |                                               |
+ * =================================================
+ */
 
 // helper to get all entries in dynamodb table
-const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) => {
-  ddb.scan(params).promise()
-    .then(({Items, LastEvaluatedKey}) => {
-      out.push(...Items);
-      !LastEvaluatedKey ? resolve(out)
-        : resolve(getAllEntriesHelper(Object.assign(params, {ExclusiveStartKey: LastEvaluatedKey}), out));
-    })
-    .catch(reject);
-});
+const getAllEntriesHelper = (params, out = []) =>
+  new Promise((resolve, reject) => {
+    ddb
+      .scan(params)
+      .promise()
+      .then(({ Items, LastEvaluatedKey }) => {
+        out.push(...Items);
+        !LastEvaluatedKey
+          ? resolve(out)
+          : resolve(getAllEntriesHelper(Object.assign(params, { ExclusiveStartKey: LastEvaluatedKey }), out));
+      })
+      .catch(reject);
+  });
 
 /**
  * gets all entries in the table
@@ -55,7 +74,7 @@ const getAllEntriesHelper = (params, out = []) => new Promise((resolve, reject) 
 function getAllEntries() {
   console.log('Getting all entries in dynamodb expense type table');
   let params = {
-    TableName: TABLE,
+    TableName: TABLE
   };
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
@@ -63,15 +82,31 @@ function getAllEntries() {
 } // getAllEntries
 
 /**
+ * =================================================
+ * |                                               |
+ * |             End helper functions              |
+ * |                                               |
+ * =================================================
+ */
+
+/**
+ * =================================================
+ * |                                               |
+ * |            Begin runnable scripts             |
+ * |                                               |
+ * =================================================
+ */
+
+/**
  * Sets all expense type's accessible by value to 'ALL'
  */
 async function accessibleByAll() {
   let expenseTypes = await getAllEntries();
-  _.forEach(expenseTypes, expenseType => {
+  _.forEach(expenseTypes, (expenseType) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expenseType.id
+        id: expenseType.id
       },
       UpdateExpression: 'set accessibleBy = :a',
       ExpressionAttributeValues: {
@@ -81,7 +116,7 @@ async function accessibleByAll() {
     };
 
     // update expense type
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -96,11 +131,11 @@ async function accessibleByAll() {
  */
 async function addAlwaysOnFeed() {
   let expenseTypes = await getAllEntries();
-  _.forEach(expenseTypes, expenseType => {
+  _.forEach(expenseTypes, (expenseType) => {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expenseType.id
+        id: expenseType.id
       },
       UpdateExpression: 'set alwaysOnFeed = :a',
       ExpressionAttributeValues: {
@@ -110,7 +145,7 @@ async function addAlwaysOnFeed() {
     };
 
     // update expense type
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -125,21 +160,21 @@ async function addAlwaysOnFeed() {
  */
 async function categoryFixer() {
   let expenseTypes = await getAllEntries();
-  _.forEach(expenseTypes, expenseType => {
+  _.forEach(expenseTypes, (expenseType) => {
     let categories = [];
-    _.forEach(expenseType.categories, category => {
+    _.forEach(expenseType.categories, (category) => {
       try {
         JSON.parse(category);
         categories.push(category);
-      } catch(err) {
-        let categoryObj = {name: category, showOnFeed: false};
+      } catch (err) {
+        let categoryObj = { name: category, showOnFeed: false };
         categories.push(JSON.stringify(categoryObj));
       }
     });
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expenseType.id
+        id: expenseType.id
       },
       UpdateExpression: 'set categories = :a',
       ExpressionAttributeValues: {
@@ -149,7 +184,7 @@ async function categoryFixer() {
     };
 
     // update expense type
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -184,7 +219,7 @@ async function convertExpenseTypeAccessibilities() {
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expenseType.id
+        id: expenseType.id
       },
       UpdateExpression: 'set accessibleBy = :a, proRated = :b',
       ExpressionAttributeValues: {
@@ -195,7 +230,7 @@ async function convertExpenseTypeAccessibilities() {
     };
 
     // update expense type
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -207,7 +242,7 @@ async function convertExpenseTypeAccessibilities() {
 
 /**
  * Removes given attribute from all expense type data
- * 
+ *
  * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
@@ -234,12 +269,11 @@ async function removeAttribute(attribute) {
 /**
  * Adds requireURL attribute to all expense type categories
  */
-async function addRequireURLAttrToCategories()
-{
+async function addRequireURLAttrToCategories() {
   let expenseTypes = await getAllEntries();
   _.forEach(expenseTypes, (expenseType) => {
     let categories = [];
-    _.forEach(expenseType.categories, (category) =>{
+    _.forEach(expenseType.categories, (category) => {
       let categoryObj = JSON.parse(category);
       categoryObj['requireURL'] = false;
       categoryObj = JSON.stringify(categoryObj);
@@ -248,7 +282,7 @@ async function addRequireURLAttrToCategories()
     let params = {
       TableName: TABLE,
       Key: {
-        'id': expenseType.id
+        id: expenseType.id
       },
       UpdateExpression: 'set categories = :a',
       ExpressionAttributeValues: {
@@ -258,7 +292,7 @@ async function addRequireURLAttrToCategories()
     };
 
     // update expense type
-    ddb.update(params, function(err) {
+    ddb.update(params, function (err) {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
@@ -269,59 +303,59 @@ async function addRequireURLAttrToCategories()
 } // addRequireURLAttrToCategories
 
 /**
- * User chooses an action
- * 
- * @return - the action that the user chooses
+ * =================================================
+ * |                                               |
+ * |             End runnable scripts              |
+ * |                                               |
+ * =================================================
  */
-function chooseAction() {
+
+/**
+ * Asks user for script to run until they choose a valid script
+ *
+ * @param n - length items in actions array
+ * @return - the user input
+ */
+function chooseAction(n) {
+  let prompt = `Select an action number [0-${n - 1}]`;
+
   let input;
-  let valid;
-
-  let prompt = `ACTIONS - ${STAGE}\n`;
-  actions.forEach(item => {
-    prompt += `${item}\n`;
-  });
-  prompt += `Select an action number [0-${actions.length - 1}]`;
-
-  input = readlineSync.question(`${prompt} `);
-  valid = !isNaN(input);
-  if (valid) {
-    input = parseInt(input);
-    if (input < 0 || input > actions.length) {
-      valid = false;
-    }
-  }
-
+  let valid = false;
   while (!valid) {
-    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
-    valid = !isNaN(input);
-    if (valid) {
-      input = parseInt(input);
-      if (input < 0 || input > actions.length - 1) {
-        valid = false;
-      }
-    }
+    input = readlineSync.question(`${prompt}: `);
+    input = parseInt(input);
+    valid = !isNaN(input) && input >= 0 && input < n;
+    if (!valid) console.log(`${colors.RED}Invalid input.${colors.NC}\n`);
   }
+
   return input;
 } // chooseAction
 
 /**
  * Prompts the user and confirm action
- * 
- * @param prompt - the string representing the action
- * @return boolean - whether the option is or isn't confirmed
+ *
+ * @param scriptNum - the script number that is being confirmed
+ * @return boolean - if the action was confirmed
  */
-function confirmAction(prompt) {
+function confirmAction(scriptNum, scriptDesc) {
   let input;
+  let affirmatives = ['y', 'yes'];
+  let rejectives = ['n', 'no'];
 
-  input = readlineSync.question(`\nAre you sure you want to ${prompt}[y/n] `);
+  // build and ask prompt
+  let prompt = `\n${colors.YELLOW}Are you sure you want to `;
+  prompt += `run script ${colors.BOLD}${scriptNum}${colors.NC}:\n  ${scriptDesc}? [y/n] `;
+  if (scriptNum == 0) prompt = `${colors.YELLOW}Are you sure you want to ${colors.BOLD}cancel${colors.NC}? [y/n] `;
+
+  // get user input from prompt
+  input = readlineSync.question(prompt);
   input = input.toLowerCase();
-
-  while (input != 'y' && input != 'yes' && input != 'n' && input != 'no') {
-    input = readlineSync.question(`\nInvalid Input\nAre you sure you want to ${prompt} [y/n] `);
+  while (!affirmatives.includes(input) && !rejectives.includes(input)) {
+    input = readlineSync.question(`${colors.RED}Invalid input.${colors.NC}\n\n${prompt}`);
     input = input.toLowerCase();
   }
-  if (input == 'y' || input == 'yes') {
+
+  if (affirmatives.includes(input)) {
     return true;
   } else {
     console.log('Action Canceled');
@@ -333,47 +367,58 @@ function confirmAction(prompt) {
  * main - action selector
  */
 async function main() {
-  switch (chooseAction()) {
-    case 0:
-      break;
-    case 1:
-      if (confirmAction('set all expense type\'s accessible by value to \'ALL\'?')) {
-        console.log('Setting all expense type\'s accessible by value to \'ALL\'');
-        accessibleByAll();
+  const actions = [
+    {
+      desc: 'Cancel',
+      action: () => {}
+    },
+    {
+      desc: "set all expense type's accessible by value to 'ALL'?",
+      action: async () => {
+        await accessibleByAll();
       }
-      break;
-    case 2:
-      if(confirmAction('Change expense type categories to JSON objects')) {
-        console.log('Changing expense type categories to JSON objects');
-        categoryFixer();
+    },
+    {
+      desc: 'Change expense type categories to JSON objects',
+      action: async () => {
+        await categoryFixer();
       }
-      break;
-    case 3:
-      if(confirmAction('Add alwaysOnFeed to DynamoDB table?')) {
-        console.log('Adding alwaysOnFeed to DynamoDB table');
-        addAlwaysOnFeed();
+    },
+    {
+      desc: 'Add alwaysOnFeed to DynamoDB table?',
+      action: async () => {
+        await addAlwaysOnFeed();
       }
-      break;
-    case 4:
-      if(confirmAction('Delete disableShowOnFeedToggle from Expense Type table?')) {
-        console.log('Deleting disableShowOnFeedToggle from Expense Type table');
-        removeAttribute('disableShowOnFeedToggle');
+    },
+    {
+      desc: 'Delete disableShowOnFeedToggle from Expense Type table?',
+      action: async () => {
+        await removeAttribute(' }disableShowOnFeedToggle');
       }
-      break;
-    case 5:
-      if(confirmAction('Add requireURL attribute to Expense Type categories?')) {
-        console.log('Adding requireURL attribute to Expense Type categories');
-        addRequireURLAttrToCategories();
+    },
+    {
+      desc: 'Add requireURL attribute to Expense Type categories?',
+      action: async () => {
+        await addRequireURLAttrToCategories();
       }
-      break;
-    case 6:
-      if(confirmAction('Change Expense Types accessibilities?')) {
-        console.log('Changing Expense Type accessibilites');
-        convertExpenseTypeAccessibilities();
+    },
+    {
+      desc: 'Change Expense Types accessibilities?',
+      action: async () => {
+        await convertExpenseTypeAccessibilities();
       }
-      break;
-    default:
-      throw new Error('Invalid Action Number');
+    }
+  ];
+
+  // print all actions for user
+  _.forEach(actions, (action, index) => {
+    console.log(`${index}. ${action.desc}`);
+  });
+
+  // get user input and run specified script
+  let scriptNum = chooseAction(actions.length);
+  if (confirmAction(scriptNum, actions[scriptNum].desc)) {
+    actions[scriptNum].action();
   }
 } // main
 
