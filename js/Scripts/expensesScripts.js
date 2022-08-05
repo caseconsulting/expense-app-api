@@ -1,20 +1,13 @@
-/*
+/**
  * node ./js/Scripts/expensesScripts.js dev
  * node ./js/Scripts/expensesScripts.js test
  * node ./js/Scripts/expensesScripts.js prod (must set aws credentials for prod as default)
  */
 
-// LIST OF ACTIONS
-const actions = [
-  '0. Cancel',
-  '1. List all expenses',
-  '2. Create a specified number of dummy expenses',
-  '3. Delete all expenses',
-  '4. Change all expense attributes labeled categories to category',
-  '5. Change all expense attributes labeled userId to employeeId',
-  '6. Add showOnFeed attribute to DynamoDB',
-  '7. Add receipts to legacy expenses of types that now require receipts'
-];
+// handles unhandled rejection errors
+process.on('unhandledRejection', (error) => {
+  console.error('unhandledRejection', error);
+});
 
 // check for stage argument
 if (process.argv.length < 3) {
@@ -31,13 +24,67 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 const TABLE = `${STAGE}-expenses`;
 const ETTABLE = `${STAGE}-expense-types`;
 
+// imports
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
+// set up AWS DynamoDB
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+
+// colors for console logging
+const colors = {
+  RED: '\x1b[31m',
+  GREEN: '\x1b[32m',
+  BLUE: '\x1b[34m',
+  CYAN: '\x1b[36m',
+  YELLOW: '\x1b[33m',
+  BOLD: '\x1b[1m',
+  NC: '\x1b[0m' // clear
+};
+
+/**
+ * =================================================
+ * |                                               |
+ * |            Begin helper functions             |
+ * |                                               |
+ * =================================================
+ */
+
+/**
+ * gets the number of expenses to create from the user
+ *
+ * @return - user's decision
+ */
+function getNumExpenses() {
+  let input;
+  let valid;
+
+  let prompt = 'How many expenses do you want to create?';
+
+  input = readlineSync.question(`${prompt} `);
+  valid = !isNaN(input);
+  if (valid) {
+    input = parseInt(input);
+    if (input < 0) {
+      valid = false;
+    }
+  }
+
+  while (!valid) {
+    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
+    valid = !isNaN(input);
+    if (valid) {
+      input = parseInt(input);
+      if (input < 0) {
+        valid = false;
+      }
+    }
+  }
+  return input;
+} // getNumExpenses
 
 // helper to get all entries in dynamodb table
 const getAllEntriesHelper = (params, out = []) =>
@@ -69,6 +116,22 @@ function getAllEntries(table) {
   console.log('Finished getting all entries in ' + table);
   return entries;
 }
+
+/**
+ * =================================================
+ * |                                               |
+ * |             End helper functions              |
+ * |                                               |
+ * =================================================
+ */
+
+/**
+ * =================================================
+ * |                                               |
+ * |            Begin runnable scripts             |
+ * |                                               |
+ * =================================================
+ */
 
 /**
  * adds a showOnFeed attribute to each expense in DynamoDB
@@ -285,59 +348,59 @@ async function changeAttributeName(oldName, newName) {
 } // changeAttributeName
 
 /**
- * User chooses an action
- *
- * @return - the action that the user chooses
+ * =================================================
+ * |                                               |
+ * |             End runnable scripts              |
+ * |                                               |
+ * =================================================
  */
-function chooseAction() {
+
+/**
+ * Asks user for script to run until they choose a valid script
+ *
+ * @param n - length items in actions array
+ * @return - the user input
+ */
+function chooseAction(n) {
+  let prompt = `Select an action number [0-${n - 1}]`;
+
   let input;
-  let valid;
-
-  let prompt = `ACTIONS - ${STAGE}\n`;
-  actions.forEach((item) => {
-    prompt += `${item}\n`;
-  });
-  prompt += `Select an action number [0-${actions.length - 1}]`;
-
-  input = readlineSync.question(`${prompt} `);
-  valid = !isNaN(input);
-  if (valid) {
-    input = parseInt(input);
-    if (input < 0 || input > actions.length) {
-      valid = false;
-    }
-  }
-
+  let valid = false;
   while (!valid) {
-    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
-    valid = !isNaN(input);
-    if (valid) {
-      input = parseInt(input);
-      if (input < 0 || input > actions.length - 1) {
-        valid = false;
-      }
-    }
+    input = readlineSync.question(`${prompt}: `);
+    input = parseInt(input);
+    valid = !isNaN(input) && input >= 0 && input < n;
+    if (!valid) console.log(`${colors.RED}Invalid input.${colors.NC}\n`);
   }
+
   return input;
 } // chooseAction
 
 /**
  * Prompts the user and confirm action
  *
- * @param prompt - the string representing the action
- * @return boolean - whether the option is or isn't confirmed
+ * @param scriptNum - the script number that is being confirmed
+ * @return boolean - if the action was confirmed
  */
-function confirmAction(prompt) {
+function confirmAction(scriptNum, scriptDesc) {
   let input;
+  let affirmatives = ['y', 'yes'];
+  let rejectives = ['n', 'no'];
 
-  input = readlineSync.question(`\nAre you sure you want to ${prompt}[y/n] `);
+  // build and ask prompt
+  let prompt = `\n${colors.YELLOW}Are you sure you want to `;
+  prompt += `run script ${colors.BOLD}${scriptNum}${colors.NC}:\n  ${scriptDesc}? [y/n] `;
+  if (scriptNum == 0) prompt = `${colors.YELLOW}Are you sure you want to ${colors.BOLD}cancel${colors.NC}? [y/n] `;
+
+  // get user input from prompt
+  input = readlineSync.question(prompt);
   input = input.toLowerCase();
-
-  while (input != 'y' && input != 'yes' && input != 'n' && input != 'no') {
-    input = readlineSync.question(`\nInvalid Input\nAre you sure you want to ${prompt} [y/n] `);
+  while (!affirmatives.includes(input) && !rejectives.includes(input)) {
+    input = readlineSync.question(`${colors.RED}Invalid input.${colors.NC}\n\n${prompt}`);
     input = input.toLowerCase();
   }
-  if (input == 'y' || input == 'yes') {
+
+  if (affirmatives.includes(input)) {
     return true;
   } else {
     console.log('Action Canceled');
@@ -346,90 +409,70 @@ function confirmAction(prompt) {
 } // confirmAction
 
 /**
- * gets the number of expenses to create from the user
- *
- * @return - user's decision
- */
-function getNumExpenses() {
-  let input;
-  let valid;
-
-  let prompt = 'How many expenses do you want to create?';
-
-  input = readlineSync.question(`${prompt} `);
-  valid = !isNaN(input);
-  if (valid) {
-    input = parseInt(input);
-    if (input < 0) {
-      valid = false;
-    }
-  }
-
-  while (!valid) {
-    input = readlineSync.question(`\nInvalid Input\n${prompt} `);
-    valid = !isNaN(input);
-    if (valid) {
-      input = parseInt(input);
-      if (input < 0) {
-        valid = false;
-      }
-    }
-  }
-  return input;
-} // getNumExpenses
-
-/**
  * main - action selector
  */
 async function main() {
-  switch (chooseAction()) {
-    case 0:
-      break;
-    case 1:
-      if (confirmAction('list all expenses?')) {
-        console.log('Listing all expenses');
+  const actions = [
+    { desc: 'Cancel', action: () => {} },
+    {
+      desc: 'List all expenses?',
+      action: async () => {
         console.log(await getAllEntries(TABLE));
       }
-      break;
-    case 2:
-      if (confirmAction('create a specified number of dummy expenses?')) {
+    },
+    {
+      desc: 'Creating dummy expenses',
+      action: async () => {
         let numExpenses = getNumExpenses();
-        console.log(`creating ${numExpenses} dummy expenses`);
-        createItems(numExpenses);
+        await createItems(numExpenses);
       }
-      break;
-    case 3:
-      if (confirmAction('delete all expenses?')) {
-        console.log('Deleting all expenses');
-        deleteAllExpenses();
+    },
+
+    {
+      desc: 'Deleting all expenses',
+      action: async () => {
+        await deleteAllExpenses();
       }
-      break;
-    case 4:
-      if (confirmAction('change all expense attributes labeled categories to category?')) {
-        console.log('Changing all expense attributes labeled categories to category');
-        changeAttributeName('categories', 'category');
+    },
+
+    {
+      desc: 'Changing all expense attributes labeled categories to category',
+      action: async () => {
+        await changeAttributeName('categories', 'category');
       }
-      break;
-    case 5:
-      if (confirmAction('change all expense attributes labeled userId to employeeId?')) {
-        console.log('Changing all expense attributes labeled userId to employeeId');
-        changeAttributeName('userId', 'employeeId');
+    },
+
+    {
+      desc: 'Changing all expense attributes labeled userId to employeeId',
+      action: async () => {
+        await changeAttributeName('userId', 'employeeId');
       }
-      break;
-    case 6:
-      if (confirmAction('Add showOnFeed attribute to all expenses?')) {
-        console.log('Adding showOnFeed attribute to all expenses');
-        addShowOnFeed();
+    },
+
+    {
+      desc: 'Adding showOnFeed attribute to all expenses',
+      action: async () => {
+        await addShowOnFeed();
       }
-      break;
-    case 7:
-      if (confirmAction('Add receipts to legacy expenses of types that now require receipt?')) {
-        console.log('Adding receipts to legacy expenses of types that now require receipt');
-        addReceipts();
+    },
+
+    {
+      desc: 'Adding receipts to legacy expenses of types that now require receipt',
+      action: async () => {
+        await addReceipts();
       }
-      break;
-    default:
-      throw new Error('Invalid Action Number');
+    }
+  ];
+
+  // print all actions for user
+  _.forEach(actions, (action, index) => {
+    console.log(`${index}. ${action.desc}`);
+  });
+
+  // get user input and run specified script
+  let scriptNum = chooseAction(actions.length);
+  if (confirmAction(scriptNum, actions[scriptNum].desc)) {
+    actions[scriptNum].action();
   }
 } // main
 
