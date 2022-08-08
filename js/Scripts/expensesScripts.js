@@ -473,6 +473,7 @@ async function main() {
   let scriptNum = chooseAction(actions.length);
   if (confirmAction(scriptNum, actions[scriptNum].desc)) {
     actions[scriptNum].action();
+    console.log(`${colors.GREEN}\nDone!${colors.NC}`);
   }
 } // main
 
