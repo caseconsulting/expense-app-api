@@ -169,9 +169,11 @@ class EmployeeRoutes extends Crud {
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
       let newEmployee = new Employee(data);
       newEmployee.handleEEOData(oldEmployee, req.employee);
-      await this._validateEmployee(newEmployee);
-      await this._validateUpdate(oldEmployee, newEmployee);
-      await this._updateBudgets(oldEmployee, newEmployee);
+      await Promise.all([
+        this._validateEmployee(newEmployee),
+        this._validateUpdate(oldEmployee, newEmployee),
+        this._updateBudgets(oldEmployee, newEmployee)
+      ]);
 
       // log success
       logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
@@ -258,19 +260,17 @@ class EmployeeRoutes extends Crud {
       let budgets = [];
 
       // need to update budgets
-      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
-        'employeeId-expenseTypeId-index',
-        'employeeId',
-        oldEmployee.id
-      );
+      let [budgetsData, expenseTypes] = await Promise.all([
+        this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id),
+        this.getAllExpenseTypes()
+      ]);
 
       budgets = _.map(budgetsData, (budgetData) => {
         return new Budget(budgetData);
       });
 
-      let expenseTypes = await this.getAllExpenseTypes();
-
       let i; // index of budgets
+      let promises = [];
       for (i = 0; i < budgets.length; i++) {
         // update budget amount
         let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
@@ -282,7 +282,7 @@ class EmployeeRoutes extends Crud {
           logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
           // update budget in database
           try {
-            await this.budgetDynamo.updateEntryInDB(budgets[i]);
+            promises.push(this.budgetDynamo.updateEntryInDB(budgets[i]));
 
             // log budget update success
             logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
@@ -293,6 +293,7 @@ class EmployeeRoutes extends Crud {
           }
         }
       }
+      await Promise.all(promises);
 
       // log success
       logger.log(2, '_updateBudgets', `Successfully updated budgets for employee ${oldEmployee.id}`);
