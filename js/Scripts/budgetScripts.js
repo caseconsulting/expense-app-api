@@ -4,6 +4,13 @@
  * node ./js/Scripts/budgetScripts.js prod (must set aws credentials for prod as default)
  */
 
+const ISOFORMAT = 'YYYY-MM-DD';
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/New_York');
+const ExpenseRoutes = require('../../routes/expenseRoutes');
+const { v4: uuid } = require('uuid');
+const fs = require('fs');
+
 // handles unhandled rejection errors
 process.on('unhandledRejection', (error) => {
   console.error('unhandledRejection', error);
@@ -31,6 +38,8 @@ const readlineSync = require('readline-sync');
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 // colors for console logging
 const colors = {
@@ -147,6 +156,18 @@ async function getEmployee(employeeId) {
 } // getEmployee
 
 /**
+ * Gets all expenses
+ *
+ * @return - all the expenses
+ */
+async function getAllExpenses() {
+  let param = {
+    TableName: `${STAGE}-expenses`
+  };
+  return getAllEntriesHelper(param);
+} // getAllExpenses
+
+/**
  * calulates the adjusted budget based on accessability TODO: Fix or mark as deprecated?
  *
  * @param budget - the budget
@@ -232,6 +253,43 @@ async function copyValues(oldName, newName) {
 } // copyValues
 
 /**
+ * Checks if date is within date range given the start date and end date.
+ * Returns true if date is within range and false otherwise.
+ *
+ * @param date date to check if within range
+ * @param startDate start date of range
+ * @param endDate end date of range
+ * @returns true if date is within range, false otherwise
+ */
+function isDateInRange(dateStr, startDate, endDate) {
+  let date = moment(dateStr, ISOFORMAT);
+  let start = moment(startDate, ISOFORMAT);
+  let end = moment(endDate, ISOFORMAT);
+  return date.isBetween(start, end, null, '[]');
+} // isDateInRange
+
+/**
+ * upload tiny attachment to s3 for later
+ * @param file - file to upload
+ * @param key - where to upload it to
+ */
+async function uploadAttachmentToS3(file, key) {
+  console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
+  let s3 = new AWS.S3();
+  let params = {
+    Bucket: BUCKET,
+    Key: key,
+    Body: file
+  };
+
+  s3.putObject(params, function (err, data) {
+    if (err) console.info(err, err.stack);
+    // an error occurred
+    else console.info(data); // successful response
+  });
+} //uploadAttachmentToS3
+
+/**
  * =================================================
  * |                                               |
  * |             End helper functions              |
@@ -271,7 +329,7 @@ async function maxAmount() {
       if (err) {
         console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
       } else {
-        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${data.Attributes.amount}`);
+        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${data.Attributes['amount']}`);
       }
     });
   });
@@ -313,6 +371,115 @@ async function changeAttributeName(oldName, newName) {
   copyValues(oldName, newName);
   removeAttribute(oldName);
 } // changeAttributeName
+
+/**
+ * Adusts tech budget based on MiFi status. If MiFi status is set
+ * to false and additional $150 was not added to tech budget during
+ * current year then add $150 to tech budget amount.
+ */
+async function adjustTechBudgetMiFiStatus() {
+  const expenseRoutes = new ExpenseRoutes();
+  let budgets = await getAllEntries();
+  let expenseTypes = await getAllExpenseTypes();
+  let techExpenseType = expenseTypes.find((e) => e.budgetName === 'Technology');
+  let todayDate = moment().toISOString();
+  let expenses = await getAllExpenses();
+  let employees = await getAllEmployees();
+  let currYearTechBudgets = budgets.filter(
+    (b) => b.expenseTypeId == techExpenseType.id && isDateInRange(todayDate, b.fiscalStartDate, b.fiscalEndDate)
+  );
+
+  // Makes adjustment for employees that do not have existing tech expenses
+  // in current year (tech budget record does not exist in db)
+  _.filter(
+    employees,
+    (employee) =>
+      employee.mifiStatus == false &&
+      employee.workStatus == 100 &&
+      _.filter(currYearTechBudgets, (budget) => budget.employeeId === employee.id).length == 0
+  ).forEach(async (employee) => {
+    let newUuid = uuid();
+    let now = moment().format(ISOFORMAT);
+    let description = `${employee.firstName} ${employee.lastName} has indicated they no longer want the mifi benefit.`;
+    let fileName = 'MifiStatusChange.png';
+    let receiptFile = fs.readFileSync('~/../mifiStatus/resources/' + fileName);
+
+    let expense = {
+      id: newUuid,
+      employeeId: employee.id,
+      createdAt: now,
+      expenseTypeId: techExpenseType.id,
+      cost: -150,
+      description: description,
+      purchaseDate: now,
+      showOnFeed: false,
+      receipt: fileName,
+      canDelete: false
+    };
+
+    try {
+      let Key = employee.id + '/' + newUuid + '/' + fileName;
+
+      let preparedExpense = await expenseRoutes._create(expense);
+      let validatedExpense = await expenseRoutes._validateInputs(preparedExpense);
+      await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
+      await uploadAttachmentToS3(receiptFile, Key);
+      console.log(
+        `Technology budget adjustment due to MiFi status bug.
+        \nEmployee: ${employee.firstName} ${employee.lastName} (id: ${employee.id})`
+      );
+    } catch (err) {
+      console.log(err);
+      console.log(err.stack);
+      console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+    }
+  });
+
+  // Makes adjustment for employees that have existing tech expenses in
+  // current year (tech budget record exists in db)
+  _.forEach(currYearTechBudgets, async (budget) => {
+    // get employee
+    let employee = employees.find((e) => budget.employeeId === e.id);
+    console.log(employee.firstName);
+
+    if (employee.workStatus == 100) {
+      // check if employee is full time
+      let employeeExpenses = expenses.filter((e) => e.employeeId == employee.id);
+      let mifiExpenses = employeeExpenses.filter(
+        (e) =>
+          e.receipt === 'MifiStatusChange.png' &&
+          isDateInRange(e.createdAt, budget.fiscalStartDate, budget.fiscalEndDate)
+      );
+      let mifiExpensesSum = mifiExpenses.map((e) => e.cost).reduce((num1, num2) => num1 + num2, 0);
+      if (employee.mifiStatus == false && mifiExpensesSum == 0 && budget.amount == techExpenseType.budget) {
+        // if mifi status is false and expense total from mifi is 0, add 150 to tech budget
+        let params = {
+          TableName: TABLE,
+          Key: {
+            id: budget.id
+          },
+          UpdateExpression: 'set amount = :a',
+          ExpressionAttributeValues: {
+            ':a': budget.amount + 150
+          }
+        };
+
+        // update budget
+        ddb.update(params, function (err, data) {
+          if (err) {
+            console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+          } else {
+            console.log(
+              `Technology budget adjustment due to MiFi status bug.
+              \nEmployee: ${employee.firstName} ${employee.lastName} (id: ${employee.id})`
+            );
+            console.log(`Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${data.Attributes['amount']}`);
+          }
+        });
+      }
+    }
+  });
+} // adjustTechBudgetMifiStatus
 
 /**
  * =================================================
@@ -399,6 +566,13 @@ async function main() {
       desc: 'Delete all empty budgets without any pending or reimbursed amounts?',
       action: async () => {
         await deleteEmptyBudgets();
+      }
+    },
+
+    {
+      desc: 'Adjust technology budget in response to MiFi status bug?',
+      action: async () => {
+        await adjustTechBudgetMiFiStatus();
       }
     }
   ];
