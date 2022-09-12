@@ -413,7 +413,7 @@ describe('chronos', () => {
   }); // _makeNewBudget
 
   describe('start', () => {
-    let yesterday, budgetDynamo, expenseType;
+    let yesterday, budgetDynamo, employeeDynamo, expenseType;
 
     beforeEach(() => {
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
@@ -423,6 +423,7 @@ describe('chronos', () => {
       yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
 
       budgetDynamo = jasmine.createSpyObj('budgetDynamo', ['querySecondaryIndexInDB']);
+      employeeDynamo = jasmine.createSpyObj('employeeDynamo', ['querySecondaryIndexInDB']);
       spyOn(chronos, '_getAllExpenseTypes').and.returnValue(Promise.resolve([expenseType]));
 
       spyOn(chronos, '_asyncForEach').and.callThrough();
@@ -431,7 +432,9 @@ describe('chronos', () => {
     describe('WHEN no budgets', () => {
       beforeEach(() => {
         budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
+        employeeDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
         spyOn(chronos, '_budgetDynamo').and.returnValue(budgetDynamo);
+        spyOn(chronos, '_employeeDynamo').and.returnValue(employeeDynamo);
       });
 
       afterEach(() => {
@@ -442,6 +445,8 @@ describe('chronos', () => {
           'fiscalEndDate',
           yesterday
         );
+        expect(chronos._employeeDynamo).toHaveBeenCalledWith();
+        expect(employeeDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('hireDate-index', 'hireDate', yesterday);
         expect(chronos._asyncForEach).not.toHaveBeenCalled();
       });
 
@@ -473,7 +478,9 @@ describe('chronos', () => {
         noneReccuringBudget.reimbursedAmount = 70;
         noneReccuringBudget.pendingAmount = 60;
         noneReccuringBudget.amount = 100;
+        employeeDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([]));
         spyOn(chronos, '_budgetDynamo').and.returnValue(budgetDynamo);
+        spyOn(chronos, '_employeeDynamo').and.returnValue(employeeDynamo);
       });
 
       describe('and successfully queries budgets', () => {
@@ -494,6 +501,7 @@ describe('chronos', () => {
           );
           expect(chronos._getAllExpenseTypes).toHaveBeenCalledWith();
           expect(chronos._makeNewBudget).toHaveBeenCalledWith(new Budget(budget), expenseType);
+          expect(employeeDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('hireDate-index', 'hireDate', yesterday);
         });
 
         describe('and creates 1 new budget', () => {
@@ -507,6 +515,11 @@ describe('chronos', () => {
             expect(chronos._asyncForEach).toHaveBeenCalledWith(
               [new Budget(budget), new Budget(noneReccuringBudget), new Budget(underBudget)],
               jasmine.any(Function)
+            );
+            expect(employeeDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'hireDate-index',
+              'hireDate',
+              yesterday
             );
           });
 
@@ -532,6 +545,11 @@ describe('chronos', () => {
             expect(chronos._asyncForEach).toHaveBeenCalledWith(
               [new Budget(budget), new Budget(noneReccuringBudget), new Budget(underBudget), new Budget(budget2)],
               jasmine.any(Function)
+            );
+            expect(employeeDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
+              'hireDate-index',
+              'hireDate',
+              yesterday
             );
           });
 

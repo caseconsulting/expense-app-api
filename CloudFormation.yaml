@@ -287,6 +287,12 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+        - IndexName: hireDate-index
+          KeySchema:
+            - AttributeName: hireDate
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
       StreamSpecification:
         StreamViewType: 'NEW_AND_OLD_IMAGES'
       Tags:
