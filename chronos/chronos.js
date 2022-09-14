@@ -150,7 +150,7 @@ async function _makeNewTechBudgetWithMiFiStatusAdjustment(employee) {
 
   let mifiAddition = 150;
 
-  let newBudgetData = (newBudgetData = {
+  let newBudgetData = {
     id: lib._getUUID(),
     expenseTypeId: techExpenseType.id,
     employeeId: employee.id,
@@ -161,7 +161,7 @@ async function _makeNewTechBudgetWithMiFiStatusAdjustment(employee) {
     //increment the budgets fiscal end day by one year
     fiscalEndDate: endDate,
     amount: techExpenseType.budget + mifiAddition
-  });
+  };
   let newBudget = new Budget(newBudgetData);
   return lib._budgetDynamo().addToDB(newBudget); // add new budget to database
 } // _makeNewTechBudgetWithMiFiStatusAdjustment
