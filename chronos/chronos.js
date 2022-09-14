@@ -268,11 +268,6 @@ async function start() {
   console.log('Started chronos');
   try {
     let budgetsCreated = 0;
-    // let [newBudgetsCreatedWithOverdraft, newTechBudgetsCreated] = await Promise.all([
-    //   lib._handleNewBudgetsWithOverdraft(),
-    //   lib._handleMiFiStatusBudgetAdjustment()
-    // ]);
-    // budgetsCreated += newBudgetsCreatedWithOverdraft + newTechBudgetsCreated;
     let newBudgetsCreatedWithOverdraft = await lib._handleNewBudgetsWithOverdraft();
     let newTechBudgetsCreated = await lib._handleMiFiStatusBudgetAdjustment();
     budgetsCreated += newBudgetsCreatedWithOverdraft + newTechBudgetsCreated;

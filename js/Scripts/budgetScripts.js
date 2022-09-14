@@ -37,8 +37,6 @@ const readlineSync = require('readline-sync');
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
-let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
-const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 // colors for console logging
 const colors = {
@@ -278,14 +276,15 @@ function getBudgetDates(date) {
   let hireDay = hireDate.date();
   let today = moment();
 
+  let startYear;
   if (hireDate.isBefore(today)) {
     startYear = today.isBefore(moment([today.year(), hireMonth, hireDay])) ? today.year() - 1 : today.year();
   } else {
     startYear = hireYear;
   }
 
-  let startDate = moment([startYear, hireMonth, hireDay]);
-  let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days');
+  let startDate = moment([startYear, hireMonth, hireDay]).format(ISOFORMAT);
+  let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days').format(ISOFORMAT);
 
   let result = {
     startDate,
@@ -466,7 +465,7 @@ async function adjustTechBudgetMiFiStatus() {
             `Technology budget adjustment due to MiFi status bug.
                     \nEmployee: ${employee.firstName} ${employee.lastName} (id: ${employee.id})`
           );
-          console.log(`Item Updated\n  Budget ID: ${newBudgetData.id}\n  Amount: ${newBudgetData.amount}`);
+          console.log(`Item Updated\n  Budget ID: ${newBudget.id}\n  Amount: ${newBudget.amount}`);
         }
       });
     }

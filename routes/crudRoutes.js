@@ -14,6 +14,7 @@ const _ = require('lodash');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;
+const MIFI_ADDITION = 150;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
@@ -74,6 +75,7 @@ class Crud {
       } else {
         result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
       }
+      result += this.calculateMiFiStatusAddition(employee, expenseType);
     } else {
       result = 0;
     }
@@ -84,6 +86,12 @@ class Crud {
     // return result
     return result;
   } // calcAdjustedAmount
+
+  calculateMiFiStatusAddition(employee, expenseType) {
+    return employee.workStatus == 100 && expenseType.budgetName === 'Technology' && !employee.mifiStatus
+      ? MIFI_ADDITION
+      : 0;
+  }
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
