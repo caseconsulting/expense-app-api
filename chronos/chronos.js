@@ -8,7 +8,6 @@ moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const Employee = require('./models/employee');
-const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * Returns a new DatabaseModify for budgets
@@ -103,68 +102,6 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
 function _getUUID() {
   return uuid();
 } // _getUUID
-
-/**
- * Handler for creating new tech budget that accounts for employee MiFi status.
- *
- * @returns number of new tech budgets created
- */
-async function _handleMiFiStatusBudgetAdjustment() {
-  const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
-  let employees = await lib._employeeDynamo().querySecondaryIndexInDB('hireDate-index', 'hireDate', yesterday);
-  let budgetsCreated = 0;
-  if (employees.length != 0) {
-    let fullTimeEmployees = employees.filter((e) => e.workStatus == 100);
-    await lib._asyncForEach(fullTimeEmployees, async (employee) => {
-      if (employee.mifiStatus != null && employee.mifiStatus != undefined && employee.mifiStatus == false) {
-        let newBudget = await lib._makeNewTechBudgetWithMiFiStatusAdjustment();
-        let msg = `Happy Anniversary employee: ${employee.id} 🥳 \n
-                       created new budget with id: ${newBudget.id}`;
-        console.log(msg);
-        budgetsCreated++;
-      }
-    });
-  }
-  return budgetsCreated;
-} // _handleMiFiStatusBudgetAdjustment
-
-/**
- * Creates new tech budget with MiFi addition (150)
- * @param employee employee to creat new tech budget for
- * @returns newly created budget object
- */
-async function _makeNewTechBudgetWithMiFiStatusAdjustment(employee) {
-  let techExpenseType = (await lib._getAllExpenseTypes()).find(
-    (expenseType) => expenseType.budgetName === 'Technology'
-  );
-
-  let hireDate = moment(employee.hireDate, ISOFORMAT);
-  let hireMonth = hireDate.month(); // form 0-11
-  let hireDay = hireDate.date(); // from 1 to 31
-  let today = moment();
-
-  let startYear = today.year();
-
-  let startDate = moment([startYear, hireMonth, hireDay]);
-  let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days');
-
-  let mifiAddition = 150;
-
-  let newBudgetData = {
-    id: lib._getUUID(),
-    expenseTypeId: techExpenseType.id,
-    employeeId: employee.id,
-    reimbursedAmount: 0,
-    pendingAmount: 0,
-    //increment the budgets fiscal start day by one year
-    fiscalStartDate: startDate,
-    //increment the budgets fiscal end day by one year
-    fiscalEndDate: endDate,
-    amount: techExpenseType.budget + mifiAddition
-  };
-  let newBudget = new Budget(newBudgetData);
-  return lib._budgetDynamo().addToDB(newBudget); // add new budget to database
-} // _makeNewTechBudgetWithMiFiStatusAdjustment
 
 /**
  * Handler for creating new budgets that account for overdraft
@@ -269,8 +206,7 @@ async function start() {
   try {
     let budgetsCreated = 0;
     let newBudgetsCreatedWithOverdraft = await lib._handleNewBudgetsWithOverdraft();
-    let newTechBudgetsCreated = await lib._handleMiFiStatusBudgetAdjustment();
-    budgetsCreated += newBudgetsCreatedWithOverdraft + newTechBudgetsCreated;
+    budgetsCreated += newBudgetsCreatedWithOverdraft;
     if (budgetsCreated != 0) {
       console.log(`Created ${budgetsCreated} new budget${budgetsCreated > 1 ? 's' : ''} tonight! 🍕`);
     } else {
@@ -306,8 +242,6 @@ lib = {
   _getExpenseType,
   _getUUID,
   _makeNewBudget,
-  _makeNewTechBudgetWithMiFiStatusAdjustment,
-  _handleMiFiStatusBudgetAdjustment,
   _handleNewBudgetsWithOverdraft,
   start,
   handler
