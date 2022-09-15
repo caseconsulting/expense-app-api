@@ -75,7 +75,6 @@ class Crud {
       } else {
         result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
       }
-      result += this.calculateMiFiStatusAddition(employee, expenseType);
     } else {
       result = 0;
     }
@@ -87,11 +86,19 @@ class Crud {
     return result;
   } // calcAdjustedAmount
 
-  calculateMiFiStatusAddition(employee, expenseType) {
+  /**
+   * Calculates MiFi status tech budget adjustment based on employee MiFi status and work status
+   *
+   * @param employee - Employee to calculate MiFi status tech budget adjustment for
+   * @param expenseType - ExpenseType budget to be adjusted
+   * @returns Number - MiFi status addition if expense type budget is tech budget and
+   *              MiFi status is set to false
+   */
+  calcMiFiStatusAddition(employee, expenseType) {
     return employee.workStatus == 100 && expenseType.budgetName === 'Technology' && !employee.mifiStatus
       ? MIFI_ADDITION
       : 0;
-  }
+  } // calcMiFiStatusAddition
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
@@ -406,6 +413,7 @@ class Crud {
 
       // set the amount of the new budget
       budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+      budgetData.amount += this.calcMiFiStatusAddition(employee, expenseType);
 
       let newBudget = new Budget(budgetData);
 
