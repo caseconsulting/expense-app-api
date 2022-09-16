@@ -14,7 +14,6 @@ const _ = require('lodash');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;
-const MIFI_ADDITION = 150;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
@@ -85,20 +84,6 @@ class Crud {
     // return result
     return result;
   } // calcAdjustedAmount
-
-  /**
-   * Calculates MiFi status tech budget adjustment based on employee MiFi status and work status
-   *
-   * @param employee - Employee to calculate MiFi status tech budget adjustment for
-   * @param expenseType - ExpenseType budget to be adjusted
-   * @returns Number - MiFi status addition if expense type budget is tech budget and
-   *              MiFi status is set to false
-   */
-  calcMiFiStatusAddition(employee, expenseType) {
-    return employee.workStatus == 100 && expenseType.budgetName === 'Technology' && !employee.mifiStatus
-      ? MIFI_ADDITION
-      : 0;
-  } // calcMiFiStatusAddition
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
@@ -413,7 +398,6 @@ class Crud {
 
       // set the amount of the new budget
       budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
-      budgetData.amount += this.calcMiFiStatusAddition(employee, expenseType);
 
       let newBudget = new Budget(budgetData);
 

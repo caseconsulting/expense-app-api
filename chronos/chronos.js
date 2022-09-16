@@ -3,11 +3,19 @@ let lib;
 const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
+const ExpenseRoutes = require('./routes/expenseRoutes');
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
+const fs = require('fs');
+const AWS = require('aws-sdk');
 const Employee = require('./models/employee');
+const ISOFORMAT = 'YYYY-MM-DD';
+
+const STAGE = process.env.STAGE;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 /**
  * Returns a new DatabaseModify for budgets
@@ -64,6 +72,15 @@ async function _getAllExpenseTypes() {
 
   return expenseTypes;
 } // _getAllExpenseTypes
+
+/**
+ * Gets all employees
+ *
+ * @returns all employees
+ */
+async function _getAllEmployees() {
+  return (await lib._employeeDynamo().getAllEntriesInDB()).map((employee) => new Employee(employee));
+} // _getAllEmployees
 
 /**
  * Gets the employee tied to the budget
@@ -198,6 +215,72 @@ async function _makeNewBudget(oldBudget, expenseType) {
     }); // add new budget
 } // _makeNewBudget
 
+async function _handleMiFiStatus() {
+  const expenseRoutes = new ExpenseRoutes();
+  let techExpenseType = (await lib._getAllExpenseTypes()).find((e) => e.budgetName === 'Technology');
+  let employees = await lib._getAllEmployees();
+  let fullTimeEmployees = employees.filter((e) => e.workStatus == 100 && !e.mifiStatus);
+  let now = moment().format(ISOFORMAT);
+  let fileName = 'MifiStatusChange.png';
+  let receiptFile = fs.readFileSync('./resources/' + fileName);
+  fullTimeEmployees.forEach(async (employee) => {
+    if (lib._isAnniversaryDate(employee)) {
+      let description = `Annual recurring MiFi addition: ${employee.firstName} ${employee.lastName} 
+      has indicated they do not want the mifi benefit.`;
+      let newUUID = lib._getUUID();
+      let expense = {
+        id: newUUID,
+        employeeId: employee.id,
+        createdAt: now,
+        expenseTypeId: techExpenseType.id,
+        cost: -150,
+        description: description,
+        purchaseDate: now,
+        showOnFeed: false,
+        receipt: fileName,
+        canDelete: false
+      };
+      let Key = employee.id + '/' + newUUID + '/' + fileName;
+      try {
+        let preparedExpense = await expenseRoutes._create(expense);
+        let validatedExpense = await expenseRoutes._validateInputs(preparedExpense);
+        await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
+        await lib._uploadAttachmentToS3(receiptFile, Key);
+      } catch (err) {
+        console.info(err);
+        console.info(err.stack);
+      }
+    }
+  });
+}
+
+function _isAnniversaryDate(employee) {
+  let hireDate = moment(employee.hireDate, ISOFORMAT);
+  let today = moment();
+  return hireDate.month() == today.month() && hireDate.date() == today.date();
+}
+
+/**
+ * upload tiny attachment to s3 for later
+ * @param file - file to upload
+ * @param key - where to upload it to
+ */
+async function _uploadAttachmentToS3(file, key) {
+  console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
+  let s3 = new AWS.S3();
+  let params = {
+    Bucket: BUCKET,
+    Key: key,
+    Body: file
+  };
+
+  s3.putObject(params, function (err, data) {
+    if (err) console.info(err, err.stack);
+    // an error occurred
+    else console.info(data); // successful response
+  });
+} //uploadAttachmentToS3
+
 /**
  * Creates new budgets for recurring expenses.
  */
@@ -212,6 +295,7 @@ async function start() {
     } else {
       console.log('There are no new budgets being created tonight 😴🛌');
     }
+    await lib._handleMiFiStatus();
   } catch (err) {
     console.error(err);
   } finally {
@@ -237,12 +321,16 @@ lib = {
   _expenseTypeDynamo,
   _employeeDynamo,
   _asyncForEach,
+  _isAnniversaryDate,
+  _getAllEmployees,
   _getAllExpenseTypes,
   _getBudgetEmployee,
   _getExpenseType,
   _getUUID,
   _makeNewBudget,
+  _handleMiFiStatus,
   _handleNewBudgetsWithOverdraft,
+  _uploadAttachmentToS3,
   start,
   handler
 };
