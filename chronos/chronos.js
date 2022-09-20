@@ -215,6 +215,9 @@ async function _makeNewBudget(oldBudget, expenseType) {
     }); // add new budget
 } // _makeNewBudget
 
+/**
+ * Handles MiFi recurring annual expense. Applies to full time employees with MiFi status set to false.
+ */
 async function _handleMiFiStatus() {
   const expenseRoutes = new ExpenseRoutes();
   let techExpenseType = (await lib._getAllExpenseTypes()).find((e) => e.budgetName === 'Technology');
@@ -223,7 +226,7 @@ async function _handleMiFiStatus() {
   let now = moment().format(ISOFORMAT);
   let fileName = 'MifiStatusChange.png';
   let receiptFile = fs.readFileSync('./resources/' + fileName);
-  fullTimeEmployees.forEach(async (employee) => {
+  await lib._asyncForEach(fullTimeEmployees, async (employee) => {
     if (lib._isAnniversaryDate(employee)) {
       let description = `Annual recurring MiFi addition: ${employee.firstName} ${employee.lastName} 
       has indicated they do not want the mifi benefit.`;
@@ -252,13 +255,19 @@ async function _handleMiFiStatus() {
       }
     }
   });
-}
+} // _handleMiFiStatus
 
+/**
+ * Checks if today is employees anniversary date.
+ *
+ * @param employee employee object
+ * @returns true if today is employees anniversary date, false otherwise
+ */
 function _isAnniversaryDate(employee) {
   let hireDate = moment(employee.hireDate, ISOFORMAT);
   let today = moment();
   return hireDate.month() == today.month() && hireDate.date() == today.date();
-}
+} // _isAnniversaryDate
 
 /**
  * upload tiny attachment to s3 for later

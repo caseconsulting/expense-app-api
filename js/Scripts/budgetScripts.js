@@ -324,12 +324,24 @@ async function uploadAttachmentToS3(file, key) {
     Body: file
   };
 
-  await s3.putObject(params, function (err, data) {
+  s3.putObject(params, function (err, data) {
     if (err) console.info(err, err.stack);
     // an error occurred
     else console.info(data); // successful response
   });
 } //uploadAttachmentToS3
+
+/**
+ * Async function to loop an array.
+ *
+ * @param array - Array of elements to iterate over
+ * @param callback - callback function
+ */
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+} // asyncForEach
 
 /**
  * =================================================
@@ -427,7 +439,7 @@ async function adjustTechBudgetMiFiStatus() {
   let fileName = 'MifiStatusChange.png';
   let receiptFile = fs.readFileSync('~/../mifiStatus/resources/' + fileName);
   let adjustedTechBudgetEmployees = [];
-  fullTimeEmployees.forEach(async (employee) => {
+  await asyncForEach(fullTimeEmployees, async (employee) => {
     let employeeExpenses = (await expenses).filter((e) => e.employeeId == employee.id);
     let techBudgetDates = getBudgetDates(employee.hireDate);
     let mifiExpenses = employeeExpenses.filter(
