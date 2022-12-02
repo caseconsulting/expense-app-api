@@ -30,7 +30,7 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: nodejs14.x
+    Runtime: nodejs18.x
     Tags:
       Application: expense-app
       Stage: !Ref Stage
@@ -755,7 +755,7 @@ Resources:
       Description: Model for an expense.
       ContentUri: expense-model/
       CompatibleRuntimes:
-        - nodejs14.x
+        - nodejs18.x
       RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -767,5 +767,5 @@ Resources:
       Description: Packages for lambda functions.
       ContentUri: dependencies/
       CompatibleRuntimes:
-        - nodejs14.x
+        - nodejs18.x
       RetentionPolicy: Retain
