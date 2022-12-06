@@ -343,7 +343,8 @@ async function asyncForEach(array, callback) {
   }
 } // asyncForEach
 
-/* =================================================
+/**
+ * =================================================
  * |                                               |
  * |             End helper functions              |
  * |                                               |
