@@ -343,7 +343,7 @@ async function asyncForEach(array, callback) {
   }
 } // asyncForEach
 
- * =================================================
+/* =================================================
  * |                                               |
  * |             End helper functions              |
  * |                                               |
@@ -505,7 +505,7 @@ function chooseAction(n) {
     valid = !isNaN(input) && input >= 0 && input < n;
     if (!valid) console.log(`${colors.RED}Invalid input.${colors.NC}\n`);
   }
-  
+
   return input;
 } // chooseAction
 
