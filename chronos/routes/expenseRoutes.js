@@ -6,9 +6,8 @@ const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
+const dateUtils = require('../js/dateUtils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
@@ -131,7 +130,7 @@ class ExpenseRoutes extends Crud {
       // if there is a file in the bucket to copy
       let mostRecentFile; // get the most recent file in the s3 bucket
       _.forEach(data.Contents, (file) => {
-        if (!mostRecentFile || moment(file.LastModified).isAfter(moment(mostRecentFile.LastModified))) {
+        if (!mostRecentFile || dateUtils.isAfter(file.LastModified, mostRecentFile.LastModified)) {
           mostRecentFile = file;
         }
       });
@@ -523,7 +522,7 @@ class ExpenseRoutes extends Crud {
 
     return _.sortBy(budgets, [
       (budget) => {
-        return moment(budget.fiscalStartDate, ISOFORMAT);
+        return dateUtils.format(budget.fiscalStartDate, null, ISOFORMAT);
       }
     ]);
   } // _sortBudgets
@@ -553,7 +552,7 @@ class ExpenseRoutes extends Crud {
         let onlyReimbursing = this._isOnlyReimburseDateChange(oldExpense, newExpense); // check if only reimbursing
         if (onlyReimbursing) {
           // only need to validate date change
-          if (moment(newExpense.reimbursedDate, ISOFORMAT).isBefore(moment(newExpense.purchaseDate, ISOFORMAT))) {
+          if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate, null, ISOFORMAT)) {
             throw {
               code: 403,
               message: 'Reimbursed date must be after purchase date.'
@@ -748,23 +747,22 @@ class ExpenseRoutes extends Crud {
           )
         ) {
           // set carry over accumulators if budget is full time, needs to carry costs, and isn't the latest budget
-          if (
-            i == sortedBudgets.length - 1 ||
-            !moment(sortedBudgets[i].fiscalEndDate)
-              .add(1, 'd')
-              .isSame(moment(sortedBudgets[i + 1].fiscalStartDate))
-          ) {
+          let condition = !dateUtils.isSame(
+            dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day'),
+            sortedBudgets[i + 1].fiscalStartDate
+          );
+          if (i == sortedBudgets.length - 1 || condition) {
             // create a new budget if a sequential recurring budget does not exist
             logger.log(
               3,
               '_updateBudgets',
-              `Attempting to create a new budget starting on ${moment(sortedBudgets[i].fiscalEndDate).add(1, 'd')}`
+              `Attempting to create a new budget starting on ${dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day')}`
             );
 
             let newBudgetData = await this.createNewBudget(
               employee,
               expenseType,
-              moment(sortedBudgets[i].fiscalEndDate).add(1, 'd').format(ISOFORMAT)
+              dateUtils.format(dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day'), null, ISOFORMAT)
             );
             let newBudget = new Budget(newBudgetData);
             sortedBudgets.splice(i + 1, 0, newBudget);
@@ -863,20 +861,28 @@ class ExpenseRoutes extends Crud {
       // validate recurring expense is in the current annual budget
       if (expenseType.recurringFlag) {
         let dates = this.getBudgetDates(employee.hireDate);
-        if (!moment(expense.purchaseDate, ISOFORMAT).isBetween(dates.startDate, dates.endDate, null, '[]')) {
+        if (!dateUtils.isBetween(expense.purchaseDate, dates.startDate, dates.endDate, null, '[]')) {
           // log error
           logger.log(
             3,
             '_validateAdd',
             `Purchase date ${expense.purchaseDate} is out of current annual budget range`,
-            `${dates.startDate.format(ISOFORMAT)} to ${dates.endDate.format(ISOFORMAT)}`
+            `${dateUtils.format(dates.startDate, null, ISOFORMAT)} to ${dateUtils.format(
+              dates.endDate,
+              null,
+              ISOFORMAT
+            )}`
           );
 
           // throw error
           const ERRFORMAT = 'MM/DD/YYYY';
           err.message =
             'Purchase date must be in current annual budget range from ' +
-            `${dates.startDate.format(ERRFORMAT)} to ${dates.endDate.format(ERRFORMAT)}.`;
+            `${dateUtils.format(dates.startDate, null, ERRFORMAT)} to ${dateUtils.format(
+              dates.endDate,
+              null,
+              ERRFORMAT
+            )}.`;
           throw err;
         }
       }
@@ -958,7 +964,7 @@ class ExpenseRoutes extends Crud {
       };
 
       // validate reimburse date is after purchase date
-      if (moment(expense.reimbursedDate, ISOFORMAT).isBefore(moment(expense.purchaseDate, ISOFORMAT))) {
+      if (dateUtils.isBefore(expense.reimbursedDate, expense.purchaseDate, null, ISOFORMAT)) {
         // log error
         logger.log(
           3,
@@ -1132,7 +1138,11 @@ class ExpenseRoutes extends Crud {
         }
 
         // validate expense is in todays budget
-        let todaysBudget = await this._findBudget(oldExpense.employeeId, oldExpense.expenseTypeId, moment());
+        let todaysBudget = await this._findBudget(
+          oldExpense.employeeId,
+          oldExpense.expenseTypeId,
+          dateUtils.getTodaysDate()
+        );
 
         if (!_.isEqual(oldBudget, todaysBudget)) {
           // log error
