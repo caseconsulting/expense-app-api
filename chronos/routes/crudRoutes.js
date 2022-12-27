@@ -395,8 +395,8 @@ class Crud {
         } else {
           // set fiscal dates to current anniversary date if no start date provided
           let dates = this.getBudgetDates(employee.hireDate);
-          budgetData.fiscalStartDate = dates.startDate.format(ISOFORMAT);
-          budgetData.fiscalEndDate = dates.endDate.format(ISOFORMAT);
+          budgetData.fiscalStartDate = dateUtils.format(dates.startDate, null, ISOFORMAT);
+          budgetData.fiscalEndDate = dateUtils.format(dates.endDate, null, ISOFORMAT);
         }
       } else {
         budgetData.fiscalStartDate = expenseType.startDate;
