@@ -10,7 +10,7 @@ const fs = require('fs');
 const AWS = require('aws-sdk');
 const Employee = require('./models/employee');
 const ISOFORMAT = 'YYYY-MM-DD';
-const dateUtils = require('../js/dateUtils');
+const dateUtils = require('./js/dateUtils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
