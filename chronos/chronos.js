@@ -4,14 +4,13 @@ const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
 const ExpenseRoutes = require('./routes/expenseRoutes');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const Employee = require('./models/employee');
 const ISOFORMAT = 'YYYY-MM-DD';
+const dateUtils = require('../js/dateUtils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
@@ -126,7 +125,7 @@ function _getUUID() {
  * @returns number of new budgets created
  */
 async function _handleNewBudgetsWithOverdraft() {
-  const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
+  const yesterday = dateUtils.format(dateUtils.subtract(dateUtils.getTodaysDate(ISOFORMAT), 1, 'day'), null, ISOFORMAT);
   let budgetsData = await lib
     ._budgetDynamo()
     .querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
@@ -186,9 +185,9 @@ async function _makeNewBudget(oldBudget, expenseType) {
     reimbursedAmount: 0,
     pendingAmount: 0,
     //increment the budgets fiscal start day by one year
-    fiscalStartDate: moment(oldBudget.fiscalStartDate).add(1, 'years').format('YYYY-MM-DD'),
+    fiscalStartDate: dateUtils.format(dateUtils.add(oldBudget.fiscalStartDate, 1, 'year'), null, ISOFORMAT),
     //increment the budgets fiscal end day by one year
-    fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD'),
+    fiscalEndDate: dateUtils.format(dateUtils.add(oldBudget.fiscalEndDate, 1, 'year'), null, ISOFORMAT),
     amount: expenseType.budget + mifiAddition
   };
   let newBudget = new Budget(newBudgetData); // convert to budget object
@@ -223,7 +222,7 @@ async function _handleMiFiStatus() {
   let techExpenseType = (await lib._getAllExpenseTypes()).find((e) => e.budgetName === 'Technology');
   let employees = await lib._getAllEmployees();
   let fullTimeEmployees = employees.filter((e) => e.workStatus == 100 && !e.mifiStatus);
-  let now = moment().format(ISOFORMAT);
+  let now = dateUtils.getTodaysDate(ISOFORMAT);
   let fileName = 'MifiStatusChange.png';
   let receiptFile = fs.readFileSync('./resources/' + fileName);
   await lib._asyncForEach(fullTimeEmployees, async (employee) => {
@@ -264,9 +263,11 @@ async function _handleMiFiStatus() {
  * @returns true if today is employees anniversary date, false otherwise
  */
 function _isAnniversaryDate(employee) {
-  let hireDate = moment(employee.hireDate, ISOFORMAT);
-  let today = moment();
-  return hireDate.month() == today.month() && hireDate.date() == today.date();
+  let hireDate = dateUtils.format(employee.hireDate, null, ISOFORMAT);
+  let today = dateUtils.getTodaysDate();
+  return (
+    dateUtils.getMonth(hireDate) == dateUtils.getMonth(today) && dateUtils.getDay(hireDate) == dateUtils.getDay(today)
+  );
 } // _isAnniversaryDate
 
 /**
