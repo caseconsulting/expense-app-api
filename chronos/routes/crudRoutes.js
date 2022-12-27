@@ -6,10 +6,9 @@ const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
+const dateUtils = require('../js/dateUtils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -387,7 +386,12 @@ class Crud {
         if (annualStart) {
           // set fiscal dates to the provided start date
           budgetData.fiscalStartDate = annualStart;
-          budgetData.fiscalEndDate = moment(annualStart, ISOFORMAT).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+          budgetData.fiscalEndDate = dateUtils.subtract(
+            dateUtils.add(annualStart, 1, 'year', ISOFORMAT),
+            1,
+            'day',
+            ISOFORMAT
+          );
         } else {
           // set fiscal dates to current anniversary date if no start date provided
           let dates = this.getBudgetDates(employee.hireDate);
@@ -548,7 +552,7 @@ class Crud {
    * Get the current annual budget start and end dates based on a given hire date.
    *
    * @param date - ISO formatted hire date String
-   * @return Object - moment start date and moment end date
+   * @return Object - String start date and string end date
    */
   getBudgetDates(date) {
     // log method
@@ -556,25 +560,32 @@ class Crud {
 
     // compute method
     let startYear;
-    let hireDate = moment(date, ISOFORMAT);
-    let hireYear = hireDate.year();
-    let hireMonth = hireDate.month(); // form 0-11
-    let hireDay = hireDate.date(); // from 1 to 31
-    let today = moment();
+    let hireDate = dateUtils.format(date, null, ISOFORMAT);
+    let hireYear = dateUtils.getYear(hireDate);
+    let hireMonth = dateUtils.getMonth(hireDate); // form 0-11
+    let hireDay = dateUtils.getDay(hireDate); // from 1 to 31
+    let today = dateUtils.getTodaysDate(ISOFORMAT);
 
     // determine start date year
-    if (hireDate.isBefore(today)) {
+    if (dateUtils.isBefore(hireDate, today)) {
       // hire date is before today
       // if anniversary hasn't occured yet this year, set the start of the budget to last year
       // if the anniversary already occured this year, set the start of the budget to this year
-      startYear = today.isBefore(moment([today.year(), hireMonth, hireDay])) ? today.year() - 1 : today.year();
+      let thisYearAnniversaryDate = today;
+      thisYearAnniversaryDate = dateUtils.setMonth(thisYearAnniversaryDate, hireMonth);
+      thisYearAnniversaryDate = dateUtils.setDay(thisYearAnniversaryDate, hireDay);
+      startYear = dateUtils.isBefore(today, thisYearAnniversaryDate)
+        ? dateUtils.getYear(today) - 1
+        : dateUtils.getYear(today);
     } else {
       // hire date is after today
       startYear = hireYear;
     }
-
-    let startDate = moment([startYear, hireMonth, hireDay]);
-    let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days');
+    let startDate = hireDate;
+    startDate = dateUtils.setYear(startDate, startYear);
+    let endDate = hireDate;
+    endDate = dateUtils.setYear(hireDate, startYear);
+    endDate = dateUtils.subtract(dateUtils.add(endDate, 1, 'year'), 1, 'day');
 
     let result = {
       startDate,
