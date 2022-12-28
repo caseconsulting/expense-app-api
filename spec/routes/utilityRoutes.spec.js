@@ -2,16 +2,12 @@ const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
-// const TrainingUrls = require('../../models/trainingUrls');
 const UtilityRoutes = require('../../routes/utilityRoutes');
+const dateUtils = require('../../js/dateUtils');
 const _ = require('lodash');
-// const BasecampRoutes = require('../../routes/basecampRoutes');
 
 describe('utilityRoutes', () => {
   const ISOFORMAT = 'YYYY-MM-DD';
-  // const STAGE = 'dev';
   const _ROUTER = '{router}';
 
   const ID = '{id}';
@@ -63,13 +59,8 @@ describe('utilityRoutes', () => {
       SCHEDULE_ID: 0
     }
   };
-  // const HITS = 0;
-  // const TITLE = '{title}';
-  // const IMAGE = '{image}';
-  // const LOGO = '{logo}';
-  // const PUBLISHER = '{publisher}';
 
-  const DATE = moment().format(ISOFORMAT);
+  const DATE = dateUtils.getTodaysDate();
 
   const EMPLOYEE_DATA = {
     id: ID,
@@ -451,8 +442,8 @@ describe('utilityRoutes', () => {
 
         beforeEach(() => {
           budgetData1 = _.cloneDeep(BUDGET_DATA);
-          budgetData1.fiscalStartDate = moment().subtract(1, 'd').format(ISOFORMAT);
-          budgetData1.fiscalEndDate = moment().add(1, 'd').format(ISOFORMAT);
+          budgetData1.fiscalStartDate = dateUtils.subtract(DATE, 1, 'day');
+          budgetData1.fiscalEndDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
 
           budgetData2 = _.cloneDeep(BUDGET_DATA);
           budgetData2.fiscalStartDate = '2000-08-18';
@@ -501,12 +492,12 @@ describe('utilityRoutes', () => {
             expenseType.recurringFlag = true;
 
             budgetDates = {
-              startDate: moment().subtract(1, 'd'),
-              endDate: moment().add(1, 'd')
+              startDate: dateUtils.subtract(DATE, 1, 'day'),
+              endDate: dateUtils.add(DATE, 1, 'day', ISOFORMAT)
             };
 
-            budgetObject.fiscalStartDate = moment().subtract(1, 'd').format(ISOFORMAT);
-            budgetObject.fiscalEndDate = moment().add(1, 'd').format(ISOFORMAT);
+            budgetObject.fiscalStartDate = dateUtils.subtract(DATE, 1, 'day');
+            budgetObject.fiscalEndDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
 
             activeBudget = {
               expenseTypeName: NAME,
@@ -535,11 +526,11 @@ describe('utilityRoutes', () => {
           beforeEach(() => {
             expenseType.recurringFlag = false;
 
-            expenseType.startDate = moment().subtract(1, 'd').format(ISOFORMAT);
-            expenseType.endDate = moment().add(1, 'd').format(ISOFORMAT);
+            expenseType.startDate = dateUtils.subtract(DATE, 1, 'day');
+            expenseType.endDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
 
-            budgetObject.fiscalStartDate = moment().subtract(1, 'd').format(ISOFORMAT);
-            budgetObject.fiscalEndDate = moment().add(1, 'd').format(ISOFORMAT);
+            budgetObject.fiscalStartDate = dateUtils.subtract(DATE, 1, 'day');
+            budgetObject.fiscalEndDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
 
             activeBudget = {
               expenseTypeName: NAME,
@@ -606,8 +597,8 @@ describe('utilityRoutes', () => {
       expenseType1.endDate = '2001-08-18';
 
       expenseType2.recurringFlag = false;
-      expenseType2.startDate = moment().subtract(1, 'd').format(ISOFORMAT);
-      expenseType2.endDate = moment().add(1, 'd').format(ISOFORMAT);
+      expenseType2.startDate = dateUtils.subtract(DATE, 1, 'day');
+      expenseType2.endDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
 
       expenseType3.recurringFlag = true;
 
@@ -816,7 +807,7 @@ describe('utilityRoutes', () => {
       req = _.cloneDeep(EXPENSE_TYPE_DATA);
       expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
       expenseType.isInactive = false;
-      expenseType.endDate = moment();
+      expenseType.endDate = _.cloneDeep(DATE);
       expenseType.campfire = CAMPFIRE;
       employee = _.cloneDeep(EMPLOYEE_DATA);
       expectedEmployee = new Employee(EMPLOYEE_DATA);
@@ -982,10 +973,10 @@ describe('utilityRoutes', () => {
     let cutOffDate, expenseType, expense, formattedDate, additionalParams;
 
     beforeEach(() => {
-      cutOffDate = moment();
+      cutOffDate = _.cloneDeep(DATE);
       expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
       expense = _.cloneDeep(EXPENSE_DATA);
-      formattedDate = cutOffDate.format('YYYY-MM-DD');
+      formattedDate = _.cloneDeep(cutOffDate);
       additionalParams = {
         ExpressionAttributeValues: {
           ':queryKey': expenseType.id,
@@ -1649,67 +1640,55 @@ describe('utilityRoutes', () => {
     let hireDate, expectedDates;
 
     beforeEach(() => {
-      hireDate = moment();
+      hireDate = _.cloneDeep(DATE);
     });
 
     describe('when hire date is before today', () => {
       beforeEach(() => {
-        hireDate.subtract(5, 'y');
+        hireDate = dateUtils.subtract(hireDate, 5, 'year');
       });
 
       describe('and anniversary already occured this year', () => {
         beforeEach(() => {
-          hireDate.subtract(1, 'd');
+          hireDate = dateUtils.subtract(hireDate, 1, 'day');
           expectedDates = {
-            startDate: moment().subtract(1, 'd'),
-            endDate: moment().add(1, 'y').subtract(2, 'd')
+            startDate: dateUtils.subtract(DATE, 1, 'day'),
+            endDate: dateUtils.subtract(dateUtils.add(DATE, 1, 'year'), 2, 'day')
           };
         });
 
         it('should return a start date with the current year and end date of next year', () => {
-          expect(utilityRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT)).toEqual(
-            expectedDates.startDate.format(ISOFORMAT)
-          );
-          expect(utilityRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT)).toEqual(
-            expectedDates.endDate.format(ISOFORMAT)
-          );
+          expect(utilityRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(utilityRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary already occured this year
 
       describe('and anniversary is today', () => {
         beforeEach(() => {
           expectedDates = {
-            startDate: moment(),
-            endDate: moment().add(1, 'y').subtract(1, 'd')
+            startDate: _.cloneDeep(DATE),
+            endDate: dateUtils.add(dateUtils.subtract(DATE, 1, 'day'), 1, 'year', ISOFORMAT)
           };
         });
 
         it('should return a start date with the current year and end date of next year', () => {
-          expect(utilityRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT)).toEqual(
-            expectedDates.startDate.format(ISOFORMAT)
-          );
-          expect(utilityRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT)).toEqual(
-            expectedDates.endDate.format(ISOFORMAT)
-          );
+          expect(utilityRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(utilityRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary is today
 
       describe('and anniversary has not occured this year', () => {
         beforeEach(() => {
-          hireDate.add(1, 'd');
+          hireDate = dateUtils.add(hireDate, 1, 'day', ISOFORMAT);
           expectedDates = {
-            startDate: moment().subtract(1, 'y').add(1, 'd'),
-            endDate: moment()
+            startDate: dateUtils.subtract(dateUtils.add(DATE, 1, 'day'), 1, 'year'),
+            endDate: _.cloneDeep(DATE)
           };
         });
 
         it('should return a start date of last year and end date of the current year', () => {
-          expect(utilityRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT)).toEqual(
-            expectedDates.startDate.format(ISOFORMAT)
-          );
-          expect(utilityRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT)).toEqual(
-            expectedDates.endDate.format(ISOFORMAT)
-          );
+          expect(utilityRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(utilityRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary has not occured this year
     }); // when hire date is before today
@@ -1717,37 +1696,29 @@ describe('utilityRoutes', () => {
     describe('when hire date is today', () => {
       beforeEach(() => {
         expectedDates = {
-          startDate: moment(),
-          endDate: moment().add(1, 'y').subtract(1, 'd')
+          startDate: _.cloneDeep(DATE),
+          endDate: dateUtils.subtract(dateUtils.add(DATE, 1, 'year'), 1, 'day')
         };
       });
 
       it('should return a start date with the current year and end date of next year', () => {
-        expect(utilityRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT)).toEqual(
-          expectedDates.startDate.format(ISOFORMAT)
-        );
-        expect(utilityRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT)).toEqual(
-          expectedDates.endDate.format(ISOFORMAT)
-        );
+        expect(utilityRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+        expect(utilityRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
       }); // should return a start date with the current year
     }); // when hire date is today
 
     describe('when hire date is after today', () => {
       beforeEach(() => {
-        hireDate.add(1, 'd');
+        hireDate = dateUtils.add(hireDate, 1, 'day', ISOFORMAT);
         expectedDates = {
-          startDate: moment().add(1, 'd'),
-          endDate: moment().add(1, 'y')
+          startDate: dateUtils.add(DATE, 1, 'day', ISOFORMAT),
+          endDate: dateUtils.add(DATE, 1, 'year', ISOFORMAT)
         };
       });
 
       it('should return a start date with the hire year and end date a year after the hire year', () => {
-        expect(utilityRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT)).toEqual(
-          expectedDates.startDate.format(ISOFORMAT)
-        );
-        expect(utilityRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT)).toEqual(
-          expectedDates.endDate.format(ISOFORMAT)
-        );
+        expect(utilityRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+        expect(utilityRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
       }); // should return a start date with the current year
     }); // when hire date is after today
   }); // getBudgetDates
@@ -1763,8 +1734,8 @@ describe('utilityRoutes', () => {
 
     describe('when successfully finds a budget', () => {
       beforeEach(() => {
-        budget.fiscalStartDate = moment().subtract(1, 'd').format(ISOFORMAT);
-        budget.fiscalEndDate = moment().add(1, 'd').format(ISOFORMAT);
+        budget.fiscalStartDate = dateUtils.subtract(DATE, 1, 'day');
+        budget.fiscalEndDate = dateUtils.add(DATE, 1, 'day', ISOFORMAT);
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getEntry.and.returnValue(Promise.resolve(expenseType));
         budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([budget]));

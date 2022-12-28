@@ -4,8 +4,6 @@ const DatabaseModify = require('../../js/databaseModify');
 // const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 // const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const TrainingUrl = require('../../models/trainingUrls');
 
 describe('databaseModify', () => {

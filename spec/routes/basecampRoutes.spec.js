@@ -1,12 +1,6 @@
-// const Budget = require('../../models/budget');
-// const Employee = require('../../models/employee');
-// const Expense = require('../../models/expense');
-// const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
-// const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
 const BasecampRoutes = require('../../routes/basecampRoutes');
+const dateUtils = require('../../js/dateUtils');
 
 describe('basecampRoutes', () => {
   const ID = '{id}';
@@ -22,8 +16,7 @@ describe('basecampRoutes', () => {
 
   const CATEGORY = '{category}';
 
-  const ISOFORMAT = 'YYYY-MM-DD';
-  const DATE = moment().format(ISOFORMAT);
+  const DATE = dateUtils.getTodaysDate();
   const _ROUTER = '{router}';
 
   const BASE_CAMP_TOKEN = '{basecampToken}';
