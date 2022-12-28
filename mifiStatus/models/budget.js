@@ -1,9 +1,5 @@
-const ISOFORMAT = 'YYYY-MM-DD';
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
-
-
+const dateUtils = require('../js/dateUtils');
 /**
  * Budget model
  *
@@ -35,14 +31,13 @@ class Budget {
    * Check if a date is in the budget date range. Returns true if the date is between the budget fiscal start start and
    * end date. Returns false otherwise.
    *
-   * @param dateStr - moment of date to be checked
+   * @param dateStr - date to be checked
    * @return Boolean - date is in range
    */
   isDateInRange(dateStr) {
-    let date = moment(dateStr, ISOFORMAT);
-    let start = moment(this.fiscalStartDate, ISOFORMAT);
-    let end = moment(this.fiscalEndDate, ISOFORMAT);
-    return date.isBetween(start, end, null, '[]');
+    let start = this.fiscalStartDate;
+    let end = this.fiscalEndDate;
+    return dateUtils.isBetween(dateStr, start, end, null, '[]');
   } // isDateInRange
 
   /**
