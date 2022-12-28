@@ -279,7 +279,7 @@ function isDateInRange(dateStr, startDate, endDate) {
 function getBudgetDates(date) {
   let hireDate = dateUtils.format(date, ISOFORMAT);
   let hireYear = dateUtils.getYear(hireDate);
-  let hireMonth = dateUtils.getMonth(hireDate);
+  let hireMonth = dateUtils.getMonth(hireDate) + 1;
   let hireDay = dateUtils.getDay(hireDate);
   let today = dateUtils.getTodaysDate();
 
