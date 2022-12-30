@@ -1,7 +1,6 @@
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
-const ISOFORMAT = 'YYYY-MM-DD';
 const _ = require('lodash');
+const dateUtils = require('../js/dateUtils');
+const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * ExpenseType model
@@ -54,7 +53,7 @@ class ExpenseType {
    * Check if a date is in the expense type date range. Returns true if the expense type is recurring or the date is
    * between the expense type start and end date. Returns false otherwise.
    *
-   * @param dateStr - moment of date to be checked
+   * @param dateStr - date to be checked
    * @return Boolean - date is in range
    */
   isDateInRange(dateStr) {
@@ -63,10 +62,9 @@ class ExpenseType {
     } else if (_.isNil(dateStr)) {
       return false;
     } else {
-      let date = moment(dateStr, ISOFORMAT);
-      let start = moment(this.startDate, ISOFORMAT);
-      let end = moment(this.endDate, ISOFORMAT);
-      return date.isBetween(start, end, null, '[]');
+      let start = dateUtils.format(this.startDate, null, ISOFORMAT);
+      let end = dateUtils.format(this.endDate, null, ISOFORMAT);
+      return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
     }
   } // isDateInRange
 
