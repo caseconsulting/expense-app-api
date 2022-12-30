@@ -4,8 +4,7 @@ var morganLogger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+var dateUtils = require('./js/dateUtils');
 
 require('dotenv').config({
   silent: true
@@ -73,7 +72,7 @@ let corsConfig = {
 };
 
 morganLogger.token('timestamp', () => {
-  return `[${moment().format()}]`;
+  return `[${dateUtils.getTodaysDate('YYYY-MM-DDTHH:mm:ssZ')}]`;
 });
 
 app.use(morganLogger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));

@@ -8,8 +8,6 @@ const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
 const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
