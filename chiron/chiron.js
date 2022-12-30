@@ -5,9 +5,8 @@ const TrainingUrl = require('./models/trainingUrls');
 const ExpenseType = require('./models/expenseType');
 const Expense = require('expense-model');
 const _ = require('lodash');
-// Eslint disabled becuase url-exist does not support require, therefore we use dynamic import
-/*eslint-disable*/ const urlExist = import('url-exist');
-/*eslint-enable*/
+const urlExist = require('url-exist');
+
 const trainingUrlDynamo = new DatabaseModify('training-urls');
 const expenseTypeDynamo = new DatabaseModify('expense-types');
 const expenseDynamo = new DatabaseModify('expenses');
