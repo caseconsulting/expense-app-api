@@ -492,6 +492,41 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  contractTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - contracts
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: contractName
+          AttributeType: S
+        - AttributeName: primeName
+          AttributeType: S
+        - AttributeName: costType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: contractName
+          KeyType: HASH
+        - AttributeName: primeName
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: costType-index
+          KeySchema:
+            - AttributeName: costType
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
