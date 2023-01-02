@@ -42,8 +42,8 @@ const PARSED_ISOFORMAT = 'YYYY-MM-DD';
  */
 function add(date, amount, granularity, format) {
   return format
-    ? dayjs(date).add(amount, granularity).toISOString()
-    : dayjs(date).add(amount, granularity).format(format);
+    ? dayjs(date).add(amount, granularity).format(format)
+    : dayjs(date).add(amount, granularity).toISOString();
 } // add
 
 /**
