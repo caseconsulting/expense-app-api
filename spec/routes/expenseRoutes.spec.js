@@ -686,12 +686,17 @@ describe('expenseRoutes', () => {
       let err;
 
       beforeEach(() => {
-        // TODO: Fix the message below so this test works regardless of the actual year
+        employee.hireDate = '2000-01-01';
+        let dates = expenseRoutes.getBudgetDates(employee.hireDate);
+        const ERRFORMAT = 'MM/DD/YYYY';
         err = {
           code: 403,
-          message: 'Purchase date must be in current annual budget range from 01/01/2022 to 12/31/2022.'
+          message: `Purchase date must be in current annual budget range from ${dateUtils.format(
+            dates.startDate,
+            null,
+            ERRFORMAT
+          )} to ${dateUtils.format(dates.endDate, null, ERRFORMAT)}.`
         };
-        employee.hireDate = '2000-01-01';
         delete expense.reimbursedDate;
         expense.purchaseDate = '2000-01-01';
         expenseType.recurringFlag = true;

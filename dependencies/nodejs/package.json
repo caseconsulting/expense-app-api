@@ -11,9 +11,6 @@
     "jwks-rsa": "2.1.4",
     "lodash": "4.17.21",
     "metadata-scraper": "0.2.57",
-    "moment": "2.29.4",
-    "moment-range": "4.0.2",
-    "moment-timezone": "0.5.34",
     "url-exist": "3.0.0",
     "uuid": "8.3.2"
   }
