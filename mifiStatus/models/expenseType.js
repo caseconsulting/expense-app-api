@@ -63,7 +63,7 @@ class ExpenseType {
     } else {
       let start = this.startDate;
       let end = this.endDate;
-      return dateUtils.isBetween(dateStr, start, end, null, '[]');
+      return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
     }
   } // isDateInRange
 

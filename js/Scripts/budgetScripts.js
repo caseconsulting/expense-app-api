@@ -269,7 +269,7 @@ function isDateInRange(dateStr, startDate, endDate) {
   let date = dateUtils.format(dateStr, null, ISOFORMAT);
   let start = dateUtils.format(startDate, null, ISOFORMAT);
   let end = dateUtils.format(endDate, null, ISOFORMAT);
-  return dateUtils.isBetween(date, start, end, null, '[]');
+  return dateUtils.isBetween(date, start, end, 'day', '[]');
 } // isDateInRange
 
 /**

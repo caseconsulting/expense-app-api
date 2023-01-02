@@ -37,7 +37,7 @@ class Budget {
   isDateInRange(dateStr) {
     let start = this.fiscalStartDate;
     let end = this.fiscalEndDate;
-    return dateUtils.isBetween(dateStr, start, end, null, '[]');
+    return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
   } // isDateInRange
 
   /**
