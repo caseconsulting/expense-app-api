@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const dateUtils = require('../js/dateUtils');
+const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * ExpenseType model
@@ -61,8 +62,8 @@ class ExpenseType {
     } else if (_.isNil(dateStr)) {
       return false;
     } else {
-      let start = this.startDate;
-      let end = this.endDate;
+      let start = dateUtils.format(this.startDate, null, ISOFORMAT);
+      let end = dateUtils.format(this.endDate, null, ISOFORMAT);
       return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
     }
   } // isDateInRange

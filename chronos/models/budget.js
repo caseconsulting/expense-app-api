@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const dateUtils = require('../js/dateUtils');
+const ISOFORMAT = 'YYYY-MM-DD';
+
 /**
  * Budget model
  *
@@ -35,8 +37,8 @@ class Budget {
    * @return Boolean - date is in range
    */
   isDateInRange(dateStr) {
-    let start = this.fiscalStartDate;
-    let end = this.fiscalEndDate;
+    let start = dateUtils.format(this.fiscalStartDate, null, ISOFORMAT);
+    let end = dateUtils.format(this.fiscalEndDate, null, ISOFORMAT);
     return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
   } // isDateInRange
 
