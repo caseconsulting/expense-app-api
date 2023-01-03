@@ -504,22 +504,34 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
         - AttributeName: contractName
           AttributeType: S
         - AttributeName: primeName
-          AttributeType: S
-        - AttributeName: costType
           AttributeType: S
       KeySchema:
-        - AttributeName: contractName
+        - AttributeName: id
           KeyType: HASH
-        - AttributeName: primeName
-          KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: costType-index
+        - IndexName: contractName-index
           KeySchema:
-            - AttributeName: costType
+            - AttributeName: contractName
               KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: primeName-index
+          KeySchema:
+            - AttributeName: primeName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: contractName-primeName-index
+          KeySchema:
+            - AttributeName: contractName
+              KeyType: HASH
+            - AttributeName: primeName
+              KeyType: RANGE
           Projection:
             ProjectionType: ALL
       Tags:
