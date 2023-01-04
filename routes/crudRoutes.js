@@ -104,7 +104,8 @@ class Crud {
     let managerPermissions =
       this.isManager(employee) && this._checkTableName(['training-urls', 'expenses', 'employees']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -146,7 +147,8 @@ class Crud {
 
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses']);
-    let adminPermissions = this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees']);
+    let adminPermissions =
+      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
     let managerPermissions = this.isManager(employee) && this._checkTableName(['expenses', 'employees']);
 
@@ -188,12 +190,16 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls']);
+    let userPermissions =
+      this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
-    let internPermissions = this.isIntern(employee) && this._checkTableName(['employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts']);
+    let internPermissions =
+      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses']);
+      this.isManager(employee) &&
+      this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses', 'contracts']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -231,12 +237,14 @@ class Crud {
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls']);
+    let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
-    let internPermissions = this.isIntern(employee) && this._checkTableName(['employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts']);
+    let internPermissions =
+      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types']);
+      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types', 'contracts']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -277,7 +285,8 @@ class Crud {
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let managerPermissions =
       this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expenses']);

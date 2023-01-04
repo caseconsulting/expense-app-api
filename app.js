@@ -61,6 +61,9 @@ const googleMapRoutes = new GoogleMapRoutes();
 const AuditRoutes = require('./routes/auditRoutes');
 const auditRoutes = new AuditRoutes();
 
+const ContractRoutes = require('./routes/contractRoutes');
+const contractRoutes = new ContractRoutes();
+
 var app = express();
 
 // view engine setup
@@ -102,6 +105,7 @@ app.use('/emsi', emsiRoutes.router);
 app.use('/hippoLabs', hippoLabsRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
+app.use('/contracts', contractRoutes.router);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   var err = new Error(' No Route Found');

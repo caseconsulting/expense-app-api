@@ -14,6 +14,7 @@ const _ = require('lodash');
 
 class Contract {
   constructor(data) {
+    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'contractName');
     this.setRequiredAttribute(data, 'primeName');
     this.setRequiredAttribute(data, 'projects');
