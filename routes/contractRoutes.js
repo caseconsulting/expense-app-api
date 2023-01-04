@@ -73,63 +73,6 @@ class ContractRoutes extends Crud {
   } // _delete
 
   /**
-   * Reads a contract from the database. Returns the contract read.
-   *
-   * @param data - parameters of contract
-   * @return Contract - contract read
-   */
-  async _read(data) {
-    // log method
-    logger.log(2, '_read', `Attempting to read contract ${data.id}`);
-
-    // compute method
-    try {
-      let contract = new Contract(await this.databaseModify.getEntry(data.id)); // read from database
-      // log success
-      logger.log(2, '_read', `Successfully read contract ${data.id}`);
-
-      // return contract
-      return contract;
-    } catch (err) {
-      // log error
-      logger.log(2, '_read', `Failed to read contract ${data.id}`);
-
-      // return error
-      return Promise.reject(err);
-    }
-  } // _read
-
-  /**
-   * Reads all contracts from the database. Returns all contracts.
-   *
-   * @return Array - all contracts
-   */
-  async _readAll() {
-    // log method
-    logger.log(2, '_readAll', 'Attempting to read all contracts');
-
-    // compute method
-    try {
-      let contractData = await this.databaseModify.getAllEntriesInDB();
-      let contracts = _.map(contractData, (contract) => {
-        return new Contract(contract);
-      });
-
-      // log success
-      logger.log(2, '_readAll', 'Successfully read all contracts');
-
-      // return all contracts
-      return contracts;
-    } catch (err) {
-      // log error
-      logger.log(2, '_readAll', 'Failed to read all contracts');
-
-      // return error
-      return Promise.reject(err);
-    }
-  } // readAll
-
-  /**
    * Prepares a contract to be updated. Returns the contract if it can be successfully updated.
    *
    * @param req - request
