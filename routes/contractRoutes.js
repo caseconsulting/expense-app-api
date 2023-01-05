@@ -90,7 +90,6 @@ class ContractRoutes extends Crud {
 
       // log success
       logger.log(2, '_update', `Successfully prepared to update contract ${data.id}`);
-
       // return contract to update
       return newContract;
     } catch (err) {

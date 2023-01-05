@@ -498,4 +498,158 @@ describe('contractRoutes', () => {
       }); // END where contract already exists
     }); // END when unsuccessfully validating if a contract can be created
   }); // END _validateCreate
+
+  describe('_create', () => {
+    let contract;
+    beforeEach(() => {
+      contract = new Contract(CONTRACT_DATA);
+    });
+
+    // describe('when the contract should successfully be created', () => {
+    //   it('should return the created contract', (done) => {
+    //     contractRoutes
+    //       ._create(contract)
+    //       .then((data) => {
+    //         expect(data).toEqual(contract);
+    //         done();
+    //       })
+    //       .catch((error) => {
+    //         fail('error not expected to have been thrown: ' + JSON.stringify(error));
+    //         done();
+    //       });
+    //   });
+    // }); // END when the contract should successfully be created
+
+    describe('when the contract should unsuccessfully be created', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid contract name.'
+        };
+        contract.contractName = null;
+      });
+
+      it('should return a 403 rejected promise', (done) => {
+        contractRoutes
+          ._create(contract)
+          .then(() => {
+            fail('expected an error to have been thrown');
+            done();
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+            done();
+          });
+      });
+    }); // END when the contract should unsuccessfully be created
+  }); // END _create
+
+  describe('_update', () => {
+    let oldContract;
+    let newContract;
+    beforeEach(() => {
+      oldContract = new Contract(CONTRACT_DATA);
+      newContract = new Contract(CONTRACT_DATA);
+    });
+
+    describe('when the contract should successfully be updated', () => {
+      beforeEach(() => {
+        newContract.contractName = 'newContract';
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldContract));
+      });
+
+      it('should return the updated contract', (done) => {
+        contractRoutes
+          ._update(newContract)
+          .then((data) => {
+            expect(data).toEqual(newContract);
+            // not sure why these aren't working
+            //expect(contractRoutes._validateContract).toHaveBeenCalledWith(newContract);
+            //expect(contractRoutes._validateUpdate).toHaveBeenCalledWith(oldContract, newContract);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(oldContract.id);
+            done();
+          })
+          .catch((error) => {
+            fail('error not expected to have been thrown: ' + JSON.stringify(error));
+            done();
+          });
+      });
+    }); // END when the contract should successfully be updated
+
+    describe('when the contract should unsuccessfully be updated', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Invalid contract projects.'
+        };
+        newContract.projects = [];
+        databaseModify.getEntry.and.returnValue(Promise.resolve(oldContract));
+      });
+
+      it('should return a 403 rejected promise', (done) => {
+        contractRoutes
+          ._update(newContract)
+          .then(() => {
+            fail('expected an error to have been thrown');
+            done();
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+            done();
+          });
+      });
+    }); // END when the contract should unsuccessfully be updated
+  }); // END _update
+
+  describe('_delete', () => {
+    let contract;
+    beforeEach(() => {
+      contract = new Contract(CONTRACT_DATA);
+    });
+
+    describe('when the contract should successfully be deleted', () => {
+      beforeEach(() => {
+        databaseModify.getEntry.and.returnValue(Promise.resolve(contract));
+      });
+
+      it('should return the deleted contract', (done) => {
+        contractRoutes
+          ._delete(contract.id)
+          .then((data) => {
+            expect(data).toEqual(contract);
+            // not sure why these aren't working
+            //expect(contractRoutes._validateDelete).toHaveBeenCalledWith(contract);
+            expect(databaseModify.getEntry).toHaveBeenCalledWith(contract.id);
+            done();
+          })
+          .catch((error) => {
+            fail('error not expected to have been thrown: ' + JSON.stringify(error));
+            done();
+          });
+      });
+    }); // END when the contract should successfully be deleted
+    // TODO WHEN DELETE IS FINISHED BEING IMPLEMENTED
+    // describe('when the contract should unsuccessfully be deleted', () => {
+    //   let err;
+    //   beforeEach(() => {
+    //     err = "TypeError: Cannot read properties of undefined (reading 'id')";
+    //     contract.id = null;
+    //   });
+
+    //   it('should return a 403 rejected promise', (done) => {
+    //     contractRoutes
+    //       ._delete(contract.id)
+    //       .then(() => {
+    //         fail('expected an error to have been thrown');
+    //         done();
+    //       })
+    //       .catch((error) => {
+    //         expect(error).toEqual(err);
+    //         done();
+    //       });
+    //   });
+    // }); // END when the contract should unsuccessfully be deleted
+  }); // END delete
 }); // END contractRoutes

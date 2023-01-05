@@ -188,10 +188,16 @@ describe('chronos', () => {
     });
 
     it('SHOULD return nothing', (done) => {
-      return chronos.handler().then((result) => {
-        expect(result).toEqual('hello world');
-        done();
-      });
+      return chronos
+        .handler()
+        .then((result) => {
+          expect(result).toEqual('hello world');
+          done();
+        })
+        .catch((error) => {
+          fail('should not have thrown error: ' + JSON.stringify(error));
+          done();
+        });
     }); // SHOULD return nothing
   }); // handler
 
