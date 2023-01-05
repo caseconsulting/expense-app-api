@@ -451,10 +451,16 @@ describe('chronos', () => {
       });
 
       it('SHOULD return nothing', (done) => {
-        return chronos.start().then((result) => {
-          expect(result).toBeUndefined();
-          done();
-        });
+        return chronos
+          .start()
+          .then((result) => {
+            expect(result).toBeUndefined();
+            done();
+          })
+          .catch((error) => {
+            fail('unexpected error was thrown: ' + JSON.stringify(error));
+            done();
+          });
       });
     }); // WHEN no budgets
 
