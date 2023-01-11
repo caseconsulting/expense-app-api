@@ -14,13 +14,16 @@ const _ = require('lodash');
 
 class Contract {
   constructor(data) {
+    // required attributes
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'contractName');
     this.setRequiredAttribute(data, 'primeName');
     this.setRequiredAttribute(data, 'projects');
-    this.setRequiredAttribute(data, 'popStartDate');
     this.setRequiredAttribute(data, 'popEndDate');
     this.setRequiredAttribute(data, 'costType');
+
+    // optional attributes
+    this.setOptionalAttribute(data, 'popStartDate');
   } // constructor
 
   /**

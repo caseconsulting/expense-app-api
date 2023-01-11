@@ -273,16 +273,6 @@ class ContractRoutes extends Crud {
         throw err;
       }
 
-      // validate PoP start date
-      if (_.isNil(contract.popStartDate)) {
-        // log error
-        logger.log(3, '_validateContract', 'Contract PoP start date is empty');
-
-        // throw error
-        err.message = 'Invalid contract PoP start date.';
-        throw err;
-      }
-
       // validate PoP end date
       if (_.isNil(contract.popEndDate)) {
         // log error

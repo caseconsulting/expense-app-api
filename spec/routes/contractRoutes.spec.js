@@ -80,6 +80,26 @@ describe('contractRoutes', () => {
           done();
         });
       });
+
+      // optional contract PoP start date
+      describe('when contract PoP start date is nil', () => {
+        beforeEach(() => {
+          contract.popStartDate = null;
+        });
+
+        it('should return a 403 rejected promise', (done) => {
+          contractRoutes
+            ._validateContract(contract)
+            .then((data) => {
+              expect(data).toEqual(contract);
+              done();
+            })
+            .catch((error) => {
+              fail('Should not have thrown error: ' + error);
+              done();
+            });
+        });
+      }); // END when contract PoP start date is nil
     }); // END when successfully validating a contract
 
     // invalid contract tests
@@ -217,27 +237,6 @@ describe('contractRoutes', () => {
             });
         });
       }); // END when contract cost type is nil
-
-      // invalid contract PoP start date
-      describe('when contract PoP start date is nil', () => {
-        beforeEach(() => {
-          contract.popStartDate = null;
-          err.message = 'Invalid contract PoP start date.';
-        });
-
-        it('should return a 403 rejected promise', (done) => {
-          contractRoutes
-            ._validateContract(contract)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch((error) => {
-              expect(error).toEqual(err);
-              done();
-            });
-        });
-      }); // END when contract PoP start date is nil
 
       // invalid contract PoP end date being nil
       describe('when contract PoP end date is nil', () => {
