@@ -174,23 +174,27 @@ class ContractRoutes extends Crud {
 
     // compute method
     try {
-      //   let err = {
-      //     code: 403,
-      //     message: 'Error validating delete for employee.'
-      //   };
+      let err = {
+        code: 403,
+        message: 'Error validating delete for employee.'
+      };
 
-      // get all expenses for this employee
-      //let expenses = await this.expenseDynamo.querySecondaryIndexInDB('employeeId-index', 'employeeId', employee.id);
+      let employees = await this.employeeDynamo.getAllEntriesInDB();
 
-      // validate the employee does not have any expenses
-      //   if (expenses.length > 0) {
-      //     // log error
-      //     logger.log(2, '_validateDelete', `Expenses exist for employee ${employee.id}`);
+      _.forEach(employees, (employee) => {
+        if (employee.contracts) {
+          _.forEach(employee.contracts, (c) => {
+            if (contract.id === c.contractId) {
+              // log error
+              logger.log(3, '_validateDelete', 'Contract found with employee ID: ' + employee.id);
 
-      //     // throw error
-      //     err.message = 'Cannot delete an employee with expenses.';
-      //     throw err;
-      //   }
+              // throw error
+              err.message = 'Cannot delete contract, employee found with contract';
+              throw err;
+            }
+          });
+        }
+      });
 
       // log success
       logger.log(3, '_validateDelete', `Successfully validated delete for contract ${contract.id}`);

@@ -2,6 +2,7 @@ const ContractRoutes = require('../../routes/contractRoutes');
 const _ = require('lodash');
 
 const Contract = require('../../models/contract');
+const Employee = require('../../models/employee');
 
 describe('contractRoutes', () => {
   const _ROUTER = '{router}';
@@ -33,24 +34,30 @@ describe('contractRoutes', () => {
     projects: [{ projectName: 'existingProjectName' }]
   });
 
-  let databaseModify, contractRoutes, res;
+  const EMPLOYEE = new Employee({
+    id: ID,
+    email: '{email}',
+    employeeNumber: 0,
+    employeeRole: '{employeeRole}',
+    firstName: '{firstName}',
+    hireDate: '{hireDate}',
+    lastName: '{lastName}',
+    workStatus: '{workStatus}',
+    contracts: [EXISTING_CONTRACT]
+  });
+
+  const EMPLOYEES = [EMPLOYEE];
+
+  let databaseModify, employeeDynamo, contractRoutes, res;
 
   beforeEach(() => {
-    databaseModify = jasmine.createSpyObj('databaseModify', [
-      'addToDB',
-      'getAllEntriesInDB',
-      'getEntry',
-      'querySecondaryIndexInDB',
-      'queryWithTwoIndexesInDB',
-      '_readFromDB',
-      '_readFromDBUrl',
-      'removeFromDB',
-      'updateEntryInDB'
-    ]);
+    databaseModify = jasmine.createSpyObj('databaseModify', ['getAllEntriesInDB', 'getEntry']);
+    employeeDynamo = jasmine.createSpyObj('employeeDynamo', ['getAllEntriesInDB']);
     res = jasmine.createSpyObj('res', ['status', 'send']);
     res.status.and.returnValue(res);
     contractRoutes = new ContractRoutes();
     contractRoutes.databaseModify = databaseModify;
+    contractRoutes.employeeDynamo = employeeDynamo;
     contractRoutes._router = _ROUTER;
   });
 
@@ -417,7 +424,35 @@ describe('contractRoutes', () => {
             done();
           });
       });
-    });
+    }); // END when successfully validating a contract deletion before deleting it
+
+    describe('when unsuccessfully validating a contract deletion before deleting it', () => {
+      let existingContract, err;
+      beforeEach(() => {
+        existingContract = new Contract(EXISTING_CONTRACT);
+        EMPLOYEES[0].contracts[0]['contractId'] = EMPLOYEES[0].contracts[0]['id'];
+        employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(EMPLOYEES));
+        err = {
+          code: 403,
+          message: 'Error validating delete for employee.'
+        };
+      });
+      describe('where an employee is under the contract being deleted', () => {
+        it('should return a 403 rejected promise', (done) => {
+          contractRoutes
+            ._validateDelete(existingContract)
+            .then(() => {
+              fail('should have thrown an error');
+              done();
+            })
+            .catch((error) => {
+              err.message = 'Cannot delete contract, employee found with contract';
+              expect(error).toEqual(err);
+              done();
+            });
+        });
+      }); // END where an employee is under the contract being deleted
+    }); // END when unsuccessfully validating a contract deletion before deleting it'
   }); // END _validateDelete METHOD
 
   // validating a contract
@@ -629,26 +664,33 @@ describe('contractRoutes', () => {
           });
       });
     }); // END when the contract should successfully be deleted
-    // TODO WHEN DELETE IS FINISHED BEING IMPLEMENTED
-    // describe('when the contract should unsuccessfully be deleted', () => {
-    //   let err;
-    //   beforeEach(() => {
-    //     err = "TypeError: Cannot read properties of undefined (reading 'id')";
-    //     contract.id = null;
-    //   });
 
-    //   it('should return a 403 rejected promise', (done) => {
-    //     contractRoutes
-    //       ._delete(contract.id)
-    //       .then(() => {
-    //         fail('expected an error to have been thrown');
-    //         done();
-    //       })
-    //       .catch((error) => {
-    //         expect(error).toEqual(err);
-    //         done();
-    //       });
-    //   });
-    // }); // END when the contract should unsuccessfully be deleted
+    describe('when the contract should unsuccessfully be deleted', () => {
+      let existingContract, err;
+      beforeEach(() => {
+        existingContract = new Contract(EXISTING_CONTRACT);
+        EMPLOYEES[0].contracts[0]['contractId'] = EMPLOYEES[0].contracts[0]['id'];
+        employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(EMPLOYEES));
+        databaseModify.getEntry.and.returnValue(Promise.resolve(EXISTING_CONTRACT));
+        err = {
+          code: 403,
+          message: 'Error validating delete for employee.'
+        };
+      });
+
+      it('should return a 403 rejected promise', (done) => {
+        contractRoutes
+          ._delete(existingContract.id)
+          .then(() => {
+            fail('should have thrown an error');
+            done();
+          })
+          .catch((error) => {
+            err.message = 'Cannot delete contract, employee found with contract';
+            expect(error).toEqual(err);
+            done();
+          });
+      });
+    }); // END when the contract should unsuccessfully be deleted
   }); // END delete
 }); // END contractRoutes
