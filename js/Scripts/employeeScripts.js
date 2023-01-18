@@ -717,6 +717,52 @@ async function moveSchoolsToEducation() {
 } // moveSchoolsToEducation
 
 /**
+ * Replaces all employee's single prime string with a list of primes.
+ */
+async function createPrimesList() {
+  let employees = await getAllEntries();
+  _.forEach(employees, (employee) => {
+    if (employee.contracts) {
+      // copy old data and turn prime into a primes list
+      let newContracts = _.map(employee.contracts, (contract) => {
+        return {
+          ...contract,
+          primes: [contract.prime]
+        };
+      });
+      // go back and remove the single prime string
+      _.forEach(newContracts, (contract) => {
+        delete contract.prime;
+      });
+
+      console.log(newContracts);
+      console.log(employee.firstName);
+
+      let params = {
+        TableName: TABLE,
+        Key: {
+          id: employee.id
+        },
+        UpdateExpression: 'set contracts = :c',
+        ExpressionAttributeValues: {
+          ':c': newContracts
+        },
+        ReturnValues: 'UPDATED_NEW'
+      };
+
+      // //update employee
+      ddb.update(params, function (err) {
+        if (err) {
+          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+        } else {
+          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
+        }
+      });
+    }
+  });
+} // createPrimesList
+
+/**
  * Updates awards to have dates if they have no dates, fixing the stuck on activity feed issue.
  * This would be easily portable to expenses if needed.
  */
@@ -929,6 +975,12 @@ async function main() {
       desc: 'Remove old schools attribute',
       action: async () => {
         await removeSchoolsAttribute();
+      }
+    },
+    {
+      desc: 'Change contract prime to a list of primes',
+      action: async () => {
+        await createPrimesList();
       }
     }
   ];

@@ -1,46 +1,57 @@
 const _ = require('lodash');
-const dateUtils = require('../js/dateUtils');
-const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
- * Budget model
+ * Expense model
  *
- * Fields:
+ * Required Fields:
  * - id
- * - expenseTypeId
  * - employeeId
- * - reimbursedAmount
- * - pendingAmount
- * - fiscalStartDate
- * - fiscalEndDate
- * - amount
+ * - createdAt
+ * - expenseTypeId
+ * - cost
+ * - description
+ * - purchaseDate
+ * - showOnFeed
+ *
+ * Optional Fields:
+ * - category
+ * - recipient
+ * - reimbursedDate
+ * - receipt
+ * - note
+ * - url
+ * - canDelete
+ * - reimbursementWasSeen
  */
-
-class Budget {
+class Expense {
   constructor(data) {
-    // required attributes
     this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'expenseTypeId');
     this.setRequiredAttribute(data, 'employeeId');
-    this.setRequiredNumberAttribute(data, 'reimbursedAmount', undefined, 2);
-    this.setRequiredNumberAttribute(data, 'pendingAmount', undefined, 2);
-    this.setRequiredAttribute(data, 'fiscalStartDate');
-    this.setRequiredAttribute(data, 'fiscalEndDate');
-    this.setRequiredNumberAttribute(data, 'amount', undefined, 2);
+    this.setRequiredAttribute(data, 'createdAt');
+    this.setRequiredAttribute(data, 'expenseTypeId');
+    this.setRequiredAttribute(data, 'description');
+    this.setRequiredAttribute(data, 'purchaseDate');
+    this.setRequiredAttribute(data, 'showOnFeed', false);
+    this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
+
+    this.setOptionalAttribute(data, 'category');
+    this.setOptionalAttribute(data, 'recipient');
+    this.setOptionalAttribute(data, 'reimbursedDate');
+    this.setOptionalAttribute(data, 'receipt');
+    this.setOptionalAttribute(data, 'note');
+    this.setOptionalAttribute(data, 'url');
+    this.setOptionalAttribute(data, 'canDelete');
+    this.setOptionalAttribute(data, 'reimbursementWasSeen');
   } // constructor
 
   /**
-   * Check if a date is in the budget date range. Returns true if the date is between the budget fiscal start start and
-   * end date. Returns false otherwise.
+   * Check if the expense has a receipt. Returns true if the receipt exists, otherwise returns false.
    *
-   * @param dateStr - date to be checked
-   * @return Boolean - date is in range
+   * @return boolean - expense has receipt
    */
-  isDateInRange(dateStr) {
-    let start = dateUtils.format(this.fiscalStartDate, null, ISOFORMAT);
-    let end = dateUtils.format(this.fiscalEndDate, null, ISOFORMAT);
-    return dateUtils.isBetween(dateStr, start, end, 'day', '[]');
-  } // isDateInRange
+  hasReceipt() {
+    return !this._isEmpty(this.receipt);
+  } // hasReceipt
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -51,6 +62,15 @@ class Budget {
   _isEmpty(value) {
     return _.isNil(value) || (_.isString(value) && value.trim().length === 0);
   } // _isEmpty
+
+  /**
+   * Check if the expense is reimbursed. Returns true if reimburse date exists, otherwise returns false.
+   *
+   * @return boolean - expense is reimbursed
+   */
+  isReimbursed() {
+    return !this._isEmpty(this.reimbursedDate);
+  } // isReimbursed
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
@@ -75,7 +95,7 @@ class Budget {
     if (!this._isEmpty(data[attribute])) {
       this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     }
-  } // setOptionalNumberAttribute
+  } // setNumberAttribute
 
   /**
    * Sets an employee attribute. If the data attribute is empty, sets the attribute to the default value.
@@ -107,6 +127,6 @@ class Budget {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
-} // Budget
+} // Expense
 
-module.exports = Budget;
+module.exports = Expense;

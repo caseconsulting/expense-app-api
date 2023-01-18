@@ -1,21 +1,11 @@
 const Budget = require('../../models/budget');
 const BudgetRoutes = require('../../routes/budgetRoutes');
-//const Employee = require('../../models/employee');
-// const Expense = require('../../models/expense');
-//const ExpenseType = require('../../models/expenseType');
-//const TrainingUrls = require('../../models/trainingUrls');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const _ = require('lodash');
 
-//const ISOFORMAT = 'YYYY-MM-DD';
-
 describe('budgetRoutes', () => {
-  //const STAGE = 'dev';
   const _ROUTER = '{router}';
 
   const ID = '{id}';
-  // const DESCRIPTION = '{description}';
 
   const FIRST_NAME = '{firstName}';
   const MIDDLE_NAME = '{middleName}';
@@ -32,25 +22,7 @@ describe('budgetRoutes', () => {
   const FISCAL_END_DATE = '{fiscalEndDate}';
   const AMOUNT = 0;
 
-  // const PURCHASE_DATE = '{purchaseDate}';
-  // const REIMBURSED_DATE = '{reimbursedDate}';
-  // const NOTE = '{note}';
-  // const URL = '{url}';
-  // const CREATED_AT = '{createdAt}';
-  // const RECEIPT = '{receipt}';
-  // const COST = 0;
   const CATEGORY = '{category}';
-
-  // const NAME = '{name}';
-  // const BUDGET = '{budget}';
-  // const START_DATE = '{startDate}';
-  // const END_DATE = '{endDate}';
-  // const OD_FLAG = '{odFlag}';
-  // const REQUIRED_FLAG = '{requiredFlag}';
-  // const RECURRING_FLAG = '{recurringFlag}';
-  // const IS_INACTIVE = '{isInactive}';
-  // const ACCESSIBLE_BY = '{accessibleBy}';
-  // const CATEGORIES = [];
 
   const EMPLOYEE_DATA = {
     id: ID,
@@ -74,36 +46,6 @@ describe('budgetRoutes', () => {
     fiscalEndDate: FISCAL_END_DATE,
     amount: AMOUNT
   };
-
-  // const EXPENSE_DATA = {
-  //   id: ID,
-  //   purchaseDate: PURCHASE_DATE,
-  //   reimbursedDate: REIMBURSED_DATE,
-  //   note: NOTE,
-  //   url: URL,
-  //   createdAt: CREATED_AT,
-  //   receipt: RECEIPT,
-  //   cost: COST,
-  //   description: DESCRIPTION,
-  //   employeeId: ID,
-  //   expenseTypeId: ID,
-  //   category: CATEGORY
-  // };
-
-  // const EXPENSE_TYPE_DATA = {
-  //   id: ID,
-  //   budgetName: NAME,
-  //   budget: BUDGET,
-  //   startDate: START_DATE,
-  //   endDate: END_DATE,
-  //   odFlag: OD_FLAG,
-  //   requiredFlag: REQUIRED_FLAG,
-  //   recurringFlag: RECURRING_FLAG,
-  //   isInactive: IS_INACTIVE,
-  //   description: DESCRIPTION,
-  //   categories: CATEGORIES,
-  //   accessibleBy: ACCESSIBLE_BY
-  // };
 
   const BODY_DATA = {
     id: ID

@@ -1,18 +1,16 @@
 const CrudRoutes = require('../../routes/crudRoutes');
 const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../../js/dateUtils');
 
 const Budget = require('../../models/budget');
 const Employee = require('../../models/employee');
 const ExpenseType = require('../../models/expenseType');
 
 describe('crudRoutes', () => {
-
-  const ISOFORMAT = 'YYYY-MM-DD';
   const STAGE = 'dev';
   const _ROUTER = '{router}';
+  const ISOFORMAT = 'YYYY-MM-DD';
 
   const ID = '{id}';
   const DESCRIPTION = '{description}';
@@ -137,7 +135,6 @@ describe('crudRoutes', () => {
   });
 
   describe('calcAdjustedAmount', () => {
-
     let employee, expenseType;
 
     beforeEach(() => {
@@ -271,7 +268,7 @@ describe('crudRoutes', () => {
           employee.workStatus = 0;
           employee.employeeRole = 'user';
         });
-        
+
         describe('and is given custom access', () => {
           beforeEach(() => {
             expenseType.accessibleBy = ['userId'];
@@ -293,7 +290,6 @@ describe('crudRoutes', () => {
   }); // calcAdjustedAmount
 
   describe('_checkPermissionToCreate', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -301,7 +297,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is a user', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(true);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -310,7 +305,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -321,7 +315,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -333,7 +326,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is an admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -342,7 +334,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -353,7 +344,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -365,7 +355,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is an intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(true);
@@ -374,7 +363,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -385,7 +373,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -397,7 +384,6 @@ describe('crudRoutes', () => {
     }); // when employee is an intern
 
     describe('when employee is a manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -406,7 +392,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -417,7 +402,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -429,7 +413,6 @@ describe('crudRoutes', () => {
     }); // when employee is an intern
 
     describe('when employee is not a user or admin or intern or manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -444,7 +427,6 @@ describe('crudRoutes', () => {
   }); // _checkPermissionToCreate
 
   describe('_checkPermissionToDelete', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -452,7 +434,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is a user', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(true);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -461,7 +442,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -472,7 +452,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -484,7 +463,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is an admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -493,7 +471,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -504,7 +481,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -516,7 +492,6 @@ describe('crudRoutes', () => {
     }); // when employee is an admin
 
     describe('when employee is a manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -525,7 +500,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -536,7 +510,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -548,7 +521,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is an intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(true);
@@ -557,7 +529,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -568,7 +539,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -580,7 +550,6 @@ describe('crudRoutes', () => {
     }); // when employee is an admin
 
     describe('when employee is not a user or admin or intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -595,7 +564,6 @@ describe('crudRoutes', () => {
   }); // _checkPermissionToDelete
 
   describe('_checkPermissionToRead', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -603,7 +571,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is a user', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(true);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -612,7 +579,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -623,7 +589,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -635,7 +600,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is a manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -644,7 +608,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -655,7 +618,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -667,7 +629,6 @@ describe('crudRoutes', () => {
     }); // when manager is a user
 
     describe('when employee is an intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(true);
@@ -676,7 +637,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -687,7 +647,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -699,7 +658,6 @@ describe('crudRoutes', () => {
     }); // when employee is a intern
 
     describe('when employee is an admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -708,7 +666,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -719,7 +676,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -731,7 +687,6 @@ describe('crudRoutes', () => {
     }); // when employee is an admin
 
     describe('when employee is not a user or admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -746,7 +701,6 @@ describe('crudRoutes', () => {
   }); // _checkPermissionToRead
 
   describe('_checkPermissionToReadAll', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -754,7 +708,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is a user', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(true);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -763,7 +716,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -774,7 +726,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -786,7 +737,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is a manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -795,7 +745,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -806,7 +755,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -818,7 +766,6 @@ describe('crudRoutes', () => {
     }); // when manager is a user
 
     describe('when employee is an admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -827,7 +774,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -838,7 +784,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -850,7 +795,6 @@ describe('crudRoutes', () => {
     }); // when employee is an admin
 
     describe('when employee is an intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(true);
@@ -859,7 +803,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -870,7 +813,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -882,7 +824,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is not a user or admin or intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -897,7 +838,6 @@ describe('crudRoutes', () => {
   }); // _checkPermissionToReadAll
 
   describe('_checkPermissionToUpdate', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -905,7 +845,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is a user', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(true);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -914,7 +853,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -925,7 +863,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -937,7 +874,6 @@ describe('crudRoutes', () => {
     }); // when employee is a user
 
     describe('when employee is a manager', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -946,7 +882,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -957,7 +892,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -969,7 +903,6 @@ describe('crudRoutes', () => {
     }); // when manager is a user
 
     describe('when employee is an intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(true);
@@ -978,7 +911,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -990,7 +922,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when employee is an admin', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -999,7 +930,6 @@ describe('crudRoutes', () => {
       });
 
       describe('and valid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(true);
         });
@@ -1010,7 +940,6 @@ describe('crudRoutes', () => {
       }); // and valid table name
 
       describe('and invalid table name', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkTableName').and.returnValue(false);
         });
@@ -1022,7 +951,6 @@ describe('crudRoutes', () => {
     }); // when employee is an admin
 
     describe('when employee is not a user or admin or intern', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, 'isUser').and.returnValue(false);
         spyOn(crudRoutes, 'isIntern').and.returnValue(false);
@@ -1037,13 +965,11 @@ describe('crudRoutes', () => {
   }); // _checkPermissionToUpdate
 
   describe('_checkTableName', () => {
-
     beforeEach(() => {
       spyOn(crudRoutes, '_getTableName').and.returnValue(`${STAGE}-expenses`);
     });
 
     describe('when database table is in list of table names', () => {
-
       it('should return true', () => {
         expect(crudRoutes._checkTableName(['expenses'])).toEqual(true);
       }); // should retrun true
@@ -1057,7 +983,6 @@ describe('crudRoutes', () => {
   }); // _checkTableName
 
   describe('createNewBudget', () => {
-
     let employee, expectedBudget, expenseType;
 
     beforeEach(() => {
@@ -1070,66 +995,58 @@ describe('crudRoutes', () => {
     });
 
     describe('when successfully creates a new budget,', () => {
-
       beforeEach(() => {
         budgetDynamo.addToDB.and.returnValue(Promise.resolve(expectedBudget));
       });
 
       describe('expense type is recurring,', () => {
-
         describe('annual start not provided,', () => {
-
           let endDate, startDate;
 
           beforeEach(() => {
             expenseType.recurringFlag = true;
-            startDate = moment('2000-08-18', ISOFORMAT);
-            endDate = moment('2001-08-17', ISOFORMAT);
-            spyOn(crudRoutes, 'getBudgetDates').and.returnValue({startDate, endDate});
+            startDate = '2000-08-18';
+            endDate = '2001-08-17';
+            spyOn(crudRoutes, 'getBudgetDates').and.returnValue({ startDate, endDate });
             expectedBudget.fiscalStartDate = '2000-08-18';
             expectedBudget.fiscalEndDate = '2001-08-17';
           });
 
           describe('and employee has access', () => {
-
             beforeEach(() => {
               expenseType.accessibleBy = ['FullTime'];
               employee.workStatus = 100;
               expectedBudget.amount = 100;
             });
 
-            it('should create and return a new budget with full amount and anniversary date', done => {
-              crudRoutes.createNewBudget(employee, expenseType)
-                .then(data => {
-                  expect(data).toEqual(expectedBudget);
-                  expect(crudRoutes.getBudgetDates).toHaveBeenCalledWith('2000-08-18');
-                  expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                  done();
-                });
+            it('should create and return a new budget with full amount and anniversary date', (done) => {
+              crudRoutes.createNewBudget(employee, expenseType).then((data) => {
+                expect(data).toEqual(expectedBudget);
+                expect(crudRoutes.getBudgetDates).toHaveBeenCalledWith('2000-08-18');
+                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+                done();
+              });
             }); // should create and return a new budget with full amount and anniversary date
           }); // and employee has access
 
           describe('and employee does not have access', () => {
-
             beforeEach(() => {
               expenseType.accessibleBy = [];
               expectedBudget.amount = 0;
             });
 
-            it('should create and return a new budget with 0 amount and anniversary date', done => {
-              crudRoutes.createNewBudget(employee, expenseType)
-                .then(data => {
-                  expect(data).toEqual(expectedBudget);
-                  expect(crudRoutes.getBudgetDates).toHaveBeenCalledWith('2000-08-18');
-                  expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                  done();
-                });
+            it('should create and return a new budget with 0 amount and anniversary date', (done) => {
+              crudRoutes.createNewBudget(employee, expenseType).then((data) => {
+                expect(data).toEqual(expectedBudget);
+                expect(crudRoutes.getBudgetDates).toHaveBeenCalledWith('2000-08-18');
+                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+                done();
+              });
             }); // should create and return a new budget with 0 amount and anniversary date
           }); // and employee does not have access
         }); // annual start not provided,
 
         describe('annual start provided,', () => {
-
           beforeEach(() => {
             expenseType.recurringFlag = true;
             expectedBudget.fiscalStartDate = '2000-08-18';
@@ -1137,44 +1054,39 @@ describe('crudRoutes', () => {
           });
 
           describe('and employee has access', () => {
-
             beforeEach(() => {
               expenseType.accessibleBy = ['FullTime'];
               employee.workStatus = 100;
               expectedBudget.amount = 100;
             });
 
-            it('should create and return a new budget with full amount and anniversary date', done => {
-              crudRoutes.createNewBudget(employee, expenseType, '2000-08-18')
-                .then(data => {
-                  expect(data).toEqual(expectedBudget);
-                  expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                  done();
-                });
+            it('should create and return a new budget with full amount and anniversary date', (done) => {
+              crudRoutes.createNewBudget(employee, expenseType, '2000-08-18').then((data) => {
+                expect(data).toEqual(expectedBudget);
+                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+                done();
+              });
             }); // should create and return a new budget with full amount and anniversary date
           }); // and employee has access
 
           describe('and employee does not have access', () => {
-
             beforeEach(() => {
               expenseType.accessibleBy = [];
               expectedBudget.amount = 0;
             });
 
-            it('should create and return a new budget with 0 amount and anniversary date', done => {
-              crudRoutes.createNewBudget(employee, expenseType, '2000-08-18')
-                .then(data => {
-                  expect(data).toEqual(expectedBudget);
-                  expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                  done();
-                });
+            it('should create and return a new budget with 0 amount and anniversary date', (done) => {
+              crudRoutes.createNewBudget(employee, expenseType, '2000-08-18').then((data) => {
+                expect(data).toEqual(expectedBudget);
+                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+                done();
+              });
             }); // should create and return a new budget with 0 amount and anniversary date
           }); // and employee does not have access
         }); // annual start provided,
       }); // expense type is recurring,
 
       describe('when expense type is not recurring', () => {
-
         beforeEach(() => {
           expenseType.recurringFlag = false;
           expenseType.startDate = '2000-08-18';
@@ -1184,44 +1096,39 @@ describe('crudRoutes', () => {
         });
 
         describe('and employee has access', () => {
-
           beforeEach(() => {
             expenseType.accessibleBy = ['FullTime'];
             employee.workStatus = 100;
             expectedBudget.amount = 100;
           });
 
-          it('should create and return a new budget with full amount and expense type date', done => {
-            crudRoutes.createNewBudget(employee, expenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudget);
-                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                done();
-              });
+          it('should create and return a new budget with full amount and expense type date', (done) => {
+            crudRoutes.createNewBudget(employee, expenseType).then((data) => {
+              expect(data).toEqual(expectedBudget);
+              expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+              done();
+            });
           }); // should create and return a new budget with full amount and expense type date
         }); // and employee has access
 
         describe('and employee does not have access', () => {
-
           beforeEach(() => {
             expenseType.accessibleBy = [];
             expectedBudget.amount = 0;
           });
 
-          it('should create and return a new budget with 0 amount and expense type date', done => {
-            crudRoutes.createNewBudget(employee, expenseType)
-              .then(data => {
-                expect(data).toEqual(expectedBudget);
-                expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
-                done();
-              });
+          it('should create and return a new budget with 0 amount and expense type date', (done) => {
+            crudRoutes.createNewBudget(employee, expenseType).then((data) => {
+              expect(data).toEqual(expectedBudget);
+              expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
+              done();
+            });
           }); // should create and return a new budget with 0 amount and expense type date
         }); // and employee does not have access
       }); // when expense type is not recurring
     }); // when successfully creates a new budget
 
     describe('when fails to create a new budget', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1239,13 +1146,14 @@ describe('crudRoutes', () => {
         budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 404 and error', done => {
-        crudRoutes.createNewBudget(employee, expenseType)
+      it('should respond with a 404 and error', (done) => {
+        crudRoutes
+          .createNewBudget(employee, expenseType)
           .then(() => {
             fail('expected error to have been thrown');
             done();
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             expect(budgetDynamo.addToDB).toHaveBeenCalledWith(expectedBudget);
             done();
@@ -1255,7 +1163,6 @@ describe('crudRoutes', () => {
   }); // createNewBudget
 
   describe('_createWrapper', () => {
-
     let req;
 
     beforeEach(() => {
@@ -1264,7 +1171,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when called without error', () => {
-
       beforeEach(() => {
         req.employee.employeeRole = 'admin';
         spyOn(crudRoutes, '_create').and.returnValue(Promise.resolve(BODY_DATA));
@@ -1273,49 +1179,44 @@ describe('crudRoutes', () => {
       });
 
       describe('creating a Training URL', () => {
-
         let trainingUrl;
 
         beforeEach(() => {
-          trainingUrl = new TrainingUrls({id: 'id', category: 'category'});
+          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
           databaseModify.addToDB.and.returnValue(Promise.resolve(trainingUrl));
         });
 
-        it('should respond with a 200 and data', done => {
-          crudRoutes._createWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(trainingUrl);
-              expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-              expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(trainingUrl);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._createWrapper(req, res).then((data) => {
+            expect(data).toEqual(trainingUrl);
+            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
+            expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(trainingUrl);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // creating a Training URL
 
       describe('creating something other than a Training URL', () => {
-
         beforeEach(() => {
           databaseModify.addToDB.and.returnValue(Promise.resolve(BODY_DATA));
         });
 
-        it('should respond with a 200 and data', done => {
-          crudRoutes._createWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(BODY_DATA);
-              expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-              expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(BODY_DATA);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._createWrapper(req, res).then((data) => {
+            expect(data).toEqual(BODY_DATA);
+            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
+            expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(BODY_DATA);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // creating something other than a Training URL
     }); // when called without error
 
     describe('when employee does not have permission to create', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1326,19 +1227,17 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._createWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._createWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when employee does not have permission to create
 
     describe('when failed to create object', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1350,20 +1249,18 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_create').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._createWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._createWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to create object
 
     describe('when failed to validate inputs', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1376,21 +1273,19 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._createWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-            expect(crudRoutes._validateInputs).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._createWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to validate inputs
 
     describe('when failed to add object to database', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1404,22 +1299,20 @@ describe('crudRoutes', () => {
         databaseModify.addToDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._createWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-            expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._createWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
+          expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to add object to database
   }); // _createWrapper
 
   describe('_deleteWrapper', () => {
-
     let req;
 
     beforeEach(() => {
@@ -1428,7 +1321,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when called without error', () => {
-
       beforeEach(() => {
         req.employee.employeeRole = 'admin';
         spyOn(crudRoutes, '_delete').and.returnValue(Promise.resolve(BODY_DATA));
@@ -1436,21 +1328,19 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_checkPermissionToDelete').and.returnValue(true);
       });
 
-      it('should respond with a 200 and data', done => {
-        crudRoutes._deleteWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(BODY_DATA);
-            expect(crudRoutes._delete).toHaveBeenCalledWith(PARAMS_DATA.id);
-            expect(databaseModify.removeFromDB).toHaveBeenCalledWith(BODY_DATA.id);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(BODY_DATA);
-            done();
-          });
+      it('should respond with a 200 and data', (done) => {
+        crudRoutes._deleteWrapper(req, res).then((data) => {
+          expect(data).toEqual(BODY_DATA);
+          expect(crudRoutes._delete).toHaveBeenCalledWith(PARAMS_DATA.id);
+          expect(databaseModify.removeFromDB).toHaveBeenCalledWith(BODY_DATA.id);
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(BODY_DATA);
+          done();
+        });
       }); // should respond with a 200 and data
     }); //when called without error
 
     describe('when employee does not have permission to delete', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1461,19 +1351,17 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._deleteWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._deleteWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when employee does not have permission to delete
 
     describe('when failed to delete object', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1485,19 +1373,17 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_delete').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._deleteWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._deleteWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to delete object
 
     describe('when failed to remove object from database', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1510,136 +1396,117 @@ describe('crudRoutes', () => {
         databaseModify.removeFromDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._deleteWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._delete).toHaveBeenCalledWith(PARAMS_DATA.id);
-            expect(databaseModify.removeFromDB).toHaveBeenCalledWith(BODY_DATA.id);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._deleteWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._delete).toHaveBeenCalledWith(PARAMS_DATA.id);
+          expect(databaseModify.removeFromDB).toHaveBeenCalledWith(BODY_DATA.id);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to remove object from database
   }); // _deleteWrapper
 
   describe('getBudgetDates', () => {
-
     let hireDate, expectedDates;
 
     beforeEach(() => {
-      hireDate = moment();
+      hireDate = dateUtils.getTodaysDate();
     });
 
     describe('when hire date is before today', () => {
-
       beforeEach(() => {
-        hireDate.subtract(5, 'y');
+        hireDate = dateUtils.subtract(hireDate, 5, 'year');
       });
 
       describe('and anniversary already occured this year', () => {
-
         beforeEach(() => {
-          hireDate.subtract(1, 'd');
+          hireDate = dateUtils.subtract(hireDate, 1, 'day');
           expectedDates = {
-            startDate: moment().subtract(1, 'd'),
-            endDate: moment().add(1, 'y').subtract(2, 'd')
+            startDate: dateUtils.subtract(dateUtils.getTodaysDate(), 1, 'day'),
+            endDate: dateUtils.subtract(dateUtils.add(dateUtils.getTodaysDate(), 1, 'year'), 2, 'day')
           };
         });
 
         it('should return a start date with the current year and end date of next year', () => {
-          expect(crudRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT))
-            .toEqual(expectedDates.startDate.format(ISOFORMAT));
-          expect(crudRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT))
-            .toEqual(expectedDates.endDate.format(ISOFORMAT));
+          expect(crudRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(crudRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary already occured this year
 
       describe('and anniversary is today', () => {
-
         beforeEach(() => {
           expectedDates = {
-            startDate: moment(),
-            endDate: moment().add(1, 'y').subtract(1, 'd')
+            startDate: dateUtils.getTodaysDate(),
+            endDate: dateUtils.subtract(dateUtils.add(dateUtils.getTodaysDate(), 1, 'year'), 1, 'day')
           };
         });
 
         it('should return a start date with the current year and end date of next year', () => {
-          expect(crudRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT))
-            .toEqual(expectedDates.startDate.format(ISOFORMAT));
-          expect(crudRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT))
-            .toEqual(expectedDates.endDate.format(ISOFORMAT));
+          expect(crudRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(crudRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary is today
 
       describe('and anniversary has not occured this year', () => {
-
         beforeEach(() => {
-          hireDate.add(1, 'd');
+          hireDate = dateUtils.add(hireDate, 1, 'day', ISOFORMAT);
           expectedDates = {
-            startDate: moment().subtract(1, 'y').add(1, 'd'),
-            endDate: moment()
+            startDate: dateUtils.add(dateUtils.subtract(dateUtils.getTodaysDate(), 1, 'year'), 1, 'day', ISOFORMAT),
+            endDate: dateUtils.getTodaysDate()
           };
         });
 
         it('should return a start date of last year and end date of the current year', () => {
-          expect(crudRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT))
-            .toEqual(expectedDates.startDate.format(ISOFORMAT));
-          expect(crudRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT))
-            .toEqual(expectedDates.endDate.format(ISOFORMAT));
+          expect(crudRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+          expect(crudRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
         }); // should return a start date with the current year
       }); // and anniversary has not occured this year
     }); // when hire date is before today
 
     describe('when hire date is today', () => {
-
       beforeEach(() => {
         expectedDates = {
-          startDate: moment(),
-          endDate: moment().add(1, 'y').subtract(1, 'd')
+          startDate: dateUtils.getTodaysDate(),
+          endDate: dateUtils.subtract(dateUtils.add(dateUtils.getTodaysDate(), 1, 'year'), 1, 'day')
         };
       });
 
       it('should return a start date with the current year and end date of next year', () => {
-        expect(crudRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT))
-          .toEqual(expectedDates.startDate.format(ISOFORMAT));
-        expect(crudRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT))
-          .toEqual(expectedDates.endDate.format(ISOFORMAT));
+        expect(crudRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+        expect(crudRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
       }); // should return a start date with the current year
     }); // when hire date is today
 
     describe('when hire date is after today', () => {
       beforeEach(() => {
-        hireDate.add(1, 'd');
+        hireDate = dateUtils.add(hireDate, 1, 'day', ISOFORMAT);
         expectedDates = {
-          startDate: moment().add(1, 'd'),
-          endDate: moment().add(1, 'y')
+          startDate: dateUtils.add(dateUtils.getTodaysDate(), 1, 'day', ISOFORMAT),
+          endDate: dateUtils.add(dateUtils.getTodaysDate(), 1, 'year', ISOFORMAT)
         };
       });
 
       it('should return a start date with the hire year and end date a year after the hire year', () => {
-        expect(crudRoutes.getBudgetDates(hireDate).startDate.format(ISOFORMAT))
-          .toEqual(expectedDates.startDate.format(ISOFORMAT));
-        expect(crudRoutes.getBudgetDates(hireDate).endDate.format(ISOFORMAT))
-          .toEqual(expectedDates.endDate.format(ISOFORMAT));
+        expect(crudRoutes.getBudgetDates(hireDate).startDate).toEqual(expectedDates.startDate);
+        expect(crudRoutes.getBudgetDates(hireDate).endDate).toEqual(expectedDates.endDate);
       }); // should return a start date with the current year
     }); // when hire date is after today
   }); // getBudgetDates
 
   describe('_getTableName', () => {
-
     beforeEach(() => {
       crudRoutes.databaseModify.tableName = `${STAGE}-expenses`;
     });
 
-    it ('should return the database table name', () => {
+    it('should return the database table name', () => {
       expect(crudRoutes._getTableName()).toEqual(`${STAGE}-expenses`);
     }); // should return the database table name
   }); // _getTableName
 
   describe('getUUID', () => {
-
     it('should return an id value', () => {
       let id = crudRoutes.getUUID();
       expect(id).toBeDefined();
@@ -1647,7 +1514,6 @@ describe('crudRoutes', () => {
   }); // getUUID
 
   describe('hasAccess', () => {
-
     let employee, expenseType;
 
     beforeEach(() => {
@@ -1656,7 +1522,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when expense type is accessible by all employees', () => {
-
       beforeEach(() => {
         expenseType.accessibleBy = ['PartTime', 'FullTime', 'Intern'];
         employee.workStatus = 50;
@@ -1668,13 +1533,11 @@ describe('crudRoutes', () => {
     }); // when expense type is accessible by all employees
 
     describe('when expense type is accessible by full time employees', () => {
-
       beforeEach(() => {
         expenseType.accessibleBy = ['FullTime'];
       });
 
       describe('and employee work status is 100', () => {
-
         beforeEach(() => {
           employee.workStatus = 100;
         });
@@ -1682,11 +1545,9 @@ describe('crudRoutes', () => {
         it('should return true', () => {
           expect(crudRoutes.hasAccess(employee, expenseType)).toBe(true);
         }); // should return true;
-
       }); // and employee work status is 100
 
       describe('and employee work status is 50', () => {
-
         beforeEach(() => {
           employee.workStatus = 50;
         });
@@ -1694,11 +1555,9 @@ describe('crudRoutes', () => {
         it('should return false', () => {
           expect(crudRoutes.hasAccess(employee, expenseType)).toBe(false);
         }); // should return false;
-
       }); // and employee work status is 50
 
       describe('and employee work status is 0', () => {
-
         beforeEach(() => {
           employee.workStatus = 0;
         });
@@ -1710,13 +1569,11 @@ describe('crudRoutes', () => {
     }); // when expense type is accessible by full time employees
 
     describe('when expense type is accessible by intern for employees', () => {
-
       beforeEach(() => {
         expenseType.accessibleBy = ['Intern'];
       });
 
       describe('and employee work status is 100', () => {
-
         beforeEach(() => {
           employee.workStatus = 100;
           employee.employeeRole = 'intern';
@@ -1728,7 +1585,6 @@ describe('crudRoutes', () => {
       }); // and employee work status is 100
 
       describe('and employee work status is 50', () => {
-
         beforeEach(() => {
           employee.workStatus = 50;
         });
@@ -1739,7 +1595,6 @@ describe('crudRoutes', () => {
       }); // and employee work status is 50
 
       describe('and employee work status is 0', () => {
-
         beforeEach(() => {
           employee.workStatus = 0;
         });
@@ -1751,9 +1606,7 @@ describe('crudRoutes', () => {
     }); // when expense type is accessible by full for employees
 
     describe('when expense type is accessible by custom employees', () => {
-
       describe('and employee is included in the custom list', () => {
-
         beforeEach(() => {
           expenseType.accessibleBy = [ID];
           employee.workStatus = 50;
@@ -1765,7 +1618,6 @@ describe('crudRoutes', () => {
       }); // and employee is included in the custom list
 
       describe('and employee is not included in the custom list', () => {
-
         beforeEach(() => {
           expenseType.accessibleBy = [];
           employee.workStatus = 50;
@@ -1779,7 +1631,6 @@ describe('crudRoutes', () => {
   }); // hasAccess
 
   describe('isAdmin', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -1787,7 +1638,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when the employee is an admin', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'admin';
       });
@@ -1798,7 +1648,6 @@ describe('crudRoutes', () => {
     }); // when the employee is an admin
 
     describe('when the employee is a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'user';
       });
@@ -1809,7 +1658,6 @@ describe('crudRoutes', () => {
     }); // when the employee is not an admin
 
     describe('when the employee is an intern', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'intern';
       });
@@ -1821,7 +1669,6 @@ describe('crudRoutes', () => {
   }); // isAdmin
 
   describe('isUser', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -1829,7 +1676,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when the employee is a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'user';
       });
@@ -1840,7 +1686,6 @@ describe('crudRoutes', () => {
     }); // when the employee is a user
 
     describe('when the employee is an intern', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'intern';
       });
@@ -1851,7 +1696,6 @@ describe('crudRoutes', () => {
     }); // when the employee is a user
 
     describe('when the employee is not a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'admin';
       });
@@ -1863,7 +1707,6 @@ describe('crudRoutes', () => {
   }); // isUser
 
   describe('isManager', () => {
-
     let employee;
 
     beforeEach(() => {
@@ -1871,7 +1714,6 @@ describe('crudRoutes', () => {
     });
 
     describe('when the employee is a user', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'manager';
       });
@@ -1882,7 +1724,6 @@ describe('crudRoutes', () => {
     }); // when the employee is a user
 
     describe('when the employee is an intern', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'intern';
       });
@@ -1893,7 +1734,6 @@ describe('crudRoutes', () => {
     }); // when the employee is a user
 
     describe('when the employee is not a manager', () => {
-
       beforeEach(() => {
         employee.employeeRole = 'admin';
       });
@@ -1904,9 +1744,7 @@ describe('crudRoutes', () => {
     }); // when the employee is not an user
   }); // isManager
 
-
   describe('_readWrapper', () => {
-
     let req;
 
     beforeEach(() => {
@@ -1915,9 +1753,7 @@ describe('crudRoutes', () => {
     });
 
     describe('when called without error', () => {
-
       describe('when user and object belongs to the user', () => {
-
         let objectRead;
 
         beforeEach(() => {
@@ -1929,62 +1765,56 @@ describe('crudRoutes', () => {
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(objectRead));
         });
 
-        it('should respond with a 403 and error', done => {
-          crudRoutes._readWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(objectRead);
-              expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(objectRead);
-              done();
-            });
+        it('should respond with a 403 and error', (done) => {
+          crudRoutes._readWrapper(req, res).then((data) => {
+            expect(data).toEqual(objectRead);
+            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(objectRead);
+            done();
+          });
         }); // should respond with a 403 and error
       }); // when user and object read does not belong to user
 
       describe('reading a Training URL', () => {
-
         let trainingUrl;
 
         beforeEach(() => {
           spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
-          trainingUrl = new TrainingUrls({id: 'id', category: 'category'});
+          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(trainingUrl));
         });
 
-        it('should respond with a 200 and data', done => {
-          crudRoutes._readWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(trainingUrl);
-              expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(trainingUrl);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._readWrapper(req, res).then((data) => {
+            expect(data).toEqual(trainingUrl);
+            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(trainingUrl);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // reading a Training URL
 
       describe('reading something other than a Training URL', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(BODY_DATA));
         });
 
-        it('should respond with a 200 and data', done => {
-          crudRoutes._readWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(BODY_DATA);
-              expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(BODY_DATA);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._readWrapper(req, res).then((data) => {
+            expect(data).toEqual(BODY_DATA);
+            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(BODY_DATA);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // reading something other than a Training URL
     }); //when called without error
 
     describe('when employee does not have permission to read', () => {
-
       let err;
 
       beforeEach(() => {
@@ -1995,19 +1825,17 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._readWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._readWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when employee does not have permission to read
 
     describe('when failed to read object', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2019,20 +1847,18 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_read').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._readWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._readWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to read object
 
     describe('when user and object read does not belong to user', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2046,21 +1872,19 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(BODY_DATA));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._readWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._readWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when user and object read does not belong to user
   }); // _readWrapper
 
   describe('_readAllWrapper', () => {
-
     let req;
 
     beforeEach(() => {
@@ -2069,26 +1893,23 @@ describe('crudRoutes', () => {
     });
 
     describe('when called without error', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, '_checkPermissionToReadAll').and.returnValue(true);
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve(BODY_DATA));
       });
 
-      it('should respond with a 200 and data', done => {
-        crudRoutes._readAllWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(BODY_DATA);
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(BODY_DATA);
-            done();
-          });
+      it('should respond with a 200 and data', (done) => {
+        crudRoutes._readAllWrapper(req, res).then((data) => {
+          expect(data).toEqual(BODY_DATA);
+          expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.send).toHaveBeenCalledWith(BODY_DATA);
+          done();
+        });
       }); // should respond with a 200 and data
     }); //when called without error
 
     describe('when employee does not have permission to read', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2099,19 +1920,17 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._readAllWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._readAllWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when employee does not have permission to read
 
     describe('when failed to read all objects from database', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2123,28 +1942,25 @@ describe('crudRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._readAllWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._readAllWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to read all objects from database
   }); // _readWrapper
 
   describe('router', () => {
-
     it('should return the router', () => {
       expect(crudRoutes.router).toEqual(_ROUTER);
     }); // should return the router
   }); // router
 
   describe('_sendError', () => {
-
     let err;
 
     beforeEach(() => {
@@ -2165,7 +1981,6 @@ describe('crudRoutes', () => {
   }); // _sendError
 
   describe('_updateWrapper', () => {
-
     let req;
 
     beforeEach(() => {
@@ -2174,57 +1989,51 @@ describe('crudRoutes', () => {
     });
 
     describe('when called without error', () => {
-
       beforeEach(() => {
         spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
       });
 
       describe('and updating a Training URL', () => {
-
         let trainingUrl;
 
         beforeEach(() => {
-          trainingUrl = new TrainingUrls({id: 'id', category: 'category'});
+          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
           req.body = trainingUrl;
           spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(trainingUrl));
           databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(trainingUrl));
         });
 
-        it ('should respond with a 200 and data', done => {
-          crudRoutes._updateWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(trainingUrl);
-              expect(crudRoutes._update).toHaveBeenCalledWith(trainingUrl);
-              expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(trainingUrl);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(trainingUrl);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._updateWrapper(req, res).then((data) => {
+            expect(data).toEqual(trainingUrl);
+            expect(crudRoutes._update).toHaveBeenCalledWith(trainingUrl);
+            expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(trainingUrl);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(trainingUrl);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // and updating a training url
 
       describe('and updated object has the same id', () => {
-
         beforeEach(() => {
           spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(BODY_DATA));
           databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(BODY_DATA));
         });
 
-        it ('should respond with a 200 and data', done => {
-          crudRoutes._updateWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(BODY_DATA);
-              expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
-              expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(BODY_DATA);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._updateWrapper(req, res).then((data) => {
+            expect(data).toEqual(BODY_DATA);
+            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+            expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(BODY_DATA);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // and updated object has the same id
 
       describe('and updated object has a different id', () => {
-
         let newObject;
 
         beforeEach(() => {
@@ -2234,21 +2043,19 @@ describe('crudRoutes', () => {
           spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(newObject));
         });
 
-        it ('should respond with a 200 and data', done => {
-          crudRoutes._updateWrapper(req, res)
-            .then(data => {
-              expect(data).toEqual(newObject);
-              expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
-              expect(res.status).toHaveBeenCalledWith(200);
-              expect(res.send).toHaveBeenCalledWith(newObject);
-              done();
-            });
+        it('should respond with a 200 and data', (done) => {
+          crudRoutes._updateWrapper(req, res).then((data) => {
+            expect(data).toEqual(newObject);
+            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(newObject);
+            done();
+          });
         }); // should respond with a 200 and data
       }); // and updated object has a different id
     }); //when called without error
 
     describe('when employee does not have permission to update', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2259,19 +2066,17 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._updateWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._updateWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when employee does not have permission to update
 
     describe('when failed to update object', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2283,20 +2088,18 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_update').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._updateWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._updateWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to update object
 
     describe('when failed to validate inputs', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2309,21 +2112,19 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._updateWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
-            expect(crudRoutes._validateInputs).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._updateWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(crudRoutes._validateInputs).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to validate inputs
 
     describe('when failed to update object in database', () => {
-
       let err;
 
       beforeEach(() => {
@@ -2336,36 +2137,30 @@ describe('crudRoutes', () => {
         databaseModify.updateEntryInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should respond with a 403 and error', done => {
-        crudRoutes._updateWrapper(req, res)
-          .then(data => {
-            expect(data).toEqual(err);
-            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
-            expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.send).toHaveBeenCalledWith(err);
-            done();
-          });
+      it('should respond with a 403 and error', (done) => {
+        crudRoutes._updateWrapper(req, res).then((data) => {
+          expect(data).toEqual(err);
+          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
+          expect(res.status).toHaveBeenCalledWith(403);
+          expect(res.send).toHaveBeenCalledWith(err);
+          done();
+        });
       }); // should respond with a 403 and error
     }); // when failed to update object to database
   }); // _updateWrapper
 
   describe('_validateInputs', () => {
-
     describe('when object id exists', () => {
-
       describe('when all params are valid', () => {
-
         it('should return the object', () => {
-          crudRoutes._validateInputs(BODY_DATA)
-            .then(data => {
-              expect(data).toEqual(BODY_DATA);
-            });
+          crudRoutes._validateInputs(BODY_DATA).then((data) => {
+            expect(data).toEqual(BODY_DATA);
+          });
         }); // should return the object
       }); // when all params are valid
 
       describe('when one or more params is empty', () => {
-
         let err, invalidObject;
 
         beforeEach(() => {
@@ -2379,13 +2174,14 @@ describe('crudRoutes', () => {
           };
         });
 
-        it('should return a 406 error', done => {
-          crudRoutes._validateInputs(invalidObject)
+        it('should return a 406 error', (done) => {
+          crudRoutes
+            ._validateInputs(invalidObject)
             .then(() => {
               fail('expected error to have been thrown');
               done();
             })
-            .catch(error => {
+            .catch((error) => {
               expect(error).toEqual(err);
               done();
             });
@@ -2394,7 +2190,6 @@ describe('crudRoutes', () => {
     }); // when object id exists
 
     describe('when object id does not exist', () => {
-
       let err, invalidObject;
 
       beforeEach(() => {
@@ -2407,12 +2202,13 @@ describe('crudRoutes', () => {
         };
       });
 
-      it('should return a 400 error', done => {
-        crudRoutes._validateInputs(invalidObject)
+      it('should return a 400 error', (done) => {
+        crudRoutes
+          ._validateInputs(invalidObject)
           .then(() => {
             fail('expected error to have been thrown');
           })
-          .catch(error => {
+          .catch((error) => {
             expect(error).toEqual(err);
             done();
           });

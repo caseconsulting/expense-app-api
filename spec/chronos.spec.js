@@ -1,10 +1,9 @@
 const chronos = require('../chronos/chronos');
+const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 
 const Budget = require('../chronos/models/budget');
 const ExpenseType = require('../chronos/models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 
 const ID = '{id}';
 const NAME = '{name}';
@@ -189,10 +188,16 @@ describe('chronos', () => {
     });
 
     it('SHOULD return nothing', (done) => {
-      return chronos.handler().then((result) => {
-        expect(result).toEqual('hello world');
-        done();
-      });
+      return chronos
+        .handler()
+        .then((result) => {
+          expect(result).toEqual('hello world');
+          done();
+        })
+        .catch((error) => {
+          fail('should not have thrown error: ' + JSON.stringify(error));
+          done();
+        });
     }); // SHOULD return nothing
   }); // handler
 
@@ -420,7 +425,7 @@ describe('chronos', () => {
       expenseType.recurringFlag = true;
       expenseType.budget = 100;
 
-      yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
+      yesterday = dateUtils.subtract(dateUtils.getTodaysDate(), 1, 'day');
 
       budgetDynamo = jasmine.createSpyObj('budgetDynamo', ['querySecondaryIndexInDB']);
       spyOn(chronos, '_getAllExpenseTypes').and.returnValue(Promise.resolve([expenseType]));
@@ -446,10 +451,16 @@ describe('chronos', () => {
       });
 
       it('SHOULD return nothing', (done) => {
-        return chronos.start().then((result) => {
-          expect(result).toBeUndefined();
-          done();
-        });
+        return chronos
+          .start()
+          .then((result) => {
+            expect(result).toBeUndefined();
+            done();
+          })
+          .catch((error) => {
+            fail('unexpected error was thrown: ' + JSON.stringify(error));
+            done();
+          });
       });
     }); // WHEN no budgets
 

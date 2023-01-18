@@ -30,7 +30,7 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: nodejs14.x
+    Runtime: nodejs18.x
     Tags:
       Application: expense-app
       Stage: !Ref Stage
@@ -492,6 +492,53 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  contractTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - contracts
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: contractName
+          AttributeType: S
+        - AttributeName: primeName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: contractName-index
+          KeySchema:
+            - AttributeName: contractName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: primeName-index
+          KeySchema:
+            - AttributeName: primeName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: contractName-primeName-index
+          KeySchema:
+            - AttributeName: contractName
+              KeyType: HASH
+            - AttributeName: primeName
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -755,7 +802,7 @@ Resources:
       Description: Model for an expense.
       ContentUri: expense-model/
       CompatibleRuntimes:
-        - nodejs14.x
+        - nodejs18.x
       RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -767,5 +814,5 @@ Resources:
       Description: Packages for lambda functions.
       ContentUri: dependencies/
       CompatibleRuntimes:
-        - nodejs14.x
+        - nodejs18.x
       RetentionPolicy: Retain

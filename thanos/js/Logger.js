@@ -1,5 +1,4 @@
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../js/dateUtils');
 
 const LOG_LEVEL = 5; // 1 for highest priority (most important)
 
@@ -17,7 +16,7 @@ class Logger {
    *
    * [TIMESTAMP] [description] | Processing handled by function [caller]
    */
-  log (priorty, method, ...args) {
+  log(priorty, method, ...args) {
     if (LOG_LEVEL >= priorty) {
       let fullDescription = priorty == 1 ? '>>> ' : '';
 
@@ -26,7 +25,9 @@ class Logger {
       }
 
       console.log(
-        `[${moment().format()}] ${fullDescription.trim()} | Processing handled by function ${this.className}.${method}`
+        `[${dateUtils.getTodaysDate(
+          'YYYY-MM-DDTHH:mm:ssZ'
+        )}] ${fullDescription.trim()} | Processing handled by function ${this.className}.${method}`
       );
     }
   } // log

@@ -8,8 +8,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const Logger = require('../js/Logger');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 const Basecamp = require('../routes/basecampRoutes');
 
@@ -212,7 +211,7 @@ class Utility {
 
     // compute method
     try {
-      let today = moment().format(ISOFORMAT); // today isoformat string
+      let today = dateUtils.getTodaysDate(); // today isoformat string
 
       // get all budgets for employee and expense type
       let expenseTypeBudgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
@@ -238,8 +237,8 @@ class Utility {
         if (expenseType.recurringFlag) {
           // use Anniversary dates for budget if expense type is recurring
           let dates = this.getBudgetDates(employee.hireDate);
-          budgetObject.fiscalStartDate = dates.startDate.format(ISOFORMAT);
-          budgetObject.fiscalEndDate = dates.endDate.format(ISOFORMAT);
+          budgetObject.fiscalStartDate = dates.startDate;
+          budgetObject.fiscalEndDate = dates.endDate;
         } else {
           // use expense type dates for buet if expense type is not recurring
           budgetObject.fiscalStartDate = expenseType.startDate;
@@ -299,7 +298,7 @@ class Utility {
       ]);
 
       let activeBudgets = []; // store active budgets
-      let today = moment().format(ISOFORMAT); // today isoformat string
+      let today = dateUtils.getTodaysDate(); // today isoformat string
 
       // loop all expense types
       let promises = [];
@@ -345,7 +344,7 @@ class Utility {
    */
   async queryExpenses(expenseType, cutOffDate) {
     //use additional params option of querySecondaryIndex to filter things.
-    cutOffDate = cutOffDate.format('YYYY-MM-DD');
+    cutOffDate = dateUtils.format(cutOffDate, null, ISOFORMAT);
     //default attributes for two
     let expressionAttributes = {
       ':queryKey': expenseType.id,
@@ -489,12 +488,12 @@ class Utility {
         this.getBasecampToken()
       ]);
 
-      let now = moment();
-      let cutOff = now.subtract(6, 'months').startOf('day');
+      let now = dateUtils.getTodaysDate();
+      let cutOff = dateUtils.subtract(now, 6, 'month');
 
       let filteredExpenseTypes = _.map(expenseTypes, (expenseType) => {
-        let endDate = moment(expenseType.endDate, 'YYYY-MM-DD');
-        if (expenseType.isInactive || cutOff.isAfter(endDate.startOf('day'))) {
+        let endDate = expenseType.endDate;
+        if (expenseType.isInactive || dateUtils.isAfter(cutOff, endDate)) {
           return;
         } else {
           return expenseType;
@@ -772,34 +771,35 @@ class Utility {
    * Get the current annual budget start and end dates based on a given hire date.
    *
    * @param date - ISO formatted hire date String
-   * @return Object - moment start date and moment end date
+   * @return Object - start date and end date
    */
   getBudgetDates(date) {
     // log method
-    logger.log(4, 'getBudgetDates', `Attempting to get current annual budget dates for ${date}`);
+    logger.log(4, 'getBudgetDates', `Getting current annual budget dates for ${date}`);
 
     // compute method
     let startYear;
-    let hireDate = moment(date, ISOFORMAT);
-    let hireYear = hireDate.year();
-    let hireMonth = hireDate.month(); // form 0-11
-    let hireDay = hireDate.date(); // from 1 to 31
-    let today = moment();
+    let hireDate = dateUtils.format(date, null, ISOFORMAT);
+    let [hireYear, hireMonth, hireDay] = hireDate.split('-');
+    let today = dateUtils.getTodaysDate();
 
     // determine start date year
-    if (hireDate.isBefore(today)) {
+    if (dateUtils.isBefore(hireDate, today)) {
       // hire date is before today
       // if anniversary hasn't occured yet this year, set the start of the budget to last year
       // if the anniversary already occured this year, set the start of the budget to this year
-      startYear = today.isBefore(moment([today.year(), hireMonth, hireDay])) ? today.year() - 1 : today.year();
+      let budgetDate = `${dateUtils.getYear(today)}-${hireMonth}-${hireDay}`;
+      startYear = dateUtils.isBefore(today, budgetDate) ? dateUtils.getYear(today) - 1 : dateUtils.getYear(today);
     } else {
       // hire date is after today
       startYear = hireYear;
     }
 
-    let startDate = moment([startYear, hireMonth, hireDay]);
-    let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days');
+    // ensure year is always 4 digits
+    startYear = String(startYear).padStart(4, '0');
 
+    let startDate = `${startYear}-${hireMonth}-${hireDay}`;
+    let endDate = dateUtils.subtract(dateUtils.add(startDate, 1, 'year'), 1, 'day');
     let result = {
       startDate,
       endDate
@@ -809,8 +809,8 @@ class Utility {
     logger.log(
       4,
       'getBudgetDates',
-      `Current annual budget date for ${date} starts on ${startDate.format(ISOFORMAT)} and ends on`,
-      `${endDate.format(ISOFORMAT)}`
+      `Current annual budget date for ${date} starts on ${startDate} and ends on`,
+      `${endDate}`
     );
 
     // return result
@@ -967,7 +967,12 @@ class Utility {
     try {
       // anniversary range
       let anniversaryStartDate = req.params.fiscalStartDate;
-      let anniversaryEndDate = moment(req.params.fiscalStartDate).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      let anniversaryEndDate = dateUtils.subtract(
+        dateUtils.add(req.params.fiscalStartDate, 1, 'year'),
+        1,
+        'day',
+        ISOFORMAT
+      );
 
       // get employee
       let employee = new Employee(await this.employeeDynamo.getEntry(req.params.id));
@@ -995,16 +1000,16 @@ class Utility {
         } else {
           let startOfYear = anniversaryStartDate.slice(0, 5) + '01-01';
           let endOfYear = anniversaryEndDate.slice(0, 5) + '12-31';
-          let budgetStart = moment(budget.fiscalStartDate, ISOFORMAT);
-          let budgetEnd = moment(budget.fiscalEndDate, ISOFORMAT);
-          let viewStart = moment(startOfYear, ISOFORMAT);
-          let viewEnd = moment(endOfYear, ISOFORMAT);
+          let budgetStart = budget.fiscalStartDate;
+          let budgetEnd = budget.fiscalEndDate;
+          let viewStart = startOfYear;
+          let viewEnd = endOfYear;
 
           return (
             budget.isDateInRange(startOfYear) || // budget includes start of year
             budget.isDateInRange(endOfYear) || // budget includes end of year
-            budgetStart.isBetween(viewStart, viewEnd, null, '[]') || // year includes start of budget
-            budgetEnd.isBetween(viewStart, viewEnd, null, '[]')
+            dateUtils.isBetween(budgetStart, viewStart, viewEnd, null, '[]') || // year includes start of budget
+            dateUtils.isBetween(budgetEnd, viewStart, viewEnd, null, '[]')
           ); // year includes end of budget
         }
       });

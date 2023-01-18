@@ -3,15 +3,22 @@ let lib;
 const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const ExpenseRoutes = require('./routes/expenseRoutes');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
+const fs = require('fs');
+const AWS = require('aws-sdk');
 const Employee = require('./models/employee');
+const ISOFORMAT = 'YYYY-MM-DD';
+const dateUtils = require('./js/dateUtils');
+
+const STAGE = process.env.STAGE;
+let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
+const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 /**
  * Returns a new DatabaseModify for budgets
- * 
+ *
  * @return - database modify for budgets
  */
 function _budgetDynamo() {
@@ -19,8 +26,8 @@ function _budgetDynamo() {
 } //_budgetDynamo
 
 /**
- * Returns a new DatabaseModify for expense-types 
- *  
+ * Returns a new DatabaseModify for expense-types
+ *
  * @return - database modify for expenseTypes
  */
 function _expenseTypeDynamo() {
@@ -29,7 +36,7 @@ function _expenseTypeDynamo() {
 
 /**
  * Returns a new DatabaseModify for employees
- * 
+ *
  * @return - database modify for employees
  */
 function _employeeDynamo() {
@@ -50,7 +57,7 @@ async function _asyncForEach(array, callback) {
 
 /**
  * Gets all expensetype data and then parses the categories
- * 
+ *
  * @return - all the expenseType data
  */
 async function _getAllExpenseTypes() {
@@ -66,6 +73,15 @@ async function _getAllExpenseTypes() {
 } // _getAllExpenseTypes
 
 /**
+ * Gets all employees
+ *
+ * @returns all employees
+ */
+async function _getAllEmployees() {
+  return (await lib._employeeDynamo().getAllEntriesInDB()).map((employee) => new Employee(employee));
+} // _getAllEmployees
+
+/**
  * Gets the employee tied to the budget
  *
  * @param {*} employeeId = id of the employee tied to the budget
@@ -74,7 +90,7 @@ async function _getAllExpenseTypes() {
 async function _getBudgetEmployee(employeeId) {
   let employee = await lib._employeeDynamo().getEntry(employeeId);
   return new Employee(employee);
-} //_getBudgetEmployee
+} // _getBudgetEmployee
 
 /**
  * Finds an expense type given an id from a list of expense types.
@@ -102,6 +118,42 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
 function _getUUID() {
   return uuid();
 } // _getUUID
+
+/**
+ * Handler for creating new budgets that account for overdraft
+ *
+ * @returns number of new budgets created
+ */
+async function _handleNewBudgetsWithOverdraft() {
+  const yesterday = dateUtils.format(dateUtils.subtract(dateUtils.getTodaysDate(ISOFORMAT), 1, 'day'), null, ISOFORMAT);
+  let budgetsData = await lib
+    ._budgetDynamo()
+    .querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
+  let budgets = _.map(budgetsData, (budgetData) => {
+    return new Budget(budgetData);
+  });
+  let expenseTypes = await lib._getAllExpenseTypes();
+  let numberRecurring = 0;
+
+  if (budgets.length != 0) {
+    await lib._asyncForEach(budgets, async (oldBudget) => {
+      if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
+        // old budget has overdraft
+        let expenseType = lib._getExpenseType(expenseTypes, oldBudget.expenseTypeId);
+        if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
+          // expense type is recurring and old budget is full time
+          let newBudget = await lib._makeNewBudget(oldBudget, expenseType);
+          let msg = `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n
+                       created new budget with id: ${newBudget.id}`;
+          console.log(msg);
+          numberRecurring++;
+          return newBudget;
+        }
+      }
+    });
+  }
+  return numberRecurring;
+} // _handleNewBudgetsWithOverdraft
 
 /**
  * Prepeares a new budget with overdrafted amounts and updates the old budget.
@@ -133,9 +185,9 @@ async function _makeNewBudget(oldBudget, expenseType) {
     reimbursedAmount: 0,
     pendingAmount: 0,
     //increment the budgets fiscal start day by one year
-    fiscalStartDate: moment(oldBudget.fiscalStartDate).add(1, 'years').format('YYYY-MM-DD'),
+    fiscalStartDate: dateUtils.format(dateUtils.add(oldBudget.fiscalStartDate, 1, 'year'), null, ISOFORMAT),
     //increment the budgets fiscal end day by one year
-    fiscalEndDate: moment(oldBudget.fiscalEndDate).add(1, 'years').format('YYYY-MM-DD'),
+    fiscalEndDate: dateUtils.format(dateUtils.add(oldBudget.fiscalEndDate, 1, 'year'), null, ISOFORMAT),
     amount: expenseType.budget + mifiAddition
   };
   let newBudget = new Budget(newBudgetData); // convert to budget object
@@ -163,44 +215,97 @@ async function _makeNewBudget(oldBudget, expenseType) {
 } // _makeNewBudget
 
 /**
+ * Handles MiFi recurring annual expense. Applies to full time employees with MiFi status set to false.
+ */
+async function _handleMiFiStatus() {
+  const expenseRoutes = new ExpenseRoutes();
+  let techExpenseType = (await lib._getAllExpenseTypes()).find((e) => e.budgetName === 'Technology');
+  let employees = await lib._getAllEmployees();
+  let fullTimeEmployees = employees.filter((e) => e.workStatus == 100 && !e.mifiStatus);
+  let now = dateUtils.getTodaysDate(ISOFORMAT);
+  let fileName = 'MifiStatusChange.png';
+  let receiptFile = fs.readFileSync('./resources/' + fileName);
+  await lib._asyncForEach(fullTimeEmployees, async (employee) => {
+    if (lib._isAnniversaryDate(employee)) {
+      let description = `Annual recurring MiFi addition: ${employee.firstName} ${employee.lastName} 
+      has indicated they do not want the mifi benefit.`;
+      let newUUID = lib._getUUID();
+      let expense = {
+        id: newUUID,
+        employeeId: employee.id,
+        createdAt: now,
+        expenseTypeId: techExpenseType.id,
+        cost: -150,
+        description: description,
+        purchaseDate: now,
+        showOnFeed: false,
+        receipt: fileName,
+        canDelete: false
+      };
+      let Key = employee.id + '/' + newUUID + '/' + fileName;
+      try {
+        let preparedExpense = await expenseRoutes._create(expense);
+        let validatedExpense = await expenseRoutes._validateInputs(preparedExpense);
+        await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
+        await lib._uploadAttachmentToS3(receiptFile, Key);
+      } catch (err) {
+        console.info(err);
+        console.info(err.stack);
+      }
+    }
+  });
+} // _handleMiFiStatus
+
+/**
+ * Checks if today is employees anniversary date.
+ *
+ * @param employee employee object
+ * @returns true if today is employees anniversary date, false otherwise
+ */
+function _isAnniversaryDate(employee) {
+  let hireDate = dateUtils.format(employee.hireDate, null, ISOFORMAT);
+  let today = dateUtils.getTodaysDate();
+  return (
+    dateUtils.getMonth(hireDate) == dateUtils.getMonth(today) && dateUtils.getDay(hireDate) == dateUtils.getDay(today)
+  );
+} // _isAnniversaryDate
+
+/**
+ * upload tiny attachment to s3 for later
+ * @param file - file to upload
+ * @param key - where to upload it to
+ */
+async function _uploadAttachmentToS3(file, key) {
+  console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
+  let s3 = new AWS.S3();
+  let params = {
+    Bucket: BUCKET,
+    Key: key,
+    Body: file
+  };
+
+  s3.putObject(params, function (err, data) {
+    if (err) console.info(err, err.stack);
+    // an error occurred
+    else console.info(data); // successful response
+  });
+} //uploadAttachmentToS3
+
+/**
  * Creates new budgets for recurring expenses.
  */
 async function start() {
   console.log('Started chronos');
-  let budgets = [],
-    expenseTypes = [],
-    numberRecurring = 0;
   try {
-    //budget anniversary date is today
-    const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
-    let budgetsData = await lib
-      ._budgetDynamo()
-      .querySecondaryIndexInDB('fiscalEndDate-index', 'fiscalEndDate', yesterday);
-    budgets = _.map(budgetsData, (budgetData) => {
-      return new Budget(budgetData);
-    });
-    expenseTypes = await lib._getAllExpenseTypes();
-
-    if (budgets.length !== 0) {
-      await lib._asyncForEach(budgets, async (oldBudget) => {
-        if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
-          // old budget has overdraft
-          let expenseType = lib._getExpenseType(expenseTypes, oldBudget.expenseTypeId);
-          if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
-            // expense type is recurring and old budget is full time
-            let newBudget = await lib._makeNewBudget(oldBudget, expenseType);
-            let msg = `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n
-                       created new budget with id: ${newBudget.id}`;
-            console.log(msg);
-            numberRecurring++;
-            return newBudget;
-          }
-        }
-      });
-      console.log(`Created ${numberRecurring} new budget${numberRecurring > 1 ? 's' : ''} tonight! 🍕`);
+    let budgetsCreated = 0;
+    let newBudgetsCreatedWithOverdraft = await lib._handleNewBudgetsWithOverdraft();
+    budgetsCreated += newBudgetsCreatedWithOverdraft;
+    if (budgetsCreated != 0) {
+      console.log(`Created ${budgetsCreated} new budget${budgetsCreated > 1 ? 's' : ''} tonight! 🍕`);
     } else {
       console.log('There are no new budgets being created tonight 😴🛌');
     }
+    await lib._handleMiFiStatus();
   } catch (err) {
     console.error(err);
   } finally {
@@ -226,11 +331,16 @@ lib = {
   _expenseTypeDynamo,
   _employeeDynamo,
   _asyncForEach,
+  _isAnniversaryDate,
+  _getAllEmployees,
   _getAllExpenseTypes,
   _getBudgetEmployee,
   _getExpenseType,
   _getUUID,
   _makeNewBudget,
+  _handleMiFiStatus,
+  _handleNewBudgetsWithOverdraft,
+  _uploadAttachmentToS3,
   start,
   handler
 };

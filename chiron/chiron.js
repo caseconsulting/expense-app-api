@@ -22,8 +22,8 @@ const logger = new Logger('TrainingSync');
  */
 async function getAllExpenseTypes() {
   let expenseTypesData = await expenseTypeDynamo.getAllEntriesInDB();
-  let expenseTypes = _.map(expenseTypesData, expenseTypeData => {
-    expenseTypeData.categories = _.map(expenseTypeData.categories, category => {
+  let expenseTypes = _.map(expenseTypesData, (expenseTypeData) => {
+    expenseTypeData.categories = _.map(expenseTypeData.categories, (category) => {
       return JSON.parse(category);
     });
     return new ExpenseType(expenseTypeData);
@@ -139,7 +139,7 @@ async function getAllTrainingUrls() {
 
   // generate training hits from expenses
   let expensesData = await expenseDynamo.getAllEntriesInDB();
-  let expenses = _.map(expensesData, expenseData => {
+  let expenses = _.map(expensesData, (expenseData) => {
     return new Expense(expenseData);
   });
 
@@ -178,7 +178,7 @@ async function getAllTrainingUrls() {
 
 /**
  * Handler to execute lamba function.
- * 
+ *
  * @param event - request
  */
 async function handler(event) {

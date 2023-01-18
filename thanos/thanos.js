@@ -2,14 +2,12 @@ let lib;
 
 const Logger = require('./js/Logger');
 const DatabaseModify = require('./js/databaseModify');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const logger = new Logger('TrainingSync');
 /**
  * Returns a new DatabaseModify for employees
- * 
+ *
  * @return - the databasemodify for employees
  */
 function _employeeDynamo() {
@@ -39,7 +37,7 @@ function _getUUID() {
 
 /**
  * Used to update technology an employee has listed as current
- * 
+ *
  * @param techs employee's technology data
  * @return - technology object that would have updated years field if it contains current tech
  */
@@ -56,9 +54,9 @@ async function _updateCurrentTechnologies(techs) {
 
 /**
  * Used to update customer org experience an employee has listed as current
- * 
+ *
  * @param customerOrgExps employee's customer org experience data
- * @return - customer org experience object that would have updated 
+ * @return - customer org experience object that would have updated
  *  years field if it contains current customer org experience
  */
 async function _updateCurrentCustomerOrgExp(customerOrgExps) {
@@ -90,7 +88,7 @@ async function start() {
     if (employee.customerOrgExp) {
       employeeEdited.customerOrgExp = await lib._updateCurrentCustomerOrgExp(employeeEdited.customerOrgExp);
     }
-    
+
     if (!_.isEqual(employeeEdited, employee)) {
       await _employeeDynamo().updateEntryInDB(employeeEdited);
     }
@@ -105,10 +103,9 @@ async function start() {
  */
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
-  
+
   return lib.start();
 } // handler
-
 
 lib = {
   _employeeDynamo,

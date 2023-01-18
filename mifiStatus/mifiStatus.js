@@ -3,10 +3,9 @@ const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
 const ExpenseRoutes = require('./routes/expenseRoutes');
 const { v4: uuid } = require('uuid');
-const moment = require('moment-timezone');
 const fs = require('fs');
-moment.tz.setDefault('America/New_York');
 const FormData = require('form-data');
+const dateUtils = require('./js/dateUtils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
@@ -39,7 +38,7 @@ async function checkMifiChange(event, context) {
 
   let technologyExpenseType, expense;
 
-  let now = moment().format(ISOFORMAT);
+  let now = dateUtils.getTodaysDate(ISOFORMAT);
 
   let fileName = 'MifiStatusChange.png';
   let receiptFile = fs.readFileSync('./resources/' + fileName);

@@ -5,8 +5,7 @@ const Employee = require('./../models/employee');
 // const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 
 const IsoFormat = 'YYYY-MM-DD';
@@ -273,9 +272,9 @@ class EmployeeRoutes extends Crud {
       let promises = [];
       for (i = 0; i < budgets.length; i++) {
         // update budget amount
-        let start = moment(budgets[i].fiscalStartDate, IsoFormat); // budget start date
-        let end = moment(budgets[i].fiscalEndDate, IsoFormat); // budget end date
-        if (moment().isBetween(start, end, 'day', '[]')) {
+        let start = dateUtils.format(budgets[i].fiscalStartDate, null, IsoFormat); // budget start date
+        let end = dateUtils.format(budgets[i].fiscalEndDate, null, IsoFormat); // budget end date
+        if (dateUtils.isBetween(dateUtils.getTodaysDate(), start, end, 'day', '[]')) {
           // only update active budgets
           let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
           budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);

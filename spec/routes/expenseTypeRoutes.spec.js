@@ -3,8 +3,7 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
 const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../../js/dateUtils');
 const _ = require('lodash');
 
 describe('expenseTypeRoutes', () => {
@@ -555,20 +554,20 @@ describe('expenseTypeRoutes', () => {
     let oldExpenseType, newExpenseType, today;
 
     beforeEach(() => {
-      today = moment();
+      today = dateUtils.getTodaysDate();
 
       oldExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
       newExpenseType = new ExpenseType(EXPENSE_TYPE_DATA);
 
       oldExpenseType.recurringFlag = true;
-      oldExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
-      oldExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      oldExpenseType.startDate = _.cloneDeep(today);
+      oldExpenseType.endDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
       oldExpenseType.budget = 100;
       oldExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
 
       newExpenseType.recurringFlag = true;
-      newExpenseType.startDate = _.cloneDeep(today).format(ISOFORMAT);
-      newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+      newExpenseType.startDate = _.cloneDeep(today);
+      newExpenseType.endDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
       newExpenseType.budget = 100;
       newExpenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
     });
@@ -586,7 +585,7 @@ describe('expenseTypeRoutes', () => {
       let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
-        newExpenseType.startDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
+        newExpenseType.startDate = dateUtils.subtract(today, 1, 'day');
 
         budget1 = new Budget(BUDGET_DATA);
         budget2 = new Budget(BUDGET_DATA);
@@ -594,8 +593,8 @@ describe('expenseTypeRoutes', () => {
         expectedBudget1 = new Budget(BUDGET_DATA);
         expectedBudget2 = new Budget(BUDGET_DATA);
 
-        expectedBudget1.fiscalStartDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
-        expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(1, 'd').format(ISOFORMAT);
+        expectedBudget1.fiscalStartDate = dateUtils.subtract(today, 1, 'day');
+        expectedBudget2.fiscalStartDate = dateUtils.subtract(today, 1, 'day');
 
         budgets = [budget1, budget2];
         expectedBudgets = [expectedBudget1, expectedBudget2];
@@ -693,7 +692,7 @@ describe('expenseTypeRoutes', () => {
       let budget1, budget2, budgets, expectedBudget1, expectedBudget2, expectedBudgets;
 
       beforeEach(() => {
-        newExpenseType.endDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
+        newExpenseType.endDate = dateUtils.add(today, 1, 'year', ISOFORMAT);
 
         budget1 = new Budget(BUDGET_DATA);
         budget2 = new Budget(BUDGET_DATA);
@@ -701,8 +700,8 @@ describe('expenseTypeRoutes', () => {
         expectedBudget1 = new Budget(BUDGET_DATA);
         expectedBudget2 = new Budget(BUDGET_DATA);
 
-        expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
-        expectedBudget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').format(ISOFORMAT);
+        expectedBudget1.fiscalEndDate = dateUtils.add(today, 1, 'year', ISOFORMAT);
+        expectedBudget2.fiscalEndDate = dateUtils.add(today, 1, 'year', ISOFORMAT);
 
         budgets = [budget1, budget2];
         expectedBudgets = [expectedBudget1, expectedBudget2];
@@ -822,18 +821,18 @@ describe('expenseTypeRoutes', () => {
         employee2.workStatus = 100;
 
         budget1.employeeId = 'employee1_id';
-        budget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-        budget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget1.fiscalStartDate = _.cloneDeep(today);
+        budget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
         budget1.amount = 50;
 
         budget2.employeeId = 'employee1_id';
-        budget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-        budget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+        budget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
         budget2.amount = 50;
 
         budget3.employeeId = 'employee2_id';
-        budget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-        budget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget3.fiscalStartDate = _.cloneDeep(today);
+        budget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
         budget3.amount = 0;
 
         employees = [employee1, employee2];
@@ -854,22 +853,18 @@ describe('expenseTypeRoutes', () => {
 
         describe('and expense type is recurring', () => {
           beforeEach(() => {
-            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget1.employeeId = 'employee1_id';
             expectedBudget1.amount = 10;
 
-            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
-              .add(1, 'y')
-              .subtract(5, 'y')
-              .subtract(1, 'd')
-              .format(ISOFORMAT);
+            expectedBudget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+            expectedBudget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 50;
 
-            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget3.employeeId = 'employee2_id';
             expectedBudget3.amount = 10;
           });
@@ -902,22 +897,18 @@ describe('expenseTypeRoutes', () => {
             delete newExpenseType.startDate;
             delete newExpenseType.endDate;
 
-            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget1.employeeId = 'employee1_id';
             expectedBudget1.amount = 10;
 
-            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
-              .add(1, 'y')
-              .subtract(5, 'y')
-              .subtract(1, 'd')
-              .format(ISOFORMAT);
+            expectedBudget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+            expectedBudget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 5;
 
-            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget3.employeeId = 'employee2_id';
             expectedBudget3.amount = 10;
           });
@@ -1064,18 +1055,18 @@ describe('expenseTypeRoutes', () => {
         employee2.workStatus = 100;
 
         budget1.employeeId = 'employee1_id';
-        budget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-        budget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget1.fiscalStartDate = _.cloneDeep(today);
+        budget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
         budget1.amount = 50;
 
         budget2.employeeId = 'employee1_id';
-        budget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-        budget2.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(5, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+        budget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
         budget2.amount = 50;
 
         budget3.employeeId = 'employee2_id';
-        budget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-        budget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+        budget3.fiscalStartDate = _.cloneDeep(today);
+        budget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
         budget3.amount = 0;
 
         employees = [employee1, employee2];
@@ -1096,22 +1087,18 @@ describe('expenseTypeRoutes', () => {
 
         describe('and expense type is recurring', () => {
           beforeEach(() => {
-            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget1.employeeId = 'employee1_id';
             expectedBudget1.amount = 0;
 
-            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
-              .add(1, 'y')
-              .subtract(5, 'y')
-              .subtract(1, 'd')
-              .format(ISOFORMAT);
+            expectedBudget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+            expectedBudget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 50;
 
-            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget3.employeeId = 'employee2_id';
             expectedBudget3.amount = 100;
           });
@@ -1140,22 +1127,18 @@ describe('expenseTypeRoutes', () => {
             delete newExpenseType.startDate;
             delete newExpenseType.endDate;
 
-            expectedBudget1.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget1.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget1.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget1.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget1.employeeId = 'employee1_id';
             expectedBudget1.amount = 0;
 
-            expectedBudget2.fiscalStartDate = _.cloneDeep(today).subtract(5, 'y').format(ISOFORMAT);
-            expectedBudget2.fiscalEndDate = _.cloneDeep(today)
-              .add(1, 'y')
-              .subtract(5, 'y')
-              .subtract(1, 'd')
-              .format(ISOFORMAT);
+            expectedBudget2.fiscalStartDate = dateUtils.subtract(today, 5, 'y');
+            expectedBudget2.fiscalEndDate = dateUtils.subtract(dateUtils.subtract(today, 4, 'year'), 1, 'day');
             expectedBudget2.employeeId = 'employee1_id';
             expectedBudget2.amount = 0;
 
-            expectedBudget3.fiscalStartDate = _.cloneDeep(today).format(ISOFORMAT);
-            expectedBudget3.fiscalEndDate = _.cloneDeep(today).add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
+            expectedBudget3.fiscalStartDate = _.cloneDeep(today);
+            expectedBudget3.fiscalEndDate = dateUtils.subtract(dateUtils.add(today, 1, 'year'), 1, 'day');
             expectedBudget3.employeeId = 'employee2_id';
             expectedBudget3.amount = 100;
           });
