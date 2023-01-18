@@ -185,24 +185,21 @@ async function addContracts() {
 async function convertEmployeeContracts() {
   let employees = await getAllEntries(EMPLOYEES_TABLE);
   let contracts = await getAllEntries(CONTRACT_TABLE);
-  let allContractProjects = [];
-  // push all employee projects to an array
-  contracts.forEach((c) => allContractProjects.push(...c.projects));
 
   _.forEach(employees, (employee, i) => {
     _.forEach(employee.contracts, (contract, j) => {
-      // asign them to the first contract + prime combo found
       let c = contracts.find((c) => contract.name === c.contractName && contract.primes[0] === c.primeName);
       employees[i].contracts[j]['contractId'] = c.id;
       _.forEach(contract.projects, (project, l) => {
         // assign each employee project the project id from the contracts table
-        let p = allContractProjects.find((p) => p.projectName === project.name);
+        let p = c.projects.find((p) => p.projectName === project.name);
         employees[i].contracts[j].projects[l]['projectId'] = p.id;
         delete employees[i].contracts[j].projects[l].name;
       });
       // remove contract name and prime names since we now how the id associated with the contract record
       delete employees[i].contracts[j].name;
       delete employees[i].contracts[j].primes;
+      delete employees[i].contracts[j].prime;
       console.log(employees[i].contracts[j]);
       console.log('NEW CONTRACT\n');
     });
