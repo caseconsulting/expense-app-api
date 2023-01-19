@@ -267,26 +267,6 @@ class ContractRoutes extends Crud {
         throw err;
       }
 
-      // validate contract role
-      if (_.isNil(contract.costType)) {
-        // log error
-        logger.log(3, '_validateContract', 'Contract cost type is empty');
-
-        // throw error
-        err.message = 'Invalid contract cost type.';
-        throw err;
-      }
-
-      // validate PoP end date
-      if (_.isNil(contract.popEndDate)) {
-        // log error
-        logger.log(3, '_validateContract', 'Contract PoP end date is empty');
-
-        // throw error
-        err.message = 'Invalid contract PoP end date.';
-        throw err;
-      }
-
       // log success
       logger.log(3, '_validateContract', `Successfully validated contract ${contract.id}`);
 

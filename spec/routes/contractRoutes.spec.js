@@ -223,48 +223,6 @@ describe('contractRoutes', () => {
             });
         });
       }); // END when contract projects is empty
-
-      // invalid contract cost type
-      describe('when contract cost type is nil', () => {
-        beforeEach(() => {
-          contract.costType = null;
-          err.message = 'Invalid contract cost type.';
-        });
-
-        it('should return a 403 rejected promise', (done) => {
-          contractRoutes
-            ._validateContract(contract)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch((error) => {
-              expect(error).toEqual(err);
-              done();
-            });
-        });
-      }); // END when contract cost type is nil
-
-      // invalid contract PoP end date being nil
-      describe('when contract PoP end date is nil', () => {
-        beforeEach(() => {
-          contract.popEndDate = null;
-          err.message = 'Invalid contract PoP end date.';
-        });
-
-        it('should return a 403 rejected promise', (done) => {
-          contractRoutes
-            ._validateContract(contract)
-            .then(() => {
-              fail('expected error to have been thrown');
-              done();
-            })
-            .catch((error) => {
-              expect(error).toEqual(err);
-              done();
-            });
-        });
-      }); // END when contract PoP end date is nil
     }); // END when failing to validate a contract
   }); // END _validateContract
 
