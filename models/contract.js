@@ -19,11 +19,11 @@ class Contract {
     this.setRequiredAttribute(data, 'contractName');
     this.setRequiredAttribute(data, 'primeName');
     this.setRequiredAttribute(data, 'projects');
-    this.setRequiredAttribute(data, 'popEndDate');
-    this.setRequiredAttribute(data, 'costType');
 
     // optional attributes
     this.setOptionalAttribute(data, 'popStartDate');
+    this.setOptionalAttribute(data, 'popEndDate');
+    this.setOptionalAttribute(data, 'costType');
   } // constructor
 
   /**
