@@ -5,9 +5,7 @@ const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
-
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../js/dateUtils');
 const logger = new Logger('auditRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
@@ -62,14 +60,14 @@ class AuditRoutes {
     try {
       // If a valid request (#TODO be more thorough)
       if (data.id && data.type && data.employeeId && data.timeToLive && req.employee) {
-        let now = moment();
+        let now = dateUtils.getTodaysDate('YYYY-MM-DDTHH:mm:ssZ');
         // Set up new audit
         let newAudit = {
           id: data.id,
-          dateCreated: now.format(),
+          dateCreated: now,
           type: data.type,
           employeeId: data.employeeId,
-          timeToLive: Number(moment().format('X')) + data.timeToLive * 24 * 60 * 60
+          timeToLive: Number(dateUtils.getTodaysDate('X')) + data.timeToLive * 24 * 60 * 60
         };
 
         if (data.description) {
@@ -113,14 +111,10 @@ class AuditRoutes {
      the from ${req.params.startDate} to ${req.params.endDate} of audit of type ${req.params.type}`
     );
 
-    // // Audits after this date will be returned
-    let startDate = moment(req.params.startDate).format();
-    let endDate = moment(req.params.endDate).format();
-
     let expressionAttributes = {
       ':typeName': req.params.type,
-      ':startDate': startDate,
-      ':endDate': endDate
+      ':startDate': req.params.startDate,
+      ':endDate': req.params.endDate
     };
 
     let additionalParams = {

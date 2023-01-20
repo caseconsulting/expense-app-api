@@ -3,13 +3,10 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const EmployeeRoutes = require('../../routes/employeeRoutes');
 const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../../js/dateUtils');
 const _ = require('lodash');
 
 describe('employeeRoutes', () => {
-  // const ISOFORMAT = 'YYYY-MM-DD';
-
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 
@@ -610,7 +607,7 @@ describe('employeeRoutes', () => {
         expectedBudget2 = new Budget(BUDGET_DATA);
         expectedBudget3 = new Budget(BUDGET_DATA);
 
-        today = moment();
+        today = dateUtils.getTodaysDate();
         oldEmployee.workStatus = 100;
         newEmployee.workStatus = 50;
 

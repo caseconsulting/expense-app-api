@@ -5,8 +5,7 @@
  */
 
 const ISOFORMAT = 'YYYY-MM-DD';
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../dateUtils');
 const { v4: uuid } = require('uuid');
 // const Budget = require('../../models/budget');
 const fs = require('fs');
@@ -267,10 +266,10 @@ async function copyValues(oldName, newName) {
  * @returns true if date is within range, false otherwise
  */
 function isDateInRange(dateStr, startDate, endDate) {
-  let date = moment(dateStr, ISOFORMAT);
-  let start = moment(startDate, ISOFORMAT);
-  let end = moment(endDate, ISOFORMAT);
-  return date.isBetween(start, end, null, '[]');
+  let date = dateUtils.format(dateStr, null, ISOFORMAT);
+  let start = dateUtils.format(startDate, null, ISOFORMAT);
+  let end = dateUtils.format(endDate, null, ISOFORMAT);
+  return dateUtils.isBetween(date, start, end, 'day', '[]');
 } // isDateInRange
 
 /**
@@ -278,21 +277,24 @@ function isDateInRange(dateStr, startDate, endDate) {
  * @return object containing fiscal start and end dates
  */
 function getBudgetDates(date) {
-  let hireDate = moment(date, ISOFORMAT);
-  let hireYear = hireDate.year();
-  let hireMonth = hireDate.month();
-  let hireDay = hireDate.date();
-  let today = moment();
+  let hireDate = dateUtils.format(date, ISOFORMAT);
+  let hireYear = dateUtils.getYear(hireDate);
+  let hireMonth = dateUtils.getMonth(hireDate) + 1;
+  let hireDay = dateUtils.getDay(hireDate);
+  let today = dateUtils.getTodaysDate();
 
   let startYear;
-  if (hireDate.isBefore(today)) {
-    startYear = today.isBefore(moment([today.year(), hireMonth, hireDay])) ? today.year() - 1 : today.year();
+  if (dateUtils.isBefore(hireDate, today)) {
+    let budgetDate = `${dateUtils.getYear(today)}-${hireMonth}-${hireDay}`;
+    startYear = dateUtils.isBefore(today, budgetDate)
+      ? dateUtils.setYear(today, parseInt(dateUtils.getYear(today)) + 1)
+      : dateUtils.getYear(today);
   } else {
     startYear = hireYear;
   }
 
-  let startDate = moment([startYear, hireMonth, hireDay]).format(ISOFORMAT);
-  let endDate = moment([startYear, hireMonth, hireDay]).add('1', 'years').subtract('1', 'days').format(ISOFORMAT);
+  let startDate = `${startYear}-${hireMonth}-${hireDay}`;
+  let endDate = dateUtils.subtract(dateUtils.add(startDate, 1, 'year'), 1, 'day');
 
   let result = {
     startDate,
@@ -435,7 +437,7 @@ async function adjustTechBudgetMiFiStatus() {
   const expenseRoutes = new ExpenseRoutes();
   let techExpenseType = (await expenseTypes).find((e) => e.budgetName === 'Technology');
   let fullTimeEmployees = (await employees).filter((e) => e.workStatus == 100 && !e.mifiStatus);
-  let now = moment().format(ISOFORMAT);
+  let now = dateUtils.getTodaysDate();
   let fileName = 'MifiStatusChange.png';
   let receiptFile = fs.readFileSync('~/../mifiStatus/resources/' + fileName);
   let adjustedTechBudgetEmployees = [];

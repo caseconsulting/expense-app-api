@@ -20,7 +20,14 @@ const PRIVATE_DATA = [
   'eeoAdminHasFilledOutEeoForm'
 ];
 
-const CONDITIONAL_PRIVATE_DATA = ['eeoGender', 'eeoHispanicOrLatino', 'eeoJobCategory', 'eeoRaceOrEthnicity'];
+const CONDITIONAL_PRIVATE_DATA = [
+  'eeoGender',
+  'eeoHispanicOrLatino',
+  'eeoJobCategory',
+  'eeoRaceOrEthnicity',
+  'eeoHasDisability',
+  'eeoIsProtectedVeteran'
+];
 
 // Fields hidden from all users (only visible to admin and manager)
 const HIDDEN_DATA = ['lastLogin'];
@@ -95,6 +102,8 @@ class Employee {
     this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
     this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
     this.setOptionalAttribute(data, 'eeoJobCategory');
+    this.setOptionalAttribute(data, 'eeoHasDisability');
+    this.setOptionalAttribute(data, 'eeoIsProtectedVeteran');
     this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');

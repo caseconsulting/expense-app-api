@@ -5,8 +5,7 @@ const Employee = require('./../models/employee');
 // const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 
 const ISOFORMAT = 'YYYY-MM-DD';
@@ -191,8 +190,6 @@ class ExpenseTypeRoutes extends Crud {
    * @return Array - Array of Budgets updated
    */
   async _updateBudgets(oldExpenseType, newExpenseType) {
-    console.log(oldExpenseType);
-    console.log(newExpenseType);
     // log method
     logger.log(2, '_updateBudgets', `Attempting to update budgets for expense type ${oldExpenseType.id}`);
 
@@ -228,7 +225,7 @@ class ExpenseTypeRoutes extends Crud {
         for (i = 0; i < budgets.length; i++) {
           if (diffBudget || diffAccessibleBy) {
             // update the budget amount for current budgets
-            if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(moment().format(ISOFORMAT))) {
+            if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(dateUtils.getTodaysDate())) {
               let employee = _.find(employees, ['id', budgets[i].employeeId]);
               budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
             }
@@ -299,7 +296,7 @@ class ExpenseTypeRoutes extends Crud {
         if (expenses.length > 0) {
           // map all purchase dates
           let purchaseDates = _.map(expenses, (expense) => {
-            return moment(expense.purchaseDate, ISOFORMAT);
+            return expense.purchaseDate;
           });
 
           let firstPurchaseDate = _.first(purchaseDates); // current first purchase date
@@ -307,17 +304,17 @@ class ExpenseTypeRoutes extends Crud {
 
           // find first and last purchase dates
           _.forEach(purchaseDates, (purchaseDate) => {
-            if (purchaseDate.isBefore(firstPurchaseDate)) {
+            if (dateUtils.isBefore(purchaseDate, firstPurchaseDate)) {
               // update the first purchase date
               firstPurchaseDate = purchaseDate;
             }
-            if (purchaseDate.isAfter(lastPurchaseDate)) {
+            if (dateUtils.isAfter(purchaseDate, lastPurchaseDate)) {
               // update the last purchase date
               lastPurchaseDate = purchaseDate;
             }
           });
 
-          if (moment(expenseType.startDate, ISOFORMAT).isAfter(firstPurchaseDate)) {
+          if (dateUtils.isAfter(expenseType.startDate, firstPurchaseDate)) {
             // expense type start date is after the first purchase date
             // log error
 
@@ -325,26 +322,26 @@ class ExpenseTypeRoutes extends Crud {
               2,
               '_validateDates',
               `Expense type start date ${expenseType.startDate} is after first expense purchased on`,
-              `${firstPurchaseDate.format(ISOFORMAT)}`
+              `${firstPurchaseDate}`
             );
 
             // throw error
-            err.message = `Start date must be before ${firstPurchaseDate.add(1, 'd').format(ISOFORMAT)}.`;
+            err.message = `Start date must be before ${dateUtils.add(firstPurchaseDate, 1, 'day', ISOFORMAT)}.`;
             throw err;
           }
 
-          if (moment(expenseType.endDate, ISOFORMAT).isBefore(lastPurchaseDate)) {
+          if (dateUtils.isBefore(expenseType.endDate, lastPurchaseDate)) {
             // expense type end date is before the last purchase date
             // log error
             logger.log(
               2,
               '_validateDates',
               `Expense type end date ${expenseType.endDate} is before last expense purchased on`,
-              `${lastPurchaseDate.format(ISOFORMAT)}`
+              `${lastPurchaseDate}`
             );
 
             // throw error
-            err.message = `End date must be after ${lastPurchaseDate.subtract(1, 'd').format(ISOFORMAT)}.`;
+            err.message = `End date must be after ${dateUtils.subtract(lastPurchaseDate, 1, 'day', ISOFORMAT)}.`;
             throw err;
           }
         }
@@ -498,7 +495,7 @@ class ExpenseTypeRoutes extends Crud {
           // throw error
           err.message = 'End date required for non recurring expense type.';
           throw err;
-        } else if (moment(expenseType.endDate, ISOFORMAT).isBefore(expenseType.startDate, ISOFORMAT)) {
+        } else if (dateUtils.isBefore(expenseType.endDate, expenseType.startDate)) {
           // log error
           logger.log(
             3,

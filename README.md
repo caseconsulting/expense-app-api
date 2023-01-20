@@ -411,6 +411,6 @@ https://metascraper.js.org/
 
 https://lodash.com/
 
-**Moment:**
+**Day.js:**
 
-https://momentjs.com/docs/
+https://day.js.org/en/

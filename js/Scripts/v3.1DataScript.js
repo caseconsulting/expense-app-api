@@ -23,9 +23,6 @@ const TRAINING_URLS_TABLE = `${STAGE}-training-urls`;
 
 const _ = require('lodash');
 // const { v4: uuid } = require('uuid');
-// const moment = require('moment-timezone');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
 const readlineSync = require('readline-sync');
 const Budget = require('./../../models/budget.js');
 const Employee = require('./../../models/employee.js');
@@ -69,7 +66,7 @@ const getAllEntriesHelper = (params, out = []) =>
 /**
  * gets all the entries in the table
  *
- * @param table - the table 
+ * @param table - the table
  * @return - all the entries
  */
 function getAllEntries(table) {
@@ -84,7 +81,7 @@ function getAllEntries(table) {
 
 /**
  * Prompts the user and confirm action
- * 
+ *
  * @param prompt - the string representing the action
  * @return boolean - whether the option is or isn't confirmed
  */
@@ -108,7 +105,7 @@ function confirmAction(prompt) {
 
 /**
  * Remove empty attributes (null or single space) from table entries
- * 
+ *
  * @param table - the table to remobe attributes from
  */
 async function removeNull(table) {

@@ -3,13 +3,10 @@ const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 const ExpenseType = require('../../models/expenseType');
-const moment = require('moment-timezone');
-moment.tz.setDefault('America/New_York');
+const dateUtils = require('../../js/dateUtils');
 const _ = require('lodash');
 
 describe('expenseRoutes', () => {
-  const ISOFORMAT = 'YYYY-MM-DD';
-
   const ID = '{id}';
   const DESCRIPTION = '{description}';
 
@@ -689,12 +686,17 @@ describe('expenseRoutes', () => {
       let err;
 
       beforeEach(() => {
-        // TODO: Fix the message below so this test works regardless of the actual year
+        employee.hireDate = '2000-01-01';
+        let dates = expenseRoutes.getBudgetDates(employee.hireDate);
+        const ERRFORMAT = 'MM/DD/YYYY';
         err = {
           code: 403,
-          message: 'Purchase date must be in current annual budget range from 01/01/2022 to 12/31/2022.'
+          message: `Purchase date must be in current annual budget range from ${dateUtils.format(
+            dates.startDate,
+            null,
+            ERRFORMAT
+          )} to ${dateUtils.format(dates.endDate, null, ERRFORMAT)}.`
         };
-        employee.hireDate = '2000-01-01';
         delete expense.reimbursedDate;
         expense.purchaseDate = '2000-01-01';
         expenseType.recurringFlag = true;
@@ -2168,128 +2170,14 @@ describe('expenseRoutes', () => {
     });
 
     describe('when successfully removing an expense', () => {
-      // describe('and expense is carried over the first 3 budgets', () => {
-      //   let expense1, expense2, expense3, expense4, expense5, expense6;
-      //   let budget1, budget2, budget3, budget4;
-      //   let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4, expectedBudgets;
-
-      //   beforeEach(() => {
-      //     expense1 = _.cloneDeep(EXPENSE_DATA);
-      //     expense1.purchaseDate = '2000-08-18';
-      //     expense1.cost = 10;
-      //     delete expense1.reimbursedDate;
-
-      //     expense2 = _.cloneDeep(EXPENSE_DATA);
-      //     expense2.purchaseDate = '2000-08-18';
-      //     expense2.cost = 90;
-      //     delete expense2.reimbursedDate;
-
-      //     expense3 = _.cloneDeep(EXPENSE_DATA);
-      //     expense3.purchaseDate = '2000-08-18';
-      //     expense3.cost = 50;
-      //     expense3.reimbursedDate = '2000-08-18';
-
-      //     expense4 = _.cloneDeep(EXPENSE_DATA);
-      //     expense4.purchaseDate = '2001-08-18';
-      //     expense4.cost = 20;
-      //     expense4.reimbursedDate = '2001-08-18';
-
-      //     expense5 = _.cloneDeep(EXPENSE_DATA);
-      //     expense5.purchaseDate = '2001-08-18';
-      //     expense5.cost = 60;
-      //     expense5.reimbursedDate = '2001-08-18';
-
-      //     expense6 = _.cloneDeep(EXPENSE_DATA);
-      //     expense6.purchaseDate = '2003-08-18';
-      //     expense6.cost = 80;
-      //     delete expense6.reimbursedDate;
-
-      //     budget1 = _.cloneDeep(BUDGET_DATA);
-      //     budget1.fiscalStartDate = '2000-08-18';
-      //     budget1.fiscalEndDate = '2001-08-17';
-      //     budget1.amount = 100;
-      //     budget1.pendingAmount = 50;
-      //     budget1.reimbursedAmount = 50;
-
-      //     budget2 = _.cloneDeep(BUDGET_DATA);
-      //     budget2.fiscalStartDate = '2001-08-18';
-      //     budget2.fiscalEndDate = '2002-08-17';
-      //     budget2.amount = 100;
-      //     budget2.pendingAmount = 20;
-      //     budget2.reimbursedAmount = 80;
-
-      //     budget3 = _.cloneDeep(BUDGET_DATA);
-      //     budget3.fiscalStartDate = '2002-08-18';
-      //     budget3.fiscalEndDate = '2003-08-17';
-      //     budget3.amount = 100;
-      //     budget3.pendingAmount = 30;
-      //     budget3.reimbursedAmount = 0;
-
-      //     budget4 = _.cloneDeep(BUDGET_DATA);
-      //     budget4.fiscalStartDate = '2003-08-18';
-      //     budget4.fiscalEndDate = '2004-08-17';
-      //     budget4.amount = 100;
-      //     budget4.pendingAmount = 80;
-      //     budget4.reimbursedAmount = 0;
-
-      //     expectedBudget1 = new Budget(BUDGET_DATA);
-      //     expectedBudget1.fiscalStartDate = '2000-08-18';
-      //     expectedBudget1.fiscalEndDate = '2001-08-17';
-      //     expectedBudget1.amount = 100;
-      //     expectedBudget1.pendingAmount = 10;
-      //     expectedBudget1.reimbursedAmount = 50;
-
-      //     expectedBudget2 = new Budget(BUDGET_DATA);
-      //     expectedBudget2.fiscalStartDate = '2001-08-18';
-      //     expectedBudget2.fiscalEndDate = '2002-08-17';
-      //     expectedBudget2.amount = 100;
-      //     expectedBudget2.pendingAmount = 0;
-      //     expectedBudget2.reimbursedAmount = 80;
-
-      //     expectedBudget3 = new Budget(BUDGET_DATA);
-      //     expectedBudget3.fiscalStartDate = '2002-08-18';
-      //     expectedBudget3.fiscalEndDate = '2003-08-17';
-      //     expectedBudget3.amount = 100;
-      //     expectedBudget3.pendingAmount = 0;
-      //     expectedBudget3.reimbursedAmount = 0;
-
-      //     expectedBudget4 = new Budget(BUDGET_DATA);
-      //     expectedBudget4.fiscalStartDate = '2003-08-18';
-      //     expectedBudget4.fiscalEndDate = '2004-08-17';
-      //     expectedBudget4.amount = 100;
-      //     expectedBudget4.pendingAmount = 80;
-      //     expectedBudget4.reimbursedAmount = 0;
-
-      //     expensesData = [expense1, expense2, expense3, expense4, expense5, expense6];
-      //     budgetsData = [budget1, budget2, budget3, budget4];
-      //     expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget4];
-
-      //     oldExpense = new Expense(expense2);
-
-      //     databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-      //     budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-      //     budgetDynamo.removeFromDB.and.returnValues(Promise.resolve(expectedBudget3));
-      //     budgetDynamo.updateEntryInDB.and.returnValues(
-      //       Promise.resolve(expectedBudget1),
-      //       Promise.resolve(expectedBudget2),
-      //       Promise.resolve(expectedBudget4)
-      //     );
-      //   });
-
-      //   it('should update and return the expected budgets', (done) => {
-      //     expenseRoutes._updateBudgets(oldExpense, undefined, employee, expenseType).then((data) => {
-      //       expect(data).toEqual(expectedBudgets);
-      //       done();
-      //     });
-      //   }); // should update and return the expected budgets
-      // }); // and expense is carried over 3 budgets
-
       describe('and expense is carried over the last 2 budgets', () => {
         let expense1, expense2, expense3, expense4, expense5, expense6;
         let budget1, budget2, budget3, budget4;
         let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4, expectedBudgets;
 
         beforeEach(() => {
+          employee.hireDate = dateUtils.getTodaysDate();
+
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 90;
@@ -2400,92 +2288,6 @@ describe('expenseRoutes', () => {
         }); // should update and return the expected budgets
       }); // and expense is carried over the last 2 budgets
 
-      // describe('and expense is a part of a part time budget', () => {
-      //   let expense1, expense2, expense3;
-      //   let budget1, budget2, budget3;
-      //   let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
-
-      //   beforeEach(() => {
-      //     expense1 = _.cloneDeep(EXPENSE_DATA);
-      //     expense1.purchaseDate = '2000-08-18';
-      //     expense1.cost = 20;
-      //     delete expense1.reimbursedDate;
-
-      //     expense2 = _.cloneDeep(EXPENSE_DATA);
-      //     expense2.purchaseDate = '2001-08-18';
-      //     expense2.cost = 50;
-      //     delete expense2.reimbursedDate;
-
-      //     expense3 = _.cloneDeep(EXPENSE_DATA);
-      //     expense3.purchaseDate = '2002-08-18';
-      //     expense3.cost = 20;
-      //     delete expense3.reimbursedDate;
-
-      //     budget1 = _.cloneDeep(BUDGET_DATA);
-      //     budget1.fiscalStartDate = '2000-08-18';
-      //     budget1.fiscalEndDate = '2001-08-17';
-      //     budget1.amount = 100;
-      //     budget1.pendingAmount = 20;
-      //     budget1.reimbursedAmount = 0;
-
-      //     budget2 = _.cloneDeep(BUDGET_DATA);
-      //     budget2.fiscalStartDate = '2001-08-18';
-      //     budget2.fiscalEndDate = '2002-08-17';
-      //     budget2.amount = 100;
-      //     budget2.pendingAmount = 50;
-      //     budget2.reimbursedAmount = 0;
-
-      //     budget3 = _.cloneDeep(BUDGET_DATA);
-      //     budget3.fiscalStartDate = '2002-08-18';
-      //     budget3.fiscalEndDate = '2003-08-17';
-      //     budget3.amount = 100;
-      //     budget3.pendingAmount = 20;
-      //     budget3.reimbursedAmount = 0;
-
-      //     expectedBudget1 = new Budget(BUDGET_DATA);
-      //     expectedBudget1.fiscalStartDate = '2000-08-18';
-      //     expectedBudget1.fiscalEndDate = '2001-08-17';
-      //     expectedBudget1.amount = 100;
-      //     expectedBudget1.pendingAmount = 20;
-      //     expectedBudget1.reimbursedAmount = 0;
-
-      //     expectedBudget2 = new Budget(BUDGET_DATA);
-      //     expectedBudget2.fiscalStartDate = '2001-08-18';
-      //     expectedBudget2.fiscalEndDate = '2002-08-17';
-      //     expectedBudget2.amount = 100;
-      //     expectedBudget2.pendingAmount = 0;
-      //     expectedBudget2.reimbursedAmount = 0;
-
-      //     expectedBudget3 = new Budget(BUDGET_DATA);
-      //     expectedBudget3.fiscalStartDate = '2002-08-18';
-      //     expectedBudget3.fiscalEndDate = '2003-08-17';
-      //     expectedBudget3.amount = 100;
-      //     expectedBudget3.pendingAmount = 20;
-      //     expectedBudget3.reimbursedAmount = 0;
-
-      //     expensesData = [expense1, expense2, expense3];
-      //     budgetsData = [budget1, budget2, budget3];
-      //     expectedBudgets = [expectedBudget1, expectedBudget3];
-
-      //     oldExpense = new Expense(expense2);
-
-      //     databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-      //     budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-      //     budgetDynamo.removeFromDB.and.returnValues(Promise.resolve(expectedBudget2));
-      //     budgetDynamo.updateEntryInDB.and.returnValues(
-      //       Promise.resolve(expectedBudget1),
-      //       Promise.resolve(expectedBudget3)
-      //     );
-      //   });
-
-      //   it('should update and return the expected budgets', (done) => {
-      //     expenseRoutes._updateBudgets(oldExpense, undefined, employee, expenseType).then((data) => {
-      //       expect(data).toEqual(expectedBudgets);
-      //       done();
-      //     });
-      //   }); // should update and return the expected budgets
-      // }); // and expense is a part of a part time budget
-
       describe('and expense is the only expense', () => {
         let expense1, budget1, expectedBudget1, expectedBudgets;
 
@@ -2529,691 +2331,6 @@ describe('expenseRoutes', () => {
       }); // and expense is the only expense in the current budget
     }); // when removing an expense
 
-    // describe('when successfully changing cost of a pending expense', () => {
-    //   describe('and expense is increased and carried over the first 3 budgets', () => {
-    //     let expense1, expense2, expense3, expense4;
-    //     let budget1, budget2, budget3, budget4;
-    //     let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 70;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = '2000-08-18';
-    //       expense2.cost = 60;
-    //       expense2.reimbursedDate = '2000-08-18';
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = '2001-08-18';
-    //       expense3.cost = 80;
-    //       expense3.reimbursedDate = '2001-08-18';
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = '2003-08-18';
-    //       expense4.cost = 20;
-    //       expense4.reimbursedDate = '2003-08-18';
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 40;
-    //       budget1.reimbursedAmount = 60;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 20;
-    //       budget2.reimbursedAmount = 80;
-
-    //       budget3 = _.cloneDeep(BUDGET_DATA);
-    //       budget3.fiscalStartDate = '2002-08-18';
-    //       budget3.fiscalEndDate = '2003-08-17';
-    //       budget3.amount = 100;
-    //       budget3.pendingAmount = 10;
-    //       budget3.reimbursedAmount = 0;
-
-    //       budget4 = _.cloneDeep(BUDGET_DATA);
-    //       budget4.fiscalStartDate = '2003-08-18';
-    //       budget4.fiscalEndDate = '2004-08-17';
-    //       budget4.amount = 100;
-    //       budget4.pendingAmount = 0;
-    //       budget4.reimbursedAmount = 20;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 40;
-    //       expectedBudget1.reimbursedAmount = 60;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 20;
-    //       expectedBudget2.reimbursedAmount = 80;
-
-    //       expectedBudget3 = new Budget(BUDGET_DATA);
-    //       expectedBudget3.fiscalStartDate = '2002-08-18';
-    //       expectedBudget3.fiscalEndDate = '2003-08-17';
-    //       expectedBudget3.amount = 100;
-    //       expectedBudget3.pendingAmount = 20;
-    //       expectedBudget3.reimbursedAmount = 0;
-
-    //       expectedBudget4 = new Budget(BUDGET_DATA);
-    //       expectedBudget4.fiscalStartDate = '2003-08-18';
-    //       expectedBudget4.fiscalEndDate = '2004-08-17';
-    //       expectedBudget4.amount = 100;
-    //       expectedBudget4.pendingAmount = 0;
-    //       expectedBudget4.reimbursedAmount = 20;
-
-    //       expensesData = [expense1, expense2, expense3, expense4];
-    //       budgetsData = [budget1, budget2, budget3, budget4];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4];
-
-    //       oldExpense = new Expense(expense1);
-    //       newExpense = new Expense(expense1);
-    //       newExpense.cost = 80;
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2),
-    //         Promise.resolve(expectedBudget3),
-    //         Promise.resolve(expectedBudget4)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and expense is increased and carried over the first 3 budgets
-
-    //   describe('and expense is decreased and carried over the first 3 budgets', () => {
-    //     let expense1, expense2, expense3, expense4;
-    //     let budget1, budget2, budget3, budget4;
-    //     let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 70;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = '2000-08-18';
-    //       expense2.cost = 60;
-    //       expense2.reimbursedDate = '2000-08-18';
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = '2001-08-18';
-    //       expense3.cost = 80;
-    //       expense3.reimbursedDate = '2001-08-18';
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = '2003-08-18';
-    //       expense4.cost = 20;
-    //       expense4.reimbursedDate = '2003-08-18';
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 40;
-    //       budget1.reimbursedAmount = 60;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 20;
-    //       budget2.reimbursedAmount = 80;
-
-    //       budget3 = _.cloneDeep(BUDGET_DATA);
-    //       budget3.fiscalStartDate = '2002-08-18';
-    //       budget3.fiscalEndDate = '2003-08-17';
-    //       budget3.amount = 100;
-    //       budget3.pendingAmount = 10;
-    //       budget3.reimbursedAmount = 0;
-
-    //       budget4 = _.cloneDeep(BUDGET_DATA);
-    //       budget4.fiscalStartDate = '2003-08-18';
-    //       budget4.fiscalEndDate = '2004-08-17';
-    //       budget4.amount = 100;
-    //       budget4.pendingAmount = 0;
-    //       budget4.reimbursedAmount = 20;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 10;
-    //       expectedBudget1.reimbursedAmount = 60;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 0;
-    //       expectedBudget2.reimbursedAmount = 80;
-
-    //       expectedBudget3 = new Budget(BUDGET_DATA);
-    //       expectedBudget3.fiscalStartDate = '2002-08-18';
-    //       expectedBudget3.fiscalEndDate = '2003-08-17';
-    //       expectedBudget3.amount = 100;
-    //       expectedBudget3.pendingAmount = 0;
-    //       expectedBudget3.reimbursedAmount = 0;
-
-    //       expectedBudget4 = new Budget(BUDGET_DATA);
-    //       expectedBudget4.fiscalStartDate = '2003-08-18';
-    //       expectedBudget4.fiscalEndDate = '2004-08-17';
-    //       expectedBudget4.amount = 100;
-    //       expectedBudget4.pendingAmount = 0;
-    //       expectedBudget4.reimbursedAmount = 20;
-
-    //       expensesData = [expense1, expense2, expense3, expense4];
-    //       budgetsData = [budget1, budget2, budget3, budget4];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget4];
-
-    //       oldExpense = new Expense(expense1);
-    //       newExpense = new Expense(expense1);
-    //       newExpense.cost = 10;
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.removeFromDB.and.returnValues(Promise.resolve(expectedBudget3));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2),
-    //         Promise.resolve(expectedBudget4)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and expense is decreased and carried over the first 3 budgets
-
-    //   describe('and expense is increased and current budget has overage', () => {
-    //     let expense1, expense2, expense3, expense4;
-    //     let budget1, budget2;
-    //     let expectedBudget1, expectedBudget2, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = moment().subtract(1, 'y').format(ISOFORMAT);
-    //       expense1.cost = 20;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = moment().subtract(1, 'y').format(ISOFORMAT);
-    //       expense2.cost = 80;
-    //       expense2.reimbursedDate = moment().subtract(1, 'y').format(ISOFORMAT);
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = moment().format(ISOFORMAT);
-    //       expense3.cost = 90;
-    //       delete expense3.reimbursedDate;
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = moment().format(ISOFORMAT);
-    //       expense4.cost = 10;
-    //       expense4.reimbursedDate = moment().format(ISOFORMAT);
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = moment().subtract(1, 'y').format(ISOFORMAT);
-    //       budget1.fiscalEndDate = moment().subtract(1, 'd').format(ISOFORMAT);
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 20;
-    //       budget1.reimbursedAmount = 80;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = moment().format(ISOFORMAT);
-    //       budget2.fiscalEndDate = moment().add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 90;
-    //       budget2.reimbursedAmount = 10;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = moment().subtract(1, 'y').format(ISOFORMAT);
-    //       expectedBudget1.fiscalEndDate = moment().subtract(1, 'd').format(ISOFORMAT);
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 20;
-    //       expectedBudget1.reimbursedAmount = 80;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = moment().format(ISOFORMAT);
-    //       expectedBudget2.fiscalEndDate = moment().add(1, 'y').subtract(1, 'd').format(ISOFORMAT);
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 120;
-    //       expectedBudget2.reimbursedAmount = 10;
-
-    //       expensesData = [expense1, expense2, expense3, expense4];
-    //       budgetsData = [budget1, budget2];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2];
-
-    //       oldExpense = new Expense(expense1);
-    //       newExpense = new Expense(expense1);
-    //       newExpense.cost = 50;
-    //       employee.hireDate = moment().subtract(1, 'y').format(ISOFORMAT);
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and expense is decreased and carried over the first 3 budgets
-
-    //   describe('and creates a new budget for carry over', () => {
-    //     let expense1;
-    //     let budget1, budget2;
-    //     let expectedBudget1, expectedBudget2, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 90;
-    //       delete expense1.reimbursedDate;
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 90;
-    //       budget1.reimbursedAmount = 0;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 0;
-    //       budget2.reimbursedAmount = 0;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 100;
-    //       expectedBudget1.reimbursedAmount = 0;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 10;
-    //       expectedBudget2.reimbursedAmount = 0;
-
-    //       expensesData = [expense1];
-    //       budgetsData = [budget1];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2];
-
-    //       oldExpense = new Expense(expense1);
-    //       newExpense = new Expense(expense1);
-    //       newExpense.cost = 110;
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       spyOn(expenseRoutes, 'createNewBudget').and.returnValue(budget2);
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and creates a new budget for carry over
-    // }); // when successfully changing cost of a pending expense
-
-    // describe('when successfully reimbursing an expense', () => {
-    //   describe('and expense is between a carry over', () => {
-    //     let expense1, expense2, expense3, expense4, expense5, expense6;
-    //     let budget1, budget2, budget3, budget4;
-    //     let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudget4, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 10;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = '2000-08-18';
-    //       expense2.cost = 90;
-    //       delete expense2.reimbursedDate;
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = '2000-08-18';
-    //       expense3.cost = 50;
-    //       expense3.reimbursedDate = '2000-08-18';
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = '2001-08-18';
-    //       expense4.cost = 20;
-    //       expense4.reimbursedDate = '2001-08-18';
-
-    //       expense5 = _.cloneDeep(EXPENSE_DATA);
-    //       expense5.purchaseDate = '2001-08-18';
-    //       expense5.cost = 60;
-    //       expense5.reimbursedDate = '2001-08-18';
-
-    //       expense6 = _.cloneDeep(EXPENSE_DATA);
-    //       expense6.purchaseDate = '2003-08-18';
-    //       expense6.cost = 80;
-    //       delete expense6.reimbursedDate;
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 50;
-    //       budget1.reimbursedAmount = 50;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 20;
-    //       budget2.reimbursedAmount = 80;
-
-    //       budget3 = _.cloneDeep(BUDGET_DATA);
-    //       budget3.fiscalStartDate = '2002-08-18';
-    //       budget3.fiscalEndDate = '2003-08-17';
-    //       budget3.amount = 100;
-    //       budget3.pendingAmount = 30;
-    //       budget3.reimbursedAmount = 0;
-
-    //       budget4 = _.cloneDeep(BUDGET_DATA);
-    //       budget4.fiscalStartDate = '2003-08-18';
-    //       budget4.fiscalEndDate = '2004-08-17';
-    //       budget4.amount = 100;
-    //       budget4.pendingAmount = 80;
-    //       budget4.reimbursedAmount = 0;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 10;
-    //       expectedBudget1.reimbursedAmount = 50;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 0;
-    //       expectedBudget2.reimbursedAmount = 80;
-
-    //       expectedBudget3 = new Budget(BUDGET_DATA);
-    //       expectedBudget3.fiscalStartDate = '2002-08-18';
-    //       expectedBudget3.fiscalEndDate = '2003-08-17';
-    //       expectedBudget3.amount = 100;
-    //       expectedBudget3.pendingAmount = 0;
-    //       expectedBudget3.reimbursedAmount = 0;
-
-    //       expectedBudget4 = new Budget(BUDGET_DATA);
-    //       expectedBudget4.fiscalStartDate = '2003-08-18';
-    //       expectedBudget4.fiscalEndDate = '2004-08-17';
-    //       expectedBudget4.amount = 100;
-    //       expectedBudget4.pendingAmount = 80;
-    //       expectedBudget4.reimbursedAmount = 0;
-
-    //       expensesData = [expense1, expense2, expense3, expense4, expense5, expense6];
-    //       budgetsData = [budget1, budget2, budget3, budget4];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget4];
-
-    //       oldExpense = new Expense(expense2);
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.removeFromDB.and.returnValues(Promise.resolve(expectedBudget3));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2),
-    //         Promise.resolve(expectedBudget4)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, undefined, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and expense is carried over 3 budgets
-
-    //   describe('and expense is carried over the last 2 budgets', () => {
-    //     let expense1, expense2, expense3, expense4, expense5, expense6;
-    //     let budget1, budget2, budget3;
-    //     let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 140;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = '2000-08-18';
-    //       expense2.cost = 20;
-    //       expense2.reimbursedDate = '2000-08-18';
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = '2001-08-18';
-    //       expense3.cost = 20;
-    //       delete expense3.reimbursedDate;
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = '2001-08-18';
-    //       expense4.cost = 70;
-    //       expense4.reimbursedDate = '2001-08-18';
-
-    //       expense5 = _.cloneDeep(EXPENSE_DATA);
-    //       expense5.purchaseDate = '2002-08-18';
-    //       expense5.cost = 10;
-    //       delete expense5.reimbursedDate;
-
-    //       expense6 = _.cloneDeep(EXPENSE_DATA);
-    //       expense6.purchaseDate = '2002-08-18';
-    //       expense6.cost = 20;
-    //       expense6.reimbursedDate = '2002-08-18';
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 80;
-    //       budget1.reimbursedAmount = 20;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 30;
-    //       budget2.reimbursedAmount = 70;
-
-    //       budget3 = _.cloneDeep(BUDGET_DATA);
-    //       budget3.fiscalStartDate = '2002-08-18';
-    //       budget3.fiscalEndDate = '2003-08-17';
-    //       budget3.amount = 100;
-    //       budget3.pendingAmount = 60;
-    //       budget3.reimbursedAmount = 20;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 80;
-    //       expectedBudget1.reimbursedAmount = 20;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 10;
-    //       expectedBudget2.reimbursedAmount = 90;
-
-    //       expectedBudget3 = new Budget(BUDGET_DATA);
-    //       expectedBudget3.fiscalStartDate = '2002-08-18';
-    //       expectedBudget3.fiscalEndDate = '2003-08-17';
-    //       expectedBudget3.amount = 100;
-    //       expectedBudget3.pendingAmount = 60;
-    //       expectedBudget3.reimbursedAmount = 20;
-
-    //       expensesData = [expense1, expense2, expense3, expense4, expense5, expense6];
-    //       budgetsData = [budget1, budget2, budget3];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3];
-
-    //       oldExpense = new Expense(expense3);
-    //       newExpense = new Expense(expense3);
-    //       newExpense.reimbursedDate = '2001-08-18';
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2),
-    //         Promise.resolve(expectedBudget3)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budgets
-    //   }); // and expense is between a carry over
-
-    //   describe('and expense is carried over 3 budgets', () => {
-    //     let expense1, expense2, expense3, expense4, expense5, expense6;
-    //     let budget1, budget2, budget3;
-    //     let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
-
-    //     beforeEach(() => {
-    //       expense1 = _.cloneDeep(EXPENSE_DATA);
-    //       expense1.purchaseDate = '2000-08-18';
-    //       expense1.cost = 140;
-    //       delete expense1.reimbursedDate;
-
-    //       expense2 = _.cloneDeep(EXPENSE_DATA);
-    //       expense2.purchaseDate = '2000-08-18';
-    //       expense2.cost = 20;
-    //       expense2.reimbursedDate = '2000-08-18';
-
-    //       expense3 = _.cloneDeep(EXPENSE_DATA);
-    //       expense3.purchaseDate = '2001-08-18';
-    //       expense3.cost = 20;
-    //       delete expense3.reimbursedDate;
-
-    //       expense4 = _.cloneDeep(EXPENSE_DATA);
-    //       expense4.purchaseDate = '2001-08-18';
-    //       expense4.cost = 70;
-    //       expense4.reimbursedDate = '2001-08-18';
-
-    //       expense5 = _.cloneDeep(EXPENSE_DATA);
-    //       expense5.purchaseDate = '2002-08-18';
-    //       expense5.cost = 10;
-    //       delete expense5.reimbursedDate;
-
-    //       expense6 = _.cloneDeep(EXPENSE_DATA);
-    //       expense6.purchaseDate = '2002-08-18';
-    //       expense6.cost = 20;
-    //       expense6.reimbursedDate = '2002-08-18';
-
-    //       budget1 = _.cloneDeep(BUDGET_DATA);
-    //       budget1.fiscalStartDate = '2000-08-18';
-    //       budget1.fiscalEndDate = '2001-08-17';
-    //       budget1.amount = 100;
-    //       budget1.pendingAmount = 80;
-    //       budget1.reimbursedAmount = 20;
-
-    //       budget2 = _.cloneDeep(BUDGET_DATA);
-    //       budget2.fiscalStartDate = '2001-08-18';
-    //       budget2.fiscalEndDate = '2002-08-17';
-    //       budget2.amount = 100;
-    //       budget2.pendingAmount = 30;
-    //       budget2.reimbursedAmount = 70;
-
-    //       budget3 = _.cloneDeep(BUDGET_DATA);
-    //       budget3.fiscalStartDate = '2002-08-18';
-    //       budget3.fiscalEndDate = '2003-08-17';
-    //       budget3.amount = 100;
-    //       budget3.pendingAmount = 60;
-    //       budget3.reimbursedAmount = 20;
-
-    //       expectedBudget1 = new Budget(BUDGET_DATA);
-    //       expectedBudget1.fiscalStartDate = '2000-08-18';
-    //       expectedBudget1.fiscalEndDate = '2001-08-17';
-    //       expectedBudget1.amount = 100;
-    //       expectedBudget1.pendingAmount = 0;
-    //       expectedBudget1.reimbursedAmount = 100;
-
-    //       expectedBudget2 = new Budget(BUDGET_DATA);
-    //       expectedBudget2.fiscalStartDate = '2001-08-18';
-    //       expectedBudget2.fiscalEndDate = '2002-08-17';
-    //       expectedBudget2.amount = 100;
-    //       expectedBudget2.pendingAmount = 0;
-    //       expectedBudget2.reimbursedAmount = 100;
-
-    //       expectedBudget3 = new Budget(BUDGET_DATA);
-    //       expectedBudget3.fiscalStartDate = '2002-08-18';
-    //       expectedBudget3.fiscalEndDate = '2003-08-17';
-    //       expectedBudget3.amount = 100;
-    //       expectedBudget3.pendingAmount = 30;
-    //       expectedBudget3.reimbursedAmount = 50;
-
-    //       expensesData = [expense1, expense2, expense3, expense4, expense5, expense6];
-    //       budgetsData = [budget1, budget2, budget3];
-    //       expectedBudgets = [expectedBudget1, expectedBudget2, expectedBudget3];
-
-    //       oldExpense = new Expense(expense1);
-    //       newExpense = new Expense(expense1);
-    //       newExpense.reimbursedDate = '2000-08-18';
-
-    //       databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-    //       budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-    //       budgetDynamo.updateEntryInDB.and.returnValues(
-    //         Promise.resolve(expectedBudget1),
-    //         Promise.resolve(expectedBudget2),
-    //         Promise.resolve(expectedBudget3)
-    //       );
-    //     });
-
-    //     it('should update and return the expected budgets', (done) => {
-    //       expenseRoutes._updateBudgets(oldExpense, newExpense, employee, expenseType).then((data) => {
-    //         expect(data).toEqual(expectedBudgets);
-    //         done();
-    //       });
-    //     }); // should update and return the expected budget\
-    //   }); // and expense is carried over 3 budgets
-    // }); // when successfully reimbursing an expense
-
     describe('when successfully unreimbursing an expense', () => {
       describe('and expense is between a carry over', () => {
         let expense1, expense2, expense3, expense4, expense5, expense6;
@@ -3221,6 +2338,8 @@ describe('expenseRoutes', () => {
         let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
 
         beforeEach(() => {
+          employee.hireDate = dateUtils.getTodaysDate();
+
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 100;
@@ -3324,6 +2443,8 @@ describe('expenseRoutes', () => {
         let expectedBudget1, expectedBudget2, expectedBudget3, expectedBudgets;
 
         beforeEach(() => {
+          employee.hireDate = dateUtils.getTodaysDate();
+
           expense1 = _.cloneDeep(EXPENSE_DATA);
           expense1.purchaseDate = '2000-08-18';
           expense1.cost = 20;
@@ -3517,6 +2638,7 @@ describe('expenseRoutes', () => {
           code: 404,
           message: 'Error updating budgets.'
         };
+        employee.hireDate = dateUtils.getTodaysDate();
 
         expense1 = _.cloneDeep(EXPENSE_DATA);
         expense1.purchaseDate = '2000-08-18';
@@ -3680,7 +2802,7 @@ describe('expenseRoutes', () => {
 
       describe('and is in current budget', () => {
         beforeEach(() => {
-          expense.purchaseDate = moment().format(ISOFORMAT);
+          expense.purchaseDate = dateUtils.getTodaysDate();
         });
 
         it('should return the validated expense', () => {
@@ -3700,7 +2822,11 @@ describe('expenseRoutes', () => {
             code: 403,
             message:
               'Purchase date must be in current annual budget range from ' +
-              `${dates.startDate.format(ERRFORMAT)} to ${dates.endDate.format(ERRFORMAT)}.`
+              `${dateUtils.format(dates.startDate, null, ERRFORMAT)} to ${dateUtils.format(
+                dates.endDate,
+                null,
+                ERRFORMAT
+              )}.`
           };
           expense.purchaseDate = '2000-08-18';
         });
