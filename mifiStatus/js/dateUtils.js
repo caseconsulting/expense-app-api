@@ -12,6 +12,8 @@ var isoWeek = require('dayjs/plugin/isoWeek');
 var isSameOrAfter_ = require('dayjs/plugin/isSameOrAfter');
 var isSameOrBefore_ = require('dayjs/plugin/isSameOrBefore');
 var isBetween_ = require('dayjs/plugin/isBetween');
+var duration = require('dayjs/plugin/duration');
+dayjs.extend(duration);
 dayjs.extend(isBetween_);
 dayjs.extend(isSameOrBefore_);
 dayjs.extend(isSameOrAfter_);
@@ -376,6 +378,17 @@ function startOf(date, granularity) {
   return dayjs(date).startOf(granularity).format();
 } // startOf
 
+/**
+ * Gets the date at the end of the given unit time.
+ *
+ * @param {String} date - The date to find the end of
+ * @param {String} granularity - The unit to find the end of
+ * @returns String - End of date at the given unit time
+ */
+function endOf(date, granularity) {
+  return dayjs(date).endOf(granularity).format();
+} // endOf
+
 module.exports = {
   DEFAULT_ISOFORMAT,
   FORMATTED_ISOFORMAT,
@@ -402,5 +415,6 @@ module.exports = {
   setDay,
   setMonth,
   setYear,
-  startOf
+  startOf,
+  endOf
 };
