@@ -267,6 +267,15 @@ class ContractRoutes extends Crud {
         throw err;
       }
 
+      // validate contract status
+      if (_.isNil(contract.status) || _.isEmpty(contract.status)) {
+        // log error
+        logger.log(3, '_validateContract', 'Contract status is null or empty');
+
+        // throw error
+        err.message = 'Empty contract status.';
+      }
+
       // log success
       logger.log(3, '_validateContract', `Successfully validated contract ${contract.id}`);
 
@@ -322,7 +331,7 @@ class ContractRoutes extends Crud {
         return _.isEqual(c, oldContract);
       });
 
-      // validated uplicate contract number
+      // validated duplicate contract number
       if (contracts.some((c) => c.contractName === newContract.contractName && c.primeName === newContract.primeName)) {
         // log error
         logger.log(
