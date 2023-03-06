@@ -45,6 +45,13 @@ const colors = {
   NC: '\x1b[0m' // clear
 };
 
+// constants
+const CONTRACT_STATUSES = {
+  INACTIVE: 'inactive',
+  ACTIVE: 'active',
+  CLOSED: 'closed'
+};
+
 /**
  * =================================================
  * |                                               |
@@ -104,6 +111,29 @@ function updateEmployees(employees) {
   });
 }
 
+function updateContractAttribute(contractId, attribute, value) {
+  let params = {
+    TableName: CONTRACT_TABLE,
+    Key: {
+      id: contractId
+    },
+    UpdateExpression: 'set #attribute = :a',
+    ExpressionAttributeNames: {
+      '#attribute': attribute
+    },
+    ExpressionAttributeValues: {
+      ':a': value
+    }
+  };
+  ddb.update(params, function (err) {
+    if (err) {
+      console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+    } else {
+      console.log(`Updated Contract ID: ${contractId}`);
+    }
+  });
+}
+
 function addContractsToTable(contracts) {
   _.forEach(contracts, (contract) => {
     let params = {
@@ -126,6 +156,34 @@ function addContractsToTable(contracts) {
     });
   });
 }
+
+/**
+ * Removes given attribute from all contract data
+ *
+ * @param attribute - the given attribute
+ */
+async function removeAttribute(attribute) {
+  let contracts = await getAllEntries(CONTRACT_TABLE);
+  _.forEach(contracts, (contract) => {
+    let params = {
+      TableName: CONTRACT_TABLE,
+      Key: {
+        id: contract.id
+      },
+      UpdateExpression: `remove ${attribute}`,
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update contract
+    ddb.update(params, function (err) {
+      if (err) {
+        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
+      } else {
+        console.log(`Refreshed Contract ID: ${contract.id}`);
+      }
+    });
+  });
+} // removeAttribute
 
 /**
  * =================================================
@@ -182,6 +240,9 @@ async function addContracts() {
   addContractsToTable(contracts);
 } // addContracts
 
+/**
+ * Assigns contract and project ID to employee contracts
+ */
 async function convertEmployeeContracts() {
   let employees = await getAllEntries(EMPLOYEES_TABLE);
   let contracts = await getAllEntries(CONTRACT_TABLE);
@@ -207,7 +268,32 @@ async function convertEmployeeContracts() {
   });
 
   updateEmployees(employees);
-}
+} // convertEmployeeContracts
+
+/**
+ * Replaces Inactive attribute with Status.
+ */
+async function replaceInactiveWithStatusField() {
+  let contracts = await getAllEntries(CONTRACT_TABLE);
+  _.forEach(contracts, (contract) => {
+    if (contract.inactive) {
+      contract.status = CONTRACT_STATUSES.INACTIVE;
+    } else {
+      contract.status = CONTRACT_STATUSES.ACTIVE;
+    }
+    _.forEach(contract.projects, (project) => {
+      if (project.inactive) {
+        project.status = CONTRACT_STATUSES.INACTIVE;
+      } else {
+        project.status = CONTRACT_STATUSES.ACTIVE;
+      }
+      delete project.inactive;
+    });
+    updateContractAttribute(contract.id, 'status', contract.status);
+    updateContractAttribute(contract.id, 'projects', contract.projects);
+  });
+  removeAttribute('inactive');
+} // replaceInactiveWithStatusField
 
 /**
  * =================================================
@@ -289,6 +375,12 @@ async function main() {
       desc: 'Convert employee contracts to IDs connected to the contract table',
       action: async () => {
         await convertEmployeeContracts();
+      }
+    },
+    {
+      desc: 'Replace inactive contract field with status',
+      action: async () => {
+        await replaceInactiveWithStatusField();
       }
     }
   ];

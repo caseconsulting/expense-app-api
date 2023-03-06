@@ -10,8 +10,9 @@ const _ = require('lodash');
  * - popStartDate
  * - popEndDate
  * - costType
- * - inactive
+ * - status
  * - description
+ * - directorate
  */
 
 class Contract {
@@ -25,9 +26,9 @@ class Contract {
     // optional attributes
     this.setOptionalAttribute(data, 'popStartDate');
     this.setOptionalAttribute(data, 'popEndDate');
-    this.setOptionalAttribute(data, 'costType');
-    this.setOptionalAttribute(data, 'inactive');
+    this.setOptionalAttribute(data, 'status');
     this.setOptionalAttribute(data, 'description');
+    this.setOptionalAttribute(data, 'directorate');
   } // constructor
 
   /**
