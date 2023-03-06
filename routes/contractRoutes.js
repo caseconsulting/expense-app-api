@@ -6,6 +6,12 @@ const _ = require('lodash');
 
 const logger = new Logger('contractRoutes');
 
+const CONTRACT_STATUSES = {
+  INACTIVE: 'inactive',
+  ACTIVE: 'active',
+  CLOSED: 'closed'
+};
+
 class ContractRoutes extends Crud {
   constructor() {
     super();
@@ -345,6 +351,46 @@ class ContractRoutes extends Crud {
           `Contract ${newContract.contractName} with prime ${newContract.primeName} already taken.` +
           'Please enter a unique contract and prime combination.';
         throw err;
+      }
+
+      // validated on closed status update
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.CLOSED) {
+        let employees = await this.employeeDynamo.getAllEntriesInDB();
+
+        _.forEach(employees, (employee) => {
+          if (employee.contracts && employee.workStatus != 0) {
+            _.forEach(employee.contracts, (c) => {
+              if (newContract.id === c.contractId) {
+                // log error
+                logger.log(3, '_validateDelete', 'Contract found with employee ID: ' + employee.id);
+
+                // throw error
+                err.message = 'Cannot update contract status to closed, employee found with contract';
+                throw err;
+              }
+            });
+          }
+        });
+      }
+
+      // validated on inactive status update
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.INACTIVE) {
+        let employees = await this.employeeDynamo.getAllEntriesInDB();
+
+        _.forEach(employees, (employee) => {
+          if (employee.contracts && employee.workStatus != 0) {
+            _.forEach(employee.contracts, (c) => {
+              if (newContract.id === c.contractId) {
+                // log error
+                logger.log(3, '_validateDelete', 'Contract found with employee ID: ' + employee.id);
+
+                // throw error
+                err.message = 'Cannot update contract status to inactive, employee found with contract';
+                throw err;
+              }
+            });
+          }
+        });
       }
 
       // log success
