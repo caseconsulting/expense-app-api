@@ -353,16 +353,72 @@ class ContractRoutes extends Crud {
         throw err;
       }
 
-      // validated on closed status update
-      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.CLOSED) {
-        let employees = await this.employeeDynamo.getAllEntriesInDB();
+      let employees = await this.employeeDynamo.getAllEntriesInDB();
 
+      // validated on closed status update project
+      oldContract.projects.forEach((p) => {
+        let index = newContract.projects.findIndex((project) => project.id == p.id);
+        if (
+          index >= 0 &&
+          p.status !== newContract.projects[index].status &&
+          newContract.projects[index].status === CONTRACT_STATUSES.CLOSED
+        ) {
+          _.forEach(employees, (employee) => {
+            if (employee.contracts && employee.workStatus != 0) {
+              _.forEach(employee.contracts, (c) => {
+                if (
+                  newContract.id === c.contractId &&
+                  c.projects.some((np) => np.presentDate && np.projectId === p.id)
+                ) {
+                  // log error
+                  logger.log(3, '_validateUpdate', 'Project found with employee ID: ' + employee.id);
+
+                  // throw error
+                  err.message = 'Cannot mark project as closed, employee found with project';
+                  throw err;
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // validated on inactive status update project
+      oldContract.projects.forEach((p) => {
+        let index = newContract.projects.findIndex((project) => project.id == p.id);
+        if (
+          index >= 0 &&
+          p.status !== newContract.projects[index].status &&
+          newContract.projects[index].status === CONTRACT_STATUSES.INACTIVE
+        ) {
+          _.forEach(employees, (employee) => {
+            if (employee.contracts && employee.workStatus != 0) {
+              _.forEach(employee.contracts, (c) => {
+                if (
+                  newContract.id === c.contractId &&
+                  c.projects.some((np) => np.presentDate && np.projectId === p.id)
+                ) {
+                  // log error
+                  logger.log(3, '_validateUpdate', 'Project found with employee ID: ' + employee.id);
+
+                  // throw error
+                  err.message = 'Cannot mark project as inactive, employee found with project';
+                  throw err;
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // validated on closed status update contract
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.CLOSED) {
         _.forEach(employees, (employee) => {
           if (employee.contracts && employee.workStatus != 0) {
             _.forEach(employee.contracts, (c) => {
               if (newContract.id === c.contractId) {
                 // log error
-                logger.log(3, '_validateDelete', 'Contract found with employee ID: ' + employee.id);
+                logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
 
                 // throw error
                 err.message = 'Cannot update contract status to closed, employee found with contract';
@@ -373,16 +429,14 @@ class ContractRoutes extends Crud {
         });
       }
 
-      // validated on inactive status update
+      // validated on inactive status update contract
       if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.INACTIVE) {
-        let employees = await this.employeeDynamo.getAllEntriesInDB();
-
         _.forEach(employees, (employee) => {
           if (employee.contracts && employee.workStatus != 0) {
             _.forEach(employee.contracts, (c) => {
               if (newContract.id === c.contractId) {
                 // log error
-                logger.log(3, '_validateDelete', 'Contract found with employee ID: ' + employee.id);
+                logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
 
                 // throw error
                 err.message = 'Cannot update contract status to inactive, employee found with contract';
