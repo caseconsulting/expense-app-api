@@ -295,6 +295,21 @@ async function replaceInactiveWithStatusField() {
   removeAttribute('inactive');
 } // replaceInactiveWithStatusField
 
+async function removeProjectActiveEmployeesField() {
+  let contracts = await getAllEntries(CONTRACT_TABLE);
+  _.forEach(contracts, (contract) => {
+    _.forEach(contract.projects, (project) => {
+      if (project.projectActiveEmployees) {
+        console.log(
+          `Removing projectActiveEmployees field in contract ID: ${contract.id} and project ID: ${project.id}`
+        );
+        delete project.projectActiveEmployees;
+      }
+    });
+    updateContractAttribute(contract.id, 'projects', contract.projects);
+  });
+} // removeProjectActiveEmployeesField
+
 /**
  * =================================================
  * |                                               |
@@ -381,6 +396,12 @@ async function main() {
       desc: 'Replace inactive contract field with status',
       action: async () => {
         await replaceInactiveWithStatusField();
+      }
+    },
+    {
+      desc: 'Remove projectActiveEmployees field',
+      action: async () => {
+        await removeProjectActiveEmployeesField();
       }
     }
   ];
