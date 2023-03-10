@@ -6,7 +6,6 @@ const jwksRsa = require('jwks-rsa');
 const Logger = require('../js/Logger');
 const logger = new Logger('roles');
 
-
 // Authentication middleware. When used, the
 // Access Token must exist and be verified against
 // the Auth0 JSON Web Key Set
@@ -45,12 +44,12 @@ class Roles {
 
   /**
    * gets the user's role
-   * 
+   *
    * @param req - api request
    * @param res - api response
    */
   getUserRole(req, res) {
-    logger.log(5, 'getUserRole',  `Getting user role for user ${req.employee.id}`);
+    logger.log(5, 'getUserRole', `Getting user role for user ${req.employee.id}`);
 
     if (req.employee.employeeRole) {
       res.status(200).send(req.employee.employeeRole);
@@ -61,7 +60,7 @@ class Roles {
 
   /**
    * gets the employee object for the user
-   * 
+   *
    * @param req - api request
    * @param res - api response
    */

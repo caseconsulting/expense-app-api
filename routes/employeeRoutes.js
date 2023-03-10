@@ -2,6 +2,7 @@ const Budget = require('./../models/budget');
 const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
+const EmployeeSensitive = require('../models/employee-sensitive');
 // const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
@@ -30,8 +31,9 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       let employee = new Employee(data);
+      let employeeSensitive = new EmployeeSensitive(data);
 
-      await this._validateEmployee(employee); // validate employee
+      await this._validateEmployee(employee, employeeSensitive); // validate employee
       await this._validateCreate(employee); // validate create
 
       // log success
@@ -107,6 +109,7 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       let employee = new Employee(await this.databaseModify.getEntry(data.id)); // read from database
+
       // log success
       logger.log(2, '_read', `Successfully read employee ${data.id}`);
 
@@ -133,9 +136,20 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
-      let employeesData = await this.databaseModify.getAllEntriesInDB();
+      let [employeesData, employeesSensitiveData] = await Promise.all([
+        this.databaseModify.getAllEntriesInDB(),
+        this.employeeSensitiveDynamo.getAllEntriesInDB()
+      ]);
       let employees = _.map(employeesData, (e) => {
-        return new Employee(e).hideFields(employee);
+        let emp = new Employee(e);
+        if (employee.employeeRole == 'admin' || employee.employeeRole == 'manager') {
+          // include sensitive data for employees if the user has a high enough role
+          let empSensitive = new EmployeeSensitive(employeesSensitiveData.find((em) => em.id == e.id));
+          if (empSensitive) {
+            emp = { ...emp, ...empSensitive };
+          }
+        }
+        return emp;
       });
 
       // log success
@@ -166,10 +180,12 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
+      let oldEmployeeSensitive = new EmployeeSensitive(await this.employeeSensitiveDynamo.getEntry(data.id));
       let newEmployee = new Employee(data);
-      newEmployee.handleEEOData(oldEmployee, req.employee);
+      let newEmployeeSensitive = new EmployeeSensitive(data);
+      newEmployeeSensitive.handleEEOData(oldEmployeeSensitive, req.employee);
       await Promise.all([
-        this._validateEmployee(newEmployee),
+        this._validateEmployee(newEmployee, newEmployeeSensitive),
         this._validateUpdate(oldEmployee, newEmployee),
         this._updateBudgets(oldEmployee, newEmployee)
       ]);
@@ -216,14 +232,27 @@ class EmployeeRoutes extends Crud {
           dataUpdated = employeeValidated;
         }
 
+        if (employeeUpdated instanceof Employee) {
+          let sensitiveData = new EmployeeSensitive(req.body);
+          let objectValidated = await this._validateInputs(sensitiveData); // validate inputs
+          let sensitiveDataUpdated = await this.employeeSensitiveDynamo.updateEntryInDB(objectValidated);
+          // updated an entry for an employees sensitive data
+          logger.log(
+            1,
+            '_createWrapper',
+            `Successfully created object ${dataUpdated.id} in ${this.STAGE}-employees-sensitive`
+          );
+          dataUpdated = { ...dataUpdated, ...sensitiveDataUpdated };
+        }
+
         // log success
         logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
 
         // send successful 200 status
-        res.status(200).send(dataUpdated.hideFields(req.employee));
+        res.status(200).send(dataUpdated);
 
         // return updated data
-        return dataUpdated.hideFields(req.employee);
+        return dataUpdated;
       } else {
         // employee does not have permissions to update table
         throw {
@@ -422,7 +451,7 @@ class EmployeeRoutes extends Crud {
    * @param employee - Employee object to be validated
    * @return Employee - validated employee
    */
-  async _validateEmployee(employee) {
+  async _validateEmployee(employee, employeeSensitive) {
     // log method
     logger.log(3, '_validateEmployee', `Validating employee ${employee.id}`);
 
@@ -494,7 +523,7 @@ class EmployeeRoutes extends Crud {
       }
 
       // validate employee role
-      if (_.isNil(employee.employeeRole)) {
+      if (_.isNil(employeeSensitive.employeeRole)) {
         // log error
         logger.log(3, '_validateEmployee', 'Employee role is empty');
 

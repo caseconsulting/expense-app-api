@@ -26,6 +26,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 
 // set employee table
 const TABLE = `${STAGE}-employees`;
+const SENSITIVE_TABLE = 'employees-sensitive';
 
 // imports
 const _ = require('lodash');
@@ -35,6 +36,7 @@ const readlineSync = require('readline-sync');
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient();
+const DatabaseModify = require('../databaseModify');
 
 // colors for console logging
 const colors = {
@@ -77,10 +79,10 @@ const getAllEntriesHelper = (params, out = []) =>
  *
  * @return - all the entries in the table
  */
-function getAllEntries() {
+function getAllEntries(table) {
   console.log('Getting all entries in dynamodb employees table');
   let params = {
-    TableName: TABLE
+    TableName: table
   };
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
@@ -93,7 +95,7 @@ function getAllEntries() {
  * @param attribute - the given attribute
  */
 async function removeAttribute(attribute) {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     let params = {
       TableName: TABLE,
@@ -282,7 +284,7 @@ function calculateYears(technologies) {
  * Sets all employee's work status active = 100 (Full Time) or inactive = 0
  */
 async function workStatusActive() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     let params = {
       TableName: TABLE,
@@ -333,7 +335,7 @@ async function removeExpenseTypes() {
  * @param attribute - attribute to be removed
  */
 async function setBirthdayFeed(attribute) {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   let showBirthday = true;
   _.forEach(employees, (employee) => {
     showBirthday = true;
@@ -370,7 +372,7 @@ async function setBirthdayFeed(attribute) {
  * Used to replace the old technologies field with a new object excluding dateIntervals
  */
 async function addYearsToTechnologies() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.technologies) {
       let params = {
@@ -400,7 +402,7 @@ async function addYearsToTechnologies() {
  * Used to convert the previous jobs attribute to a different JSON structure titled companies
  */
 async function convertJobsToCompanies() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.jobs) {
       let params = {
@@ -431,7 +433,7 @@ async function convertJobsToCompanies() {
  * the start date.
  */
 async function convertBIDates() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.clearances) {
       let params = {
@@ -463,7 +465,7 @@ async function convertBIDates() {
  * the employees table
  */
 async function convertEducation() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.degrees) {
       let params = {
@@ -508,7 +510,7 @@ async function deleteUnusedContractData() {
  * Migrates the single phone number to the private phone numbers list.
  */
 async function migratePhoneNumbers() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.phoneNumber) {
       let params = {
@@ -549,7 +551,7 @@ async function removePhoneNumberAttribute() {
  */
 async function deleteUnusedClearanceExpirationDate() {
   console.log('before call');
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   console.log('after call');
   let hasChanged = false;
   _.forEach(employees, (employee) => {
@@ -593,7 +595,7 @@ async function deleteUnusedClearanceExpirationDate() {
  * Change wording in level of proficiency for basic.
  */
 async function changeWordingForBasicProficiencyLevel() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.languages) {
       _.forEach(employee.languages, (language) => {
@@ -627,7 +629,7 @@ async function changeWordingForBasicProficiencyLevel() {
  * Updates Github/Twitter profile information to replace URLs with just usernames.
  */
 async function replaceGithubTwitterUrls() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     // set values and command
     let eaVals = {};
@@ -682,7 +684,7 @@ async function removeSchoolsAttribute() {
  * Moves school attribute to education, adding type
  */
 async function moveSchoolsToEducation() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.schools) {
       let education = _.map(employee.schools, (s) => {
@@ -720,7 +722,7 @@ async function moveSchoolsToEducation() {
  * Replaces all employee's single prime string with a list of primes.
  */
 async function createPrimesList() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     if (employee.contracts) {
       // copy old data and turn prime into a primes list
@@ -767,7 +769,7 @@ async function createPrimesList() {
  * This would be easily portable to expenses if needed.
  */
 async function addAwardDates() {
-  let employees = await getAllEntries();
+  let employees = await getAllEntries(TABLE);
   _.forEach(employees, (employee) => {
     let update = false;
     _.forEach(employee.awards, (award, i) => {
@@ -800,6 +802,41 @@ async function addAwardDates() {
     }
   });
 } // addAwardDates
+
+/**
+ * Migrates sensitive PII data from the employees table to the new sensitive employees table.
+ */
+async function migrateSensitiveData() {
+  let databaseModify = new DatabaseModify(SENSITIVE_TABLE);
+  let employees = await getAllEntries(TABLE);
+  _.forEach(employees, (e) => {
+    let sens_data = {
+      id: e.id,
+      employeeRole: e.employeeRole,
+      deptDate: e.deptDate,
+      birthday: e.birthday,
+      birthdayFeed: e.birthdayFeed,
+      city: e.city,
+      st: e.st,
+      country: e.country,
+      currentCity: e.currentCity,
+      currentState: e.currentState,
+      currentStreet: e.currentStreet,
+      currentZIP: e.currentZIP,
+      lastLogin: e.lastLogin,
+      privatePhoneNumbers: e.privatePhoneNumbers,
+      eeoDeclineSelfIdentity: e.eeoDeclineSelfIdentity,
+      eeoAdminHasFilledOutEeoForm: e.eeoAdminHasFilledOutEeoForm,
+      eeoGender: e.eeoGender,
+      eeoHispanicOrLatino: e.eeoHispanicOrLatino,
+      eeoJobCategory: e.eeoJobCategory,
+      eeoRaceOrEthnicity: e.eeoRaceOrEthnicity,
+      eeoHasDisability: e.eeoHasDisability,
+      eeoIsProtectedVeteran: e.eeoIsProtectedVeteran
+    };
+    databaseModify.addToDB(sens_data);
+  });
+} // migrateSensitiveData
 
 /**
  * =================================================
@@ -981,6 +1018,12 @@ async function main() {
       desc: 'Change contract prime to a list of primes',
       action: async () => {
         await createPrimesList();
+      }
+    },
+    {
+      desc: 'Migrate sensitive employee PII data to different DynamoDB table',
+      action: async () => {
+        await migrateSensitiveData();
       }
     }
   ];
