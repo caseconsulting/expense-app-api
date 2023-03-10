@@ -3,7 +3,6 @@ const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
 const EmployeeSensitive = require('../models/employee-sensitive');
-// const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
 const dateUtils = require('../js/dateUtils');
@@ -30,7 +29,9 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
+      // sets all non sensitive data
       let employee = new Employee(data);
+      // sets all sensitive data
       let employeeSensitive = new EmployeeSensitive(data);
 
       await this._validateEmployee(employee, employeeSensitive); // validate employee
@@ -136,6 +137,7 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
+      // get public and sensitive data from different DBs
       let [employeesData, employeesSensitiveData] = await Promise.all([
         this.databaseModify.getAllEntriesInDB(),
         this.employeeSensitiveDynamo.getAllEntriesInDB()
@@ -449,6 +451,7 @@ class EmployeeRoutes extends Crud {
    * Validate that an employee is valid. Returns the employee if successfully validated, otherwise returns an error.
    *
    * @param employee - Employee object to be validated
+   * @param employeeSensitive - Employee sensitive data object to be validated
    * @return Employee - validated employee
    */
   async _validateEmployee(employee, employeeSensitive) {
