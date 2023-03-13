@@ -10,11 +10,13 @@ const _ = require('lodash');
 
 const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
+const STAGE = process.env.STAGE;
 
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('employees');
+    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
   } // constructor
 
   /**
@@ -52,6 +54,61 @@ class EmployeeRoutes extends Crud {
   } // _create
 
   /**
+   * Creates employee and employee-sensitive object in database. If successful, sends 200 status
+   * response with the newly created employee object and returns new employee object.
+   *
+   * @param {*} req - api request
+   * @param {*} res - api response
+   * @returns Object - employee object created
+   */
+  async _createWrapper(req, res) {
+    // log method
+    logger.log(1, '_createWrapper', `Attempting to create an object in ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToCreate(req.employee)) {
+        // employee has permissions to create to table
+        let employeeObjectCreated = await this._create(req.body); // create object
+        let employeeObjectValidated = await this._validateInputs(employeeObjectCreated); // validate inputs
+        let dataCreated = await this.databaseModify.addToDB(employeeObjectValidated); // add object to database
+
+        // log success
+        let sensitiveData = new EmployeeSensitive(req.body);
+        let objectValidated = await this._validateInputs(sensitiveData); // validate inputs
+        await this.employeeSensitiveDynamo.addToDB(objectValidated);
+        // created an entry for an employees sensitive data
+        logger.log(
+          1,
+          '_createWrapper',
+          `Successfully created object ${dataCreated.id} in ${STAGE}-employees-sensitive`
+        );
+
+        // send successful 200 status
+        res.status(200).send(dataCreated);
+
+        // return created data
+        return dataCreated;
+      } else {
+        // employee does not have permissions to create table
+        throw {
+          code: 403,
+          message: 'Unable to create object in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_createWrapper', `Failed to create object in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _createdWrapper
+
+  /**
    * Prepares an employee to be deleted. Returns the employee if it can be successfully deleted.
    *
    * @param id - id of employee
@@ -79,6 +136,60 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _delete
+
+  /**
+   * Delete employee and employee-sensitive object in database. If succcesful, sends 200 status
+   * response with the deleted employee object and returns deleted employee object.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @returns Object - employee object deleted
+   */
+  async _deleteWrapper(req, res) {
+    // log method
+    logger.log(1, '_deleteWrapper', `Attempting to delete an object from ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToDelete(req.employee)) {
+        // employee has permission to delete from table
+        let objectDeleted = await this._delete(req.params.id); // delete object
+        let dataDeleted = await this.databaseModify.removeFromDB(objectDeleted.id); // remove from database
+
+        // log success
+        logger.log(1, '_deleteWrapper', `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`);
+
+        await this.employeeSensitiveDynamo.removeFromDB(objectDeleted.id);
+        // deleted an entry of an employees sensitive data
+        logger.log(
+          1,
+          '_createWrapper',
+          `Successfully deleted object ${objectDeleted.id} in ${STAGE}-employees-sensitive`
+        );
+
+        // send successful 200 status
+        res.status(200).send(dataDeleted);
+
+        // return object removed
+        return dataDeleted;
+      } else {
+        // employee does not have permissions to delete from table
+        throw {
+          code: 403,
+          message: 'Unable to delete object from database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_deleteWrapper', `Failed to delete object from ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _deleteWrapper
 
   /**
    * Gets all expensetype data and then parses the categories
@@ -124,6 +235,71 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _read
+
+  /**
+   * Read employee and employee-sensitive object (if permissions suffice) in database. If successful, sends 200
+   * status response with the employee object read and returns the employee object.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @returns Object - object read
+   */
+  async _readWrapper(req, res) {
+    // log method
+    logger.log(1, '_readWrapper', `Attempting to read an object from ${this._getTableName()}`);
+
+    // compute method
+    const FORBIDDEN = {
+      code: 403,
+      message: 'Unable to read object from database due to insufficient employee permissions.'
+    };
+
+    try {
+      if (this._checkPermissionToRead(req.employee)) {
+        // employee has permission to read from table
+        let dataRead = await this._read(req.params); // read object
+
+        // validate user permission to the read expense
+        if ((this.isUser(req.employee) || this.isManager(req.employee)) && this._checkTableName(['expenses'])) {
+          // user is reading an expense
+          // check the expense belongs to the user
+          if (dataRead.employeeId !== req.employee.id) {
+            // expense does not belong to user
+            throw FORBIDDEN;
+          }
+        }
+
+        // log success
+        let sensitiveData = new EmployeeSensitive(await this.employeeSensitiveDynamo.getEntry(dataRead.id));
+        // combine employee regular data with sensitive data
+        dataRead = { ...dataRead, ...sensitiveData };
+        // created an entry for an employees sensitive data
+        logger.log(
+          1,
+          '_createWrapper',
+          `Successfully created object ${sensitiveData.id} in ${STAGE}-employees-sensitive`
+        );
+
+        // send successful 200 status
+        res.status(200).send(dataRead);
+
+        // return read data
+        return dataRead;
+      } else {
+        // employee does not have permission to read
+        throw FORBIDDEN;
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_readWrapper', `Failed to read object from ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _readWrapper
 
   /**
    * Reads all employees from the database. Returns all employees.

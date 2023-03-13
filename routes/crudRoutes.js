@@ -9,8 +9,6 @@ const jwksRsa = require('jwks-rsa');
 const dateUtils = require('../js/dateUtils');
 const { v4: uuid } = require('uuid');
 const _ = require('lodash');
-const Employee = require('../models/employee');
-const EmployeeSensitive = require('./../models/employee-sensitive');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;
@@ -44,8 +42,6 @@ class Crud {
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
     this.budgetDynamo = new DatabaseModify('budgets');
-    this.employeeDynamo = new DatabaseModify('employees');
-    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
   } // constructor
@@ -463,16 +459,6 @@ class Crud {
             `Successfully created object ${dataCreated.id} with category ${dataCreated.category} in`,
             `${this._getTableName()}`
           );
-        } else if (dataCreated instanceof Employee) {
-          let sensitiveData = new EmployeeSensitive(req.body);
-          let objectValidated = await this._validateInputs(sensitiveData); // validate inputs
-          await this.employeeSensitiveDynamo.addToDB(objectValidated);
-          // created an entry for an employees sensitive data
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully created object ${dataCreated.id} in ${STAGE}-employees-sensitive`
-          );
         } else {
           // created an expense, expense type, or employee
           logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
@@ -536,16 +522,6 @@ class Crud {
 
         // log success
         logger.log(1, '_deleteWrapper', `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`);
-
-        if (objectDeleted instanceof Employee) {
-          await this.employeeSensitiveDynamo.removeFromDB(objectDeleted.id);
-          // deleted an entry of an employees sensitive data
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully deleted object ${objectDeleted.id} in ${STAGE}-employees-sensitive`
-          );
-        }
 
         // send successful 200 status
         res.status(200).send(dataDeleted);
@@ -855,16 +831,6 @@ class Crud {
             1,
             '_readWrapper',
             `Successfully read object ${dataRead.id} with category ${dataRead.category} from ${this._getTableName()}`
-          );
-        } else if (dataRead instanceof Employee) {
-          let sensitiveData = new EmployeeSensitive(await this.employeeSensitiveDynamo.getEntry(dataRead.id));
-          // combine employee regular data with sensitive data
-          dataRead = { ...dataRead, ...sensitiveData };
-          // created an entry for an employees sensitive data
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully created object ${sensitiveData.id} in ${STAGE}-employees-sensitive`
           );
         } else {
           // read an expense, expense-type, or employee
