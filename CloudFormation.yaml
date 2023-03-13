@@ -313,6 +313,10 @@ Resources:
           KeyType: HASH
       StreamSpecification:
         StreamViewType: 'NEW_AND_OLD_IMAGES'
+      SSESpecification:
+        KMSMasterKeyId: alias/employees-sensitive-key
+        SSEEnabled: true
+        SSEType: KMS
       Tags:
         - Key: Application
           Value: expense-app
