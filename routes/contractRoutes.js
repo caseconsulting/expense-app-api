@@ -7,7 +7,7 @@ const _ = require('lodash');
 const logger = new Logger('contractRoutes');
 
 const CONTRACT_STATUSES = {
-  INACTIVE: 'inactive',
+  UNSTAFFED: 'unstaffed',
   ACTIVE: 'active',
   CLOSED: 'closed'
 };
@@ -383,13 +383,13 @@ class ContractRoutes extends Crud {
         }
       });
 
-      // validated on inactive status update project
+      // validated on unstaffed status update project
       oldContract.projects.forEach((p) => {
         let index = newContract.projects.findIndex((project) => project.id == p.id);
         if (
           index >= 0 &&
           p.status !== newContract.projects[index].status &&
-          newContract.projects[index].status === CONTRACT_STATUSES.INACTIVE
+          newContract.projects[index].status === CONTRACT_STATUSES.UNSTAFFED
         ) {
           _.forEach(employees, (employee) => {
             if (employee.contracts && employee.workStatus != 0) {
@@ -402,7 +402,7 @@ class ContractRoutes extends Crud {
                   logger.log(3, '_validateUpdate', 'Project found with employee ID: ' + employee.id);
 
                   // throw error
-                  err.message = 'Cannot mark project as inactive, employee found with project';
+                  err.message = 'Cannot mark project as unstaffed, employee found with project';
                   throw err;
                 }
               });
@@ -429,8 +429,8 @@ class ContractRoutes extends Crud {
         });
       }
 
-      // validated on inactive status update contract
-      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.INACTIVE) {
+      // validated on unstaffed status update contract
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.UNSTAFFED) {
         _.forEach(employees, (employee) => {
           if (employee.contracts && employee.workStatus != 0) {
             _.forEach(employee.contracts, (c) => {
@@ -439,7 +439,7 @@ class ContractRoutes extends Crud {
                 logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
 
                 // throw error
-                err.message = 'Cannot update contract status to inactive, employee found with contract';
+                err.message = 'Cannot update contract status to unstaffed, employee found with contract';
                 throw err;
               }
             });

@@ -47,7 +47,7 @@ const colors = {
 
 // constants
 const CONTRACT_STATUSES = {
-  INACTIVE: 'inactive',
+  UNSTAFFED: 'unstaffed',
   ACTIVE: 'active',
   CLOSED: 'closed'
 };
@@ -295,6 +295,9 @@ async function replaceInactiveWithStatusField() {
   removeAttribute('inactive');
 } // replaceInactiveWithStatusField
 
+/**
+ * Removes project active employees field.
+ */
 async function removeProjectActiveEmployeesField() {
   let contracts = await getAllEntries(CONTRACT_TABLE);
   _.forEach(contracts, (contract) => {
@@ -309,6 +312,25 @@ async function removeProjectActiveEmployeesField() {
     updateContractAttribute(contract.id, 'projects', contract.projects);
   });
 } // removeProjectActiveEmployeesField
+
+/**
+ * Renames Inactive status option to Unstaffed.
+ */
+async function renameInactiveStatusToUnstaffed() {
+  let contracts = await getAllEntries(CONTRACT_TABLE);
+  _.forEach(contracts, (contract) => {
+    if (contract.status === 'inactive') {
+      updateContractAttribute(contract.id, 'status', CONTRACT_STATUSES.UNSTAFFED);
+    }
+
+    _.forEach(contract.projects, (project, index) => {
+      if (contract.projects[index].status === 'inactive') {
+        contract.projects[index].status = CONTRACT_STATUSES.UNSTAFFED;
+      }
+    });
+    updateContractAttribute(contract.id, 'projects', contract.projects);
+  });
+} // renameInactiveStatusToUnstaffed
 
 /**
  * =================================================
@@ -402,6 +424,12 @@ async function main() {
       desc: 'Remove projectActiveEmployees field',
       action: async () => {
         await removeProjectActiveEmployeesField();
+      }
+    },
+    {
+      desc: 'Renames inactive status option to unstaffed',
+      action: async () => {
+        await renameInactiveStatusToUnstaffed();
       }
     }
   ];
