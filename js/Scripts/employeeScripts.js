@@ -26,6 +26,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 
 // set employee table
 const TABLE = `${STAGE}-employees`;
+const EMPLOYEES_TABLE = 'employees';
 const SENSITIVE_TABLE = 'employees-sensitive';
 
 // imports
@@ -825,7 +826,7 @@ async function migrateSensitiveData() {
       currentZIP: e.currentZIP,
       lastLogin: e.lastLogin,
       privatePhoneNumbers: e.privatePhoneNumbers,
-      eeoDeclineSelfIdentity: e.eeoDeclineSelfIdentity,
+      eeoDeclineSelfIdentify: e.eeoDeclineSelfIdentify,
       eeoAdminHasFilledOutEeoForm: e.eeoAdminHasFilledOutEeoForm,
       eeoGender: e.eeoGender,
       eeoHispanicOrLatino: e.eeoHispanicOrLatino,
@@ -835,6 +836,38 @@ async function migrateSensitiveData() {
       eeoIsProtectedVeteran: e.eeoIsProtectedVeteran
     };
     databaseModify.addToDB(sens_data);
+  });
+} // migrateSensitiveData
+
+/**
+ * Migrates sensitive PII data from the employees table to the new sensitive employees table.
+ */
+async function removeSensitiveDataFromEmployees() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let employees = await getAllEntries(TABLE);
+  _.forEach(employees, (e) => {
+    delete e.employeeRole;
+    delete e.deptDate;
+    delete e.birthday;
+    delete e.birthdayFeed;
+    delete e.city;
+    delete e.st;
+    delete e.country;
+    delete e.currentCity;
+    delete e.currentState;
+    delete e.currentStreet;
+    delete e.currentZIP;
+    delete e.lastLogin;
+    delete e.privatePhoneNumbers;
+    delete e.eeoDeclineSelfIdentify;
+    delete e.eeoAdminHasFilledOutEeoForm;
+    delete e.eeoGender;
+    delete e.eeoHispanicOrLatino;
+    delete e.eeoJobCategory;
+    delete e.eeoRaceOrEthnicity;
+    delete e.eeoHasDisability;
+    delete e.eeoIsProtectedVeteran;
+    databaseModify.updateEntryInDB(e);
   });
 } // migrateSensitiveData
 
@@ -1024,6 +1057,12 @@ async function main() {
       desc: 'Migrate sensitive employee PII data to different DynamoDB table',
       action: async () => {
         await migrateSensitiveData();
+      }
+    },
+    {
+      desc: 'Remove sensitive employee PII data from Employees table (DO NOT RUN SCRIPT UNTIL THE MIGRATION IS DONE)',
+      action: async () => {
+        await removeSensitiveDataFromEmployees();
       }
     }
   ];
