@@ -5,7 +5,7 @@ const TrainingUrl = require('./models/trainingUrls');
 const ExpenseType = require('./models/expenseType');
 const Expense = require('expense-model');
 const _ = require('lodash');
-const urlExist = require('url-exist');
+const urlExists = require('url-exists');
 
 const trainingUrlDynamo = new DatabaseModify('training-urls');
 const expenseTypeDynamo = new DatabaseModify('expense-types');
@@ -93,16 +93,18 @@ async function _got(id) {
   // log method
   logger.log(2, '_got', `Getting http request for ${id}`);
 
+  let exist = false;
+  urlExists(id, (err, exists) => {
+    if (err) return err;
+    exist = exists;
+  });
+
   // compute method
-  try {
-    if (await urlExist(id)) {
-      const { body: html, url } = await got(id);
-      return { html, url };
-    } else {
-      throw 'invalid url';
-    }
-  } catch (err) {
-    return err;
+  if (exist) {
+    const { body: html, url } = await got(id);
+    return { html, url };
+  } else {
+    throw 'invalid url';
   }
 } // _got
 
