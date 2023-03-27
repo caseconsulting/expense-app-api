@@ -133,6 +133,7 @@ class EmployeeRoutes extends Crud {
       }
     ];
     await DatabaseModify.TransactItems(items);
+    return employee;
   } // addEmployeeToDB
 
   /**
@@ -181,24 +182,23 @@ class EmployeeRoutes extends Crud {
       if (this._checkPermissionToDelete(req.employee)) {
         // employee has permission to delete from table
         let objectDeleted = await this._delete(req.params.id); // delete object
-        let dataDeleted = await this.databaseModify.removeFromDB(objectDeleted.id); // remove from database
+        await this.deleteEmployeeFromDB(objectDeleted.id);
 
         // log success
-        logger.log(1, '_deleteWrapper', `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`);
+        logger.log(1, '_deleteWrapper', `Successfully deleted object ${objectDeleted.id} from ${this._getTableName()}`);
 
-        await this.employeeSensitiveDynamo.removeFromDB(objectDeleted.id);
         // deleted an entry of an employees sensitive data
         logger.log(
           1,
-          '_createWrapper',
+          '_deleteWrapper',
           `Successfully deleted object ${objectDeleted.id} in ${STAGE}-employees-sensitive`
         );
 
         // send successful 200 status
-        res.status(200).send(dataDeleted);
+        res.status(200).send(objectDeleted);
 
         // return object removed
-        return dataDeleted;
+        return objectDeleted;
       } else {
         // employee does not have permissions to delete from table
         throw {
@@ -217,6 +217,37 @@ class EmployeeRoutes extends Crud {
       return err;
     }
   } // _deleteWrapper
+
+  /**
+   * Deletes employee and employeeSensitive object from DynamoDB simultaneously. If one request fails, both
+   * request fails.
+   *
+   * @param employeeId employee ID to delete
+   * @returns employee object
+   */
+  async deleteEmployeeFromDB(employeeId) {
+    let items = [
+      {
+        Delete: {
+          TableName: `${STAGE}-employees`,
+          Key: {
+            id: employeeId
+          },
+          ReturnValuesOnConditionCheckFailure: 'ALL_OLD'
+        }
+      },
+      {
+        Delete: {
+          TableName: `${STAGE}-employees-sensitive`,
+          Key: {
+            id: employeeId
+          },
+          ReturnValuesOnConditionCheckFailure: 'ALL_OLD'
+        }
+      }
+    ];
+    return await DatabaseModify.TransactItems(items);
+  } // deleteEmployeeFromDB
 
   /**
    * Gets all expensetype data and then parses the categories

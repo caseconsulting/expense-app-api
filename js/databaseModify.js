@@ -780,9 +780,9 @@ class databaseModify {
     return documentClient
       .transactWrite(params)
       .promise()
-      .then(() => {
+      .then((data) => {
         logger.log(4, 'transactItems', 'Successfully performed write operations');
-        return;
+        return data;
       })
       .catch((err) => {
         logger.log(
