@@ -71,24 +71,26 @@ class EmployeeRoutes extends Crud {
         // employee has permissions to create to table
         let employeeObjectCreated = await this._create(req.body); // create object
         let employeeObjectValidated = await this._validateInputs(employeeObjectCreated); // validate inputs
-        let dataCreated = await this.databaseModify.addToDB(employeeObjectValidated); // add object to database
 
         // log success
         let sensitiveData = new EmployeeSensitive(req.body);
-        let objectValidated = await this._validateInputs(sensitiveData); // validate inputs
-        await this.employeeSensitiveDynamo.addToDB(objectValidated);
+        let sensitiveObjectValidated = await this._validateInputs(sensitiveData); // validate inputs
+
+        // Uses transact write items feature to execute API requests. If one invocation fails, all fails
+        await this.addEmployeeToDB(employeeObjectValidated, sensitiveObjectValidated);
+
         // created an entry for an employees sensitive data
         logger.log(
           1,
           '_createWrapper',
-          `Successfully created object ${dataCreated.id} in ${STAGE}-employees-sensitive`
+          `Successfully created object ${employeeObjectValidated.id} in ${STAGE}-employees-sensitive`
         );
 
         // send successful 200 status
-        res.status(200).send(dataCreated);
+        res.status(200).send(employeeObjectValidated);
 
         // return created data
-        return dataCreated;
+        return employeeObjectValidated;
       } else {
         // employee does not have permissions to create table
         throw {
@@ -107,6 +109,31 @@ class EmployeeRoutes extends Crud {
       return err;
     }
   } // _createdWrapper
+
+  /**
+   * Adds employee and employeeSensitive objects to DynamoDB simultaneously, if one request fails, both
+   * requests fail.
+   *
+   * @param {*} employee employee object
+   * @param {*} employeeSensitive employee sensitive object
+   */
+  async addEmployeeToDB(employee, employeeSensitive) {
+    let items = [
+      {
+        Put: {
+          TableName: `${STAGE}-employees`,
+          Item: employee
+        }
+      },
+      {
+        Put: {
+          TableName: `${STAGE}-employees-sensitive`,
+          Item: employeeSensitive
+        }
+      }
+    ];
+    await DatabaseModify.TransactItems(items);
+  } // addEmployeeToDB
 
   /**
    * Prepares an employee to be deleted. Returns the employee if it can be successfully deleted.

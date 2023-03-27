@@ -81,7 +81,7 @@ class databaseModify {
         })
         .catch(function (err) {
           // log error
-          logger.log(4, '_updateWrapper', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
+          logger.log(4, 'addToDB', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
 
           // throw error
           throw err;
@@ -430,14 +430,17 @@ class databaseModify {
     );
 
     // compute method
-    const params = _.assign({
-      TableName: tableName,
-      IndexName: secondaryIndex,
-      ExpressionAttributeValues: {
-        ':queryKey': queryParam
+    const params = _.assign(
+      {
+        TableName: tableName,
+        IndexName: secondaryIndex,
+        ExpressionAttributeValues: {
+          ':queryKey': queryParam
+        },
+        KeyConditionExpression: `${queryKey} = :queryKey`
       },
-      KeyConditionExpression: `${queryKey} = :queryKey`
-    }, additionalParams);
+      additionalParams
+    );
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
@@ -712,27 +715,27 @@ class databaseModify {
     // compute method
     if (newDyanmoObj instanceof TrainingUrl) {
       // updating a training url
-      await this._readFromDBUrl(newDyanmoObj.id, newDyanmoObj.category)
-        .catch(err => {
+      await this._readFromDBUrl(newDyanmoObj.id, newDyanmoObj.category).catch((err) => {
         // log error
-          logger.log(4, 'updateEntryInDB',
-            `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id} and category`,
-            `${newDyanmoObj.category}`
-          );
+        logger.log(
+          4,
+          'updateEntryInDB',
+          `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id} and category`,
+          `${newDyanmoObj.category}`
+        );
 
-          // throw error
-          throw err;
-        });
+        // throw error
+        throw err;
+      });
     } else {
       // updated an expense, expense-type, or employee
-      await this._readFromDB(newDyanmoObj.id)
-        .catch(err => {
+      await this._readFromDB(newDyanmoObj.id).catch((err) => {
         // log error
-          logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
+        logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
 
-          // throw error
-          throw err;
-        });
+        // throw error
+        throw err;
+      });
     }
 
     const params = {
@@ -741,24 +744,55 @@ class databaseModify {
     };
 
     const documentClient = new AWS.DynamoDB.DocumentClient();
+    return (
+      documentClient
+        .put(params)
+        // .update(params)
+        .promise()
+        .then(() => {
+          // log success
+          logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
+
+          return newDyanmoObj;
+        })
+        .catch(function (err) {
+          // log error
+          logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+
+          // throw error
+          throw err;
+        })
+    );
+  } // updateEntryInDB
+
+  /**
+   * Invokes multiple API requests to DynamoDB. If one request fails, all requests fails.
+   *
+   * @param paramsList list of request parameters
+   */
+  static async TransactItems(paramsList) {
+    logger.log(4, 'transactItems', 'Attempting to perform write operations');
+
+    let params = {
+      TransactItems: paramsList
+    };
+    const documentClient = new AWS.DynamoDB.DocumentClient();
     return documentClient
-      .put(params)
-      // .update(params)
+      .transactWrite(params)
       .promise()
       .then(() => {
-        // log success
-        logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
-
-        return newDyanmoObj;
+        logger.log(4, 'transactItems', 'Successfully performed write operations');
+        return;
       })
-      .catch(function (err) {
-        // log error
-        logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
-
-        // throw error
+      .catch((err) => {
+        logger.log(
+          4,
+          'transactItems',
+          'Failed to perform write operations. All succeeded action requests have been rolled back'
+        );
         throw err;
       });
-  } // updateEntryInDB
+  }
 } // databaseModify
 
 module.exports = databaseModify;
