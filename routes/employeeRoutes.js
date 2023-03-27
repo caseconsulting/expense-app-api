@@ -458,28 +458,26 @@ class EmployeeRoutes extends Crud {
         // employee has permission to update table
         let employeeUpdated = await this._update(req); // update employee
         let employeeValidated = await this._validateInputs(employeeUpdated); // validate inputs
-        let dataUpdated;
+        let dataUpdated = employeeValidated;
         // add object to database
+        let sameIds = false;
         if (employeeValidated.id == req.body.id) {
           // update database if the id's are the same
-          dataUpdated = await this.databaseModify.updateEntryInDB(employeeValidated);
-        } else {
-          // id's are different (database updated when changing expense types in expenseRoutes)
-          dataUpdated = employeeValidated;
+          sameIds = true;
         }
 
-        if (employeeUpdated instanceof Employee) {
-          let sensitiveData = new EmployeeSensitive(req.body);
-          let objectValidated = await this._validateInputs(sensitiveData); // validate inputs
-          let sensitiveDataUpdated = await this.employeeSensitiveDynamo.updateEntryInDB(objectValidated);
-          // updated an entry for an employees sensitive data
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully created object ${dataUpdated.id} in ${this.STAGE}-employees-sensitive`
-          );
-          dataUpdated = { ...dataUpdated, ...sensitiveDataUpdated };
+        let sensitiveData = new EmployeeSensitive(req.body);
+        let sensitiveObjectValidated = await this._validateInputs(sensitiveData); // validate inputs
+        if (sameIds) {
+          await this.updateEmployeeInDB(employeeValidated, sensitiveObjectValidated);
         }
+        // updated an entry for an employees sensitive data
+        logger.log(
+          1,
+          '_createWrapper',
+          `Successfully created object ${dataUpdated.id} in ${this.STAGE}-employees-sensitive`
+        );
+        dataUpdated = { ...dataUpdated, ...sensitiveData };
 
         // log success
         logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
@@ -507,6 +505,30 @@ class EmployeeRoutes extends Crud {
       return err;
     }
   } // _updateWrapper
+
+  /**
+   * Updates employee and employeeSensitive object simultaneously, if one request fails, both requests fail.
+   *
+   * @param employee employee object to update
+   * @param employeeSensitive employee sensitive object to update
+   */
+  async updateEmployeeInDB(employee, employeeSensitive) {
+    let items = [
+      {
+        Put: {
+          TableName: `${STAGE}-employees`,
+          Item: employee
+        }
+      },
+      {
+        Put: {
+          TableName: `${STAGE}-employees-sensitive`,
+          Item: employeeSensitive
+        }
+      }
+    ];
+    await DatabaseModify.TransactItems(items);
+  } // updateEmployeeInDB
 
   /**
    * Updates budgets when changing an employee.
