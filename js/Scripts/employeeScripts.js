@@ -26,6 +26,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 
 // set employee table
 const TABLE = `${STAGE}-employees`;
+const TABLE_SENS = `${STAGE}-employees-sensitive`;
 const EMPLOYEES_TABLE = 'employees';
 const SENSITIVE_TABLE = 'employees-sensitive';
 
@@ -872,6 +873,27 @@ async function removeSensitiveDataFromEmployees() {
 } // migrateSensitiveData
 
 /**
+ * Moves three fields from the sensitive table to the regular employees table.
+ */
+async function moveLoginDepartureAndBirthdayFeed() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let sensitiveModify = new DatabaseModify(SENSITIVE_TABLE);
+  let employees = await getAllEntries(TABLE);
+  let sens_employees = await getAllEntries(TABLE_SENS);
+  _.forEach(sens_employees, (sens_emp) => {
+    let emp = _.find(employees, (e) => sens_emp.id === e.id);
+    emp['birthdayFeed'] = _.clone(sens_emp.birthdayFeed);
+    emp['deptDate'] = _.clone(sens_emp.deptDate);
+    emp['lastLogin'] = _.clone(sens_emp.lastLogin);
+    delete sens_emp.birthdayFeed;
+    delete sens_emp.deptDate;
+    delete sens_emp.lastLogin;
+    databaseModify.updateEntryInDB(emp);
+    sensitiveModify.updateEntryInDB(sens_emp);
+  });
+} // moveLoginDepartureAndBirthdayFeed
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -1063,6 +1085,12 @@ async function main() {
       desc: 'Remove sensitive employee PII data from Employees table (DO NOT RUN SCRIPT UNTIL THE MIGRATION IS DONE)',
       action: async () => {
         await removeSensitiveDataFromEmployees();
+      }
+    },
+    {
+      desc: 'Move lastLogin, departureDate, and birthdayFeed back to the regular employees table',
+      action: async () => {
+        await moveLoginDepartureAndBirthdayFeed();
       }
     }
   ];
