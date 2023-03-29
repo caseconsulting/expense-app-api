@@ -38,7 +38,6 @@ class EmployeeSensitive {
     this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
     this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
     this.setOptionalAttribute(data, 'birthday');
-    this.setOptionalAttribute(data, 'birthdayFeed');
     this.setOptionalAttribute(data, 'city');
     this.setOptionalAttribute(data, 'country');
     this.setOptionalAttribute(data, 'st');
@@ -46,8 +45,6 @@ class EmployeeSensitive {
     this.setOptionalAttribute(data, 'currentState');
     this.setOptionalAttribute(data, 'currentStreet');
     this.setOptionalAttribute(data, 'currentZIP');
-    this.setOptionalAttribute(data, 'deptDate');
-    this.setOptionalAttribute(data, 'lastLogin');
     this.setOptionalAttribute(data, 'privatePhoneNumbers');
   } // constructor
 

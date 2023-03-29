@@ -54,6 +54,7 @@ class Employee {
     // optional attributes
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
+    this.setOptionalAttribute(data, 'birthdayFeed');
     this.setOptionalAttribute(data, 'certifications');
     this.setOptionalAttribute(data, 'clearances');
     this.setOptionalAttribute(data, 'companies');
@@ -61,12 +62,14 @@ class Employee {
     this.setOptionalAttribute(data, 'contracts');
     this.setOptionalAttribute(data, 'customerOrgExp');
     this.setOptionalAttribute(data, 'degrees');
+    this.setOptionalAttribute(data, 'deptDate');
     this.setOptionalAttribute(data, 'education');
     this.setOptionalAttribute(data, 'github');
     this.setOptionalAttribute(data, 'icTimeFrames');
     this.setOptionalAttribute(data, 'jobRole');
     this.setOptionalAttribute(data, 'jobs');
     this.setOptionalAttribute(data, 'languages');
+    this.setOptionalAttribute(data, 'lastLogin');
     this.setOptionalAttribute(data, 'linkedIn');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
