@@ -33,6 +33,7 @@ const SENSITIVE_TABLE = 'employees-sensitive';
 // imports
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
+const csvUtils = require('../baseCsv.js');
 
 // set up AWS DynamoDB
 const AWS = require('aws-sdk');
@@ -893,6 +894,35 @@ async function moveLoginDepartureAndBirthdayFeed() {
   });
 } // moveLoginDepartureAndBirthdayFeed
 
+async function customReport() {
+  let employees = await getAllEntries(TABLE);
+  employees = _.filter(employees, (e) => e.workStatus > 0);
+  let tempEmployees = [];
+  _.forEach(employees, (e) => {
+    tempEmployees.push({
+      'Employee Number': e.employeeNumber || '',
+      'Hire Date': e.hireDate || '',
+      'Full Name': e.firstName + ' ' + (e.middleName ? e.middleName + ' ' : '') + e.lastName,
+      'Job Role': e.jobRole || '',
+      'Home Zip Code': e.currentZIP || '',
+      Gender: e.eeoGender != null ? e.eeoGender.text : '',
+      'Is Hispanic or Latino (Y/N)':
+        e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == true
+          ? 'Y'
+          : e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == false
+            ? 'N'
+            : '',
+      'Race or Ethnicity': e.eeoRaceOrEthnicity != null ? e.eeoRaceOrEthnicity.text : '',
+      'Disability (Y/N)': e.eeoHasDisability == true ? 'Y' : e.eeoHasDisability == false ? 'N' : '',
+      'Protected Veteran (Y/N)': e.eeoIsProtectedVeteran == true ? 'Y' : e.eeoIsProtectedVeteran == false ? 'N' : ''
+    });
+  });
+  let csvEmployees = csvUtils.sort(tempEmployees, 'Employee Number');
+  let csvFileString = csvUtils.generate(csvEmployees);
+  console.log(csvFileString);
+  // csvUtils.download(csvFileString, 'report.csv');
+}
+
 /**
  * =================================================
  * |                                               |
@@ -1091,6 +1121,12 @@ async function main() {
       desc: 'Move lastLogin, departureDate, and birthdayFeed back to the regular employees table',
       action: async () => {
         await moveLoginDepartureAndBirthdayFeed();
+      }
+    },
+    {
+      desc: 'Custom report',
+      action: async () => {
+        await customReport();
       }
     }
   ];
