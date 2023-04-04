@@ -6,6 +6,12 @@ const _ = require('lodash');
 
 const logger = new Logger('contractRoutes');
 
+const CONTRACT_STATUSES = {
+  UNSTAFFED: 'unstaffed',
+  ACTIVE: 'active',
+  CLOSED: 'closed'
+};
+
 class ContractRoutes extends Crud {
   constructor() {
     super();
@@ -345,6 +351,100 @@ class ContractRoutes extends Crud {
           `Contract ${newContract.contractName} with prime ${newContract.primeName} already taken.` +
           'Please enter a unique contract and prime combination.';
         throw err;
+      }
+
+      let employees = await this.employeeDynamo.getAllEntriesInDB();
+
+      // validated on closed status update project
+      oldContract.projects.forEach((p) => {
+        let index = newContract.projects.findIndex((project) => project.id == p.id);
+        if (
+          index >= 0 &&
+          p.status !== newContract.projects[index].status &&
+          newContract.projects[index].status === CONTRACT_STATUSES.CLOSED
+        ) {
+          _.forEach(employees, (employee) => {
+            if (employee.contracts && employee.workStatus != 0) {
+              _.forEach(employee.contracts, (c) => {
+                if (
+                  newContract.id === c.contractId &&
+                  c.projects.some((np) => np.presentDate && np.projectId === p.id)
+                ) {
+                  // log error
+                  logger.log(3, '_validateUpdate', 'Project found with employee ID: ' + employee.id);
+
+                  // throw error
+                  err.message = 'Cannot mark project as closed, employee found with project';
+                  throw err;
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // validated on unstaffed status update project
+      oldContract.projects.forEach((p) => {
+        let index = newContract.projects.findIndex((project) => project.id == p.id);
+        if (
+          index >= 0 &&
+          p.status !== newContract.projects[index].status &&
+          newContract.projects[index].status === CONTRACT_STATUSES.UNSTAFFED
+        ) {
+          _.forEach(employees, (employee) => {
+            if (employee.contracts && employee.workStatus != 0) {
+              _.forEach(employee.contracts, (c) => {
+                if (
+                  newContract.id === c.contractId &&
+                  c.projects.some((np) => np.presentDate && np.projectId === p.id)
+                ) {
+                  // log error
+                  logger.log(3, '_validateUpdate', 'Project found with employee ID: ' + employee.id);
+
+                  // throw error
+                  err.message = 'Cannot mark project as unstaffed, employee found with project';
+                  throw err;
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // validated on closed status update contract
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.CLOSED) {
+        _.forEach(employees, (employee) => {
+          if (employee.contracts && employee.workStatus != 0) {
+            _.forEach(employee.contracts, (c) => {
+              if (newContract.id === c.contractId) {
+                // log error
+                logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
+
+                // throw error
+                err.message = 'Cannot update contract status to closed, employee found with contract';
+                throw err;
+              }
+            });
+          }
+        });
+      }
+
+      // validated on unstaffed status update contract
+      if (oldContract.status !== newContract.status && newContract.status === CONTRACT_STATUSES.UNSTAFFED) {
+        _.forEach(employees, (employee) => {
+          if (employee.contracts && employee.workStatus != 0) {
+            _.forEach(employee.contracts, (c) => {
+              if (newContract.id === c.contractId) {
+                // log error
+                logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
+
+                // throw error
+                err.message = 'Cannot update contract status to unstaffed, employee found with contract';
+                throw err;
+              }
+            });
+          }
+        });
       }
 
       // log success

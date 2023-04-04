@@ -5,6 +5,7 @@ const EmployeeRoutes = require('../../routes/employeeRoutes');
 const ExpenseType = require('../../models/expenseType');
 const dateUtils = require('../../js/dateUtils');
 const _ = require('lodash');
+const EmployeeSensitive = require('../../models/employee-sensitive');
 
 describe('employeeRoutes', () => {
   const ID = '{id}';
@@ -16,8 +17,9 @@ describe('employeeRoutes', () => {
   const EMPLOYEE_NUMBER = 0;
   const HIRE_DATE = '{hireDate}';
   const EMAIL = '{email}';
-  const EMPLOYEE_ROLE = '{employeeRole}';
   const WORK_STATUS = 0;
+
+  const EMPLOYEE_ROLE = '{employeeRole}';
 
   const REIMBURSED_AMOUNT = 0;
   const PENDING_AMOUNT = 0;
@@ -53,8 +55,12 @@ describe('employeeRoutes', () => {
     employeeNumber: EMPLOYEE_NUMBER,
     hireDate: HIRE_DATE,
     email: EMAIL,
-    employeeRole: EMPLOYEE_ROLE,
     workStatus: WORK_STATUS
+  };
+
+  const EMPLOYEE_SENSITIVE_DATA = {
+    id: ID,
+    employeeRole: EMPLOYEE_ROLE
   };
 
   const BUDGET_DATA = {
@@ -98,7 +104,7 @@ describe('employeeRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let employeeRoutes, budgetDynamo, databaseModify, expenseTypeDynamo, expenseDynamo;
+  let employeeRoutes, budgetDynamo, databaseModify, employeeSensitiveDynamo, expenseTypeDynamo, expenseDynamo;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -114,6 +120,18 @@ describe('employeeRoutes', () => {
       'updateEntryInDB'
     ]);
     databaseModify = jasmine.createSpyObj('databaseModify', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+    employeeSensitiveDynamo = jasmine.createSpyObj('databaseModify', [
       'addToDB',
       'getAllEntriesInDB',
       'getEntry',
@@ -153,16 +171,18 @@ describe('employeeRoutes', () => {
     employeeRoutes = new EmployeeRoutes();
     employeeRoutes.budgetDynamo = budgetDynamo;
     employeeRoutes.databaseModify = databaseModify;
+    employeeRoutes.employeeSensitiveDynamo = employeeSensitiveDynamo;
     employeeRoutes.expenseDynamo = expenseDynamo;
     employeeRoutes.expenseTypeDynamo = expenseTypeDynamo;
   });
 
   describe('_create', () => {
-    let data, employee;
+    let data, employee, employeeSensitive;
 
     beforeEach(() => {
-      data = _.cloneDeep(EMPLOYEE_DATA);
+      data = _.cloneDeep({ ...EMPLOYEE_DATA, ...EMPLOYEE_SENSITIVE_DATA });
       employee = new Employee(EMPLOYEE_DATA);
+      employeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
     });
 
     describe('when successfully creates an employee', () => {
@@ -174,7 +194,7 @@ describe('employeeRoutes', () => {
       it('should return the employee created', (done) => {
         employeeRoutes._create(data).then((employeeCreated) => {
           expect(employeeCreated).toEqual(employee);
-          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee, employeeSensitive);
           expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
           done();
         });
@@ -203,7 +223,7 @@ describe('employeeRoutes', () => {
           })
           .catch((error) => {
             expect(error).toEqual(err);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee, employeeSensitive);
             expect(employeeRoutes._validateCreate).toHaveBeenCalledWith(employee);
             done();
           });
@@ -231,7 +251,7 @@ describe('employeeRoutes', () => {
           })
           .catch((error) => {
             expect(error).toEqual(err);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(employee, employeeSensitive);
             done();
           });
       }); // should return a 403 rejected promise
@@ -418,13 +438,15 @@ describe('employeeRoutes', () => {
   }); // _readAll
 
   describe('_update', () => {
-    let data, oldEmployee, newEmployee;
+    let data, oldEmployee, oldEmployeeSensitive, newEmployee, newEmployeeSensitive;
     let param;
 
     beforeEach(() => {
-      data = _.cloneDeep(EMPLOYEE_DATA);
+      data = _.cloneDeep({ ...EMPLOYEE_DATA, ...EMPLOYEE_SENSITIVE_DATA });
       oldEmployee = new Employee(EMPLOYEE_DATA);
+      oldEmployeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
       newEmployee = new Employee(EMPLOYEE_DATA);
+      newEmployeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
       param = {
         body: data
       };
@@ -433,6 +455,7 @@ describe('employeeRoutes', () => {
     describe('when successfully prepares to update employee', () => {
       beforeEach(() => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        employeeSensitiveDynamo.getEntry.and.returnValue(Promise.resolve(oldEmployeeSensitive));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
@@ -442,7 +465,8 @@ describe('employeeRoutes', () => {
         employeeRoutes._update(param).then((employee) => {
           expect(employee).toEqual(newEmployee);
           expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+          expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
+          expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
           expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
           expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
           done();
@@ -487,6 +511,7 @@ describe('employeeRoutes', () => {
         };
 
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        employeeSensitiveDynamo.getEntry.and.returnValue(Promise.resolve(oldEmployee));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.reject(err));
       });
 
@@ -500,7 +525,8 @@ describe('employeeRoutes', () => {
           .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
             done();
           });
       }); // should return a 403 rejected promise
@@ -516,6 +542,7 @@ describe('employeeRoutes', () => {
         };
 
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        employeeSensitiveDynamo.getEntry.and.returnValue(Promise.resolve(oldEmployeeSensitive));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.reject(err));
       });
@@ -530,7 +557,8 @@ describe('employeeRoutes', () => {
           .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
             expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
             done();
           });
@@ -547,6 +575,7 @@ describe('employeeRoutes', () => {
         };
 
         databaseModify.getEntry.and.returnValue(Promise.resolve(oldEmployee));
+        employeeSensitiveDynamo.getEntry.and.returnValue(Promise.resolve(oldEmployeeSensitive));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.reject(err));
@@ -562,7 +591,8 @@ describe('employeeRoutes', () => {
           .catch((error) => {
             expect(error).toEqual(err);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
-            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee);
+            expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
             expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
             expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
             done();
@@ -978,15 +1008,16 @@ describe('employeeRoutes', () => {
   }); // _validateDelete
 
   describe('_validateEmployee', () => {
-    let employee;
+    let employee, employeeSensitive;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
+      employeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
     });
 
     describe('when successfully validates employee', () => {
       it('should return the validated employee', () => {
-        employeeRoutes._validateEmployee(employee).then((data) => {
+        employeeRoutes._validateEmployee(employee, employeeSensitive).then((data) => {
           expect(data).toEqual(employee);
         });
       }); // should return the validated employee
@@ -1006,7 +1037,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1032,7 +1063,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1058,7 +1089,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1084,7 +1115,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1110,7 +1141,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1136,7 +1167,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1157,12 +1188,12 @@ describe('employeeRoutes', () => {
           message: 'Invalid employee role.'
         };
 
-        delete employee.employeeRole;
+        delete employeeSensitive.employeeRole;
       });
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1188,7 +1219,7 @@ describe('employeeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         employeeRoutes
-          ._validateEmployee(employee)
+          ._validateEmployee(employee, employeeSensitive)
           .then(() => {
             fail('expected error to have been thrown');
             done();

@@ -1,85 +1,40 @@
 const _ = require('lodash');
 
-// Fields that should be hidden from other users when
-// accessing profile page (only visisble to signed-in
-// user, admin and manager)
-const PRIVATE_DATA = [
-  'employeeRole',
-  'deptDate',
-  'birthday',
-  'birthdayFeed',
-  'city',
-  'st',
-  'country',
-  'currentCity',
-  'currentState',
-  'currentStreet',
-  'currentZIP',
-  'privatePhoneNumbers',
-  'eeoDeclineSelfIdentify',
-  'eeoAdminHasFilledOutEeoForm'
-];
-
-const CONDITIONAL_PRIVATE_DATA = [
-  'eeoGender',
-  'eeoHispanicOrLatino',
-  'eeoJobCategory',
-  'eeoRaceOrEthnicity',
-  'eeoHasDisability',
-  'eeoIsProtectedVeteran'
-];
-
-// Fields hidden from all users (only visible to admin and manager)
-const HIDDEN_DATA = ['lastLogin'];
-
 /**
  * Employee model
  *
  * Required Fields:
+ * - id
  * - email
  * - employeeNumber
- * - employeeRole
  * - firstName
  * - hireDate
- * - id
  * - lastName
  * - workStatus
  *
  * Optional Fields:
  * - agencyIdentificationNumber
  * - awards
- * - birthday
- * - birthdayFeed
  * - certifications
- * - city
  * - clearances
  * - companies
  * - contract
  * - contracts
- * - country
- * - currentCity
- * - currentState
- * - currentStreet
- * - currentZIP
  * - customerOrgExp
  * - degrees
- * - deptDate
  * - education
  * - github
  * - icTimeFrames
  * - jobRole
  * - jobs
  * - languages
- * - lastLogin
  * - linkedIn
  * - middleName
  * - nickname
  * - noMiddleName
- * - privatePhoneNumbers
  * - prime
  * - publicPhoneNumbers
  * - schools
- * - st
  * - technologies
  * - twitter
  * - mifiStatus
@@ -87,40 +42,24 @@ const HIDDEN_DATA = ['lastLogin'];
 class Employee {
   constructor(data) {
     // required attributes
+    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'email');
     this.setRequiredNumberAttribute(data, 'employeeNumber');
-    this.setRequiredAttribute(data, 'employeeRole');
     this.setRequiredAttribute(data, 'firstName');
     this.setRequiredAttribute(data, 'hireDate');
-    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
     this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
-    this.setOptionalAttribute(data, 'eeoGender');
-    this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
-    this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
-    this.setOptionalAttribute(data, 'eeoJobCategory');
-    this.setOptionalAttribute(data, 'eeoHasDisability');
-    this.setOptionalAttribute(data, 'eeoIsProtectedVeteran');
-    this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
-    this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
-    this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
     this.setOptionalAttribute(data, 'certifications');
-    this.setOptionalAttribute(data, 'city');
     this.setOptionalAttribute(data, 'clearances');
     this.setOptionalAttribute(data, 'companies');
     this.setOptionalAttribute(data, 'contract');
     this.setOptionalAttribute(data, 'contracts');
-    this.setOptionalAttribute(data, 'country');
-    this.setOptionalAttribute(data, 'currentCity');
-    this.setOptionalAttribute(data, 'currentState');
-    this.setOptionalAttribute(data, 'currentStreet');
-    this.setOptionalAttribute(data, 'currentZIP');
     this.setOptionalAttribute(data, 'customerOrgExp');
     this.setOptionalAttribute(data, 'degrees');
     this.setOptionalAttribute(data, 'deptDate');
@@ -135,11 +74,9 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'privatePhoneNumbers');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
-    this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
@@ -153,67 +90,6 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
-
-  /**
-   * Prevents employee user from overriding admin filled out fields
-   * on the EEO form, when editing profile data unrelated to EEO form
-   *
-   * @param oldEmployee - old employee object data
-   * @param user - signed-in user
-   */
-  handleEEOData(oldEmployee, user) {
-    if (this.eeoDeclineSelfIdentify && oldEmployee.eeoDeclineSelfIdentify && user.id == this.id) {
-      this.setOptionalAttribute(oldEmployee, 'eeoGender');
-      this.setOptionalAttribute(oldEmployee, 'eeoHispanicOrLatino');
-      this.setOptionalAttribute(oldEmployee, 'eeoRaceOrEthnicity');
-      this.setOptionalAttribute(oldEmployee, 'eeoJobCategory');
-    }
-  } // handleEEOData
-
-  /**
-   * Returns a new Employee object with private fields hidden based
-   * on user signed in
-   *
-   * @param employee - signed-in employee user
-   * @returns Employee - employee object with sensitive fields hidden.
-   */
-  hideFields(employee) {
-    let e = Object.fromEntries(
-      Object.entries(this).filter(([key]) => {
-        if (employee.employeeRole == 'user' || employee.employeeRole == 'intern') {
-          if (employee.id != this.id) {
-            // A User or Intern viewing a users profile
-            // Don't include private or hidden data
-            return !PRIVATE_DATA.includes(key) && !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-          } else {
-            if (this.eeoDeclineSelfIdentify) {
-              return !HIDDEN_DATA.includes(key) && !CONDITIONAL_PRIVATE_DATA.includes(key);
-            }
-            // A User or Intern viewing their own profile
-            // Don't include hidden data
-            return !HIDDEN_DATA.includes(key);
-          }
-        } else if (employee.employeeRole == 'admin') {
-          // retrun everything
-          return true;
-        } else if (employee.employeeRole == 'manager') {
-          // return everything
-          return true;
-        }
-        return false;
-      })
-    );
-    return new Employee(e);
-  }
-
-  /**
-   * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
-   *
-   * @return boolean - employee is admin
-   */
-  isAdmin() {
-    return this.employeeRole == 'admin';
-  } // isAdmin
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -244,24 +120,6 @@ class Employee {
   } // isInactive
 
   /**
-   * Check if the employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
-   *
-   * @return boolean - employee is an intern
-   */
-  isIntern() {
-    return this.employeeRole == 'intern';
-  } // isIntern
-
-  /**
-   * Check if the employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
-   *
-   * @return boolean - employee is an manager
-   */
-  isManager() {
-    return this.employeeRole == 'manager';
-  } //isManager
-
-  /**
    * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
    * otherwise returns false.
    *
@@ -270,15 +128,6 @@ class Employee {
   isPartTime() {
     return this.workStatus > 0 && this.workStatus < 100;
   } // isPartTime
-
-  /**
-   * Check if the employee is a user. Returns true if employee role is 'user', otherwise returns false.
-   *
-   * @return boolean - employee is user
-   */
-  isUser() {
-    return this.employeeRole == 'user';
-  } // isUser
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.

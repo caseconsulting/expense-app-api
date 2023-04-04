@@ -187,7 +187,7 @@ class Crud {
       '_checkPermissionToRead',
       `Checking if employee ${employee.id} has permission to read from the ${this._getTableName()} table`
     );
-
+    logger.log(`gassy: ${employee}`);
     // compute method
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'expense-types', 'training-urls']);
     let adminPermissions =
