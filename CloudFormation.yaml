@@ -322,6 +322,43 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  ptoCashOutTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - pto-cashouts
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: creationDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: employeeId-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: creationDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: 'NEW_AND_OLD_IMAGES'
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   auditTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
