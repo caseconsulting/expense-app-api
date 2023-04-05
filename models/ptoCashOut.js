@@ -33,10 +33,10 @@ class PTOCashOut {
   } // isEmpty
 
   /**
-   * Sets a contract attribute. If the data attribute is empty, sets the attribute to the default value.
+   * Sets a PTOCashOut attribute. If the data attribute is empty, sets the attribute to the default value.
    *
-   * @param data - contract data
-   * @param attribute - contract attribute
+   * @param data - PTOCashOut data
+   * @param attribute - PTOCashOut attribute
    * @param defaultValue - default value
    */
   setRequiredAttribute(data, attribute, defaultValue) {
@@ -48,10 +48,10 @@ class PTOCashOut {
   } // setRequiredAttribute
 
   /**
-   * Sets a contract attribute if it is not null or an empty/blank string.
+   * Sets a PTOCashOut attribute if it is not null or an empty/blank string.
    *
-   * @param data - contract data
-   * @param attribute - contract attribute
+   * @param data - PTOCashOut data
+   * @param attribute - PTOCashOut attribute
    */
   setOptionalAttribute(data, attribute) {
     if (!this._isEmpty(data[attribute])) {

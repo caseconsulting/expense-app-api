@@ -11,6 +11,7 @@ const Logger = require('../js/Logger');
 const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 const Basecamp = require('../routes/basecampRoutes');
+const PTOCashOut = require('../models/ptoCashOut');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
@@ -83,12 +84,19 @@ class Utility {
       this._getUserInfo,
       this._getAllExpenseTypeExpenses.bind(this)
     );
+    this._router.get(
+      '/getAllEmployeePtoCashOuts/:id',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getAllEmployeePtoCashOuts.bind(this)
+    );
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.budgetDynamo = new DatabaseModify('budgets');
     this.trainingDynamo = new DatabaseModify('training-urls');
+    this.ptoCashOutDynamo = new DatabaseModify('pto-cashouts');
   } // constructor
 
   /**
@@ -706,6 +714,58 @@ class Utility {
     } catch (err) {
       // log error
       logger.log(1, '_getAllEmployeeExpenses', `Failed get all expenses for employee ${req.params.id}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _getAllEmployeeExpenses
+
+  /**
+   * Get all ptoCashOuts for an employee.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - employee PTOCashOuts
+   */
+  async _getAllEmployeePtoCashOuts(req, res) {
+    // log method
+    logger.log(1, '_getAllEmployeePtoCashOuts', `Attempting to get all ptoCashOuts for employee ${req.params.id}`);
+
+    // compute method
+    try {
+      // Restricts access to signed-in user
+      if (this.isIntern(req.employee) || req.params.id != req.employee.id) {
+        let err = {
+          code: 403,
+          message: `Unable to get all PTO Cash Outs for employee ${req.params.id} due to insufficient
+     employee permissions.`
+        };
+        throw err; // handled by try-catch
+      }
+
+      let ptoCashOutData = await this.ptoCashOutDynamo.querySecondaryIndexInDB(
+        'employeeId-index',
+        'employeeId',
+        req.params.id
+      );
+      let ptoCashOuts = _.map(ptoCashOutData, (ptoCashOutData) => {
+        return new PTOCashOut(ptoCashOutData);
+      });
+
+      // log success
+      logger.log(1, '_getAllEmployeePtoCashOuts', `Successfully got all ptoCashOuts for employee ${req.params.id}`);
+
+      // send successful 200 status
+      res.status(200).send(ptoCashOuts);
+
+      // return expenses
+      return ptoCashOuts;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getAllEmployeePtoCashOuts', `Failed get all expenses for employee ${req.params.id}`);
 
       // send error status
       this._sendError(res, err);
