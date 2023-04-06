@@ -16,7 +16,7 @@ class PTOCashOut {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'employeeId');
     this.setRequiredAttribute(data, 'creationDate');
-    this.setRequiredAttribute(data, 'amount');
+    this.setRequiredNumberAttribute(data, 'amount', undefined, 2);
 
     // optional attributes
     this.setOptionalAttribute(data, 'approvedDate');
@@ -46,6 +46,22 @@ class PTOCashOut {
       this[attribute] = defaultValue;
     }
   } // setRequiredAttribute
+
+  /**
+   * Sets an employee attribute number. If the data attribute is empty, sets the attribute to the default value.
+   *
+   * @param data - employee data
+   * @param attribute - employee attribute
+   * @param defaultValue - default value
+   * @param fixed - decimal places to fix value
+   */
+  setRequiredNumberAttribute(data, attribute, defaultValue, fixed) {
+    if (!this._isEmpty(data[attribute])) {
+      this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
+    } else {
+      this[attribute] = defaultValue;
+    }
+  } // setRequiredNumberAttribute
 
   /**
    * Sets a PTOCashOut attribute if it is not null or an empty/blank string.
