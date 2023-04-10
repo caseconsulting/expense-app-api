@@ -233,7 +233,7 @@ class PTOCashOutRoutes extends Crud {
       }
 
       // validate amount
-      if (_.isNil(ptoCashOut.amount)) {
+      if (_.isNil(ptoCashOut.amount) || ptoCashOut.amount <= 0) {
         // log error
         logger.log(3, '_validatePTOCashOut', 'amount is empty');
 
@@ -304,7 +304,7 @@ class PTOCashOutRoutes extends Crud {
       logger.log(3, '_validateUpdate', `Successfully validated update for ptoCashOut ${oldPtoCashOut.id}`);
 
       // return new PtoCashOut on success
-      return Promise.resolve(oldPtoCashOut);
+      return Promise.resolve(newPtoCashOut);
     } catch (err) {
       // log error
       logger.log(3, '_validateUpdate', `Failed to validate update for PtoCashOut ${oldPtoCashOut.id}`);
