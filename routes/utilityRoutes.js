@@ -737,7 +737,7 @@ class Utility {
     // compute method
     try {
       // Restricts access to signed-in user
-      if (this.isIntern(req.employee) || req.params.id != req.employee.id) {
+      if (this.isIntern(req.employee) || (!this.isAdmin(req.employee) && req.params.id != req.employee.id)) {
         let err = {
           code: 403,
           message: `Unable to get all PTO Cash Outs for employee ${req.params.id} due to insufficient
