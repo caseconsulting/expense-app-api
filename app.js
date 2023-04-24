@@ -43,9 +43,6 @@ const resumeRoutes = new ResumeRoutes();
 const TSheetsRoutes = require('./routes/tSheetsRoutes');
 const tSheetsRoutes = new TSheetsRoutes();
 
-const TwitterRoutes = require('./routes/twitterRoutes');
-const twitterRoutes = new TwitterRoutes();
-
 const BasecampRoutes = require('./routes/basecampRoutes');
 const basecampRoutes = new BasecampRoutes();
 
@@ -102,7 +99,6 @@ app.use('/attachment', attachmentRoutes.router);
 app.use('/resume', resumeRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
-app.use('/twitter', twitterRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/hippoLabs', hippoLabsRoutes.router);
