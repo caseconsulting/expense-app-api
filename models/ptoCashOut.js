@@ -9,6 +9,7 @@ const _ = require('lodash');
  * - creationDate
  * - approvedDate
  * - amount
+ * - approvalWasSeen
  */
 class PTOCashOut {
   constructor(data) {
@@ -20,6 +21,7 @@ class PTOCashOut {
 
     // optional attributes
     this.setOptionalAttribute(data, 'approvedDate');
+    this.setOptionalAttribute(data, 'approvalWasSeen');
   } // constructor
 
   /**
