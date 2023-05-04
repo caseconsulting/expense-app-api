@@ -616,7 +616,7 @@ class Utility {
 
         let employeesData;
         let expensesData;
-        if (this.isAdmin(req.employee)) {
+        if (this.isAdmin(req.employee) || this.isManager(req.employee)) {
           // get all employee and expense data if admin
           [expenseTypes, employeesData, expensesData] = await Promise.all([
             this.getAllExpenseTypes(),

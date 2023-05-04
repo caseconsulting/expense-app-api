@@ -1165,16 +1165,16 @@ describe('utilityRoutes', () => {
       describe('and successfully gets all aggregate expenses', () => {
         beforeEach(() => {
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
-          employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
-          expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([expense]));
+          employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+          expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense]));
         });
 
         it('should respond with a 200 and the aggregate expenses', (done) => {
           utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
             expect(data).toEqual([aggregateExpense]);
             expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
-            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(expenseDynamo.getAllEntriesInDB).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith([aggregateExpense]);
             done();
@@ -1190,7 +1190,6 @@ describe('utilityRoutes', () => {
             code: 404,
             message: 'Failed to get expense types.'
           };
-
           spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue(Promise.reject(err));
         });
 
@@ -1205,57 +1204,57 @@ describe('utilityRoutes', () => {
         }); // should respond with a 404 and error
       }); // and fails to get expense types
 
-      describe('and fails to get employee', () => {
+      describe('when fails to get employees', () => {
         let err;
 
         beforeEach(() => {
           err = {
             code: 404,
-            message: 'Failed to get employee.'
+            message: 'Failed to get employees.'
           };
 
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
-          employeeDynamo.getEntry.and.returnValue(Promise.reject(err));
+          employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         });
 
         it('should respond with a 404 and error', (done) => {
           utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
             expect(data).toEqual(err);
             expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
+            expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(404);
             expect(res.send).toHaveBeenCalledWith(err);
             done();
           });
         }); // should respond with a 404 and error
-      }); // and fails to get employee
+      }); // when fails to get employees
 
-      describe('and fails to get employee expenses', () => {
+      describe('when fails to get expenses', () => {
         let err;
 
         beforeEach(() => {
           err = {
             code: 404,
-            message: 'Failed to get employee expenses.'
+            message: 'Failed to get expenses.'
           };
 
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
-          employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
-          expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+          employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+          expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         });
 
         it('should respond with a 404 and error', (done) => {
           utilityRoutes._getAllAggregateExpenses(req, res).then((data) => {
             expect(data).toEqual(err);
             expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-            expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
-            expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith('employeeId-index', 'employeeId', ID);
+            expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+            expect(expenseDynamo.getAllEntriesInDB).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(404);
             expect(res.send).toHaveBeenCalledWith(err);
             done();
           });
         }); // should respond with a 404 and error
-      }); // and fails to get employee expenses
+      }); // when fails to get expenses
     }); // when employee is an manager
 
     describe('when employee is a user', () => {
