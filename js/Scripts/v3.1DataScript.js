@@ -29,8 +29,6 @@ const Expense = require('./../../models/expense.js');
 const ExpenseType = require('./../../models/expenseType.js');
 const TrainingUrl = require('./../../models/trainingUrls.js');
 
-// const ISOFORMAT = 'YYYY-MM-DD';
-
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
