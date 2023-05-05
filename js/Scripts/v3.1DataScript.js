@@ -22,7 +22,6 @@ const EXPENSE_TYPES_TABLE = `${STAGE}-expense-types`;
 const TRAINING_URLS_TABLE = `${STAGE}-training-urls`;
 
 const _ = require('lodash');
-// const { v4: uuid } = require('uuid');
 const readlineSync = require('readline-sync');
 const Budget = require('./../../models/budget.js');
 const Employee = require('./../../models/employee.js');

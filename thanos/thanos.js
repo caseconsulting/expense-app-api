@@ -2,7 +2,6 @@ let lib;
 
 const Logger = require('./js/Logger');
 const DatabaseModify = require('./js/databaseModify');
-const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const logger = new Logger('TrainingSync');
 /**
@@ -25,15 +24,6 @@ async function _asyncForEach(array, callback) {
     await callback(array[index], index, array);
   }
 } // _asyncForEach
-
-/**
- * Generates and returns a new uuid.
- *
- * @return String - new uuid
- */
-function _getUUID() {
-  return uuid();
-} // _getUUID
 
 /**
  * Used to update technology an employee has listed as current
@@ -110,7 +100,6 @@ async function handler(event) {
 lib = {
   _employeeDynamo,
   _asyncForEach,
-  _getUUID,
   _updateCurrentCustomerOrgExp,
   _updateCurrentTechnologies,
   start,

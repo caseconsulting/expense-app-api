@@ -11,7 +11,6 @@
     "jwks-rsa": "2.1.4",
     "lodash": "4.17.21",
     "metadata-scraper": "0.2.57",
-    "url-exists": "^1.0.3",
-    "uuid": "8.3.2"
+    "url-exists": "^1.0.3"
   }
 }

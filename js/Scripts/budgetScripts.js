@@ -6,10 +6,9 @@
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const dateUtils = require('../dateUtils');
-const { v4: uuid } = require('uuid');
-// const Budget = require('../../models/budget');
 const fs = require('fs');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
+const { generateUUID } = require('../utils');
 
 // handles unhandled rejection errors
 process.on('unhandledRejection', (error) => {
@@ -309,7 +308,7 @@ function getBudgetDates(date) {
  * @return String - new uuid
  */
 function getUUID() {
-  return uuid();
+  return generateUUID();
 } // getUUID
 
 /**

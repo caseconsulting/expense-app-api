@@ -7,7 +7,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 const dateUtils = require('../js/dateUtils');
-const { v4: uuid } = require('uuid');
+const { generateUUID } = require('../js/utils');
 const _ = require('lodash');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -631,7 +631,7 @@ class Crud {
    * @return String - new uuid
    */
   getUUID() {
-    return uuid();
+    return generateUUID();
   } // getUUID
 
   /**

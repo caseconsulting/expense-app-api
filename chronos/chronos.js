@@ -4,13 +4,13 @@ const Budget = require('./models/budget');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
 const ExpenseRoutes = require('./routes/expenseRoutes');
-const { v4: uuid } = require('uuid');
 const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const Employee = require('./models/employee');
 const ISOFORMAT = 'YYYY-MM-DD';
 const dateUtils = require('./js/dateUtils');
+const { generateUUID } = require('./js/utils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
@@ -116,7 +116,7 @@ function _getExpenseType(expenseTypes, expenseTypeId) {
  * @return String - new uuid
  */
 function _getUUID() {
-  return uuid();
+  return generateUUID();
 } // _getUUID
 
 /**
