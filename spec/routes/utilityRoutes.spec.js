@@ -150,7 +150,18 @@ describe('utilityRoutes', () => {
     params: PARAMS_DATA
   };
 
+<<<<<<< HEAD
   let budgetDynamo, expenseDynamo, employeeDynamo, expenseTypeDynamo, tagDynamo, res, trainingDynamo, utilityRoutes;
+=======
+  let budgetDynamo,
+    expenseDynamo,
+    employeeDynamo,
+    employeeSensitiveDynamo,
+    expenseTypeDynamo,
+    res,
+    trainingDynamo,
+    utilityRoutes;
+>>>>>>> a4bb7bc (POR-2179: show training expenses separate from other expenses on activity feed)
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -179,6 +190,18 @@ describe('utilityRoutes', () => {
       'updateEntryInDB'
     ]);
     employeeDynamo = jasmine.createSpyObj('employeeDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+    employeeSensitiveDynamo = jasmine.createSpyObj('employeeDynamo', [
       'addToDB',
       'getAllEntriesInDB',
       'getEntry',
@@ -238,6 +261,7 @@ describe('utilityRoutes', () => {
     utilityRoutes.budgetDynamo = budgetDynamo;
     utilityRoutes.expenseDynamo = expenseDynamo;
     utilityRoutes.employeeDynamo = employeeDynamo;
+    utilityRoutes.employeeSensitiveDynamo = employeeSensitiveDynamo;
     utilityRoutes.expenseTypeDynamo = expenseTypeDynamo;
     utilityRoutes.trainingDynamo = trainingDynamo;
     utilityRoutes.tagDynamo = tagDynamo;
@@ -963,19 +987,29 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+<<<<<<< HEAD
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+=======
+        employeeSensitiveDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+>>>>>>> a4bb7bc (POR-2179: show training expenses separate from other expenses on activity feed)
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
 
-      it('should respond witha  404 and error', (done) => {
+      it('should respond with a 404 and error', (done) => {
         utilityRoutes._getAllEvents(req, res).then((data) => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+<<<<<<< HEAD
           expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
+=======
+          expect(employeeSensitiveDynamo.getAllEntriesInDB).toHaveBeenCalled();
+          expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+>>>>>>> a4bb7bc (POR-2179: show training expenses separate from other expenses on activity feed)
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(404);

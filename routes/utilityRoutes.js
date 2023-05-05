@@ -1,6 +1,7 @@
 const Budget = require('./../models/budget');
 const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
+const EmployeeSensitive = require('./../models/employee-sensitive');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const express = require('express');
@@ -98,6 +99,7 @@ class Utility {
     );
 
     this.employeeDynamo = new DatabaseModify('employees');
+    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.budgetDynamo = new DatabaseModify('budgets');
@@ -523,18 +525,28 @@ class Utility {
     let now = dateUtils.getTodaysDate();
     let cutOff = dateUtils.subtract(now, 6, 'month');
     try {
-      let [expenseTypes, expensesDataArr, employeesData, accessToken] = await Promise.all([
+      let [expenseTypes, expensesData, employeesData, accessToken, employeesSensitiveData] = await Promise.all([
         this.getAllExpenseTypes(),
         this._scanExpenses(cutOff),
         this.employeeDynamo.getAllEntriesInDB(),
-        this.getBasecampToken()
+        this.getBasecampToken(),
+        this.employeeSensitiveDynamo.getAllEntriesInDB()
       ]);
       let promises = [];
 
       let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
-      let aggregateExpenses = this._aggregateExpenseData(expensesDataArr, employees, expenseTypes);
+      // add sensitive birthday field only if the employee has given permission through the birthdayFeed field
+      _.forEach(employees, (e) => {
+        if (e.birthdayFeed) {
+          let empSensitive = new EmployeeSensitive(employeesSensitiveData.find((em) => em.id == e.id));
+          // only show month and day so employees cannot not see age of employee in network tab
+          e['birthday'] = dateUtils.format(empSensitive.birthday, null, 'MM-DD');
+        }
+      });
+
+      let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
 
       let entries = [];
 
