@@ -78,7 +78,7 @@
   },
   "dependencies": {
     "atob": "2.1.2",
-    "aws-sdk": "2.1269.0",
+    "aws-sdk": "2.1372.0",
     "aws-serverless-express": "3.4.0",
     "axios": "0.27.2",
     "axios-oauth-client": "1.5.0",
