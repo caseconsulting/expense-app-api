@@ -90,6 +90,12 @@ class Utility {
       this._getUserInfo,
       this._getAllEmployeePtoCashOuts.bind(this)
     );
+    this._router.get(
+      '/getUnreimbursedExpenses',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getUnreimbursedExpenses.bind(this)
+    );
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.expenseDynamo = new DatabaseModify('expenses');
@@ -588,6 +594,44 @@ class Utility {
       return err;
     }
   } // getAllExpenseTypes
+
+  /**
+   * Gets all unreimbursed expenses.
+   *
+   * @return - all the expenseTypes
+   */
+  async _getUnreimbursedExpenses(req, res) {
+    logger.log(1, '_getUnreimbursedExpenses', 'Attempting to get all unreimbursed expenses');
+    try {
+      let expressionAttributes = {
+        ':queryKey': null
+      };
+      let additionalParams = {
+        ExpressionAttributeValues: expressionAttributes,
+        FilterExpression: 'attribute_not_exists(reimbursedDate) or reimbursedDate = :queryKey'
+      };
+      let unreimbursedExpenses = await this.expenseDynamo.scanWithFilter('reimbursedDate', null, additionalParams);
+      unreimbursedExpenses = _.map(unreimbursedExpenses, (expense) => {
+        return new Expense(expense);
+      });
+      // log success
+      logger.log(1, '_getUnreimbursedExpenses', 'Successfully got all unreimbursed expenses');
+
+      // send successful 200 status
+      res.status(200).send(unreimbursedExpenses);
+
+      return unreimbursedExpenses;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getUnreimbursedExpenses', 'Failed to get all unreimbred expenses');
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _getUnreimbursedExpenses
 
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and

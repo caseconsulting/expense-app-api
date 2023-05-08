@@ -420,6 +420,63 @@ class databaseModify {
    * @param additionalParams - optional parameter to add or overwrite default param values
    * @return - the entries that fit the parameters
    */
+  async scanWithFilter(scanKey, scanParam, additionalParams = {}) {
+    // log method
+    let tableName = this.tableName;
+    logger.log(
+      4,
+      'querySecondaryIndexInDB',
+      `Attempting to scan from table ${tableName} with key ${scanKey} and value ${scanParam}`
+    );
+
+    // compute method
+    const params = _.assign(
+      {
+        TableName: tableName,
+        ExpressionAttributeValues: {
+          ':scanKey': scanParam
+        },
+        FilterExpression: `${scanKey} = :queryKey`
+      },
+      additionalParams
+    );
+
+    const documentClient = new AWS.DynamoDB.DocumentClient();
+    return scanDB(params, documentClient)
+      .then((entries) => {
+        // log success
+        logger.log(
+          4,
+          'scanWithFilter',
+          `Successfully scanned ${entries.length} entries from table ${tableName} with key`,
+          `${scanKey} and value ${scanParam}`
+        );
+
+        // return entries
+        return entries;
+      })
+      .catch((err) => {
+        // log error
+        logger.log(
+          4,
+          'scanWithFilter',
+          `Failed to scan from table ${tableName} with key ${scanKey} and value ${scanParam}`
+        );
+
+        // throw error
+        throw err;
+      });
+  } // scanWithFilter
+
+  /**
+   * Query dynamodb index for entries by a single attribute.
+   *
+   * @param secondaryIndex - index name
+   * @param queryKey - key attribute to query by
+   * @param queryParam - parameter value of entries
+   * @param additionalParams - optional parameter to add or overwrite default param values
+   * @return - the entries that fit the parameters
+   */
   async querySecondaryIndexInDB(secondaryIndex, queryKey, queryParam, additionalParams = {}) {
     // log method
     let tableName = this.tableName;
