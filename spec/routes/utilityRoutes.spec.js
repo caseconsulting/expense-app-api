@@ -172,6 +172,7 @@ describe('utilityRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
+      'scanWithFilter',
       '_readFromDB',
       '_readFromDBUrl',
       'removeFromDB',
@@ -830,7 +831,7 @@ describe('utilityRoutes', () => {
       beforeEach(() => {
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(basecampEvent);
@@ -842,7 +843,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(payload);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled(); //TODO: queryExpense?
+          expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(200);
@@ -914,8 +915,8 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense])); //TODO: queryExpense?
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
@@ -946,7 +947,7 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(Promise.reject(err));
@@ -958,7 +959,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+          expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(404);
@@ -969,63 +970,51 @@ describe('utilityRoutes', () => {
     }); // when it fails to get basecamp schedule entries
   });
 
-  describe('queryExpenses', () => {
-    let cutOffDate, expenseType, expense, formattedDate, additionalParams;
+  describe('_scanExpenses', () => {
+    let cutOffDate, expense, formattedDate, additionalParams;
 
     beforeEach(() => {
       cutOffDate = _.cloneDeep(DATE);
-      expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
-      expense = _.cloneDeep(EXPENSE_DATA);
+      expense = new Expense(_.cloneDeep(EXPENSE_DATA));
       formattedDate = _.cloneDeep(cutOffDate);
       additionalParams = {
         ExpressionAttributeValues: {
-          ':queryKey': expenseType.id,
-          ':cutOffDate': formattedDate
+          ':scanKey': formattedDate
         },
-        KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate'
+        FilterExpression: 'reimbursedDate >= :scanKey'
       };
     });
 
-    describe('when it succeeds in returning all queried expenses', () => {
+    describe('when it succeeds in returning all scanned expenses', () => {
       beforeEach(() => {
-        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([expense]));
+        expenseDynamo.scanWithFilter.and.returnValue(Promise.resolve([expense]));
       });
 
       it('should respond with 200 and expense data', (done) => {
-        utilityRoutes.queryExpenses(expenseType, cutOffDate).then((data) => {
+        utilityRoutes._scanExpenses(cutOffDate).then((data) => {
           expect(data).toEqual([expense]);
-          expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
-            'expenseTypeId-reimbursedDate-index',
-            'expenseTypeId',
-            expenseType.id,
-            additionalParams
-          );
+          expect(expenseDynamo.scanWithFilter).toHaveBeenCalledWith('reimbursedDate', cutOffDate, additionalParams);
           done();
         });
       });
-    }); // when it succeeds in returning all queried expenses
+    }); // when it succeeds in returning all scanned expenses
 
-    describe('when it fails to return queried expenses', () => {
+    describe('when it fails to return scanned expenses', () => {
       let err;
 
       beforeEach(() => {
         err = {
           code: 404,
-          message: 'Failed to get queried expenses'
+          message: 'Failed to get scan expenses'
         };
 
-        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+        expenseDynamo.scanWithFilter.and.returnValue(Promise.reject(err));
       });
 
       it('should respond with 404 and err', (done) => {
-        utilityRoutes.queryExpenses(expenseType, cutOffDate).then((data) => {
+        utilityRoutes._scanExpenses(cutOffDate).then((data) => {
           expect(data).toEqual(err);
-          expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
-            'expenseTypeId-reimbursedDate-index',
-            'expenseTypeId',
-            expenseType.id,
-            additionalParams
-          );
+          expect(expenseDynamo.scanWithFilter).toHaveBeenCalledWith('reimbursedDate', cutOffDate, additionalParams);
           done();
         });
       });

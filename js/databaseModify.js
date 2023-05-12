@@ -425,7 +425,7 @@ class databaseModify {
     let tableName = this.tableName;
     logger.log(
       4,
-      'querySecondaryIndexInDB',
+      'scanWithFilter',
       `Attempting to scan from table ${tableName} with key ${scanKey} and value ${scanParam}`
     );
 
@@ -436,7 +436,7 @@ class databaseModify {
         ExpressionAttributeValues: {
           ':scanKey': scanParam
         },
-        FilterExpression: `${scanKey} = :queryKey`
+        FilterExpression: `${scanKey} = :scanKey`
       },
       additionalParams
     );

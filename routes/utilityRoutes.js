@@ -350,36 +350,35 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
-   * queries the expenses based on expenseTypes and cutOffDate
+   * scans the expenses based on cutOffDate
    *
-   * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
-   * @return - the queried expenses
+   * @return - the scanned expenses
    */
-  async queryExpenses(expenseType, cutOffDate) {
+  async _scanExpenses(cutOffDate) {
     //use additional params option of querySecondaryIndex to filter things.
+    logger.log(1, '_scanExpenses', 'Attempting to scan expenses after ' + cutOffDate);
     cutOffDate = dateUtils.format(cutOffDate, null, ISOFORMAT);
     //default attributes for two
     let expressionAttributes = {
-      ':queryKey': expenseType.id,
-      ':cutOffDate': cutOffDate
+      ':scanKey': cutOffDate
     };
     let additionalParams = {
       ExpressionAttributeValues: expressionAttributes,
-      KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate'
+      FilterExpression: 'reimbursedDate >= :scanKey'
     };
     try {
-      let ret = await this.expenseDynamo.querySecondaryIndexInDB(
-        'expenseTypeId-reimbursedDate-index',
-        'expenseTypeId',
-        expenseType.id,
-        additionalParams
-      );
-      return ret;
+      let expenses = await this.expenseDynamo.scanWithFilter('reimbursedDate', cutOffDate, additionalParams);
+      expenses = _.map(expenses, (expense) => {
+        return new Expense(expense);
+      });
+      logger.log(1, '_scanExpenses', 'Successfully scanned expenses after ' + cutOffDate);
+      return expenses;
     } catch (err) {
+      logger.log(1, '_scanExpenses', 'Failed to scan expenses after ' + cutOffDate);
       return err;
     }
-  } // queryExpenses
+  } // _scanExpenses
 
   /**
    * gets the basecamp token
@@ -495,52 +494,21 @@ class Utility {
   async _getAllEvents(req, res) {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
+    let now = dateUtils.getTodaysDate();
+    let cutOff = dateUtils.subtract(now, 6, 'month');
     try {
-      let [expenseTypes, employeesData, accessToken] = await Promise.all([
+      let [expenseTypes, expensesDataArr, employeesData, accessToken] = await Promise.all([
         this.getAllExpenseTypes(),
+        this._scanExpenses(cutOff),
         this.employeeDynamo.getAllEntriesInDB(),
         this.getBasecampToken()
       ]);
-
-      let now = dateUtils.getTodaysDate();
-      let cutOff = dateUtils.subtract(now, 6, 'month');
-
-      let filteredExpenseTypes = _.map(expenseTypes, (expenseType) => {
-        let endDate = expenseType.endDate;
-        if (expenseType.isInactive || dateUtils.isAfter(cutOff, endDate)) {
-          return;
-        } else {
-          return expenseType;
-        }
-      });
-      filteredExpenseTypes = _.compact(filteredExpenseTypes);
-
-      let expensesData = [];
       let promises = [];
-      try {
-        await this.asyncForEach(filteredExpenseTypes, async (expenseType) => {
-          promises.push(this.queryExpenses(expenseType, cutOff));
-          // log success
-          logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
-        });
-        let expensesDataArr = await Promise.all(promises);
-        expensesDataArr.forEach((queryExpensesData) => {
-          let expenses = _.map(queryExpensesData, (expenseData) => {
-            return new Expense(expenseData);
-          });
-
-          expensesData = _.union(expensesData, expenses);
-        });
-      } catch (err) {
-        // log error
-        logger.log(1, 'getAllEvents', 'Failed to read all expenses for expenseTypes');
-        return Promise.reject(err);
-      }
 
       let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
-      let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
+      let aggregateExpenses = this._aggregateExpenseData(expensesDataArr, employees, expenseTypes);
 
       let entries = [];
 
