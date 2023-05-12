@@ -412,11 +412,11 @@ class databaseModify {
   } // getEntryUrl
 
   /**
-   * Query dynamodb index for entries by a single attribute.
+   * Scan dynamodb index for entries by a single attribute.
    *
    * @param secondaryIndex - index name
-   * @param queryKey - key attribute to query by
-   * @param queryParam - parameter value of entries
+   * @param scanKey - key attribute to scan by
+   * @param scanParam - parameter value of entries
    * @param additionalParams - optional parameter to add or overwrite default param values
    * @return - the entries that fit the parameters
    */
