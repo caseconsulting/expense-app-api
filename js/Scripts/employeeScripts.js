@@ -911,8 +911,8 @@ async function customReport() {
         e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == true
           ? 'Y'
           : e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == false
-          ? 'N'
-          : '',
+            ? 'N'
+            : '',
       'Race or Ethnicity': e.eeoRaceOrEthnicity != null ? e.eeoRaceOrEthnicity.text : '',
       'Disability (Y/N)': e.eeoHasDisability == true ? 'Y' : e.eeoHasDisability == false ? 'N' : '',
       'Protected Veteran (Y/N)': e.eeoIsProtectedVeteran == true ? 'Y' : e.eeoIsProtectedVeteran == false ? 'N' : ''
@@ -1028,8 +1028,8 @@ async function customReport3() {
         e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == true
           ? 'Y'
           : e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == false
-          ? 'N'
-          : '',
+            ? 'N'
+            : '',
       'Race or Ethnicity': e.eeoRaceOrEthnicity != null ? e.eeoRaceOrEthnicity.text : '',
       'Disability (Y/N)': e.eeoHasDisability == true ? 'Y' : e.eeoHasDisability == false ? 'N' : '',
       'Protected Veteran (Y/N)': e.eeoIsProtectedVeteran == true ? 'Y' : e.eeoIsProtectedVeteran == false ? 'N' : ''
