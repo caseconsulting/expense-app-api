@@ -1069,6 +1069,87 @@ async function customReport3() {
   }
 }
 
+async function customReport4() {
+  let employees = await getAllEntries(TABLE);
+  let sensitiveEmployees = await getAllEntries(TABLE_SENS);
+  employees = _.filter(employees, (e) => e.workStatus > 0);
+  let tempEmployees = [];
+  _.forEach(employees, (employee) => {
+    let sensitiveInfo = _.find(sensitiveEmployees, (emp) => emp.id == employee.id);
+    let e = { ...employee, ...sensitiveInfo };
+    tempEmployees.push({
+      Status: e.workStatus > 0 ? 'Active' : 'Inactive',
+      'Employee #': e.employeeNumber || '',
+      'First Name': e.firstName || '',
+      'Preferred Name': e.nickname || '',
+      'Middle Name': e.middleName || '',
+      'Last Name': e.lastName || '',
+      'Birth Date': e.birthday || '',
+      SSN: '', // no data
+      Gender: e.eeoGender != null ? e.eeoGender.text : '',
+      'Marital Status': '', // no data
+      'Address Line 1': e.currentStreet || '',
+      'Address Line 2': '',
+      City: e.currentCity || '',
+      State: e.currentState || '',
+      'ZIP Code': e.currentZIP || '',
+      Country: e.currentState ? 'United States' : '',
+      'Mobile Phone': phone(e, 'Cell'),
+      'Home Phone': phone(e, 'Home'),
+      'Work Phone': phone(e, 'Work'),
+      'Ext.': ext(e),
+      'Work Email': e.email || '',
+      'Home Email': '', // no data
+      'Hire Date': e.hireDate || '',
+      Ethnicity: ethnicity(e),
+      'EEO Job Category': e.eeoJobCategory != null ? e.eeoJobCategory.text : '',
+      'Veteran Status': e.eeoIsProtectedVeteran == true ? 'Protected Veteran' : '',
+      'Job Role': e.jobRole || ''
+    });
+  });
+  let csvEmployees = csvUtils.sort(tempEmployees, 'Employee #');
+  let csvFileString = csvUtils.generate(csvEmployees);
+  console.log(csvFileString);
+  // csvUtils.download(csvFileString, 'report.csv');
+  fs.writeFile('report2.txt', csvFileString, (err) => {
+    // In case of a error throw err.
+    if (err) throw err;
+  });
+
+  function ethnicity(e) {
+    let ethnicity = '';
+    if (e.eeoHispanicOrLatino != null && e.eeoHispanicOrLatino.value == true) {
+      ethnicity = e.eeoHispanicOrLatino.text;
+      if (e.eeoRaceOrEthnicity != null && e.eeoRaceOrEthnicity.value !== '6') {
+        ethnicity += ', ';
+        ethnicity += e.eeoRaceOrEthnicity.text;
+      }
+    } else if (e.eeoRaceOrEthnicity != null && e.eeoRaceOrEthnicity.value !== '6') {
+      ethnicity = e.eeoRaceOrEthnicity.text;
+    }
+    return ethnicity;
+  }
+
+  function phone(e, type) {
+    let phoneNumbers = [];
+    if (e.publicPhoneNumbers) phoneNumbers = [...phoneNumbers, ...e.publicPhoneNumbers];
+    if (e.privatePhoneNumbers) phoneNumbers = [...phoneNumbers, ...e.privatePhoneNumbers];
+
+    let filtered = _.filter(phoneNumbers, (p) => p.type === type);
+    return _.map(filtered, (p) => p.number).join(', ');
+  }
+
+  function ext(e) {
+    let phoneNumbers = [];
+    if (e.publicPhoneNumbers) phoneNumbers = [...phoneNumbers, ...e.publicPhoneNumbers];
+    if (e.privatePhoneNumbers) phoneNumbers = [...phoneNumbers, ...e.privatePhoneNumbers];
+
+    let filtered = _.filter(phoneNumbers, (p) => p.ext != null);
+    let exts = _.map(filtered, (p) => p.ext);
+    return [...new Set(exts)].join(', ');
+  }
+}
+
 /**
  * =================================================
  * |                                               |
@@ -1285,6 +1366,12 @@ async function main() {
       desc: 'Custom report 3',
       action: async () => {
         await customReport3();
+      }
+    },
+    {
+      desc: 'Custom report 4',
+      action: async () => {
+        await customReport4();
       }
     }
   ];
