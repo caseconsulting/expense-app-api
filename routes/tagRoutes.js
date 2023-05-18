@@ -9,7 +9,7 @@ const logger = new Logger('tagRoutes');
 class TagRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = new DatabaseModify('tag');
+    this.databaseModify = new DatabaseModify('tags');
   } // constructor
 
   /**
