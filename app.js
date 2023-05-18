@@ -109,7 +109,7 @@ app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
 app.use('/contracts', contractRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
-app.use('./tag', tagRoutes.router);
+app.use('/tags', tagRoutes.router);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   var err = new Error(' No Route Found');
