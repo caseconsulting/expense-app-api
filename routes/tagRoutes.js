@@ -263,7 +263,7 @@ class TagRoutes extends Crud {
       let tags = await this.databaseModify.getAllEntriesInDB();
 
       // validate duplicate name
-      if (tags.some((t) => t.tagName == newTag.tagName)) {
+      if (tags.some((t) => t.id !== newTag.id && t.tagName == newTag.tagName)) {
         // log error
         logger.log(3, '_validateUpdate', `tag name ${newTag.tagName} is duplicated`);
 
