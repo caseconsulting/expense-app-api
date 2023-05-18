@@ -104,10 +104,18 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -151,10 +159,10 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts']);
+      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -198,12 +206,28 @@ class Crud {
       this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'expenses',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -244,12 +268,28 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expense-types', 'contracts', 'pto-cashouts', 'expenses']);
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'contracts',
+        'pto-cashouts',
+        'expenses',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -292,11 +332,19 @@ class Crud {
       this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
