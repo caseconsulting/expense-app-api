@@ -153,9 +153,9 @@ class ExpenseTypeRoutes extends Crud {
       await Promise.all([
         this._validateExpenseType(newExpenseType),
         this._validateUpdate(oldExpenseType, newExpenseType),
-        this._validateDates(newExpenseType),
-        this._updateBudgets(oldExpenseType, newExpenseType)
+        this._validateDates(newExpenseType)
       ]);
+      await this._updateBudgets(oldExpenseType, newExpenseType);
 
       // log success
       if (oldExpenseType.budgetName == newExpenseType.budgetName) {

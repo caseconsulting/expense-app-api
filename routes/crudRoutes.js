@@ -71,6 +71,7 @@ class Crud {
 
     if (this.hasAccess(employee, expenseType)) {
       let budgetAmount = expenseType.budget;
+
       if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
         _.forEach(expenseType.tagBudgets, (tagBudget) => {
           _.forEach(tagBudget.tags, (tagId) => {
@@ -440,7 +441,7 @@ class Crud {
    * @param annualStart - the start date of the budget if it is annual
    * @return Budget - budget created
    */
-  async createNewBudget(employee, expenseType, annualStart) {
+  async createNewBudget(employee, expenseType, annualStart, tags) {
     // log method
     logger.log(
       2,
@@ -476,7 +477,7 @@ class Crud {
       }
 
       // set the amount of the new budget
-      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+      budgetData.amount = this.calcAdjustedAmount(employee, expenseType, tags);
 
       let newBudget = new Budget(budgetData);
 
