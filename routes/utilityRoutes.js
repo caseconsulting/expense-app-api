@@ -103,6 +103,7 @@ class Utility {
     this.budgetDynamo = new DatabaseModify('budgets');
     this.trainingDynamo = new DatabaseModify('training-urls');
     this.ptoCashOutDynamo = new DatabaseModify('pto-cashouts');
+    this.tagDynamo = new DatabaseModify('tags');
   } // constructor
 
   /**
@@ -118,14 +119,15 @@ class Utility {
   } // asyncForEach
 
   /**
-   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
-   * amount.
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
+   * Returns the adjusted amount.
    *
    * @param employee - Employee to adjust amount for
    * @param expenseType - ExpenseType budget to be adjusted
+   * @param tags - The list of tags from the tags database
    * @return Number - adjusted budget amount
    */
-  calcAdjustedAmount(employee, expenseType) {
+  calcAdjustedAmount(employee, expenseType, tags) {
     // log method
     logger.log(
       4,
@@ -137,10 +139,25 @@ class Utility {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      let budgetAmount = expenseType.budget;
+      if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
+          _.forEach(tagBudget.tags, (tagId) => {
+            let tag = _.find(tags, (t) => t.id === tagId);
+            if (tag) {
+              if (tag.employees.includes(employee.id)) {
+                // employee is included in a tag with a different budget amount
+                budgetAmount = tagBudget.budget;
+              }
+            }
+          });
+        });
+      }
+
       if (!expenseType.proRated) {
-        result = expenseType.budget;
+        result = budgetAmount;
       } else {
-        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+        result = Number((budgetAmount * (employee.workStatus / 100.0)).toFixed(2));
       }
     } else {
       result = 0;
@@ -228,7 +245,10 @@ class Utility {
       let today = dateUtils.getTodaysDate(); // today isoformat string
 
       // get all budgets for employee and expense type
-      let expenseTypeBudgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+      let [expenseTypeBudgetsData, tags] = await Promise.all([
+        this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id),
+        this.tagDynamo.getAllEntriesInDB()
+      ]);
       let expenseTypeBudgets = _.map(expenseTypeBudgetsData, (budgetData) => {
         return new Budget(budgetData);
       });
@@ -260,7 +280,7 @@ class Utility {
         }
 
         // set the budget amount based on the employee and expense type
-        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);
+        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType, tags);
       }
 
       let aggregateBudget = {

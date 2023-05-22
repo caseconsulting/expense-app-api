@@ -150,7 +150,7 @@ describe('utilityRoutes', () => {
     params: PARAMS_DATA
   };
 
-  let budgetDynamo, expenseDynamo, employeeDynamo, expenseTypeDynamo, res, trainingDynamo, utilityRoutes;
+  let budgetDynamo, expenseDynamo, employeeDynamo, expenseTypeDynamo, tagDynamo, res, trainingDynamo, utilityRoutes;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -214,6 +214,18 @@ describe('utilityRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    tagDynamo = jasmine.createSpyObj('tagDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
     // basecamp = jasmine.createSpyObj('basecamp', [
     //   '_getBasecampToken',
     //   'getBasecampInfo',
@@ -228,6 +240,7 @@ describe('utilityRoutes', () => {
     utilityRoutes.employeeDynamo = employeeDynamo;
     utilityRoutes.expenseTypeDynamo = expenseTypeDynamo;
     utilityRoutes.trainingDynamo = trainingDynamo;
+    utilityRoutes.tagDynamo = tagDynamo;
     utilityRoutes._router = _ROUTER;
   });
 
@@ -248,7 +261,7 @@ describe('utilityRoutes', () => {
   }); // asyncForEach
 
   describe('calcAdjustedAmount', () => {
-    let employee, expenseType;
+    let employee, expenseType, tags;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
@@ -269,7 +282,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 50% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(50);
         }); // should return 50% of the budget
       }); // and expense type is accessible by All
 
@@ -280,7 +293,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 100% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(100);
         }); // should return 100% of the budget
       }); // and expense type is accessible by Full
 
@@ -291,7 +304,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 100% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(100);
         }); // should return 100% of the budget
       }); // and expense type is accessible by Full Time
 
@@ -302,7 +315,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 50% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(50);
         }); // should return 50% of the budget
       }); // and expense type is accessible by Custom
     }); // when employee has access
@@ -313,7 +326,7 @@ describe('utilityRoutes', () => {
       });
 
       it('should return 0', () => {
-        expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(0);
+        expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(0);
       }); // should return 0
     }); // when employee does not have access
   }); // calcAdjustedAmount
@@ -428,11 +441,12 @@ describe('utilityRoutes', () => {
   }); // aggregateExpenseData
 
   describe('_getActiveBudget', () => {
-    let employee, expenseType;
+    let employee, expenseType, tags;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
+      tags = [];
     });
 
     describe('when successfully gets an active budget', () => {
@@ -484,6 +498,7 @@ describe('utilityRoutes', () => {
           });
 
           budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([]));
+          tagDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([]));
         });
 
         describe('and expense type is recurring', () => {
@@ -517,7 +532,7 @@ describe('utilityRoutes', () => {
               expect(data).toEqual(activeBudget);
               expect(budgetDynamo.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
               expect(utilityRoutes.getBudgetDates).toHaveBeenCalledWith(HIRE_DATE);
-              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType);
+              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType, tags);
               done();
             });
           }); // should return the aggregate active budgets
@@ -548,7 +563,7 @@ describe('utilityRoutes', () => {
             utilityRoutes._getActiveBudget(employee, expenseType).then((data) => {
               expect(data).toEqual(activeBudget);
               expect(budgetDynamo.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
-              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType);
+              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType, tags);
               done();
             });
           }); // should return the aggregate active budgets

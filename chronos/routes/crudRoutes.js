@@ -49,14 +49,15 @@ class Crud {
   } // constructor
 
   /**
-   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
-   * amount.
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
+   * Returns the adjusted amount.
    *
    * @param employee - Employee to adjust amount for
    * @param expenseType - ExpenseType budget to be adjusted
+   * @param tags - The list of tags from the tags database
    * @return Number - adjusted budget amount
    */
-  calcAdjustedAmount(employee, expenseType) {
+  calcAdjustedAmount(employee, expenseType, tags) {
     // log method
     logger.log(
       4,
@@ -68,10 +69,25 @@ class Crud {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      let budgetAmount = expenseType.budget;
+      if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
+          _.forEach(tagBudget.tags, (tagId) => {
+            let tag = _.find(tags, (t) => t.id === tagId);
+            if (tag) {
+              if (tag.employees.includes(employee.id)) {
+                // employee is included in a tag with a different budget amount
+                budgetAmount = tagBudget.budget;
+              }
+            }
+          });
+        });
+      }
+
       if (!expenseType.proRated) {
-        result = expenseType.budget;
+        result = budgetAmount;
       } else {
-        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+        result = Number((budgetAmount * (employee.workStatus / 100.0)).toFixed(2));
       }
     } else {
       result = 0;

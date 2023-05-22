@@ -150,10 +150,12 @@ class ExpenseTypeRoutes extends Crud {
       let newExpenseType = new ExpenseType(data);
       let oldExpenseType = new ExpenseType(await this.databaseModify.getEntry(data.id));
 
-      await this._validateExpenseType(newExpenseType);
-      await this._validateUpdate(oldExpenseType, newExpenseType);
-      await this._validateDates(newExpenseType);
-      await this._updateBudgets(oldExpenseType, newExpenseType);
+      await Promise.all([
+        this._validateExpenseType(newExpenseType),
+        this._validateUpdate(oldExpenseType, newExpenseType),
+        this._validateDates(newExpenseType),
+        this._updateBudgets(oldExpenseType, newExpenseType)
+      ]);
 
       // log success
       if (oldExpenseType.budgetName == newExpenseType.budgetName) {
@@ -198,7 +200,9 @@ class ExpenseTypeRoutes extends Crud {
 
       let diffStart = oldExpenseType.startDate != newExpenseType.startDate;
       let diffEnd = oldExpenseType.endDate != newExpenseType.endDate;
-      let diffBudget = oldExpenseType.budget != newExpenseType.budget;
+      let diffBudget =
+        oldExpenseType.budget != newExpenseType.budget ||
+        !_.isEqual(oldExpenseType.tagBudgets, newExpenseType.tagBudgets);
       let diffAccessibleBy = oldExpenseType.accessibleBy != newExpenseType.accessibleBy;
       if (diffStart || diffEnd || diffBudget || diffAccessibleBy) {
         // need to update budgets
@@ -212,10 +216,13 @@ class ExpenseTypeRoutes extends Crud {
           return new Budget(budgetData);
         });
 
-        let employees;
+        let employees, employeesData, tags;
         if (diffBudget || diffAccessibleBy) {
           // get all employees if changing budget amount
-          let employeesData = await this.employeeDynamo.getAllEntriesInDB();
+          [employeesData, tags] = await Promise.all([
+            this.employeeDynamo.getAllEntriesInDB(),
+            this.tagDynamo.getAllEntriesInDB()
+          ]);
           employees = _.map(employeesData, (employeeData) => {
             return new Employee(employeeData);
           });
@@ -227,7 +234,7 @@ class ExpenseTypeRoutes extends Crud {
             // update the budget amount for current budgets
             if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(dateUtils.getTodaysDate())) {
               let employee = _.find(employees, ['id', budgets[i].employeeId]);
-              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType);
+              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType, tags);
             }
           }
 

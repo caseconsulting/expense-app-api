@@ -99,7 +99,7 @@ describe('expenseTypeRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let expenseTypeRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseDynamo;
+  let expenseTypeRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseDynamo, tagDynamo;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -150,12 +150,25 @@ describe('expenseTypeRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    tagDynamo = jasmine.createSpyObj('tagDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
 
     expenseTypeRoutes = new ExpenseTypeRoutes();
     expenseTypeRoutes.budgetDynamo = budgetDynamo;
     expenseTypeRoutes.databaseModify = databaseModify;
     expenseTypeRoutes.employeeDynamo = employeeDynamo;
     expenseTypeRoutes.expenseDynamo = expenseDynamo;
+    expenseTypeRoutes.tagDynamo = tagDynamo;
   });
 
   describe('_create', () => {
@@ -664,6 +677,7 @@ describe('expenseTypeRoutes', () => {
           };
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          tagDynamo.getAllEntriesInDB.and.returnValue([]);
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
@@ -771,6 +785,7 @@ describe('expenseTypeRoutes', () => {
           };
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
+          tagDynamo.getAllEntriesInDB.and.returnValue([]);
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
@@ -1004,6 +1019,7 @@ describe('expenseTypeRoutes', () => {
 
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
+          tagDynamo.getAllEntriesInDB.and.returnValue([]);
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
@@ -1078,6 +1094,7 @@ describe('expenseTypeRoutes', () => {
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(budgets);
           employeeDynamo.getAllEntriesInDB.and.returnValue(employees);
+          tagDynamo.getAllEntriesInDB.and.returnValue([]);
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
             Promise.resolve(expectedBudget2),
