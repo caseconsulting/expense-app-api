@@ -315,19 +315,16 @@ class TagRoutes extends Crud {
     let modified = false;
     _.forEach(expenseTypes, (expenseType) => {
       if (expenseType.tagBudgets) {
-        _.forEach(expenseType.tagBudgets, (tagBudget, i) => {
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
           // check if tag being deleted exists in an expense type's budget tags
           let tagIndex = _.findIndex(tagBudget.tags, (t) => t === tag.id);
           if (tagIndex !== -1) {
             // remove budget tag from expense type
             tagBudget.tags.splice(tagIndex, 1);
-            // remove tag budget if there are no longer any tags
-            tagBudget.tags.length == 0 ? expenseType.tagBudgets.splice(i, 1) : _;
-            // remove tag budget field if the list is empty
-            expenseType.tagBudget.length == 0 ? delete expenseType.tagBudgets : _;
             modified = true;
           }
         });
+        expenseType.tagBudgets = _.filter(expenseType.tagBudgets, (tb) => !_.isEmpty(tb.tags));
       }
       if (modified) {
         // update entry in dynamodb
