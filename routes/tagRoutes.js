@@ -80,8 +80,10 @@ class TagRoutes extends Crud {
   } // _delete
 
   /**
+   * Updates the budgets from a list of employees that were added/removed from a tag.
    *
-   * @param {Array} employeesIds - The list of employee IDs to update
+   * @param employeesIds - The list of employee IDs to update
+   * @param newTag - The tag that is being updated
    */
   async _updateEmployeesBudgets(employeesIds, newTag) {
     let [employees, tags, expenseTypes] = await Promise.all([
@@ -89,7 +91,7 @@ class TagRoutes extends Crud {
       this.tagDynamo.getAllEntriesInDB(),
       this.expenseTypeDynamo.getAllEntriesInDB()
     ]);
-    // tags db has not yet been updated, change old instance of tag about to be updated
+    // tags db has not yet been updated, change old instance of tag that is about to be updated
     tags[_.findIndex(tags, (t) => t.id === newTag.id)] = newTag;
     let promises = [];
     _.forEach(employeesIds, (eId) => {
@@ -110,10 +112,12 @@ class TagRoutes extends Crud {
   } // _updateEmployeesBudgets
 
   /**
-   * Updates budgets when changing an employee.
+   * Updates budgets when updating the list of employees on a tag.
    *
-   * @param oldEmployee - Employee to be updated from
-   * @param newEmployee - Employee to be updated to
+   * @param employee - Employee to update
+   * @param newTag - The tag that is being updated
+   * @param tags - The list of tags
+   * @param expenseTypes - The list of all expense types
    * @return Array - Array of employee Budgets
    */
   async _updateBudgets(employee, newTag, tags, expenseTypes) {
