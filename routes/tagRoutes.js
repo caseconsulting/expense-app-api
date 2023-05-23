@@ -172,6 +172,7 @@ class TagRoutes extends Crud {
         message: 'Error validating create for Tag.'
       };
 
+      // validate empty employees list attached to tag
       if (!_.isEmpty(tag.employees)) {
         // log error
         logger.log(3, '_validateDelete', 'All employees must be removed from a tag before deleting tag');
