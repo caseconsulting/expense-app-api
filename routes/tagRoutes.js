@@ -56,7 +56,10 @@ class TagRoutes extends Crud {
     // compute method
     try {
       let tag = new Tag(await this.databaseModify.getEntry(id));
-      await this._validateDelete(tag);
+      let [expenseTypes] = await Promise.all([this.expenseTypeDynamo.getAllEntriesInDB(), this._validateDelete(tag)]);
+
+      // remove deleted tag instances in all expense types
+      await this._removeTagFromExpenseTypes(tag, expenseTypes);
 
       // log success
       logger.log(2, '_delete', `Successfully prepared to delete Tag ${id}`);
@@ -299,6 +302,42 @@ class TagRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _validateUpdate
+
+  /**
+   * Removes any instance of the tag being deleted in all expense types.
+   *
+   * @param tag - The tag being deleted
+   * @param expenseTypes - The list of all expense types
+   * @returns Array - All of the modified expense types
+   */
+  async _removeTagFromExpenseTypes(tag, expenseTypes) {
+    let promises = [];
+    let modified = false;
+    _.forEach(expenseTypes, (expenseType) => {
+      if (expenseType.tagBudgets) {
+        _.forEach(expenseType.tagBudgets, (tagBudget, i) => {
+          // check if tag being deleted exists in an expense type's budget tags
+          let tagIndex = _.findIndex(tagBudget.tags, (t) => t === tag.id);
+          if (tagIndex !== -1) {
+            // remove budget tag from expense type
+            tagBudget.tags.splice(tagIndex, 1);
+            // remove tag budget if there are no longer any tags
+            tagBudget.tags.length == 0 ? expenseType.tagBudgets.splice(i, 1) : _;
+            // remove tag budget field if the list is empty
+            expenseType.tagBudget.length == 0 ? delete expenseType.tagBudgets : _;
+            modified = true;
+          }
+        });
+      }
+      if (modified) {
+        // update entry in dynamodb
+        promises.push(this.expenseTypeDynamo.updateEntryInDB(expenseType));
+      }
+      modified = false;
+    });
+    let modifiedExpenseTypes = await Promise.all(promises);
+    return modifiedExpenseTypes;
+  } // _removeTagFromExpenseTypes
 } // TagRoutes
 
 module.exports = TagRoutes;
