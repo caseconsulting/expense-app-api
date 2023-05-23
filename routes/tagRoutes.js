@@ -1,10 +1,14 @@
 const Tag = require('./../models/tag');
+const Budget = require('./../models/budget');
 const Crud = require('./crudRoutes');
 const DatabaseModify = require('../js/databaseModify');
 const Logger = require('../js/Logger');
 const _ = require('lodash');
+const dateUtils = require('../js/dateUtils');
 
 const logger = new Logger('tagRoutes');
+
+const IsoFormat = 'YYYY-MM-DD';
 
 class TagRoutes extends Crud {
   constructor() {
@@ -76,6 +80,108 @@ class TagRoutes extends Crud {
   } // _delete
 
   /**
+   *
+   * @param {Array} employeesIds - The list of employee IDs to update
+   */
+  async _updateEmployeesBudgets(employeesIds, newTag) {
+    let [employees, tags, expenseTypes] = await Promise.all([
+      this.employeeDynamo.getAllEntriesInDB(),
+      this.tagDynamo.getAllEntriesInDB(),
+      this.expenseTypeDynamo.getAllEntriesInDB()
+    ]);
+    // tags db has not yet been updated, change old instance of tag about to be updated
+    tags[_.findIndex(tags, (t) => t.id === newTag.id)] = newTag;
+    let promises = [];
+    _.forEach(employeesIds, (eId) => {
+      let employee = _.find(employees, (emp) => emp.id === eId);
+      if (employee) {
+        // check if an expense type has a tag that was affected by the update
+        let needsUpdate = _.find(
+          expenseTypes,
+          (e) => e.tagBudgets && _.find(e.tagBudgets, (tb) => _.find(tb.tags, (t) => t === newTag.id))
+        );
+        if (needsUpdate) {
+          // update budget for employee
+          promises.push(this._updateBudgets(employee, newTag, tags, expenseTypes));
+        }
+      }
+    });
+    await Promise.all(promises);
+  } // _updateEmployeesBudgets
+
+  /**
+   * Updates budgets when changing an employee.
+   *
+   * @param oldEmployee - Employee to be updated from
+   * @param newEmployee - Employee to be updated to
+   * @return Array - Array of employee Budgets
+   */
+  async _updateBudgets(employee, newTag, tags, expenseTypes) {
+    // log method
+    logger.log(2, '_updateBudgets', `Attempting to update budgets for employee ${employee.id}`);
+
+    // compute method
+    try {
+      let budgets = [];
+
+      // need to update budgets
+      let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
+        'employeeId-expenseTypeId-index',
+        'employeeId',
+        employee.id
+      );
+
+      budgets = _.map(budgetsData, (budgetData) => {
+        return new Budget(budgetData);
+      });
+
+      let i; // index of budgets
+      let promises = [];
+      for (i = 0; i < budgets.length; i++) {
+        // update budget amount
+        let start = dateUtils.format(budgets[i].fiscalStartDate, null, IsoFormat); // budget start date
+        let end = dateUtils.format(budgets[i].fiscalEndDate, null, IsoFormat); // budget end date
+        if (dateUtils.isBetween(dateUtils.getTodaysDate(), start, end, 'day', '[]')) {
+          // only update active budgets
+          let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
+          if (
+            expenseType.tagBudgets &&
+            _.find(expenseType.tagBudgets, (tb) => _.find(tb.tags, (t) => t === newTag.id))
+          ) {
+            // update budget amount if expense type includes tag being changed
+            budgets[i].amount = this.calcAdjustedAmount(employee, expenseType, tags);
+            logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
+            // update budget in database
+            try {
+              promises.push(this.budgetDynamo.updateEntryInDB(budgets[i]));
+
+              // log budget update success
+              logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
+            } catch (err) {
+              // log and throw budget update failure
+              logger.log(2, '_updateBudgets', `Failed updated budget ${budgets[i].id}`);
+              throw err;
+            }
+          }
+        }
+      }
+      await Promise.all(promises);
+
+      // log success
+      logger.log(2, '_updateBudgets', `Successfully updated budgets for employee ${employee.id}`);
+
+      // return updated bugets
+      return budgets;
+    } catch (err) {
+      // log error
+      logger.log(2, '_updateBudgets', `Failed to update budgets for employee ${employee.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateBudgets
+
+  /**
    * Prepares a Tag to be updated. Returns the Tag if it can be successfully updated.
    *
    * @param req - request
@@ -90,6 +196,14 @@ class TagRoutes extends Crud {
       let oldTag = new Tag(await this.databaseModify.getEntry(data.id));
       let newTag = new Tag(data);
       await Promise.all([this._validateTag(newTag), this._validateUpdate(oldTag, newTag)]);
+      // get symmetric difference for employees affected by tag update
+      let employeesToUpdate = _.xor(oldTag.employees, newTag.employees);
+      if (employeesToUpdate && employeesToUpdate.length > 0) {
+        logger.log(2, '_update', `Preparing to update budgets for employees: ${JSON.stringify(employeesToUpdate)}`);
+        // Overview of what happens here: The list of employees changed on the tag will have their budget amounts
+        // changed IF an expense type includes the tag that was changed and IF the budget is active
+        await this._updateEmployeesBudgets(employeesToUpdate, newTag);
+      }
 
       // log success
       logger.log(2, '_update', `Successfully prepared to update Tag ${data.id}`);
