@@ -167,6 +167,19 @@ class TagRoutes extends Crud {
 
     // compute method
     try {
+      let err = {
+        code: 403,
+        message: 'Error validating create for Tag.'
+      };
+
+      if (!_.isEmpty(tag.employees)) {
+        // log error
+        logger.log(3, '_validateDelete', 'All employees must be removed from a tag before deleting tag');
+
+        // throw error
+        err.message = 'All employees must be removed from tag before deleting tag';
+        throw err;
+      }
       // log success
       logger.log(3, '_validateDelete', `Successfully validated delete for tag ${tag.id}`);
 

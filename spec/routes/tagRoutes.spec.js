@@ -186,6 +186,7 @@ describe('tagRoutes', () => {
     let tag;
     beforeEach(() => {
       tag = new Tag(TAG_DATA);
+      tag.employees = null;
     });
     // when validate delete is successful
     describe('when validate delete is successful', () => {
@@ -196,6 +197,36 @@ describe('tagRoutes', () => {
         });
       });
     }); // END when validate delete is successful
+
+    // when validate delete is unsuccessful
+    describe('when validate delete is unsuccessful', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 403,
+          message: 'Error validating create for Tag.'
+        };
+      });
+      // when there are employees attached to tag
+      describe('when there are employees attached to tag', () => {
+        beforeEach(() => {
+          tag.employees = [tag.employees];
+          err.message = 'All employees must be removed from tag before deleting tag';
+        });
+        it('should return 403 rejected promise', (done) => {
+          tagRoutes
+            ._validateDelete(tag)
+            .then(() => {
+              fail('expected error to have been thrown');
+              done();
+            })
+            .catch((error) => {
+              expect(error).toEqual(err);
+              done();
+            });
+        });
+      }); // END when there are employees attached to tag
+    }); // END when validate delete is unsuccessful
   }); // END _validateDelete
 
   // _validateUpdate
@@ -401,6 +432,7 @@ describe('tagRoutes', () => {
     let tag;
     beforeEach(() => {
       tag = new Tag(TAG_DATA);
+      delete tag.employees;
     });
     // when delete is successful
     describe('when delete is successful', () => {
