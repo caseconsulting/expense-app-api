@@ -344,6 +344,8 @@ class Utility {
         }
       });
       activeBudgets = await Promise.all(promises);
+      // filter out budgets where the total amount is $0, this would have been set from a tag budget on an expense type
+      activeBudgets = _.filter(activeBudgets, (b) => b.budgetObject && b.budgetObject.amount > 0);
 
       // log success
       logger.log(

@@ -600,10 +600,11 @@ describe('utilityRoutes', () => {
   }); // _getActiveBudget
 
   describe('_getAllActiveEmployeeBudgets', () => {
-    let employee, expenseType1, expenseType2, expenseType3, expenseTypes;
+    let employee, expenseType1, expenseType2, expenseType3, expenseTypes, budgetObject;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
+      budgetObject = { budgetObject: { amount: 1 } };
       expenseType1 = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType2 = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType3 = new ExpenseType(EXPENSE_TYPE_DATA);
@@ -625,18 +626,18 @@ describe('utilityRoutes', () => {
       beforeEach(() => {
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
-        spyOn(utilityRoutes, '_getActiveBudget').and.returnValue('{activeBudget}');
+        spyOn(utilityRoutes, '_getActiveBudget').and.returnValue({ budgetObject: { amount: 1 } });
         spyOn(utilityRoutes, 'hasAccess').and.returnValue(true);
       });
 
       it('should respond with a 200 and the 2 active aggregated expenses', (done) => {
         utilityRoutes._getAllActiveEmployeeBudgets(REQ_DATA, res).then((data) => {
-          expect(data).toEqual(['{activeBudget}', '{activeBudget}']);
+          expect(data).toEqual([budgetObject, budgetObject]);
           expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
           expect(utilityRoutes._getActiveBudget).toHaveBeenCalledTimes(2);
           expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(['{activeBudget}', '{activeBudget}']);
+          expect(res.send).toHaveBeenCalledWith([budgetObject, budgetObject]);
           done();
         });
       }); // should respond with a 200 and the 2 active aggregated expenses
