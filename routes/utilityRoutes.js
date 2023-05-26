@@ -139,14 +139,18 @@ class Utility {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      // default budget if employee is not in a budgeted tag
       let budgetAmount = expenseType.budget;
+
       if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        let foundHighestPriorityTag = false;
         _.forEach(expenseType.tagBudgets, (tagBudget) => {
           _.forEach(tagBudget.tags, (tagId) => {
             let tag = _.find(tags, (t) => t.id === tagId);
             if (tag) {
-              if (tag.employees.includes(employee.id)) {
+              if (tag.employees.includes(employee.id) && !foundHighestPriorityTag) {
                 // employee is included in a tag with a different budget amount
+                foundHighestPriorityTag = true;
                 budgetAmount = tagBudget.budget;
               }
             }
