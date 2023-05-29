@@ -741,10 +741,7 @@ class ExpenseRoutes extends Crud {
           expenseType.budget == sortedBudgets[i].amount &&
           currPending + currReimbursed > sortedBudgets[i].amount &&
           expenseType.recurringFlag &&
-          !_.isEqual(
-            sortedBudgets[i].fiscalStartDate,
-            this.getBudgetDates(employee.hireDate).startDate.format(ISOFORMAT)
-          )
+          !_.isEqual(sortedBudgets[i].fiscalStartDate, this.getBudgetDates(employee.hireDate).startDate)
         ) {
           // set carry over accumulators if budget is full time, needs to carry costs, and isn't the latest budget
           let condition = !dateUtils.isSame(
@@ -861,7 +858,7 @@ class ExpenseRoutes extends Crud {
       // validate recurring expense is in the current annual budget
       if (expenseType.recurringFlag) {
         let dates = this.getBudgetDates(employee.hireDate);
-        if (!dateUtils.isBetween(expense.purchaseDate, dates.startDate, dates.endDate, null, '[]')) {
+        if (!dateUtils.isBetween(expense.purchaseDate, dates.startDate, dates.endDate, 'd', '[]')) {
           // log error
           logger.log(
             3,
