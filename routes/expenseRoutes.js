@@ -870,7 +870,7 @@ class ExpenseRoutes extends Crud {
       // validate recurring expense is in the current annual budget
       if (expenseType.recurringFlag) {
         let dates = this.getBudgetDates(employee.hireDate);
-        if (!dateUtils.isBetween(expense.purchaseDate, dates.startDate, dates.endDate, null, '[]')) {
+        if (!dateUtils.isBetween(expense.purchaseDate, dates.startDate, dates.endDate, 'd', '[]')) {
           // log error
           logger.log(
             3,
