@@ -277,24 +277,34 @@ function isDateInRange(dateStr, startDate, endDate) {
  * @return object containing fiscal start and end dates
  */
 function getBudgetDates(date) {
-  let hireDate = dateUtils.format(date, ISOFORMAT);
-  let hireYear = dateUtils.getYear(hireDate);
-  let hireMonth = dateUtils.getMonth(hireDate) + 1;
-  let hireDay = dateUtils.getDay(hireDate);
-  let today = dateUtils.getTodaysDate();
-
+  // compute method
   let startYear;
+  let hireDate = dateUtils.format(date, null, ISOFORMAT);
+  let hireYear = dateUtils.getYear(hireDate);
+  let hireMonth = dateUtils.getMonth(hireDate); // form 0-11
+  let hireDay = dateUtils.getDay(hireDate); // from 1 to 31
+  let today = dateUtils.getTodaysDate(ISOFORMAT);
+
+  // determine start date year
   if (dateUtils.isBefore(hireDate, today)) {
-    let budgetDate = `${dateUtils.getYear(today)}-${hireMonth}-${hireDay}`;
-    startYear = dateUtils.isBefore(today, budgetDate)
-      ? dateUtils.setYear(today, parseInt(dateUtils.getYear(today)) + 1)
+    // hire date is before today
+    // if anniversary hasn't occured yet this year, set the start of the budget to last year
+    // if the anniversary already occured this year, set the start of the budget to this year
+    let thisYearAnniversaryDate = today;
+    thisYearAnniversaryDate = dateUtils.setMonth(thisYearAnniversaryDate, hireMonth);
+    thisYearAnniversaryDate = dateUtils.setDay(thisYearAnniversaryDate, hireDay);
+    startYear = dateUtils.isBefore(today, thisYearAnniversaryDate)
+      ? dateUtils.getYear(today) - 1
       : dateUtils.getYear(today);
   } else {
+    // hire date is after today
     startYear = hireYear;
   }
-
-  let startDate = `${startYear}-${hireMonth}-${hireDay}`;
-  let endDate = dateUtils.subtract(dateUtils.add(startDate, 1, 'year'), 1, 'day');
+  let startDate = hireDate;
+  startDate = dateUtils.setYear(startDate, startYear);
+  let endDate = hireDate;
+  endDate = dateUtils.setYear(hireDate, startYear);
+  endDate = dateUtils.subtract(dateUtils.add(endDate, 1, 'year'), 1, 'day');
 
   let result = {
     startDate,
