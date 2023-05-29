@@ -667,8 +667,8 @@ class Crud {
     logger.log(
       4,
       'getBudgetDates',
-      `Current annual budget date for ${date} starts on ${startDate} and ends on`,
-      `${endDate}`
+      `Current annual budget date for ${date} starts on ${dateUtils.format(startDate, null, ISOFORMAT)} and ends on`,
+      `${dateUtils.format(endDate, null, ISOFORMAT)}`
     );
 
     // return result
