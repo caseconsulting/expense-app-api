@@ -4,5 +4,8 @@
     "private":true,
     "description": "Employee data synchronization between BambooHR and the Portal",
     "author": "Case Consulting",
-    "main": "app.js"
+    "main": "app.js",
+    "dependencies": {
+        "axios": "0.27.2"
+    }
 }

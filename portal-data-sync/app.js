@@ -1,10 +1,17 @@
 const axios = require('axios');
-const ssm = require('aws-client');
+const AWS = require('aws-sdk');
 
 const paramName = '/BambooHR/APIKey';
 const baseURL = 'https://api.bamboohr.com/api/gateway.php/consultwithcase/v1';
 
+function getSSM() {
+  AWS.config.update({ region: 'us-east-1' });
+  const ssm = new AWS.SSM();
+  return ssm;
+}
+
 async function getKey() {
+  const ssm = getSSM();
   const params = {
     Name: paramName,
     WithDecryption: true
@@ -24,7 +31,7 @@ async function getBambooHREmployeeData() {
     }
   };
   const employeeData = await axios(options);
-  console.log(employeeData);
+  console.info(employeeData);
 }
 
 /**

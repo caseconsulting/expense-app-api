@@ -747,6 +747,29 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
+  # PortalDataSyncLambdaRole:
+  #   Type: 'AWS::IAM::Role'
+  #   Properties:
+  #     RoleName: !Join
+  #       - ''
+  #       - - expense-api-lambda-portal-data-sync-
+  #         - !Ref Stage
+  #     AssumeRolePolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - lambda.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRole'
+  #     Path: /
+  #      Policies:
+  #       - Statement:
+  #           - Action:
+  #               - ssm:GetParameter*
+  #             Effect: Allow
+  #             Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/*
   PortalDataSyncFunction:
     Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -755,6 +778,12 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
       Timeout: 900
+      Policies:
+        - Statement:
+            - Action:
+                - ssm:GetParameter*
+              Effect: Allow
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/*
       CodeUri: ./portal-data-sync
       Events:
         PortalDataSyncSchedule:
@@ -764,9 +793,9 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-      Role: !GetAtt
-        - ExpenseAppApiLambdaRole
-        - Arn
+      # Role: !GetAtt
+      #   - PortalDataSyncLambdaRole
+      #   - Arn
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
