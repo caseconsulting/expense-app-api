@@ -168,9 +168,9 @@ function getIsoWeekday(date) {
  */
 function getTodaysDate(format) {
   if (format) {
-    return dayjs().tz(DEFAULT_TIME_ZONE).format(format);
+    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(format);
   } else {
-    return dayjs().tz(DEFAULT_TIME_ZONE).format(DEFAULT_ISOFORMAT);
+    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(DEFAULT_ISOFORMAT);
   }
 } // getTodaysDate
 
