@@ -747,43 +747,64 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
-  # PortalDataSyncLambdaRole:
-  #   Type: 'AWS::IAM::Role'
-  #   Properties:
-  #     RoleName: !Join
-  #       - ''
-  #       - - expense-api-lambda-portal-data-sync-
-  #         - !Ref Stage
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - lambda.amazonaws.com
-  #           Action:
-  #             - 'sts:AssumeRole'
-  #     Path: /
-  #      Policies:
-  #       - Statement:
-  #           - Action:
-  #               - ssm:GetParameter*
-  #             Effect: Allow
-  #             Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/*
+  PortalDataSyncLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-portal-data-sync-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
+        - PolicyName: BambooHRAPIParamKey
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'ssm:GetParameter'
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/APIKey"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   PortalDataSyncFunction:
     Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Employee data synchronization between BambooHR and the Portal.
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn
       Handler: app.handler
       Layers:
         - !Ref DependenciesLayer
       Timeout: 900
-      Policies:
-        - Statement:
-            - Action:
-                - ssm:GetParameter*
-              Effect: Allow
-              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/*
+      Role: !GetAtt
+        - PortalDataSyncLambdaRole
+        - Arn
       CodeUri: ./portal-data-sync
       Events:
         PortalDataSyncSchedule:
@@ -793,9 +814,6 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-      # Role: !GetAtt
-      #   - PortalDataSyncLambdaRole
-      #   - Arn
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
