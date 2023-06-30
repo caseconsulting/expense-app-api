@@ -241,8 +241,9 @@ async function handler() {
  * application's correlated field is not empty. An employee will only be updated if they are found in the Case
  * database AND they are active. This method will only run on the production environment to prevent employees getting
  * test data from dev/test environments. To test in the dev environment, 1. Remove the STAGE equality check with prod
- * AND remove the for-loop going through all employees to prevent the syncing of dev data. Test only your own
- * individual employee object.
+ * 2. Remove the for-loop going through all employees to prevent the syncing of dev data. 3. Test only your own
+ * individual employee object (Or others that don't mind their data getting messed up) 4. (Important) When finished
+ * testing, add Prod STAGE equality check AND the for-loop back before deploying.
  */
 async function syncApplicationData() {
   const [employeeBambooHRData, employeeCasePortalData] = await Promise.all([
@@ -250,6 +251,8 @@ async function syncApplicationData() {
     getCasePortalEmployeeData()
   ]);
 
+  // TODO add employees for-loop here and Prod STAGE equality check here. Only go on if Case employee is actuve AND
+  // bamboo employee was found
   employee_data[Applications.BAMBOO] = employeeBambooHRData.find((b) => b['employeeNumber'] == 10066);
   employee_data[Applications.CASE] = employeeCasePortalData.find((c) => c['employeeNumber'] == 10066);
   let caseEmployeeUpdated = false;
@@ -297,7 +300,6 @@ async function syncApplicationData() {
       );
     }
   });
-  // update case employee here
   if (caseEmployeeUpdated) {
     let employee = _.cloneDeep(employee_data[Applications.CASE]);
     logger.log(3, 'syncApplicationData', `\nUPDATING CASE EMPLOYEE ${employee.id}`);
@@ -396,7 +398,7 @@ function updateEthnicity(application, field, value) {
  * Updates an employee through BambooHR's API.
  *
  * @param id String - The employee ID
- * @param body Array - The list of (field: value) object pairs to update
+ * @param body Object - The fields to update
  */
 async function updateBambooHREmployee(id, body) {
   const key = await getKey();
