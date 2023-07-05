@@ -232,7 +232,14 @@ let employee_data = { [Applications.CASE]: null, [Applications.BAMBOO]: null }; 
  * @param event - request
  */
 async function handler() {
-  await syncApplicationData();
+  // only run on prod so BambooHR does not get synced with dev or test data
+  // if you need to test on dev, remove this if statement and remove the
+  // for-loop in syncApplicationData so only your object is tested
+  if (STAGE == 'prod') {
+    await syncApplicationData();
+  } else {
+    logger.log(3, 'handler', `Not running handler on ${STAGE} environment`);
+  }
 } // handler
 
 /**
@@ -241,80 +248,97 @@ async function handler() {
  * application's correlated field is not empty. An employee will only be updated if they are found in the Case
  * database AND they are active. This method will only run on the production environment to prevent employees getting
  * test data from dev/test environments. To test in the dev environment, 1. Remove the STAGE equality check with prod
- * 2. Remove the for-loop going through all employees to prevent the syncing of dev data. 3. Test only your own
- * individual employee object (Or others that don't mind their data getting messed up) 4. (Important) When finished
- * testing, add Prod STAGE equality check AND the for-loop back before deploying.
+ * AND remove the for-loop going through all employees to prevent the syncing of dev data. Test only your own
+ * individual employee object.
  */
 async function syncApplicationData() {
   const [employeeBambooHRData, employeeCasePortalData] = await Promise.all([
     getBambooHREmployeeData(),
     getCasePortalEmployeeData()
   ]);
-
-  // TODO add employees for-loop here and Prod STAGE equality check here. Only go on if Case employee is actuve AND
-  // bamboo employee was found
-  employee_data[Applications.BAMBOO] = employeeBambooHRData.find((b) => b['employeeNumber'] == 10066);
-  employee_data[Applications.CASE] = employeeCasePortalData.find((c) => c['employeeNumber'] == 10066);
-  let caseEmployeeUpdated = false;
-  let bambooEmployeeUpdated = false;
-  let bambooHRBodyParams = [];
-  fields.forEach((f) => {
-    let caseVal = f.getter(f, Applications.CASE); // default Case value
-    let bambooHRVal = f.getter(f, Applications.BAMBOO); // default BambooHR value
-    // convert Case value to BambooHR format
-    let caseValConverted = f.getter(f, Applications.CASE, Applications.BAMBOO);
-    // convert BambooHR value to Case format
-    let bambooValConverted = f.getter(f, Applications.BAMBOO, Applications.CASE);
-    // Check equality by converting the field to the same value format (do not check equality on values converted to
-    // Case format since there could be data loss) If needed, write generic and custom equality methods attached
-    // to the field objects
-    if (bambooHRVal != caseValConverted) {
-      // Field values do NOT match
-      logger.log(
-        3,
-        'syncApplicationData',
-        `FIELDS DO NOT MATCH (CASE: ${f.name} - ${JSON.stringify(caseVal)} ||| BAMBOO: ${f.name} - ${JSON.stringify(
-          bambooHRVal
-        )})`
-      );
-      if (f.isEmpty(Applications.CASE, f) && !f.isEmpty(Applications.BAMBOO, f)) {
-        // Case field is empty AND BambooHR field is NOT empty (update Case field value with BambooHR field value)
-        logger.log(3, 'syncApplicationData', `UPDATING CASE WITH VALUE: ${JSON.stringify(bambooValConverted)}`);
-        f.updateValue(Applications.CASE, f, bambooValConverted);
-        caseEmployeeUpdated = true;
-      } else {
-        // Either Bamboo HR field is empty OR both Case and BambooHR field values are NOT empty AND they are conflicting
-        // (update BambooHR field value with Case field value since Case values take precedence over BambooHR values)
-        logger.log(3, 'syncApplicationData', `UPDATING BAMBOOHR WITH VALUE: ${JSON.stringify(caseValConverted)}`);
-        let param = f.updateValue(Applications.BAMBOO, f, caseValConverted);
-        bambooHRBodyParams.push(param);
-        bambooEmployeeUpdated = true;
+  // use both commented out lines for testing on dev (use your own employee number)
+  // employee_data[Applications.CASE] = employeeCasePortalData.find((c) =>
+  // c[EMPLOYEE_NUMBER[Applications.CASE]] == 10000);
+  // employee_data[Applications.CASE] = employeeBambooHRData.find((b) =>
+  // b[EMPLOYEE_NUMBER[Applications.BAMBOO]] == 10000);
+  // loop through each case employee (REMOVE IF TESTING ON DEV ENV)
+  await asyncForEach(employeeCasePortalData, async (caseEmp) => {
+    try {
+      // comment out both lines below if testing on dev
+      employee_data[Applications.CASE] = STAGE == 'prod' ? caseEmp : null;
+      employee_data[Applications.BAMBOO] =
+        STAGE == 'prod'
+          ? employeeBambooHRData.find(
+              (b) =>
+                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+                parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
+            )
+          : null;
+      if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
+        // employee number exists on Case and BambooHR
+        logger.log(
+          3,
+          'syncApplicationData',
+          `Syncing data for employee #: ${employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]}`
+        );
+        let caseEmployeeUpdated = false;
+        let bambooEmployeeUpdated = false;
+        let bambooHRBodyParams = [];
+        fields.forEach((f) => {
+          //let caseVal = f.getter(f, Applications.CASE); // default Case value
+          let bambooHRVal = f.getter(f, Applications.BAMBOO); // default BambooHR value
+          // convert Case value to BambooHR format
+          let caseValConverted = f.getter(f, Applications.CASE, Applications.BAMBOO);
+          // convert BambooHR value to Case format
+          let bambooValConverted = f.getter(f, Applications.BAMBOO, Applications.CASE);
+          // Check equality by converting the field to the same value format (do not check equality on values converted
+          // to Case format since there could be data loss) If needed, write generic and custom equality methods
+          // attached to the field objects
+          if (bambooHRVal != caseValConverted) {
+            // Field values do NOT match
+            if (f.isEmpty(Applications.CASE, f) && !f.isEmpty(Applications.BAMBOO, f)) {
+              // Case field is empty AND BambooHR field is NOT empty (update Case field value with BambooHR field value)
+              logger.log(3, 'syncApplicationData', `Fields do NOT match (${f.name}): updating Case value`);
+              f.updateValue(Applications.CASE, f, bambooValConverted);
+              caseEmployeeUpdated = true;
+            } else {
+              // Either Bamboo HR field is empty OR both Case and BambooHR field values are NOT empty AND they are
+              // conflicting (update BambooHR field value with Case field value since Case values take precedence over
+              // BambooHR values)
+              logger.log(3, 'syncApplicationData', `Fields do NOT match (${f.name}): updating BambooHR value`);
+              let param = f.updateValue(Applications.BAMBOO, f, caseValConverted);
+              bambooHRBodyParams.push(param);
+              bambooEmployeeUpdated = true;
+            }
+          }
+        });
+        // update case employee here
+        if (caseEmployeeUpdated) {
+          let employee = _.cloneDeep(employee_data[Applications.CASE]);
+          logger.log(3, 'syncApplicationData', `Updating Case employee id: ${employee.id}`);
+          await updateCaseEmployee(employee);
+        }
+        if (bambooEmployeeUpdated) {
+          let body = Object.assign({}, ...bambooHRBodyParams);
+          let employee = _.cloneDeep(employee_data[Applications.BAMBOO]);
+          logger.log(3, 'syncApplicationData', `Updating BambooHR employee id: ${employee.id}`);
+          await updateBambooHREmployee(employee.id, body);
+        }
+        logger.log(
+          3,
+          'syncApplicationData',
+          `Finished syncing data for employee #: ${
+            employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
+          }`
+        );
       }
-    } else {
-      logger.log(
-        3,
-        'syncApplicationData',
-        `FIELDS MATCH (CASE: ${f.name} - ${JSON.stringify(caseValConverted)} ||| BAMBOO: ${f.name} - ${JSON.stringify(
-          bambooHRVal
-        )})`
-      );
+    } catch (err) {
+      logger.log(3, 'syncApplicationData', `Error syncing employee: ${JSON.stringify(err)}`);
     }
+    // reset data
+    employee_data[Applications.BAMBOO] = null;
+    employee_data[Applications.CASE] = null;
   });
-  if (caseEmployeeUpdated) {
-    let employee = _.cloneDeep(employee_data[Applications.CASE]);
-    logger.log(3, 'syncApplicationData', `\nUPDATING CASE EMPLOYEE ${employee.id}`);
-    await updateCaseEmployee(employee);
-  }
-  if (bambooEmployeeUpdated) {
-    let body = Object.assign({}, ...bambooHRBodyParams);
-    let employee = _.cloneDeep(employee_data[Applications.BAMBOO]);
-    logger.log(3, 'syncApplicationData', `\nUPDATING BAMBOOHR EMPLOYEE ${employee.id} PARAMS ${JSON.stringify(body)}`);
-    await updateBambooHREmployee(employee.id, body);
-  }
-
-  // reset data
-  employee_data[Applications.BAMBOO] = null;
-  employee_data[Applications.CASE] = null;
 } // syncApplicationData
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,7 +422,7 @@ function updateEthnicity(application, field, value) {
  * Updates an employee through BambooHR's API.
  *
  * @param id String - The employee ID
- * @param body Object - The fields to update
+ * @param body Array - The list of (field: value) object pairs to update
  */
 async function updateBambooHREmployee(id, body) {
   const key = await getKey();
@@ -753,6 +777,18 @@ function isWorkStatusEmpty(application, field) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Async function to loop an array.
+ *
+ * @param array - Array of elements to iterate over
+ * @param callback - callback function
+ */
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+} // asyncForEach
 
 /**
  * Get the AWS Systems Manager object
