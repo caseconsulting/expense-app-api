@@ -258,9 +258,9 @@ async function syncApplicationData() {
   ]);
   // use both commented out lines for testing on dev (use your own employee number)
   // employee_data[Applications.CASE] = employeeCasePortalData.find((c) =>
-  // c[EMPLOYEE_NUMBER[Applications.CASE]] == 10000);
-  // employee_data[Applications.CASE] = employeeBambooHRData.find((b) =>
-  // b[EMPLOYEE_NUMBER[Applications.BAMBOO]] == 10000);
+  // parseInt(c[EMPLOYEE_NUMBER[Applications.CASE]]) == 10066);
+  // employee_data[Applications.BAMBOO] = employeeBambooHRData.find((b) =>
+  // parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]]) == 10066);
   // loop through each case employee (REMOVE IF TESTING ON DEV ENV)
   await asyncForEach(employeeCasePortalData, async (caseEmp) => {
     try {
@@ -269,10 +269,10 @@ async function syncApplicationData() {
       employee_data[Applications.BAMBOO] =
         STAGE == 'prod'
           ? employeeBambooHRData.find(
-            (b) =>
-              parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+              (b) =>
+                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
                 parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-          )
+            )
           : null;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
         // employee number exists on Case and BambooHR
