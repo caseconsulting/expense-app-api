@@ -269,10 +269,10 @@ async function syncApplicationData() {
       employee_data[Applications.BAMBOO] =
         STAGE == 'prod'
           ? employeeBambooHRData.find(
-            (b) =>
-              parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+              (b) =>
+                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
                 parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-          )
+            )
           : null;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
         // employee number exists on Case and BambooHR
@@ -333,7 +333,7 @@ async function syncApplicationData() {
         );
       }
     } catch (err) {
-      logger.log(3, 'syncApplicationData', `Error syncing employee: ${JSON.stringify(err)}`);
+      logger.log(3, 'syncApplicationData', `Error syncing employee: ${err}`);
     }
     // reset data
     employee_data[Applications.BAMBOO] = null;
@@ -385,10 +385,11 @@ function updatePhone(application, field, value) {
       let phoneType = getPhoneType(field);
       let publicPhoneIndex = _.findIndex(employee_data[application].publicPhoneNumbers, (p) => p.type == phoneType);
       let privatePhoneIndex = _.findIndex(employee_data[application][field[application]], (p) => p.type == phoneType);
-      if (publicPhoneIndex != -1) employee_data[application].publicPhoneNumbers.splice(publicPhoneIndex, 1, ...value);
+      if (publicPhoneIndex != -1)
+        value ? employee_data[application].publicPhoneNumbers.splice(publicPhoneIndex, 1, ...value) : null;
       else if (privatePhoneIndex != -1)
-        employee_data[application][field[application]].splice(privatePhoneIndex, 1, ...value);
-      else employee_data[application][field[application]].push(...value);
+        value ? employee_data[application][field[application]].splice(privatePhoneIndex, 1, ...value) : null;
+      else value ? employee_data[application][field[application]].push(...value) : null;
     }
     return employee_data[application];
   } else {
@@ -410,6 +411,8 @@ function updateEthnicity(application, field, value) {
     employee_data[application][field[application]] = value;
     if (value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] == 'Hispanic or Latino') {
       employee_data[application]['eeoHispanicOrLatino'] = { text: 'Hispanic or Latino', value: true };
+    } else if (!value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] == 'Decline to answer') {
+      employee_data[application]['eeoHispanicOrLatino'] = null;
     } else {
       employee_data[application]['eeoHispanicOrLatino'] = { text: 'Not Hispanic or Latino', value: false };
     }
@@ -666,7 +669,7 @@ function getEthnicity(field, applicationFormat, toApplicationFormat) {
     else return ethnicity ? ethnicity.text : null;
   } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) return null;
+    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify || ethnicity == 'Decline to answer') return null;
     else if (ethnicity == 'White') return { text: ethnicity, value: 0 };
     else if (ethnicity == 'Black or African American') return { text: ethnicity, value: 1 };
     else if (ethnicity == 'Native Hawaiian or Other Pacific Islander') return { text: ethnicity, value: 2 };
@@ -711,7 +714,13 @@ function isEmpty(application, field) {
  */
 function isEEOEmpty(application, field) {
   if (application == Applications.CASE) {
-    return !employee_data[application].eeoDeclineSelfIdentify && isEmpty(application, field);
+    if (field.name == DISABILITY.name) {
+      return (
+        !employee_data[application].eeoDeclineSelfIdentify && _.isNil(employee_data[application][field[application]])
+      );
+    } else {
+      return !employee_data[application].eeoDeclineSelfIdentify && isEmpty(application, field);
+    }
   } else {
     return isEmpty(application, field);
   }
