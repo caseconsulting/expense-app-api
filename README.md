@@ -11,15 +11,10 @@ npm run reinstall
 ```
 
 Deployment of the **Expense App API** requires the **AWS Command Line Interface (CLI)** and
-**AWS Single Sign-On (SSO)**. We use the **aws-sso-util** utility to simplify AWS SSO configuration and usage.
+**AWS IAM Identity Center** (formerly AWS Single Sign-On [SSO]).
 
 Download and install **AWS CLI** version 2 following instructions from:
 https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-
-**aws-sso-util** is built with **Python**, so first install Python 3.x from: https://www.python.org/downloads/
-
-Download and install **aws-sso-util**, after first installing **pipx** (if not already installed),
-following instructions from: https://github.com/benkehoe/aws-sso-util#quickstart
 
 ## AWS SSO Configuration
 
@@ -35,8 +30,10 @@ aws configure sso
 
 When prompted, enter the following information:
 
+- **SSO session name**: _dev_
 - **SSO start URL**: _https://consultwithcase.awsapps.com/start_
-- **SSO Region**: _us-east-1_
+- **SSO region**: _us-east-1_
+- **SSO registration scopes**: _leave blank to accept default value of sso:account:access_
 
 Your web browser will open a new tab and you will be required to login to Google with your **@consultwithcase.com**
 email address and then press the _Allow_ button to explicitly permit the authorize request.
@@ -47,34 +44,19 @@ Close the web browser tab. Return to your command prompt and continue answering 
 - **CLI default output format**: _json_
 - **CLI profile name**: _default_
 
-In the `~/.aws/config` file, add the following line to the end of your _default_ configuration to use **aws-sso-util**
-to [obtain AWS credentials using an external process](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes):
-
-```
-credential_process = aws-sso-util credential-process
-```
-
 ### AWS Prod Account - _prod_ Profile
 
 If you have been given access to the company's AWS Prod account, run the `aws configure sso` command (one-time)
 to configure a _prod_ profile.
 Choose the same values, except select _Case Consulting Prod_ AWS account and enter _prod_ as **CLI profile name**.
 
-In the `~/.aws/config` file, add the following line to the end of your _profile prod_ configuration to use **aws-sso-util** to obtain AWS credentials for the _prod_ profile:
-
-```
-credential_process = aws-sso-util credential-process --profile prod
-```
-
-_NOTE_: You can alternatively run `aws-sso-util configure profile prod` to accomplish the same result.
-
 ### AWS SSO Login
 
-To explicitly obtain AWS credentials from AWS SSO, use **aws-sso-util** by running `aws-sso-util login`.
-If your web browser opens a new tab, you will be required to login to Google with your **@consultwithcase.com**
-email address and then press the _Allow_ button to explicitly permit the authorize request.
+To explicitly obtain AWS credentials from AWS SSO, running `aws sso login`.
+Your web browser should open a new tab, where you should be required to login to Google with your **@consultwithcase.com**
+email address (unless you recently did so) and then press the _Allow_ button to explicitly permit the authorize request.
 
-To remove AWS credentials run `aws-sso-util logout`. This will also clear any authorization.
+To remove AWS credentials run `aws sso logout`. This will also clear any authorization.
 Therefore, a subsequent login will launch the web browser again for a new authorization request.
 
 ## Environment variables
@@ -382,10 +364,6 @@ https://docs.aws.amazon.com/cli/index.html
 **AWS SSO:**
 
 https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html
-
-**aws-sso-util:**
-
-https://github.com/benkehoe/aws-sso-util
 
 **AWS CloudFormation:**
 
