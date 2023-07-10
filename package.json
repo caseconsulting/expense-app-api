@@ -106,7 +106,7 @@
     "claudia": "git+https://github.com/claudiajs/claudia.git#pull/230/head",
     "eslint": "8.44.0",
     "jasmine": "3.99.0",
-    "nodemon": "2.0.22",
+    "nodemon": "3.0.1",
     "nyc": "15.1.0",
     "precommit-hook": "3.0.0"
   },
