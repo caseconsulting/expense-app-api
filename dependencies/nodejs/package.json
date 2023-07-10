@@ -12,6 +12,6 @@
     "jwks-rsa": "2.1.5",
     "lodash": "4.17.21",
     "metadata-scraper": "0.2.61",
-    "url-exists": "^1.0.3"
+    "url-exists": "1.0.3"
   }
 }
