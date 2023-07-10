@@ -104,7 +104,13 @@ describe('employeeRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let employeeRoutes, budgetDynamo, databaseModify, employeeSensitiveDynamo, expenseTypeDynamo, expenseDynamo;
+  let employeeRoutes,
+    budgetDynamo,
+    databaseModify,
+    employeeSensitiveDynamo,
+    expenseTypeDynamo,
+    expenseDynamo,
+    tagDynamo;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -167,6 +173,18 @@ describe('employeeRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    tagDynamo = jasmine.createSpyObj('tagDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
 
     employeeRoutes = new EmployeeRoutes();
     employeeRoutes.budgetDynamo = budgetDynamo;
@@ -174,6 +192,7 @@ describe('employeeRoutes', () => {
     employeeRoutes.employeeSensitiveDynamo = employeeSensitiveDynamo;
     employeeRoutes.expenseDynamo = expenseDynamo;
     employeeRoutes.expenseTypeDynamo = expenseTypeDynamo;
+    employeeRoutes.tagDynamo = tagDynamo;
   });
 
   describe('_create', () => {
@@ -691,6 +710,7 @@ describe('employeeRoutes', () => {
         beforeEach(() => {
           budgetDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve(budgets));
           expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
+          tagDynamo.getAllEntriesInDB.and.returnValue([]);
           budgetDynamo.updateEntryInDB.and.returnValues(
             Promise.resolve(expectedBudget1),
             Promise.resolve(expectedBudget2),

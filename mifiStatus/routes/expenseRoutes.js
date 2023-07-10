@@ -6,8 +6,8 @@ const Employee = require('./../models/employee');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const Logger = require('../js/Logger');
-const _ = require('lodash');
 const dateUtils = require('../js/dateUtils');
+const _ = require('lodash');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
@@ -183,22 +183,27 @@ class ExpenseRoutes extends Crud {
     // compute method
     try {
       let expense = new Expense(data);
-      let employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
-      let expenseType = await this.expenseTypeDynamo.getEntry(expense.expenseTypeId);
+      let [employee, expenseType, tags] = await Promise.all([
+        new Employee(await this.employeeDynamo.getEntry(expense.employeeId)),
+        this.expenseTypeDynamo.getEntry(expense.expenseTypeId),
+        this.tagDynamo.getAllEntriesInDB()
+      ]);
       expenseType.categories = _.map(expenseType.categories, (category) => {
         return JSON.parse(category);
       });
       expenseType = new ExpenseType(expenseType);
 
-      await this._validateExpense(expense, employee, expenseType); // validate expense
-      await this._validateAdd(expense, employee, expenseType); // validate add
+      await Promise.all([
+        this._validateExpense(expense, employee, expenseType),
+        this._validateAdd(expense, employee, expenseType)
+      ]);
 
       let budget;
 
       try {
         budget = await this._findBudget(employee.id, expenseType.id, expense.purchaseDate); // find budget
       } catch (err) {
-        budget = await this.createNewBudget(employee, expenseType); // create budget
+        budget = await this.createNewBudget(employee, expenseType, null, tags); // create budget
       }
 
       await this._addToBudget(expense, employee, expenseType, budget); // add expense to budget
@@ -522,7 +527,7 @@ class ExpenseRoutes extends Crud {
 
     return _.sortBy(budgets, [
       (budget) => {
-        return dateUtils.format(budget.fiscalStartDate, null, ISOFORMAT);
+        return budget.fiscalStartDate;
       }
     ]);
   } // _sortBudgets
@@ -552,7 +557,7 @@ class ExpenseRoutes extends Crud {
         let onlyReimbursing = this._isOnlyReimburseDateChange(oldExpense, newExpense); // check if only reimbursing
         if (onlyReimbursing) {
           // only need to validate date change
-          if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate, null, ISOFORMAT)) {
+          if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate)) {
             throw {
               code: 403,
               message: 'Reimbursed date must be after purchase date.'
@@ -741,28 +746,32 @@ class ExpenseRoutes extends Crud {
           expenseType.budget == sortedBudgets[i].amount &&
           currPending + currReimbursed > sortedBudgets[i].amount &&
           expenseType.recurringFlag &&
-          !_.isEqual(
-            sortedBudgets[i].fiscalStartDate,
-            this.getBudgetDates(employee.hireDate).startDate.format(ISOFORMAT)
-          )
+          !_.isEqual(sortedBudgets[i].fiscalStartDate, this.getBudgetDates(employee.hireDate).startDate)
         ) {
           // set carry over accumulators if budget is full time, needs to carry costs, and isn't the latest budget
-          let condition = !dateUtils.isSame(
-            dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day'),
-            sortedBudgets[i + 1].fiscalStartDate
-          );
-          if (i == sortedBudgets.length - 1 || condition) {
+          if (
+            i == sortedBudgets.length - 1 ||
+            !dateUtils.isSame(
+              dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day', ISOFORMAT),
+              sortedBudgets[i + 1].fiscalStartDate
+            )
+          ) {
             // create a new budget if a sequential recurring budget does not exist
             logger.log(
               3,
               '_updateBudgets',
-              `Attempting to create a new budget starting on ${dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day')}`
+              `Attempting to create a new budget starting on ${dateUtils.add(
+                sortedBudgets[i].fiscalEndDate,
+                1,
+                'day',
+                ISOFORMAT
+              )}`
             );
 
             let newBudgetData = await this.createNewBudget(
               employee,
               expenseType,
-              dateUtils.format(dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day'), null, ISOFORMAT)
+              dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day', ISOFORMAT)
             );
             let newBudget = new Budget(newBudgetData);
             sortedBudgets.splice(i + 1, 0, newBudget);
@@ -867,20 +876,16 @@ class ExpenseRoutes extends Crud {
             3,
             '_validateAdd',
             `Purchase date ${expense.purchaseDate} is out of current annual budget range`,
-            `${dateUtils.format(dates.startDate, null, ISOFORMAT)} to ${dateUtils.format(
-              dates.endDate,
-              null,
-              ISOFORMAT
-            )}`
+            `${dates.startDate} to ${dates.endDate}`
           );
 
           // throw error
           const ERRFORMAT = 'MM/DD/YYYY';
           err.message =
             'Purchase date must be in current annual budget range from ' +
-            `${dateUtils.format(dates.startDate, null, ERRFORMAT)} to ${dateUtils.format(
+            `${dateUtils.format(dates.startDate, ISOFORMAT, ERRFORMAT)} to ${dateUtils.format(
               dates.endDate,
-              null,
+              ISOFORMAT,
               ERRFORMAT
             )}.`;
           throw err;
@@ -964,7 +969,7 @@ class ExpenseRoutes extends Crud {
       };
 
       // validate reimburse date is after purchase date
-      if (dateUtils.isBefore(expense.reimbursedDate, expense.purchaseDate, null, ISOFORMAT)) {
+      if (dateUtils.isBefore(expense.reimbursedDate, expense.purchaseDate)) {
         // log error
         logger.log(
           3,

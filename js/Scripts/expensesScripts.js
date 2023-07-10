@@ -25,7 +25,7 @@ const TABLE = `${STAGE}-expenses`;
 const ETTABLE = `${STAGE}-expense-types`;
 
 // imports
-const { v4: uuid } = require('uuid');
+const { generateUUID } = require('../utils');
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
@@ -222,7 +222,7 @@ async function addReceipts() {
  */
 function createItems(numberOfItems) {
   for (let i = 0; i < numberOfItems; i++) {
-    let newId = uuid();
+    let newId = generateUUID();
     let params = {
       TableName: TABLE,
       Item: {

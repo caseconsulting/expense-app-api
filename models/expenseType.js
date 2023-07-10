@@ -43,6 +43,7 @@ class ExpenseType {
     this.setRequiredAttribute(data, 'requiredFlag', true); // default: receipt required
     this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
     this.setRequiredAttribute(data, 'proRated', false);
+    this.setRequiredAttribute(data, 'tagBudgets', []);
 
     this.setOptionalAttribute(data, 'campfire');
     this.setOptionalAttribute(data, 'endDate');

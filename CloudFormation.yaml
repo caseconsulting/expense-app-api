@@ -604,6 +604,37 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  tagTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - tags
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: tagName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: tagName-index
+          KeySchema:
+            - AttributeName: tagName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -716,6 +747,73 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
+  PortalDataSyncLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join
+        - ''
+        - - expense-api-lambda-portal-data-sync-
+          - !Ref Stage
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'dynamodb:*'
+                Resource: '*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: '*'
+        - PolicyName: BambooHRAPIParamKey
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'ssm:GetParameter'
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/APIKey"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  PortalDataSyncFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Employee data synchronization between BambooHR and the Portal.
+      Role: !GetAtt
+        - ExpenseAppApiLambdaRole
+        - Arn
+      Handler: app.handler
+      Layers:
+        - !Ref DependenciesLayer
+      Timeout: 900
+      Role: !GetAtt
+        - PortalDataSyncLambdaRole
+        - Arn
+      CodeUri: ./portal-data-sync
+      Events:
+        PortalDataSyncSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:

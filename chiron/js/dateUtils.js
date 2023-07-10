@@ -1,6 +1,7 @@
 // Documentation for Day.js: https://day.js.org/en/
 // WARNING: Be careful making edits to these functions as they are used all throughout the code base
 
+const DEFAULT_TIME_ZONE = 'America/New_York';
 const dayjs = require('dayjs');
 var utc = require('dayjs/plugin/utc');
 var timezone = require('dayjs/plugin/timezone');
@@ -24,7 +25,7 @@ dayjs.extend(localizedFormat);
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
-dayjs.tz.setDefault('America/New_York');
+dayjs.tz.setDefault(DEFAULT_TIME_ZONE);
 
 // constants
 const DEFAULT_ISOFORMAT = 'YYYY-MM-DD';
@@ -167,9 +168,9 @@ function getIsoWeekday(date) {
  */
 function getTodaysDate(format) {
   if (format) {
-    return dayjs().format(format);
+    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(format);
   } else {
-    return dayjs().format(DEFAULT_ISOFORMAT);
+    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(DEFAULT_ISOFORMAT);
   }
 } // getTodaysDate
 

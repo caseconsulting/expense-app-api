@@ -1,8 +1,8 @@
 ## Setup
 
-The **Expense App API** is written in **Node.js** v14.x+.
+The **Expense App API** is written in **Node.js** v18.x+.
 
-Download and install **Node.js** v14.x from: https://nodejs.org/en/ or https://nodejs.org/dist/latest-v14.x/
+Download and install **Node.js** v18.x from: https://nodejs.org/en/ or https://nodejs.org/dist/latest-v18.x/
 
 Install required **Node.js** modules:
 

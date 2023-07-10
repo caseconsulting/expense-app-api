@@ -1,6 +1,7 @@
 const Budget = require('./../models/budget');
 const DatabaseModify = require('../js/databaseModify');
 const Employee = require('./../models/employee');
+const EmployeeSensitive = require('./../models/employee-sensitive');
 const Expense = require('./../models/expense');
 const ExpenseType = require('./../models/expenseType');
 const express = require('express');
@@ -90,13 +91,21 @@ class Utility {
       this._getUserInfo,
       this._getAllEmployeePtoCashOuts.bind(this)
     );
+    this._router.get(
+      '/getUnreimbursedExpenses',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getUnreimbursedExpenses.bind(this)
+    );
 
     this.employeeDynamo = new DatabaseModify('employees');
+    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.budgetDynamo = new DatabaseModify('budgets');
     this.trainingDynamo = new DatabaseModify('training-urls');
     this.ptoCashOutDynamo = new DatabaseModify('pto-cashouts');
+    this.tagDynamo = new DatabaseModify('tags');
   } // constructor
 
   /**
@@ -112,14 +121,15 @@ class Utility {
   } // asyncForEach
 
   /**
-   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
-   * amount.
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
+   * Returns the adjusted amount.
    *
    * @param employee - Employee to adjust amount for
    * @param expenseType - ExpenseType budget to be adjusted
+   * @param tags - The list of tags from the tags database
    * @return Number - adjusted budget amount
    */
-  calcAdjustedAmount(employee, expenseType) {
+  calcAdjustedAmount(employee, expenseType, tags) {
     // log method
     logger.log(
       4,
@@ -131,10 +141,29 @@ class Utility {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      // default budget if employee is not in a budgeted tag
+      let budgetAmount = expenseType.budget;
+
+      if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        let foundHighestPriorityTag = false;
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
+          _.forEach(tagBudget.tags, (tagId) => {
+            let tag = _.find(tags, (t) => t.id === tagId);
+            if (tag) {
+              if (tag.employees.includes(employee.id) && !foundHighestPriorityTag) {
+                // employee is included in a tag with a different budget amount
+                foundHighestPriorityTag = true;
+                budgetAmount = tagBudget.budget;
+              }
+            }
+          });
+        });
+      }
+
       if (!expenseType.proRated) {
-        result = expenseType.budget;
+        result = budgetAmount;
       } else {
-        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+        result = Number((budgetAmount * (employee.workStatus / 100.0)).toFixed(2));
       }
     } else {
       result = 0;
@@ -222,7 +251,10 @@ class Utility {
       let today = dateUtils.getTodaysDate(); // today isoformat string
 
       // get all budgets for employee and expense type
-      let expenseTypeBudgetsData = await this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+      let [expenseTypeBudgetsData, tags] = await Promise.all([
+        this.budgetDynamo.queryWithTwoIndexesInDB(employee.id, expenseType.id),
+        this.tagDynamo.getAllEntriesInDB()
+      ]);
       let expenseTypeBudgets = _.map(expenseTypeBudgetsData, (budgetData) => {
         return new Budget(budgetData);
       });
@@ -254,7 +286,7 @@ class Utility {
         }
 
         // set the budget amount based on the employee and expense type
-        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType);
+        budgetObject.amount = this.calcAdjustedAmount(employee, expenseType, tags);
       }
 
       let aggregateBudget = {
@@ -318,6 +350,8 @@ class Utility {
         }
       });
       activeBudgets = await Promise.all(promises);
+      // filter out budgets where the total amount is $0, this would have been set from a tag budget on an expense type
+      activeBudgets = _.filter(activeBudgets, (b) => b.budgetObject && b.budgetObject.amount > 0);
 
       // log success
       logger.log(
@@ -344,36 +378,35 @@ class Utility {
   } // _getAllActiveEmployeeBudgets
 
   /**
-   * queries the expenses based on expenseTypes and cutOffDate
+   * scans the expenses based on cutOffDate
    *
-   * @param expenseType - expenseType to use to get expenses
    * @param cutOffDate - expenses with reimbursedDate before this date are not returned
-   * @return - the queried expenses
+   * @return - the scanned expenses
    */
-  async queryExpenses(expenseType, cutOffDate) {
+  async _scanExpenses(cutOffDate) {
     //use additional params option of querySecondaryIndex to filter things.
+    logger.log(1, '_scanExpenses', 'Attempting to scan expenses after ' + cutOffDate);
     cutOffDate = dateUtils.format(cutOffDate, null, ISOFORMAT);
     //default attributes for two
     let expressionAttributes = {
-      ':queryKey': expenseType.id,
-      ':cutOffDate': cutOffDate
+      ':scanKey': cutOffDate
     };
     let additionalParams = {
       ExpressionAttributeValues: expressionAttributes,
-      KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate'
+      FilterExpression: 'reimbursedDate >= :scanKey'
     };
     try {
-      let ret = await this.expenseDynamo.querySecondaryIndexInDB(
-        'expenseTypeId-reimbursedDate-index',
-        'expenseTypeId',
-        expenseType.id,
-        additionalParams
-      );
-      return ret;
+      let expenses = await this.expenseDynamo.scanWithFilter('reimbursedDate', cutOffDate, additionalParams);
+      expenses = _.map(expenses, (expense) => {
+        return new Expense(expense);
+      });
+      logger.log(1, '_scanExpenses', 'Successfully scanned expenses after ' + cutOffDate);
+      return expenses;
     } catch (err) {
+      logger.log(1, '_scanExpenses', 'Failed to scan expenses after ' + cutOffDate);
       return err;
     }
-  } // queryExpenses
+  } // _scanExpenses
 
   /**
    * gets the basecamp token
@@ -489,51 +522,30 @@ class Utility {
   async _getAllEvents(req, res) {
     // log method
     logger.log(1, '_getAllEvents', 'Attempting to get all event data');
+    let now = dateUtils.getTodaysDate();
+    let cutOff = dateUtils.subtract(now, 6, 'month');
     try {
-      let [expenseTypes, employeesData, accessToken] = await Promise.all([
+      let [expenseTypes, expensesData, employeesData, accessToken, employeesSensitiveData] = await Promise.all([
         this.getAllExpenseTypes(),
+        this._scanExpenses(cutOff),
         this.employeeDynamo.getAllEntriesInDB(),
-        this.getBasecampToken()
+        this.getBasecampToken(),
+        this.employeeSensitiveDynamo.getAllEntriesInDB()
       ]);
-
-      let now = dateUtils.getTodaysDate();
-      let cutOff = dateUtils.subtract(now, 6, 'month');
-
-      let filteredExpenseTypes = _.map(expenseTypes, (expenseType) => {
-        let endDate = expenseType.endDate;
-        if (expenseType.isInactive || dateUtils.isAfter(cutOff, endDate)) {
-          return;
-        } else {
-          return expenseType;
-        }
-      });
-      filteredExpenseTypes = _.compact(filteredExpenseTypes);
-
-      let expensesData = [];
       let promises = [];
-      try {
-        await this.asyncForEach(filteredExpenseTypes, async (expenseType) => {
-          promises.push(this.queryExpenses(expenseType, cutOff));
-          // log success
-          logger.log(1, 'getAllEvents', `Successfully read all expenses for expenseType ${expenseType.budgetName}`);
-        });
-        let expensesDataArr = await Promise.all(promises);
-        expensesDataArr.forEach((queryExpensesData) => {
-          let expenses = _.map(queryExpensesData, (expenseData) => {
-            return new Expense(expenseData);
-          });
-
-          expensesData = _.union(expensesData, expenses);
-        });
-      } catch (err) {
-        // log error
-        logger.log(1, 'getAllEvents', 'Failed to read all expenses for expenseTypes');
-        return Promise.reject(err);
-      }
 
       let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
+      // add sensitive birthday field only if the employee has given permission through the birthdayFeed field
+      _.forEach(employees, (e) => {
+        if (e.birthdayFeed) {
+          let empSensitive = new EmployeeSensitive(employeesSensitiveData.find((em) => em.id == e.id));
+          // only show month and day so employees cannot not see age of employee in network tab
+          e['birthday'] = dateUtils.format(empSensitive.birthday, null, 'MM-DD');
+        }
+      });
+
       let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
 
       let entries = [];
@@ -588,6 +600,44 @@ class Utility {
       return err;
     }
   } // getAllExpenseTypes
+
+  /**
+   * Gets all unreimbursed expenses.
+   *
+   * @return - all the expenseTypes
+   */
+  async _getUnreimbursedExpenses(req, res) {
+    logger.log(1, '_getUnreimbursedExpenses', 'Attempting to get all unreimbursed expenses');
+    try {
+      let expressionAttributes = {
+        ':queryKey': null
+      };
+      let additionalParams = {
+        ExpressionAttributeValues: expressionAttributes,
+        FilterExpression: 'attribute_not_exists(reimbursedDate) or reimbursedDate = :queryKey'
+      };
+      let unreimbursedExpenses = await this.expenseDynamo.scanWithFilter('reimbursedDate', null, additionalParams);
+      unreimbursedExpenses = _.map(unreimbursedExpenses, (expense) => {
+        return new Expense(expense);
+      });
+      // log success
+      logger.log(1, '_getUnreimbursedExpenses', 'Successfully got all unreimbursed expenses');
+
+      // send successful 200 status
+      res.status(200).send(unreimbursedExpenses);
+
+      return unreimbursedExpenses;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getUnreimbursedExpenses', 'Failed to get all unreimbred expenses');
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _getUnreimbursedExpenses
 
   /**
    * Getting all aggregate expenses. Converts employeeId to employee full name and expenseTypeId to budget name and

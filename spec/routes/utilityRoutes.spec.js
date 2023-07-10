@@ -150,7 +150,15 @@ describe('utilityRoutes', () => {
     params: PARAMS_DATA
   };
 
-  let budgetDynamo, expenseDynamo, employeeDynamo, expenseTypeDynamo, res, trainingDynamo, utilityRoutes;
+  let budgetDynamo,
+    expenseDynamo,
+    employeeDynamo,
+    employeeSensitiveDynamo,
+    expenseTypeDynamo,
+    res,
+    trainingDynamo,
+    tagDynamo,
+    utilityRoutes;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -172,12 +180,25 @@ describe('utilityRoutes', () => {
       'getEntryUrl',
       'querySecondaryIndexInDB',
       'queryWithTwoIndexesInDB',
+      'scanWithFilter',
       '_readFromDB',
       '_readFromDBUrl',
       'removeFromDB',
       'updateEntryInDB'
     ]);
     employeeDynamo = jasmine.createSpyObj('employeeDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
+    employeeSensitiveDynamo = jasmine.createSpyObj('employeeDynamo', [
       'addToDB',
       'getAllEntriesInDB',
       'getEntry',
@@ -213,6 +234,18 @@ describe('utilityRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
+    tagDynamo = jasmine.createSpyObj('tagDynamo', [
+      'addToDB',
+      'getAllEntriesInDB',
+      'getEntry',
+      'getEntryUrl',
+      'querySecondaryIndexInDB',
+      'queryWithTwoIndexesInDB',
+      '_readFromDB',
+      '_readFromDBUrl',
+      'removeFromDB',
+      'updateEntryInDB'
+    ]);
     // basecamp = jasmine.createSpyObj('basecamp', [
     //   '_getBasecampToken',
     //   'getBasecampInfo',
@@ -225,8 +258,10 @@ describe('utilityRoutes', () => {
     utilityRoutes.budgetDynamo = budgetDynamo;
     utilityRoutes.expenseDynamo = expenseDynamo;
     utilityRoutes.employeeDynamo = employeeDynamo;
+    utilityRoutes.employeeSensitiveDynamo = employeeSensitiveDynamo;
     utilityRoutes.expenseTypeDynamo = expenseTypeDynamo;
     utilityRoutes.trainingDynamo = trainingDynamo;
+    utilityRoutes.tagDynamo = tagDynamo;
     utilityRoutes._router = _ROUTER;
   });
 
@@ -247,7 +282,7 @@ describe('utilityRoutes', () => {
   }); // asyncForEach
 
   describe('calcAdjustedAmount', () => {
-    let employee, expenseType;
+    let employee, expenseType, tags;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
@@ -268,7 +303,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 50% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(50);
         }); // should return 50% of the budget
       }); // and expense type is accessible by All
 
@@ -279,7 +314,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 100% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(100);
         }); // should return 100% of the budget
       }); // and expense type is accessible by Full
 
@@ -290,7 +325,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 100% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(100);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(100);
         }); // should return 100% of the budget
       }); // and expense type is accessible by Full Time
 
@@ -301,7 +336,7 @@ describe('utilityRoutes', () => {
         });
 
         it('should return 50% of the budget', () => {
-          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(50);
+          expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(50);
         }); // should return 50% of the budget
       }); // and expense type is accessible by Custom
     }); // when employee has access
@@ -312,7 +347,7 @@ describe('utilityRoutes', () => {
       });
 
       it('should return 0', () => {
-        expect(utilityRoutes.calcAdjustedAmount(employee, expenseType)).toEqual(0);
+        expect(utilityRoutes.calcAdjustedAmount(employee, expenseType, tags)).toEqual(0);
       }); // should return 0
     }); // when employee does not have access
   }); // calcAdjustedAmount
@@ -427,11 +462,12 @@ describe('utilityRoutes', () => {
   }); // aggregateExpenseData
 
   describe('_getActiveBudget', () => {
-    let employee, expenseType;
+    let employee, expenseType, tags;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
       expenseType = new ExpenseType(EXPENSE_TYPE_DATA);
+      tags = [];
     });
 
     describe('when successfully gets an active budget', () => {
@@ -483,6 +519,7 @@ describe('utilityRoutes', () => {
           });
 
           budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve([]));
+          tagDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([]));
         });
 
         describe('and expense type is recurring', () => {
@@ -516,7 +553,7 @@ describe('utilityRoutes', () => {
               expect(data).toEqual(activeBudget);
               expect(budgetDynamo.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
               expect(utilityRoutes.getBudgetDates).toHaveBeenCalledWith(HIRE_DATE);
-              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType);
+              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType, tags);
               done();
             });
           }); // should return the aggregate active budgets
@@ -547,7 +584,7 @@ describe('utilityRoutes', () => {
             utilityRoutes._getActiveBudget(employee, expenseType).then((data) => {
               expect(data).toEqual(activeBudget);
               expect(budgetDynamo.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
-              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType);
+              expect(utilityRoutes.calcAdjustedAmount).toHaveBeenCalledWith(employee, expenseType, tags);
               done();
             });
           }); // should return the aggregate active budgets
@@ -584,10 +621,11 @@ describe('utilityRoutes', () => {
   }); // _getActiveBudget
 
   describe('_getAllActiveEmployeeBudgets', () => {
-    let employee, expenseType1, expenseType2, expenseType3, expenseTypes;
+    let employee, expenseType1, expenseType2, expenseType3, expenseTypes, budgetObject;
 
     beforeEach(() => {
       employee = new Employee(EMPLOYEE_DATA);
+      budgetObject = { budgetObject: { amount: 1 } };
       expenseType1 = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType2 = new ExpenseType(EXPENSE_TYPE_DATA);
       expenseType3 = new ExpenseType(EXPENSE_TYPE_DATA);
@@ -609,18 +647,18 @@ describe('utilityRoutes', () => {
       beforeEach(() => {
         employeeDynamo.getEntry.and.returnValue(Promise.resolve(employee));
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(expenseTypes));
-        spyOn(utilityRoutes, '_getActiveBudget').and.returnValue('{activeBudget}');
+        spyOn(utilityRoutes, '_getActiveBudget').and.returnValue({ budgetObject: { amount: 1 } });
         spyOn(utilityRoutes, 'hasAccess').and.returnValue(true);
       });
 
       it('should respond with a 200 and the 2 active aggregated expenses', (done) => {
         utilityRoutes._getAllActiveEmployeeBudgets(REQ_DATA, res).then((data) => {
-          expect(data).toEqual(['{activeBudget}', '{activeBudget}']);
+          expect(data).toEqual([budgetObject, budgetObject]);
           expect(employeeDynamo.getEntry).toHaveBeenCalledWith(ID);
           expect(expenseTypeDynamo.getAllEntriesInDB).toHaveBeenCalled();
           expect(utilityRoutes._getActiveBudget).toHaveBeenCalledTimes(2);
           expect(res.status).toHaveBeenCalledWith(200);
-          expect(res.send).toHaveBeenCalledWith(['{activeBudget}', '{activeBudget}']);
+          expect(res.send).toHaveBeenCalledWith([budgetObject, budgetObject]);
           done();
         });
       }); // should respond with a 200 and the 2 active aggregated expenses
@@ -830,7 +868,7 @@ describe('utilityRoutes', () => {
       beforeEach(() => {
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(basecampEvent);
@@ -842,7 +880,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(payload);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled(); //TODO: queryExpense?
+          expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(200);
@@ -914,8 +952,8 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense])); //TODO: queryExpense?
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
@@ -946,19 +984,19 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
-        spyOn(utilityRoutes, 'queryExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
+        spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
 
-      it('should respond witha  404 and error', (done) => {
+      it('should respond with a 404 and error', (done) => {
         utilityRoutes._getAllEvents(req, res).then((data) => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
-          expect(utilityRoutes.queryExpenses).toHaveBeenCalled();
+          expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(404);
@@ -969,63 +1007,51 @@ describe('utilityRoutes', () => {
     }); // when it fails to get basecamp schedule entries
   });
 
-  describe('queryExpenses', () => {
-    let cutOffDate, expenseType, expense, formattedDate, additionalParams;
+  describe('_scanExpenses', () => {
+    let cutOffDate, expense, formattedDate, additionalParams;
 
     beforeEach(() => {
       cutOffDate = _.cloneDeep(DATE);
-      expenseType = _.cloneDeep(EXPENSE_TYPE_DATA);
-      expense = _.cloneDeep(EXPENSE_DATA);
+      expense = new Expense(_.cloneDeep(EXPENSE_DATA));
       formattedDate = _.cloneDeep(cutOffDate);
       additionalParams = {
         ExpressionAttributeValues: {
-          ':queryKey': expenseType.id,
-          ':cutOffDate': formattedDate
+          ':scanKey': formattedDate
         },
-        KeyConditionExpression: 'expenseTypeId = :queryKey and reimbursedDate >= :cutOffDate'
+        FilterExpression: 'reimbursedDate >= :scanKey'
       };
     });
 
-    describe('when it succeeds in returning all queried expenses', () => {
+    describe('when it succeeds in returning all scanned expenses', () => {
       beforeEach(() => {
-        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.resolve([expense]));
+        expenseDynamo.scanWithFilter.and.returnValue(Promise.resolve([expense]));
       });
 
       it('should respond with 200 and expense data', (done) => {
-        utilityRoutes.queryExpenses(expenseType, cutOffDate).then((data) => {
+        utilityRoutes._scanExpenses(cutOffDate).then((data) => {
           expect(data).toEqual([expense]);
-          expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
-            'expenseTypeId-reimbursedDate-index',
-            'expenseTypeId',
-            expenseType.id,
-            additionalParams
-          );
+          expect(expenseDynamo.scanWithFilter).toHaveBeenCalledWith('reimbursedDate', cutOffDate, additionalParams);
           done();
         });
       });
-    }); // when it succeeds in returning all queried expenses
+    }); // when it succeeds in returning all scanned expenses
 
-    describe('when it fails to return queried expenses', () => {
+    describe('when it fails to return scanned expenses', () => {
       let err;
 
       beforeEach(() => {
         err = {
           code: 404,
-          message: 'Failed to get queried expenses'
+          message: 'Failed to get scan expenses'
         };
 
-        expenseDynamo.querySecondaryIndexInDB.and.returnValue(Promise.reject(err));
+        expenseDynamo.scanWithFilter.and.returnValue(Promise.reject(err));
       });
 
       it('should respond with 404 and err', (done) => {
-        utilityRoutes.queryExpenses(expenseType, cutOffDate).then((data) => {
+        utilityRoutes._scanExpenses(cutOffDate).then((data) => {
           expect(data).toEqual(err);
-          expect(expenseDynamo.querySecondaryIndexInDB).toHaveBeenCalledWith(
-            'expenseTypeId-reimbursedDate-index',
-            'expenseTypeId',
-            expenseType.id,
-            additionalParams
-          );
+          expect(expenseDynamo.scanWithFilter).toHaveBeenCalledWith('reimbursedDate', cutOffDate, additionalParams);
           done();
         });
       });

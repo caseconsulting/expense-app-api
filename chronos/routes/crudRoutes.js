@@ -6,10 +6,9 @@ const express = require('express');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const { v4: uuid } = require('uuid');
-const _ = require('lodash');
 const dateUtils = require('../js/dateUtils');
-
+const { generateUUID } = require('../js/utils');
+const _ = require('lodash');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;
@@ -42,21 +41,24 @@ class Crud {
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
-    this.budgetDynamo = new DatabaseModify('budgets');
     this.employeeDynamo = new DatabaseModify('employees');
+    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
+    this.budgetDynamo = new DatabaseModify('budgets');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
+    this.tagDynamo = new DatabaseModify('tags');
   } // constructor
 
   /**
-   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
-   * amount.
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
+   * Returns the adjusted amount.
    *
    * @param employee - Employee to adjust amount for
    * @param expenseType - ExpenseType budget to be adjusted
+   * @param tags - The list of tags from the tags database
    * @return Number - adjusted budget amount
    */
-  calcAdjustedAmount(employee, expenseType) {
+  calcAdjustedAmount(employee, expenseType, tags) {
     // log method
     logger.log(
       4,
@@ -68,10 +70,29 @@ class Crud {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      // default budget if employee is not in a budgeted tag
+      let budgetAmount = expenseType.budget;
+
+      if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        let foundHighestPriorityTag = false;
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
+          _.forEach(tagBudget.tags, (tagId) => {
+            let tag = _.find(tags, (t) => t.id === tagId);
+            if (tag) {
+              if (tag.employees.includes(employee.id) && !foundHighestPriorityTag) {
+                // employee is included in a tag with a different budget amount
+                foundHighestPriorityTag = true;
+                budgetAmount = tagBudget.budget;
+              }
+            }
+          });
+        });
+      }
+
       if (!expenseType.proRated) {
-        result = expenseType.budget;
+        result = budgetAmount;
       } else {
-        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+        result = Number((budgetAmount * (employee.workStatus / 100.0)).toFixed(2));
       }
     } else {
       result = 0;
@@ -101,11 +122,21 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls']);
+    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['training-urls', 'expenses', 'employees']);
+      this.isManager(employee) &&
+      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -130,9 +161,9 @@ class Crud {
   } // _checkPermissionToCreate
 
   /**
-   * Check employee permissions to delete from a table. A user has permissions to delete an expense. An admin has
-   * permissions to delete an expense, expense type, or employee. Returns true if the employee has permissions,
-   * otherwise returns false.
+   * Check employee permissions to delete from a table. A user has permissions to delete an expense or ptoCashOut.
+   * An admin has permissions to delete an expense, expense type, ptoCashOut, or employee. Returns true if the
+   * employee has permissions, otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee permission to delete
@@ -146,10 +177,13 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses']);
-    let adminPermissions = this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees']);
+    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
+    let adminPermissions =
+      this.isAdmin(employee) &&
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
-    let managerPermissions = this.isManager(employee) && this._checkTableName(['expenses', 'employees']);
+    let managerPermissions =
+      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -189,13 +223,32 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'expense-types', 'training-urls']);
+    let userPermissions =
+      this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
-      this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
+      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses']);
+      this.isManager(employee) &&
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'expenses',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -233,14 +286,31 @@ class Crud {
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
-    let userPermissions =
-      this.isUser(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
+    let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
-      this.isIntern(employee) && this._checkTableName(['expense-types', 'employees', 'training-urls']);
+      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expense-types']);
+      this.isManager(employee) &&
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'contracts',
+        'pto-cashouts',
+        'expenses',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -279,12 +349,23 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
+    let userPermissions =
+      this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
     let adminPermissions =
-      this.isAdmin(employee) && this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls']);
+      this.isAdmin(employee) &&
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['employees', 'training-urls', 'expenses']);
+      this.isManager(employee) &&
+      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -363,7 +444,7 @@ class Crud {
    * @param annualStart - the start date of the budget if it is annual
    * @return Budget - budget created
    */
-  async createNewBudget(employee, expenseType, annualStart) {
+  async createNewBudget(employee, expenseType, annualStart, tags) {
     // log method
     logger.log(
       2,
@@ -386,17 +467,12 @@ class Crud {
         if (annualStart) {
           // set fiscal dates to the provided start date
           budgetData.fiscalStartDate = annualStart;
-          budgetData.fiscalEndDate = dateUtils.subtract(
-            dateUtils.add(annualStart, 1, 'year', ISOFORMAT),
-            1,
-            'day',
-            ISOFORMAT
-          );
+          budgetData.fiscalEndDate = dateUtils.subtract(dateUtils.add(annualStart, 1, 'year', ISOFORMAT), 1, 'day');
         } else {
           // set fiscal dates to current anniversary date if no start date provided
           let dates = this.getBudgetDates(employee.hireDate);
-          budgetData.fiscalStartDate = dateUtils.format(dates.startDate, null, ISOFORMAT);
-          budgetData.fiscalEndDate = dateUtils.format(dates.endDate, null, ISOFORMAT);
+          budgetData.fiscalStartDate = dates.startDate;
+          budgetData.fiscalEndDate = dates.endDate;
         }
       } else {
         budgetData.fiscalStartDate = expenseType.startDate;
@@ -404,7 +480,7 @@ class Crud {
       }
 
       // set the amount of the new budget
-      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+      budgetData.amount = this.calcAdjustedAmount(employee, expenseType, tags);
 
       let newBudget = new Budget(budgetData);
 
@@ -552,41 +628,36 @@ class Crud {
    * Get the current annual budget start and end dates based on a given hire date.
    *
    * @param date - ISO formatted hire date String
-   * @return Object - String start date and string end date
+   * @return Object - start date and end date
    */
   getBudgetDates(date) {
+    if (!date) return { startDate: null, endDate: null };
     // log method
     logger.log(4, 'getBudgetDates', `Getting current annual budget dates for ${date}`);
 
     // compute method
     let startYear;
     let hireDate = dateUtils.format(date, null, ISOFORMAT);
-    let hireYear = dateUtils.getYear(hireDate);
-    let hireMonth = dateUtils.getMonth(hireDate); // form 0-11
-    let hireDay = dateUtils.getDay(hireDate); // from 1 to 31
-    let today = dateUtils.getTodaysDate(ISOFORMAT);
+    let [hireYear, hireMonth, hireDay] = hireDate.split('-');
+    let today = dateUtils.getTodaysDate();
 
     // determine start date year
     if (dateUtils.isBefore(hireDate, today)) {
       // hire date is before today
       // if anniversary hasn't occured yet this year, set the start of the budget to last year
       // if the anniversary already occured this year, set the start of the budget to this year
-      let thisYearAnniversaryDate = today;
-      thisYearAnniversaryDate = dateUtils.setMonth(thisYearAnniversaryDate, hireMonth);
-      thisYearAnniversaryDate = dateUtils.setDay(thisYearAnniversaryDate, hireDay);
-      startYear = dateUtils.isBefore(today, thisYearAnniversaryDate)
-        ? dateUtils.getYear(today) - 1
-        : dateUtils.getYear(today);
+      let budgetDate = `${dateUtils.getYear(today)}-${hireMonth}-${hireDay}`;
+      startYear = dateUtils.isBefore(today, budgetDate) ? dateUtils.getYear(today) - 1 : dateUtils.getYear(today);
     } else {
       // hire date is after today
       startYear = hireYear;
     }
-    let startDate = hireDate;
-    startDate = dateUtils.setYear(startDate, startYear);
-    let endDate = hireDate;
-    endDate = dateUtils.setYear(hireDate, startYear);
-    endDate = dateUtils.subtract(dateUtils.add(endDate, 1, 'year'), 1, 'day');
 
+    // ensure year is always 4 digits
+    startYear = String(startYear).padStart(4, '0');
+
+    let startDate = `${startYear}-${hireMonth}-${hireDay}`;
+    let endDate = dateUtils.subtract(dateUtils.add(startDate, 1, 'year'), 1, 'day');
     let result = {
       startDate,
       endDate
@@ -629,7 +700,7 @@ class Crud {
    * @return String - new uuid
    */
   getUUID() {
-    return uuid();
+    return generateUUID();
   } // getUUID
 
   /**
@@ -890,7 +961,7 @@ class Crud {
     try {
       if (this._checkPermissionToReadAll(req.employee)) {
         // employee has permission to read all objects from table
-        let dataRead = await this._readAll(); // read from database
+        let dataRead = await this._readAll(req.employee); // read from database
 
         // log success
         logger.log(1, '_readAllWrapper', `Successfully read all objects from ${this._getTableName()}`);

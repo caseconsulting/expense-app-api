@@ -183,22 +183,27 @@ class ExpenseRoutes extends Crud {
     // compute method
     try {
       let expense = new Expense(data);
-      let employee = new Employee(await this.employeeDynamo.getEntry(expense.employeeId));
-      let expenseType = await this.expenseTypeDynamo.getEntry(expense.expenseTypeId);
+      let [employee, expenseType, tags] = await Promise.all([
+        new Employee(await this.employeeDynamo.getEntry(expense.employeeId)),
+        this.expenseTypeDynamo.getEntry(expense.expenseTypeId),
+        this.tagDynamo.getAllEntriesInDB()
+      ]);
       expenseType.categories = _.map(expenseType.categories, (category) => {
         return JSON.parse(category);
       });
       expenseType = new ExpenseType(expenseType);
 
-      await this._validateExpense(expense, employee, expenseType); // validate expense
-      await this._validateAdd(expense, employee, expenseType); // validate add
+      await Promise.all([
+        this._validateExpense(expense, employee, expenseType),
+        this._validateAdd(expense, employee, expenseType)
+      ]);
 
       let budget;
 
       try {
         budget = await this._findBudget(employee.id, expenseType.id, expense.purchaseDate); // find budget
       } catch (err) {
-        budget = await this.createNewBudget(employee, expenseType); // create budget
+        budget = await this.createNewBudget(employee, expenseType, null, tags); // create budget
       }
 
       await this._addToBudget(expense, employee, expenseType, budget); // add expense to budget

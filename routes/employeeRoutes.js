@@ -546,8 +546,9 @@ class EmployeeRoutes extends Crud {
       let budgets = [];
 
       // need to update budgets
-      let [budgetsData, expenseTypes] = await Promise.all([
+      let [budgetsData, tags, expenseTypes] = await Promise.all([
         this.budgetDynamo.querySecondaryIndexInDB('employeeId-expenseTypeId-index', 'employeeId', oldEmployee.id),
+        this.tagDynamo.getAllEntriesInDB(),
         this.getAllExpenseTypes()
       ]);
 
@@ -564,7 +565,7 @@ class EmployeeRoutes extends Crud {
         if (dateUtils.isBetween(dateUtils.getTodaysDate(), start, end, 'day', '[]')) {
           // only update active budgets
           let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType);
+          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType, tags);
           logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
           // update budget in database
           try {

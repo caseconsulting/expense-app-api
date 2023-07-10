@@ -7,7 +7,7 @@ const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 const dateUtils = require('../js/dateUtils');
-const { v4: uuid } = require('uuid');
+const { generateUUID } = require('../js/utils');
 const _ = require('lodash');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -46,17 +46,19 @@ class Crud {
     this.budgetDynamo = new DatabaseModify('budgets');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
+    this.tagDynamo = new DatabaseModify('tags');
   } // constructor
 
   /**
-   * Calculates the adjusted budget amount for an expense type based on an employee's work status. Returns the adjust
-   * amount.
+   * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
+   * Returns the adjusted amount.
    *
    * @param employee - Employee to adjust amount for
    * @param expenseType - ExpenseType budget to be adjusted
+   * @param tags - The list of tags from the tags database
    * @return Number - adjusted budget amount
    */
-  calcAdjustedAmount(employee, expenseType) {
+  calcAdjustedAmount(employee, expenseType, tags) {
     // log method
     logger.log(
       4,
@@ -68,10 +70,29 @@ class Crud {
     let result;
 
     if (this.hasAccess(employee, expenseType)) {
+      // default budget if employee is not in a budgeted tag
+      let budgetAmount = expenseType.budget;
+
+      if (expenseType.tagBudgets && expenseType.tagBudgets.length > 0) {
+        let foundHighestPriorityTag = false;
+        _.forEach(expenseType.tagBudgets, (tagBudget) => {
+          _.forEach(tagBudget.tags, (tagId) => {
+            let tag = _.find(tags, (t) => t.id === tagId);
+            if (tag) {
+              if (tag.employees.includes(employee.id) && !foundHighestPriorityTag) {
+                // employee is included in a tag with a different budget amount
+                foundHighestPriorityTag = true;
+                budgetAmount = tagBudget.budget;
+              }
+            }
+          });
+        });
+      }
+
       if (!expenseType.proRated) {
-        result = expenseType.budget;
+        result = budgetAmount;
       } else {
-        result = Number((expenseType.budget * (employee.workStatus / 100.0)).toFixed(2));
+        result = Number((budgetAmount * (employee.workStatus / 100.0)).toFixed(2));
       }
     } else {
       result = 0;
@@ -104,10 +125,18 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -151,10 +180,10 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts']);
+      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -198,12 +227,28 @@ class Crud {
       this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expense-types', 'expenses', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'expenses',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -244,12 +289,28 @@ class Crud {
     let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions =
       this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expense-types', 'contracts', 'pto-cashouts', 'expenses']);
+      this._checkTableName([
+        'employees',
+        'training-urls',
+        'expense-types',
+        'contracts',
+        'pto-cashouts',
+        'expenses',
+        'tags'
+      ]);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -292,11 +353,19 @@ class Crud {
       this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
     let adminPermissions =
       this.isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'training-urls', 'contracts', 'pto-cashouts']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'training-urls',
+        'contracts',
+        'pto-cashouts',
+        'tags'
+      ]);
     let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let managerPermissions =
       this.isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts']);
+      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -375,7 +444,7 @@ class Crud {
    * @param annualStart - the start date of the budget if it is annual
    * @return Budget - budget created
    */
-  async createNewBudget(employee, expenseType, annualStart) {
+  async createNewBudget(employee, expenseType, annualStart, tags) {
     // log method
     logger.log(
       2,
@@ -411,7 +480,7 @@ class Crud {
       }
 
       // set the amount of the new budget
-      budgetData.amount = this.calcAdjustedAmount(employee, expenseType);
+      budgetData.amount = this.calcAdjustedAmount(employee, expenseType, tags);
 
       let newBudget = new Budget(budgetData);
 
@@ -631,7 +700,7 @@ class Crud {
    * @return String - new uuid
    */
   getUUID() {
-    return uuid();
+    return generateUUID();
   } // getUUID
 
   /**

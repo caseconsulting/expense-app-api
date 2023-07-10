@@ -2,10 +2,10 @@ const AWS = require('aws-sdk');
 const ExpenseType = require('./models/expenseType');
 const DatabaseModify = require('./js/databaseModify');
 const ExpenseRoutes = require('./routes/expenseRoutes');
-const { v4: uuid } = require('uuid');
 const fs = require('fs');
 const FormData = require('form-data');
 const dateUtils = require('./js/dateUtils');
+const { generateUUID } = require('./js/utils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
@@ -81,7 +81,7 @@ async function checkMifiChange(event, context) {
         eventText = snsInfo.eventText;
         params = snsInfo.params;
 
-        let newUuid = uuid();
+        let newUuid = generateUUID();
 
         expense = {
           id: newUuid,
@@ -147,7 +147,7 @@ async function checkMifiChange(event, context) {
           eventText = snsInfo.eventText;
           params = snsInfo.params;
 
-          let newUuid = uuid();
+          let newUuid = generateUUID();
 
           expense = {
             id: newUuid,
@@ -184,7 +184,7 @@ async function checkMifiChange(event, context) {
           //and is not true
           console.info('MifiStatus has been swapped from false to true');
 
-          let newUuid = uuid();
+          let newUuid = generateUUID();
 
           let snsInfo = getSNSParams(record.dynamodb.NewImage, 'has indicated that they would like the mifi benefit');
           eventText = snsInfo.eventText;

@@ -27,7 +27,7 @@ const EMPLOYEES_TABLE = `${STAGE}-employees`;
 // imports
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
-const { v4: uuid } = require('uuid');
+const { generateUUID } = require('../utils');
 
 // set up  AWS DynamoDB
 const AWS = require('aws-sdk');
@@ -216,10 +216,10 @@ async function addContracts() {
         if (idx === -1) {
           // contract+prime combo does not exist
           let newContract = {
-            id: uuid(),
+            id: generateUUID(),
             contractName: contract.name,
             primeName: prime,
-            projects: contract.projects.map((project) => ({ id: uuid(), projectName: project.name })),
+            projects: contract.projects.map((project) => ({ id: generateUUID(), projectName: project.name })),
             popStartDate: null,
             popEndDate: null,
             costType: null
@@ -227,7 +227,7 @@ async function addContracts() {
           contracts.push(newContract);
         } else {
           // contract+prime combo exists
-          let projects = contract.projects.map((project) => ({ id: uuid(), projectName: project.name }));
+          let projects = contract.projects.map((project) => ({ id: generateUUID(), projectName: project.name }));
           contracts[idx].projects.push(...projects);
           // filter out duplicate projects
           contracts[idx].projects = contracts[idx].projects.filter((project, index, self) => {
