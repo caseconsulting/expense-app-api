@@ -4,47 +4,37 @@ const _ = require('lodash');
  * Employee model
  *
  * Required Fields:
+ * - id
  * - email
  * - employeeNumber
- * - employeeRole
  * - firstName
  * - hireDate
- * - id
  * - lastName
  * - workStatus
  *
  * Optional Fields:
+ * - agencyIdentificationNumber
  * - awards
- * - birthday
- * - birthdayFeed
  * - certifications
- * - city
  * - clearances
  * - companies
  * - contract
  * - contracts
- * - country
- * - currentCity
- * - currentState
- * - currentStreet
- * - currentZIP
  * - customerOrgExp
  * - degrees
- * - deptDate
+ * - education
  * - github
  * - icTimeFrames
  * - jobRole
  * - jobs
  * - languages
- * - lastLogin
  * - linkedIn
  * - middleName
  * - nickname
  * - noMiddleName
- * - phoneNumber
  * - prime
+ * - publicPhoneNumbers
  * - schools
- * - st
  * - technologies
  * - twitter
  * - mifiStatus
@@ -52,33 +42,28 @@ const _ = require('lodash');
 class Employee {
   constructor(data) {
     // required attributes
+    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'email');
     this.setRequiredNumberAttribute(data, 'employeeNumber');
-    this.setRequiredAttribute(data, 'employeeRole');
     this.setRequiredAttribute(data, 'firstName');
     this.setRequiredAttribute(data, 'hireDate');
-    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
+    this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
+    this.setOptionalAttribute(data, 'agencyIdentificationNumber');
     this.setOptionalAttribute(data, 'awards');
-    this.setOptionalAttribute(data, 'birthday');
     this.setOptionalAttribute(data, 'birthdayFeed');
     this.setOptionalAttribute(data, 'certifications');
-    this.setOptionalAttribute(data, 'city');
     this.setOptionalAttribute(data, 'clearances');
     this.setOptionalAttribute(data, 'companies');
     this.setOptionalAttribute(data, 'contract');
     this.setOptionalAttribute(data, 'contracts');
-    this.setOptionalAttribute(data, 'country');
-    this.setOptionalAttribute(data, 'currentCity');
-    this.setOptionalAttribute(data, 'currentState');
-    this.setOptionalAttribute(data, 'currentStreet');
-    this.setOptionalAttribute(data, 'currentZIP');
     this.setOptionalAttribute(data, 'customerOrgExp');
     this.setOptionalAttribute(data, 'degrees');
     this.setOptionalAttribute(data, 'deptDate');
+    this.setOptionalAttribute(data, 'education');
     this.setOptionalAttribute(data, 'github');
     this.setOptionalAttribute(data, 'icTimeFrames');
     this.setOptionalAttribute(data, 'jobRole');
@@ -89,10 +74,9 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'phoneNumber');
     this.setOptionalAttribute(data, 'prime');
+    this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
-    this.setOptionalAttribute(data, 'st');
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
@@ -106,15 +90,6 @@ class Employee {
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   } // fullName
-
-  /**
-   * Check if the employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
-   *
-   * @return boolean - employee is admin
-   */
-  isAdmin() {
-    return this.employeeRole == 'admin';
-  } // isAdmin
 
   /**
    * Checks if a value is empty. Returns true if the value is null or an empty/blank string.
@@ -145,24 +120,6 @@ class Employee {
   } // isInactive
 
   /**
-   * Check if the employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
-   *
-   * @return boolean - employee is an intern
-   */
-  isIntern() {
-    return this.employeeRole == 'intern';
-  } // isIntern
-
-  /**
-   * Check if the employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
-   *
-   * @return boolean - employee is an manager
-   */
-  isManager() {
-    return this.employeeRole == 'manager';
-  } //isManager
-
-  /**
    * Check if the employee is part time. Returns true if employee work status is greater than 0 and less than 100,
    * otherwise returns false.
    *
@@ -171,15 +128,6 @@ class Employee {
   isPartTime() {
     return this.workStatus > 0 && this.workStatus < 100;
   } // isPartTime
-
-  /**
-   * Check if the employee is a user. Returns true if employee role is 'user', otherwise returns false.
-   *
-   * @return boolean - employee is user
-   */
-  isUser() {
-    return this.employeeRole == 'user';
-  } // isUser
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
