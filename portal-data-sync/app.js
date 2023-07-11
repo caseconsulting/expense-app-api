@@ -563,11 +563,23 @@ function getState(field, applicationFormat, toApplicationFormat) {
   let state = getFieldValue(field, applicationFormat, toApplicationFormat);
   if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    // return empty string because that is how BambooHR stores an empty state field
-    return state == undefined ? '' : state;
+    if (state == undefined) {
+      // return empty string because that is how BambooHR stores an empty state field
+      return '';
+    } else if (state == 'District Of Columbia') {
+      return 'District of Columbia';
+    } else {
+      return state;
+    }
   } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    return state == '' ? undefined : state;
+    if (state == '' || state == null || state == undefined) {
+      return undefined;
+    } else if (state == 'District of Columbia') {
+      return 'District Of Columbia';
+    } else {
+      return state;
+    }
   } else {
     // only applicationFormat parameter was passed or applicationFormat is
     // equal to toApplicationFormat -> return regular value
