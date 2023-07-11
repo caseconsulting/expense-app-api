@@ -81,7 +81,7 @@ const CURRENT_STATE = {
   name: 'Current State',
   [Applications.CASE]: 'currentState',
   [Applications.BAMBOO]: 'state',
-  getter: getFieldValue,
+  getter: getState,
   isEmpty: isEmpty,
   updateValue: updateValue
 };
@@ -269,10 +269,10 @@ async function syncApplicationData() {
       employee_data[Applications.BAMBOO] =
         STAGE == 'prod'
           ? employeeBambooHRData.find(
-            (b) =>
-              parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+              (b) =>
+                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
                 parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-          )
+            )
           : null;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
         // employee number exists on Case and BambooHR
@@ -455,7 +455,7 @@ async function updateCaseEmployee(employee) {
       {
         Put: {
           TableName: `${STAGE}-employees`,
-          Item: employee
+          Item: employeeBasic
         }
       },
       {
@@ -550,6 +550,30 @@ function getPhoneExt(field, applicationFormat, toApplicationFormat) {
     return getFieldValue(field, applicationFormat, toApplicationFormat);
   }
 } // getPhoneExt
+
+/**
+ * Custom method that gets an employee's current state.
+ *
+ * @param field Object - The field to get (see global variable list of fields)
+ * @param applicationFormat String - The application (see Applications global variable)
+ * @param toApplicationFormat String - The application to convert the value's format to
+ * @returns The value of the employee's current state based on the application format needed
+ */
+function getState(field, applicationFormat, toApplicationFormat) {
+  let state = getFieldValue(field, applicationFormat, toApplicationFormat);
+  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+    // convert Case value to BambooHR format -> return the converted value
+    // return empty string because that is how BambooHR stores an empty state field
+    return state == undefined ? '' : state;
+  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+    // convert BambooHR value to Case format -> return the converted value
+    return state == '' ? undefined : state;
+  } else {
+    // only applicationFormat parameter was passed or applicationFormat is
+    // equal to toApplicationFormat -> return regular value
+    return state;
+  }
+} // getState
 
 /**
  * Custom method that gets an employee's work status.
