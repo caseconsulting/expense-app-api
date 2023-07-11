@@ -848,9 +848,7 @@ async function removeSensitiveDataFromEmployees() {
   let employees = await getAllEntries(TABLE);
   _.forEach(employees, (e) => {
     delete e.employeeRole;
-    delete e.deptDate;
     delete e.birthday;
-    delete e.birthdayFeed;
     delete e.city;
     delete e.st;
     delete e.country;
@@ -858,7 +856,6 @@ async function removeSensitiveDataFromEmployees() {
     delete e.currentState;
     delete e.currentStreet;
     delete e.currentZIP;
-    delete e.lastLogin;
     delete e.privatePhoneNumbers;
     delete e.eeoDeclineSelfIdentify;
     delete e.eeoAdminHasFilledOutEeoForm;
