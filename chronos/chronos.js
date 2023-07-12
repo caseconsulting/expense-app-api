@@ -1,16 +1,22 @@
-let lib;
+let lib, utils;
 
-const Budget = require('./models/budget');
-const ExpenseType = require('./models/expenseType');
-const DatabaseModify = require('./js/databaseModify');
+try {
+  utils = require('utils');
+} catch (e) {
+  utils = require('../js/utils');
+}
+const getImport = utils.getImport;
+const Budget = getImport('budget', '../models/budget');
+const ExpenseType = getImport('expenseType', '../models/expenseType');
+const DatabaseModify = getImport('databaseModify', '../js/databaseModify');
 const ExpenseRoutes = require('./routes/expenseRoutes');
 const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk');
-const Employee = require('./models/employee');
+const Employee = getImport('employee', '../models/employee');
 const ISOFORMAT = 'YYYY-MM-DD';
-const dateUtils = require('./js/dateUtils');
-const { generateUUID } = require('./js/utils');
+const dateUtils = getImport('dateUtils', '../js/dateUtils');
+const { generateUUID } = getImport('utils', '../js/utils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';

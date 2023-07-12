@@ -4,10 +4,10 @@
 const _ = require('lodash');
 const axios = require('axios');
 const AWS = require('aws-sdk');
-const DatabaseModify = require('./js/databaseModify');
-const Employee = require('./models/employee');
-const EmployeeSensitive = require('./models/employee-sensitive');
-const Logger = require('./js/Logger');
+const DatabaseModify = require('databaseModify');
+const Employee = require('employee');
+const EmployeeSensitive = require('employee-sensitive');
+const Logger = require('Logger');
 const logger = new Logger('data-sync');
 const STAGE = process.env.STAGE;
 
@@ -269,10 +269,10 @@ async function syncApplicationData() {
       employee_data[Applications.BAMBOO] =
         STAGE == 'prod'
           ? employeeBambooHRData.find(
-              (b) =>
-                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+            (b) =>
+              parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
                 parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-            )
+          )
           : null;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
         // employee number exists on Case and BambooHR
