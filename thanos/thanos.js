@@ -1,7 +1,7 @@
 let lib;
 
-const Logger = require('./js/Logger');
-const DatabaseModify = require('./js/databaseModify');
+const Logger = require('Logger'); // from js layer
+const DatabaseModify = require('databaseModify'); // from js layer
 const _ = require('lodash');
 const logger = new Logger('TrainingSync');
 /**

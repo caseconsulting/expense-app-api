@@ -1,11 +1,11 @@
 const AWS = require('aws-sdk');
-const ExpenseType = require('./models/expenseType');
-const DatabaseModify = require('./js/databaseModify');
+const ExpenseType = require('expenseType'); // from models layer
+const DatabaseModify = require('databaseModify'); // from js layer
 const ExpenseRoutes = require('./routes/expenseRoutes');
 const fs = require('fs');
 const FormData = require('form-data');
-const dateUtils = require('./js/dateUtils');
-const { generateUUID } = require('./js/utils');
+const dateUtils = require('dateUtils'); // from js layer
+const { generateUUID } = require('utils'); // from js layer
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
@@ -45,7 +45,6 @@ async function checkMifiChange(event, context) {
 
   let imageForm = new FormData();
   imageForm.append('receipt', receiptFile);
-  // budget = await expenseRoutes._findBudget(employee.id, technologyExpenseType.id, now); // find budget
 
   //look for technology expensetypeId
   expenseTypes.forEach((expenseType) => {

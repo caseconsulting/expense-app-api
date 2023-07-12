@@ -1,6 +1,11 @@
 const _ = require('lodash');
-const dateUtils = require('../js/dateUtils');
 const ISOFORMAT = 'YYYY-MM-DD';
+let dateUtils;
+try {
+  dateUtils = require('dateUtils'); // from js lambda layer
+} catch (e) {
+  dateUtils = require('../js/dateUtils');
+}
 
 /**
  * Budget model

@@ -14,7 +14,7 @@
     "deploy:cloudformation:test": "aws cloudformation deploy --template-file packaged.yaml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-test --region us-east-1",
     "deploy:claudia": "npm run update",
     "deploy:claudia:prod": "npm run update:prod",
-    "predeploy:dev": "npm run download:dev",
+    "predeploy:dev": "npm run download:dev && (cd layers/dependencies/nodejs/ && npm install) && (cd layers/js/nodejs/ && npm install) && (cd layers/models/nodejs/ && npm install)",
     "deploy:dev": "npm run deploy:claudia && npm run tag:dev && npm run package:cloudformation:dev && npm run deploy:cloudformation:dev",
     "postdeploy:dev": "npm run download:local:env",
     "predeploy:prod": "export AWS_PROFILE=prod && npm run download:prod",

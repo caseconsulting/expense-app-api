@@ -1,10 +1,15 @@
 const AWS = require('aws-sdk');
 const Logger = require('./Logger');
-const TrainingUrl = require('../models/trainingUrls.js');
 const _ = require('lodash');
 require('dotenv').config({
   silent: true
 });
+let TrainingUrl;
+try {
+  TrainingUrl = require('trainingUrls'); // from models lambda layer
+} catch (e) {
+  TrainingUrl = require('../models/trainingUrls');
+}
 
 const logger = new Logger('databaseModify');
 const STAGE = process.env.STAGE;

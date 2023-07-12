@@ -1,14 +1,21 @@
-const Budget = require('./../models/budget');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
-const TrainingUrl = require('../models/trainingUrls');
+let utils;
+try {
+  utils = require('utils');
+} catch (e) {
+  utils = require('../../js/utils');
+}
+const getImport = utils.getImport;
+const _ = require('lodash');
+const DatabaseModify = getImport('databaseModify', '../js/databaseModify');
+const Logger = getImport('Logger', '../js/Logger');
+const TrainingUrl = getImport('trainingUrls', '../models/trainingUrls');
+const Budget = getImport('budget', '../models/budget');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
+const getUserInfo = getImport('GetUserInfoMiddleware', '../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const dateUtils = require('../js/dateUtils');
-const { generateUUID } = require('../js/utils');
-const _ = require('lodash');
+const dateUtils = getImport('dateUtils', '../js/dateUtils');
+const { generateUUID } = getImport('utils', '../js/utils');
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;

@@ -714,6 +714,8 @@ Resources:
       Handler: chronos.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref ModelsLayer
+        - !Ref JSLayer
       Timeout: 900
       CodeUri: ./chronos
       Events:
@@ -734,6 +736,8 @@ Resources:
       Handler: thanos.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref ModelsLayer
+        - !Ref JSLayer
       Timeout: 900
       CodeUri: ./thanos
       Events:
@@ -801,6 +805,8 @@ Resources:
       Handler: app.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref ModelsLayer
+        - !Ref JSLayer
       Timeout: 900
       Role: !GetAtt
         - PortalDataSyncLambdaRole
@@ -858,7 +864,8 @@ Resources:
       Handler: chiron.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ExpenseModelLayer
+        - !Ref ModelsLayer
+        - !Ref JSLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: chiron/
@@ -931,6 +938,8 @@ Resources:
       Handler: mifiStatus.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref ModelsLayer
+        - !Ref JSLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: ./mifiStatus
@@ -955,18 +964,6 @@ Resources:
         - ''
         - - mifi-status-
           - !Ref Stage
-  ExpenseModelLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Join
-        - ''
-        - - expense-api-expense-model-
-          - !Ref Stage
-      Description: Model for an expense.
-      ContentUri: expense-model/
-      CompatibleRuntimes:
-        - nodejs18.x
-      RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -975,7 +972,31 @@ Resources:
         - - expense-api-dependencies-
           - !Ref Stage
       Description: Packages for lambda functions.
-      ContentUri: dependencies/
+      ContentUri: layers/dependencies
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+  ModelsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join
+        - ''
+        - - expense-api-models-
+          - !Ref Stage
+      Description: Models for lambda functions.
+      ContentUri: layers/models/
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+  JSLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join
+        - ''
+        - - expense-api-js-
+          - !Ref Stage
+      Description: JS files for lambda functions.
+      ContentUri: layers/js/
       CompatibleRuntimes:
         - nodejs18.x
       RetentionPolicy: Retain
