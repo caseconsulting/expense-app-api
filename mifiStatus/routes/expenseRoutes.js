@@ -1,12 +1,12 @@
 const AWS = require('aws-sdk');
-const Budget = require('./../models/budget');
+const Budget = require('budget'); // from models layer
 const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Employee = require('./../models/employee');
-const Expense = require('./../models/expense');
-const ExpenseType = require('./../models/expenseType');
-const Logger = require('../js/Logger');
-const dateUtils = require('../js/dateUtils');
+const DatabaseModify = require('databaseModify'); // from js layer
+const Employee = require('employee'); // from models layer
+const Expense = require('expense'); // from models layer
+const ExpenseType = require('expenseType'); // from models layer
+const Logger = require('Logger'); // from js layer
+const dateUtils = require('dateUtils'); // from js layer
 const _ = require('lodash');
 
 const ISOFORMAT = 'YYYY-MM-DD';

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "databaseModify": "file:../../../js/databaseModify.js",
+    "dateUtils": "file:../../../js/dateUtils.js",
+    "GetUserInfoMiddleware": "file:../../../js/GetUserInfoMiddleware.js",
+    "Logger": "file:../../../js/Logger.js",
+    "utils": "file:../../../js/utils.js"
+  }
+}

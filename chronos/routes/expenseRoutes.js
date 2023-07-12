@@ -1,13 +1,20 @@
-const AWS = require('aws-sdk');
-const Budget = require('./../models/budget');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Employee = require('./../models/employee');
-const Expense = require('./../models/expense');
-const ExpenseType = require('./../models/expenseType');
-const Logger = require('../js/Logger');
-const dateUtils = require('../js/dateUtils');
+let utils;
+try {
+  utils = require('utils');
+} catch (e) {
+  utils = require('../../js/utils');
+}
+const getImport = utils.getImport;
 const _ = require('lodash');
+const AWS = require('aws-sdk');
+const DatabaseModify = getImport('databaseModify', '../../js/databaseModify');
+const Budget = getImport('budget', '../models/budget');
+const Employee = getImport('employee', '../models/employee');
+const Expense = getImport('expense', '../models/expense');
+const ExpenseType = getImport('expenseType', '../models/expenseType');
+const Logger = getImport('Logger', '../js/Logger');
+const dateUtils = getImport('dateUtils', '../js/dateUtils');
+const Crud = require('./crudRoutes');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');

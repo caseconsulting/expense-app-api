@@ -2,8 +2,8 @@ const chronos = require('../chronos/chronos');
 const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
 
-const Budget = require('../chronos/models/budget');
-const ExpenseType = require('../chronos/models/expenseType');
+const Budget = require('../models/budget');
+const ExpenseType = require('../models/expenseType');
 
 const ID = '{id}';
 const NAME = '{name}';

@@ -1,9 +1,9 @@
 const got = require('got');
-const Logger = require('./js/Logger');
-const DatabaseModify = require('./js/databaseModify');
-const TrainingUrl = require('./models/trainingUrls');
-const ExpenseType = require('./models/expenseType');
-const Expense = require('expense-model');
+const Logger = require('Logger'); // from js layer
+const DatabaseModify = require('databaseModify'); // from js layer
+const TrainingUrl = require('trainingUrls'); // from models layer
+const ExpenseType = require('expenseType'); // from models layer
+const Expense = require('expense'); // from models layer
 const _ = require('lodash');
 const urlExists = require('url-exists');
 

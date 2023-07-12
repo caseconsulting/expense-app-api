@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "audit": "file:../../../models/audit.js",
+    "budget": "file:../../../models/budget.js",
+    "contract": "file:../../../models/contract.js",
+    "employee-sensitive": "file:../../../models/employee-sensitive.js",
+    "employee": "file:../../../models/employee.js",
+    "expense": "file:../../../models/expense.js",
+    "expenseType": "file:../../../models/expenseType.js",
+    "tag": "file:../../../models/tag.js",
+    "trainingUrls": "file:../../../models/trainingUrls.js"
+  }
+}
