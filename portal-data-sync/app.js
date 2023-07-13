@@ -157,6 +157,14 @@ const DISABILITY = {
   isEmpty: isEEOEmpty,
   updateValue: updateValue
 };
+const VETERAN_STATUS = {
+  name: 'Veteran Status',
+  [Applications.CASE]: 'eeoIsProtectedVeteran',
+  [Applications.BAMBOO]: '4001', // no alias for the field, use id
+  getter: getVeteranStatus,
+  isEmpty: isEEOEmpty,
+  updateValue: updateValue
+};
 const HIRE_DATE = {
   name: 'Hire Date',
   [Applications.CASE]: 'hireDate',
@@ -189,8 +197,6 @@ const LINKEDIN = {
   isEmpty: isEmpty,
   updateValue: updateValue
 };
-// const JOB_TITLE = "Job Title";
-// const PLACE_OF_BIRTH = "Place Of Birth";
 
 const fields = [
   EMPLOYEE_NUMBER,
@@ -210,6 +216,7 @@ const fields = [
   MOBILE_PHONE,
   WORK_PHONE_EXT,
   DISABILITY,
+  VETERAN_STATUS,
   GENDER,
   ETHNICITY,
   DATE_OF_BIRTH,
@@ -258,9 +265,9 @@ async function syncApplicationData() {
   ]);
   // use both commented out lines for testing on dev (use your own employee number)
   // employee_data[Applications.CASE] = employeeCasePortalData.find((c) =>
-  // parseInt(c[EMPLOYEE_NUMBER[Applications.CASE]]) == 10066);
+  // parseInt(c[EMPLOYEE_NUMBER[Applications.CASE]], 10) == 10066);
   // employee_data[Applications.BAMBOO] = employeeBambooHRData.find((b) =>
-  // parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]]) == 10066);
+  // parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) == 10066);
   // loop through each case employee (REMOVE IF TESTING ON DEV ENV)
   await asyncForEach(employeeCasePortalData, async (caseEmp) => {
     try {
@@ -656,6 +663,37 @@ function getDisability(field, applicationFormat, toApplicationFormat) {
 } // getDisability
 
 /**
+ * Custom method that gets an employee's veteran status.
+ *
+ * @param field Object - The field to get (see global variable list of fields)
+ * @param applicationFormat String - The application (see Applications global variable)
+ * @param toApplicationFormat String - The application to convert the value's format to
+ * @returns The value of the employee's veteran status based on the application format needed
+ */
+function getVeteranStatus(field, applicationFormat, toApplicationFormat) {
+  let veteranStatus = getFieldValue(field, applicationFormat, toApplicationFormat);
+  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+    // convert Case value to BambooHR format -> return the converted value
+    if (_.isNil(veteranStatus)) {
+      return null;
+    } else {
+      return veteranStatus ? 'Active Duty Wartime or Campaign Badge Veteran' : null;
+    }
+  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+    // convert BambooHR value to Case format -> return the converted value
+    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
+      return null;
+    } else {
+      return !!veteranStatus;
+    }
+  } else {
+    // only applicationFormat parameter was passed or applicationFormat is
+    // equal to toApplicationFormat -> return regular value
+    return veteranStatus;
+  }
+} // getVeteranStatus
+
+/**
  * Custom method that gets an employee's gender.
  *
  * @param field Object - The field to get (see global variable list of fields)
@@ -750,7 +788,7 @@ function isEmpty(application, field) {
  */
 function isEEOEmpty(application, field) {
   if (application == Applications.CASE) {
-    if (field.name == DISABILITY.name) {
+    if (field.name == DISABILITY.name || field.name == VETERAN_STATUS.name) {
       return (
         !employee_data[application].eeoDeclineSelfIdentify && _.isNil(employee_data[application][field[application]])
       );
