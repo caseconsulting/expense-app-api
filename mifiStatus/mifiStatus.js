@@ -1,16 +1,15 @@
 const AWS = require('aws-sdk');
-const ExpenseType = require('expenseType'); // from models layer
-const DatabaseModify = require('databaseModify'); // from js layer
-const ExpenseRoutes = require('./routes/expenseRoutes');
-const fs = require('fs');
 const FormData = require('form-data');
-const dateUtils = require('dateUtils'); // from js layer
-const { generateUUID } = require('utils'); // from js layer
+const fs = require('fs');
+const ExpenseType = require('expenseType'); // from shared layer
+const DatabaseModify = require('databaseModify'); // from shared layer
+const ExpenseRoutes = require('expenseRoutes'); // from shared layer
+const dateUtils = require('dateUtils'); // from shared layer
+const { generateUUID } = require('utils'); // from shared layer
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
-
 const ISOFORMAT = 'YYYY-MM-DD';
 
 /**

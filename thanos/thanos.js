@@ -1,8 +1,9 @@
 let lib;
 
-const Logger = require('Logger'); // from js layer
-const DatabaseModify = require('databaseModify'); // from js layer
 const _ = require('lodash');
+const Logger = require('Logger'); // from shared layer
+const DatabaseModify = require('databaseModify'); // from shared layer
+
 const logger = new Logger('TrainingSync');
 /**
  * Returns a new DatabaseModify for employees
