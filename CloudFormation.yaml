@@ -725,7 +725,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-          AWS: Cloud
+          AWS: lambda
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -747,7 +747,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-          AWS: Cloud
+          AWS: lambda
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -819,7 +819,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-          AWS: Cloud
+          AWS: lambda
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -876,7 +876,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
-          AWS: Cloud
+          AWS: lambda
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
@@ -952,7 +952,7 @@ Resources:
         Variables:
           STAGE: !Ref Stage
           MifiTopicArn: !Ref MifiTopic
-          AWS: Cloud
+          AWS: lambda
       Role: !GetAtt
         - MifiStatusLambdaRole
         - Arn
