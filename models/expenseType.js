@@ -1,11 +1,6 @@
 const _ = require('lodash');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const ISOFORMAT = 'YYYY-MM-DD';
-let dateUtils;
-try {
-  dateUtils = require('dateUtils'); // from js lambda layer
-} catch (e) {
-  dateUtils = require('../js/dateUtils');
-}
 
 /**
  * ExpenseType model

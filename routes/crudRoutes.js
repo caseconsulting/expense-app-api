@@ -1,14 +1,15 @@
-const Budget = require('./../models/budget');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
-const TrainingUrl = require('../models/trainingUrls');
+const _ = require('lodash');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const dateUtils = require('../js/dateUtils');
-const { generateUUID } = require('../js/utils');
-const _ = require('lodash');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
+
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;

@@ -1,18 +1,16 @@
-const got = require('got');
-const Logger = require('Logger'); // from js layer
-const DatabaseModify = require('databaseModify'); // from js layer
-const TrainingUrl = require('trainingUrls'); // from models layer
-const ExpenseType = require('expenseType'); // from models layer
-const Expense = require('expense'); // from models layer
 const _ = require('lodash');
+const got = require('got');
+const metascraper = require('metadata-scraper');
 const urlExists = require('url-exists');
+const Logger = require('Logger'); // from shared layer
+const DatabaseModify = require('databaseModify'); // from shared layer
+const TrainingUrl = require('trainingUrls'); // from shared layer
+const ExpenseType = require('expenseType'); // from shared layer
+const Expense = require('expense'); // from shared layer
 
 const trainingUrlDynamo = new DatabaseModify('training-urls');
 const expenseTypeDynamo = new DatabaseModify('expense-types');
 const expenseDynamo = new DatabaseModify('expenses');
-
-const metascraper = require('metadata-scraper');
-
 const logger = new Logger('TrainingSync');
 
 /**

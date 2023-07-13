@@ -1,26 +1,20 @@
-let lib, utils;
+let lib;
 
-try {
-  utils = require('utils');
-} catch (e) {
-  utils = require('../js/utils');
-}
-const getImport = utils.getImport;
-const Budget = getImport('budget', '../models/budget');
-const ExpenseType = getImport('expenseType', '../models/expenseType');
-const DatabaseModify = getImport('databaseModify', '../js/databaseModify');
-const ExpenseRoutes = require('./routes/expenseRoutes');
 const _ = require('lodash');
 const fs = require('fs');
 const AWS = require('aws-sdk');
-const Employee = getImport('employee', '../models/employee');
-const ISOFORMAT = 'YYYY-MM-DD';
-const dateUtils = getImport('dateUtils', '../js/dateUtils');
-const { generateUUID } = getImport('utils', '../js/utils');
+const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
+const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
+const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
  * Returns a new DatabaseModify for budgets

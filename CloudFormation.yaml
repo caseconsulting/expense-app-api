@@ -714,8 +714,7 @@ Resources:
       Handler: chronos.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ModelsLayer
-        - !Ref JSLayer
+        - !Ref SharedLayer
       Timeout: 900
       CodeUri: ./chronos
       Events:
@@ -726,6 +725,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: Cloud
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -736,8 +736,7 @@ Resources:
       Handler: thanos.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ModelsLayer
-        - !Ref JSLayer
+        - !Ref SharedLayer
       Timeout: 900
       CodeUri: ./thanos
       Events:
@@ -748,6 +747,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: Cloud
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -805,8 +805,7 @@ Resources:
       Handler: app.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ModelsLayer
-        - !Ref JSLayer
+        - !Ref SharedLayer
       Timeout: 900
       Role: !GetAtt
         - PortalDataSyncLambdaRole
@@ -820,6 +819,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: Cloud
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -864,8 +864,7 @@ Resources:
       Handler: chiron.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ModelsLayer
-        - !Ref JSLayer
+        - !Ref SharedLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: chiron/
@@ -877,6 +876,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: Cloud
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
@@ -938,8 +938,7 @@ Resources:
       Handler: mifiStatus.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ModelsLayer
-        - !Ref JSLayer
+        - !Ref SharedLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: ./mifiStatus
@@ -953,6 +952,7 @@ Resources:
         Variables:
           STAGE: !Ref Stage
           MifiTopicArn: !Ref MifiTopic
+          AWS: Cloud
       Role: !GetAtt
         - MifiStatusLambdaRole
         - Arn
@@ -976,27 +976,15 @@ Resources:
       CompatibleRuntimes:
         - nodejs18.x
       RetentionPolicy: Retain
-  ModelsLayer:
+  SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Join
         - ''
-        - - expense-api-models-
+        - - expense-api-shared-
           - !Ref Stage
-      Description: Models for lambda functions.
-      ContentUri: layers/models/
-      CompatibleRuntimes:
-        - nodejs18.x
-      RetentionPolicy: Retain
-  JSLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Join
-        - ''
-        - - expense-api-js-
-          - !Ref Stage
-      Description: JS files for lambda functions.
-      ContentUri: layers/js/
+      Description: Shared code for lambda functions.
+      ContentUri: layers/shared
       CompatibleRuntimes:
         - nodejs18.x
       RetentionPolicy: Retain
