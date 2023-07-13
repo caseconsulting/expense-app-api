@@ -891,6 +891,44 @@ async function moveLoginDepartureAndBirthdayFeed() {
 } // moveLoginDepartureAndBirthdayFeed
 
 /**
+ * Update employee EEO data to fix "Offcial" typo.
+ */
+async function changeOffcialToOfficial() {
+  let sens_employees = await getAllEntries(TABLE_SENS);
+  let sensitiveModify = new DatabaseModify(SENSITIVE_TABLE);
+  _.forEach(sens_employees, (sens_emp) => {
+    let jobCatVal = sens_emp['eeoJobCategory']
+                     && sens_emp['eeoJobCategory'].value ? sens_emp['eeoJobCategory'].value : -1;
+    if (jobCatVal == 1 || jobCatVal == 2) {
+      switch(jobCatVal) {
+        case 1:
+          sens_emp = {
+            ...sens_emp,
+            eeoJobCategory: {
+              value: 1,
+              text: 'Executive/Senior Level Official and Manager'
+            }
+          };
+          break;
+        case 2:
+          sens_emp = {
+            ...sens_emp,
+            eeoJobCategory: {
+              value: 2,
+              text: 'First/Mid Level Official and Manager'
+            }
+          };
+          break;
+      }
+
+      // now update the employee
+      console.log(`Updating employee with ID ${sens_emp['id']}`);
+      sensitiveModify.updateEntryInDB(sens_emp);
+    }
+  });
+} // changeOffcialToOfficial
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -1088,6 +1126,12 @@ async function main() {
       desc: 'Move lastLogin, departureDate, and birthdayFeed back to the regular employees table',
       action: async () => {
         await moveLoginDepartureAndBirthdayFeed();
+      }
+    },
+    {
+      desc: 'Update employee EEO data to fix "Offcial" typo',
+      action: async () => {
+        await changeOffcialToOfficial();
       }
     }
   ];
