@@ -3,16 +3,14 @@
 
 const _ = require('lodash');
 const AWS = require('aws-sdk');
-const axios = require('axios');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
 const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 
 const logger = new Logger('data-sync');
+const lambda = new AWS.Lambda();
 const STAGE = process.env.STAGE;
-const paramName = '/BambooHR/APIKey';
-const baseURL = 'https://api.bamboohr.com/api/gateway.php/consultwithcase/v1';
 
 // APPLICATIONS
 const Applications = {
@@ -435,17 +433,13 @@ function updateEthnicity(application, field, value) {
  * @param body Array - The list of (field: value) object pairs to update
  */
 async function updateBambooHREmployee(id, body) {
-  const key = await getKey();
-  const options = {
-    method: 'POST',
-    url: baseURL + `/employees/${id}/`,
-    auth: {
-      username: key,
-      password: ''
-    },
-    data: body
+  let payload = { id, body };
+  let params = {
+    FunctionName: `mysterio-update-bamboohr-employee-${STAGE}`,
+    Payload: JSON.stringify(payload),
+    Qualifier: '$LATEST'
   };
-  await axios(options);
+  await invokeLambda(params);
 } // updateBambooHREmployee
 
 /**
@@ -874,30 +868,15 @@ async function asyncForEach(array, callback) {
 } // asyncForEach
 
 /**
- * Get the AWS Systems Manager object
+ * Invokes lambda function with given params
  *
- * @returns Object - The AW Systems Manager Object
+ * @param params - params to invoke lambda function with
+ * @return object if successful, error otherwise
  */
-function getSSM() {
-  AWS.config.update({ region: 'us-east-1' });
-  const ssm = new AWS.SSM();
-  return ssm;
-} // getSSM
-
-/**
- * Gets the BambooHR SSM key value
- *
- * @returns String - The BambooHR SSM key value
- */
-async function getKey() {
-  const ssm = getSSM();
-  const params = {
-    Name: paramName,
-    WithDecryption: true
-  };
-  const result = await ssm.getParameter(params).promise();
-  return result.Parameter.Value;
-} // getKey
+async function invokeLambda(params) {
+  let result = await lambda.invoke(params).promise();
+  return result;
+} // invokeLambda
 
 /**
  * Gets the BambooHR employees data from all of the given fields
@@ -905,19 +884,15 @@ async function getKey() {
  * @returns Array - The list of BambooHR employees
  */
 async function getBambooHREmployeeData() {
-  const key = await getKey();
-  const options = {
-    method: 'POST',
-    url: baseURL + '/reports/custom',
-    params: { format: 'JSON', onlyCurrent: 'true' },
-    auth: {
-      username: key,
-      password: ''
-    },
-    data: { fields: fields.map((f) => f[Applications.BAMBOO]) }
+  let payload = { fields: fields.map((f) => f[Applications.BAMBOO]) };
+  let params = {
+    FunctionName: `mysterio-bamboohr-employees-${STAGE}`,
+    Payload: JSON.stringify(payload),
+    Qualifier: '$LATEST'
   };
-  const employeeData = await axios(options);
-  return employeeData.data.employees;
+  let result = await invokeLambda(params);
+  let employees = JSON.parse(result.Payload).body;
+  return employees;
 } // getBambooHREmployeeData
 
 /**
