@@ -803,6 +803,11 @@ Resources:
         - ExpenseAppApiLambdaRole
         - Arn
       Handler: app.handler
+      FunctionName: !Join
+        - '-'
+        - - expense-app
+          - !Ref Stage
+          - PortalDataSyncFunction
       Layers:
         - !Ref DependenciesLayer
         - !Ref SharedLayer

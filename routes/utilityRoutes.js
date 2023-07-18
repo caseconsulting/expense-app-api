@@ -14,8 +14,10 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const Basecamp = require(process.env.AWS ? 'basecampRoutes' : '../routes/basecampRoutes');
 const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
 
+const lambda = new AWS.Lambda();
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
+const STAGE = process.env.STAGE;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
@@ -97,6 +99,7 @@ class Utility {
       this._getUserInfo,
       this._getUnreimbursedExpenses.bind(this)
     );
+    this._router.post('/syncApplications', this._checkJwt, this._getUserInfo, this._syncApplications.bind(this));
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
@@ -1162,6 +1165,37 @@ class Utility {
       return err;
     }
   } // _getFiscalDateViewBudgets
+
+  /**
+   * Invokes the data sync lambda function to sync application data between the Portal, BambooHR, ADP, etc.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - The response from the lambda function
+   */
+  async _syncApplications(req, res) {
+    // log method
+    logger.log(1, '_syncApplications', 'Attempting to sync applications');
+    try {
+      // lambda invoke parameters
+      let params = {
+        FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
+        Qualifier: '$LATEST'
+      };
+      let result = await lambda.invoke(params).promise();
+      // send successful 200 status
+      res.status(200).send(result);
+      // return result from lambda function
+      return result;
+    } catch (err) {
+      // log error
+      logger.log(1, '_syncApplications', 'Failed to sync applications');
+      // send error status
+      this._sendError(res, err);
+      // return error
+      return err;
+    }
+  } // _syncApplications
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
