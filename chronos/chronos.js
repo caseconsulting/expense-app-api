@@ -2,7 +2,7 @@ let lib;
 
 const _ = require('lodash');
 const fs = require('fs');
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
@@ -277,18 +277,19 @@ function _isAnniversaryDate(employee) {
  */
 async function _uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
-  let s3 = new AWS.S3();
+  let client = new S3Client({});
   let params = {
     Bucket: BUCKET,
     Key: key,
     Body: file
   };
-
-  s3.putObject(params, function (err, data) {
-    if (err) console.info(err, err.stack);
-    // an error occurred
-    else console.info(data); // successful response
-  });
+  const command = new PutObjectCommand(params);
+  try {
+    const resp = await client.send(command);
+    console.info(resp);
+  } catch (err) {
+    console.info(err, err.stack);
+  }
 } //uploadAttachmentToS3
 
 /**
