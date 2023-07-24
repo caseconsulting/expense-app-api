@@ -873,10 +873,10 @@ async function asyncForEach(array, callback) {
  * @return object if successful, error otherwise
  */
 async function invokeLambda(params) {
-  const client = new LambdaClient({});
+  const client = new LambdaClient();
   const command = new InvokeCommand(params);
   const resp = await client.send(command);
-  return resp;
+  return JSON.parse(Buffer.from(resp.Payload));
 } // invokeLambda
 
 /**
@@ -892,7 +892,7 @@ async function getBambooHREmployeeData() {
     Qualifier: '$LATEST'
   };
   let result = await invokeLambda(params);
-  let employees = JSON.parse(result.Payload).body;
+  let employees = result.body;
   return employees;
 } // getBambooHREmployeeData
 
