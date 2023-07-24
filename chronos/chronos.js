@@ -277,7 +277,11 @@ function _isAnniversaryDate(employee) {
  */
 async function _uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
+<<<<<<< HEAD
   const client = new S3Client({});
+=======
+  let client = new S3Client({});
+>>>>>>> 9b0a4f3 (POR-2263: upgrade chronos function from AWS JS SDK v2 to v3)
   let params = {
     Bucket: BUCKET,
     Key: key,
