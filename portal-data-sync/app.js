@@ -2,14 +2,13 @@
 // BambooHR API custom reports: https://documentation.bamboohr.com/reference/request-custom-report-1
 
 const _ = require('lodash');
-const AWS = require('aws-sdk');
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
 const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 
 const logger = new Logger('data-sync');
-const lambda = new AWS.Lambda();
 const STAGE = process.env.STAGE;
 
 // APPLICATIONS
@@ -274,10 +273,10 @@ async function syncApplicationData() {
       employee_data[Applications.BAMBOO] =
         STAGE == 'prod'
           ? employeeBambooHRData.find(
-            (b) =>
-              parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
+              (b) =>
+                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
                 parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-          )
+            )
           : null;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
         // employee number exists on Case and BambooHR
@@ -874,8 +873,10 @@ async function asyncForEach(array, callback) {
  * @return object if successful, error otherwise
  */
 async function invokeLambda(params) {
-  let result = await lambda.invoke(params).promise();
-  return result;
+  const client = new LambdaClient({});
+  const command = new InvokeCommand(params);
+  const resp = await client.send(command);
+  return resp;
 } // invokeLambda
 
 /**
