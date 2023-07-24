@@ -21,7 +21,7 @@ describe('basecampRoutes', () => {
 
   const BASE_CAMP_TOKEN = '{basecampToken}';
 
-  const BASECAMP_RAW_TOKEN = { Payload: '{"body":{"access_token":"{basecampToken}"}}' };
+  const BASECAMP_RAW_TOKEN = { body: { access_token: '{basecampToken}' } };
 
   const EMAIL_ADDRESS = '{email_address}';
   const AVATAR_URL = '{avatar_url}';
