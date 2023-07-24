@@ -1,11 +1,12 @@
-const Audit = require('./../models/audit');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const express = require('express');
+const Audit = require(process.env.AWS ? 'audit' : '../models/audit');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
-const dateUtils = require('../js/dateUtils');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+
 const logger = new Logger('auditRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
