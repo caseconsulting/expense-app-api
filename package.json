@@ -79,6 +79,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.374",
+    "@aws-sdk/client-sns": "3.370",
+    "@aws-sdk/client-dynamodb": "3.370",
+    "@aws-sdk/lib-dynamodb": "3.370",
     "atob": "2.1.2",
     "aws-sdk": "2.1420.0",
     "aws-serverless-express": "3.4.0",

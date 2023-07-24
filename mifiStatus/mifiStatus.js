@@ -1,6 +1,10 @@
-const AWS = require('aws-sdk');
 const FormData = require('form-data');
 const fs = require('fs');
+const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+// const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+// const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType'); // from shared layer
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify'); // from shared layer
 const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes'); // from shared layer
@@ -24,14 +28,11 @@ async function checkMifiChange(event, context) {
 
   let records = event.Records;
   let dynamodb = records[0];
-  // let file = new File();
 
   console.info('Changes to the dynamo:');
   console.info(dynamodb);
   const expenseRoutes = new ExpenseRoutes();
-  //const attachmentRoutes = new AttachmentRoutes();
-  let sns = new AWS.SNS();
-  //let expenseModify = new DatabaseModify('expenses');
+  let sns = new SNSClient({});
   let expenseTypeModify = new DatabaseModify('expense-types');
   let expenseTypes = await expenseTypeModify.getAllEntriesInDB();
 
@@ -103,7 +104,7 @@ async function checkMifiChange(event, context) {
           await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
           await uploadAttachmentToS3(receiptFile, Key);
 
-          await sns.publish(params).promise();
+          await sns.send(new PublishCommand(params));
           console.info(`Message ${eventText} has been sent to topic with ARN ${process.env.MifiTopicArn}`);
         } catch (err) {
           console.info(err);
@@ -117,7 +118,7 @@ async function checkMifiChange(event, context) {
         eventText = snsInfo.eventText;
         params = snsInfo.params;
         try {
-          await sns.publish(params).promise();
+          await sns.send(new PublishCommand(params));
           console.info(`Message ${eventText} has been sent to topic with ARN ${process.env.MifiTopicArn}`);
         } catch (err) {
           console.info(err);
@@ -168,7 +169,7 @@ async function checkMifiChange(event, context) {
             await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
             await uploadAttachmentToS3(receiptFile, Key);
 
-            await sns.publish(params).promise();
+            await sns.send(new PublishCommand(params));
             console.info(`Message ${eventText} has been sent to topic with ARN ${process.env.MifiTopicArn}`);
           } catch (err) {
             console.info(err);
@@ -209,7 +210,7 @@ async function checkMifiChange(event, context) {
             await expenseRoutes.databaseModify.addToDB(validatedExpense); // add object to database
             await uploadAttachmentToS3(receiptFile, Key);
 
-            await sns.publish(params).promise();
+            await sns.send(new PublishCommand(params));
             console.info(`Message ${eventText} has been sent to topic with ARN ${process.env.MifiTopicArn}`);
           } catch (err) {
             console.info(err);
@@ -230,18 +231,19 @@ async function checkMifiChange(event, context) {
  */
 async function uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
-  let s3 = new AWS.S3();
+  const client = new S3Client({});
   let params = {
     Bucket: BUCKET,
     Key: key,
     Body: file
   };
-
-  s3.putObject(params, function (err, data) {
-    if (err) console.info(err, err.stack);
-    // an error occurred
-    else console.info(data); // successful response
-  });
+  const command = new PutObjectCommand(params);
+  try {
+    const resp = await client.send(command);
+    console.info(resp);
+  } catch (err) {
+    console.info(err, err.stack);
+  }
 } //uploadAttachmentToS3
 
 /**
