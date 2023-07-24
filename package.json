@@ -79,9 +79,12 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.374",
+    "@aws-sdk/s3-request-presigner": "3.375",
     "@aws-sdk/client-sns": "3.370",
     "@aws-sdk/client-dynamodb": "3.370",
     "@aws-sdk/client-lambda": "3.370",
+    "@aws-sdk/client-textract": "3.370",
+    "@aws-sdk/client-comprehend": "3.370",
     "@aws-sdk/lib-dynamodb": "3.370",
     "atob": "2.1.2",
     "aws-sdk": "2.1420.0",
@@ -101,7 +104,7 @@
     "metadata-scraper": "0.2.61",
     "morgan": "1.10.0",
     "multer": "1.4.4",
-    "multer-s3": "2.10.0",
+    "multer-s3": "3.0.1",
     "pm2": "5.3.0",
     "pug": "3.0.2",
     "readline-sync": "1.4.10"

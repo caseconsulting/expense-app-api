@@ -277,7 +277,7 @@ function _isAnniversaryDate(employee) {
  */
 async function _uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
-  let client = new S3Client({});
+  const client = new S3Client({});
   let params = {
     Bucket: BUCKET,
     Key: key,
