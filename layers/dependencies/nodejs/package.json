@@ -5,7 +5,7 @@
     "dayjs": "1.11.9",
     "dotenv": "16.3.1",
     "express": "4.18.2",
-    "express-jwt": "6.1.2",
+    "express-jwt": "8.4.1",
     "express-jwt-authz": "2.4.1",
     "form-data": "3.0.1",
     "got": "11.8.6",
