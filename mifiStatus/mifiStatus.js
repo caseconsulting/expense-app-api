@@ -1,11 +1,11 @@
 const AWS = require('aws-sdk');
 const FormData = require('form-data');
 const fs = require('fs');
-const ExpenseType = require('expenseType'); // from shared layer
-const DatabaseModify = require('databaseModify'); // from shared layer
-const ExpenseRoutes = require('expenseRoutes'); // from shared layer
-const dateUtils = require('dateUtils'); // from shared layer
-const { generateUUID } = require('utils'); // from shared layer
+const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType'); // from shared layer
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify'); // from shared layer
+const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes'); // from shared layer
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils'); // from shared layer
+const { generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils'); // from shared layer
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';

@@ -1,8 +1,8 @@
 let lib;
 
 const _ = require('lodash');
-const Logger = require('Logger'); // from shared layer
-const DatabaseModify = require('databaseModify'); // from shared layer
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify'); // from shared layer
 
 const logger = new Logger('TrainingSync');
 /**

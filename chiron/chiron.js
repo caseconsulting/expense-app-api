@@ -2,11 +2,11 @@ const _ = require('lodash');
 const got = require('got');
 const metascraper = require('metadata-scraper');
 const urlExists = require('url-exists');
-const Logger = require('Logger'); // from shared layer
-const DatabaseModify = require('databaseModify'); // from shared layer
-const TrainingUrl = require('trainingUrls'); // from shared layer
-const ExpenseType = require('expenseType'); // from shared layer
-const Expense = require('expense'); // from shared layer
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify'); // from shared layer
+const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls'); // from shared layer
+const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType'); // from shared layer
+const Expense = require(process.env.AWS ? 'expense' : '../models/expense'); // from shared layer
 
 const trainingUrlDynamo = new DatabaseModify('training-urls');
 const expenseTypeDynamo = new DatabaseModify('expense-types');

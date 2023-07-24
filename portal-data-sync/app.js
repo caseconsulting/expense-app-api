@@ -4,10 +4,10 @@
 const _ = require('lodash');
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const Employee = require('employee'); // from shared layer
-const EmployeeSensitive = require('employee-sensitive'); // from shared layer
-const DatabaseModify = require('databaseModify'); // from shared layer
-const Logger = require('Logger'); // from shared layer
+const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
+const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 
 const logger = new Logger('data-sync');
 const STAGE = process.env.STAGE;

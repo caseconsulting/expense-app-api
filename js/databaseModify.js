@@ -5,7 +5,7 @@ require('dotenv').config({
 const _ = require('lodash');
 const AWS = require('aws-sdk');
 const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
-const Logger = require('./Logger');
+const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
 const logger = new Logger('databaseModify');
 const STAGE = process.env.STAGE;
