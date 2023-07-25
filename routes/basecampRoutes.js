@@ -65,7 +65,7 @@ class BasecampRoutes {
    */
   async getToken(params) {
     const command = new InvokeCommand(params);
-    const resp = lambdaClient.send(command);
+    const resp = await lambdaClient.send(command);
     return JSON.parse(Buffer.from(resp.Payload));
   } // getToken
 
