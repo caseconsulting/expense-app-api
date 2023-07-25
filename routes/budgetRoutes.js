@@ -1,11 +1,11 @@
-const Budget = require('./../models/budget');
-const Logger = require('../js/Logger');
-const databaseModify = require('../js/databaseModify');
+const _ = require('lodash');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
-const _ = require('lodash');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 
 const budgetDynamo = new databaseModify('budgets');
 const logger = new Logger('budgetRoutes');
@@ -28,7 +28,6 @@ const checkJwt = jwt({
 });
 
 class Budgets {
-
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
@@ -61,7 +60,7 @@ class Budgets {
       // log success
       logger.log(1, 'getCallerBudgets', `Successfully read all budgets for employee caller ${req.employee.id}`);
 
-      let budgets = _.map(budgetsData, budgetData => {
+      let budgets = _.map(budgetsData, (budgetData) => {
         return new Budget(budgetData);
       });
 
@@ -105,7 +104,7 @@ class Budgets {
       // log success
       logger.log(1, 'getEmployeeBudgets', `Successfully read all budgets for employee ${req.params.id}`);
 
-      let budgets = _.map(budgetsData, budgetData => {
+      let budgets = _.map(budgetsData, (budgetData) => {
         return new Budget(budgetData);
       });
 
