@@ -1,4 +1,3 @@
-/* until end of file
 const dateUtils = require('../../js/dateUtils');
 // const _ = require('lodash');
 
@@ -14,13 +13,13 @@ describe('dateUtilsRoutes', () => {
   describe('format', () => {
     describe('when the format is the same', () => {
       it('should return exactly the same as both inputs', () => {
-        result = dateUtils.format('2022-12-23', 'YYYY-MM-DD');
+        result = dateUtils.format('2022-12-23', 'YYYY-MM-DD', 'YYYY-MM-DD');
         expect(result).toBe('2022-12-23');
       });
     });
     describe('when the format is different', () => {
       it('should reformat into the new format', () => {
-        result = dateUtils.format('2022-12-23', 'DD/MM/YY');
+        result = dateUtils.format('2022-12-23', 'YYYY-MM-DD', 'DD/MM/YY');
         expect(result).toBe('23/12/22');
       });
     });
@@ -30,14 +29,14 @@ describe('dateUtilsRoutes', () => {
   describe('add', () => {
     describe('when positive days are added', () => {
       it('should be one day in the future', () => {
-        result = dateUtils.add('2022-10-02', 1, 'D');
-        expect(dateUtils.format(result, 'YYYY-MM-DD')).toBe('2022-10-03');
+        result = dateUtils.add('2022-10-02', 1, 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2022-10-03');
       });
     });
     describe('when negative days are added', () => {
       it('should be one day in the past', () => {
-        result = dateUtils.add('2022-10-02', -1, 'D');
-        expect(dateUtils.format(result, 'YYYY-MM-DD')).toBe('2022-10-01');
+        result = dateUtils.add('2022-10-02', -1, 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2022-10-01');
       });
     });
   }); // add
@@ -45,14 +44,14 @@ describe('dateUtilsRoutes', () => {
   describe('subtract', () => {
     describe('when positive days are subtracted', () => {
       it('should decrease by one day', () => {
-        result = dateUtils.subtract('2022-10-02', 1, 'D');
-        expect(dateUtils.format(result, 'YYYY-MM-DD')).toBe('2022-10-01');
+        result = dateUtils.subtract('2022-10-02', 1, 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2022-10-01');
       });
     });
     describe('when negative days are subtracted', () => {
       it('should increase by one day', () => {
-        result = dateUtils.subtract('2022-10-02', -1, 'D');
-        expect(dateUtils.format(result, 'YYYY-MM-DD')).toBe('2022-10-03');
+        result = dateUtils.subtract('2022-10-02', -1, 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2022-10-03');
       });
     });
 
@@ -61,13 +60,13 @@ describe('dateUtilsRoutes', () => {
   describe('difference', () => {
     describe('when date1 is larger than date2', () => {
       it('should return a positive number', () => {
-        result = dateUtils.difference('2022-10-15', '2022-10-01');
+        result = dateUtils.difference('2022-10-15', '2022-10-01', 'd');
         expect(result).toBe(14);
       });
     });
     describe('when date1 is smaller than date2', () => {
       it('should be a negative number', () => {
-        result = dateUtils.difference('2022-10-01', '2022-10-15');
+        result = dateUtils.difference('2022-10-01', '2022-10-15', 'd');
         expect(result).toBe(-14);
       });
     });
@@ -122,13 +121,13 @@ describe('dateUtilsRoutes', () => {
     describe('when the date is in the past', () => {
       it('should return the year nomally', () => {
         result = dateUtils.getYear('December 23, 2022 4:25 AM');
-        expect(result).toBe();
+        expect(result).toBe(2022);
       });
     });
     describe('when the date is in the future', () => {
       it('should return the year nomally', () => {
         result = dateUtils.getYear('December 23, 3092 4:25 AM');
-        expect(result).toBe();
+        expect(result).toBe(3092);
       });
     });
   }); // getYear
@@ -158,7 +157,7 @@ describe('dateUtilsRoutes', () => {
         var yyyy = today.getFullYear();
         today = dd + '-' + mm + '-' + yyyy;
         result = dateUtils.getTodaysDate('DD-MM-YYYY');
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe(today);
+        expect(result).toBe(today);
       });
     });
   }); // getTodaysDate
@@ -178,7 +177,7 @@ describe('dateUtilsRoutes', () => {
     });
     describe('when granularity is Day', () => {
       it('should care about the day', () => {
-        result = dateUtils.isAfter('30-12-2222', '29-12-2222');
+        result = dateUtils.isAfter('30-12-2222', '29-12-2222', 'd', 'DD-MM-YYYY');
         expect(result).toBe(true);
       });
     });
@@ -232,25 +231,25 @@ describe('dateUtilsRoutes', () => {
   describe('isBetween', () => {
     describe('when date is in between dates', () => {
       it('should return true', () => {
-        result = dateUtils.isBetween('25-01-2000', '25-01-1999', '25-01-2001', 'Y', '()');
+        result = dateUtils.isBetween('01-25-2000', '01-25-1999', '01-25-2001', 'y', '()');
         expect(result).toBe(true);
       });
     });
     describe('when date is not in between dates', () => {
       it('should return false', () => {
-        result = dateUtils.isBetween('25-01-2000', '25-01-2025', '25-01-2001', 'Y', '()');
+        result = dateUtils.isBetween('01-25-2000', '01-25-2025', '01-25-2001', 'y', '()');
         expect(result).toBe(false);
       });
     });
     describe('when date is endDate but not inclusive', () => {
       it('should return false', () => {
-        result = dateUtils.isBetween('25-01-2000', '25-01-2001', '25-01-2001', 'Y', '()');
+        result = dateUtils.isBetween('01-25-2000', '01-25-2001', '01-25-2001', 'y', '()');
         expect(result).toBe(false);
       });
     });
     describe('when date is startDate and is inclusive', () => {
       it('should return true', () => {
-        result = dateUtils.isBetween('25-01-2000', '25-01-2001', '25-01-2001', 'Y', '(]');
+        result = dateUtils.isBetween('01-25-2001', '01-25-2000', '01-25-2001', 'y', '(]');
         expect(result).toBe(true);
       });
     });
@@ -259,31 +258,31 @@ describe('dateUtilsRoutes', () => {
   describe('isSame', () => {
     describe('when date is not the same', () => {
       it('should return false', () => {
-        result = dateUtils.isSame('25-01-2000', '25-01-2000');
+        result = dateUtils.isSame('01-01-2003', '01-25-2222');
         expect(result).toBe(false);
       });
     });
     describe('when date is the same', () => {
       it('should return true', () => {
-        result = dateUtils.isSame('25-01-2000', '25-02-2000');
+        result = dateUtils.isSame('01-25-2000', '01-25-2000');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Day', () => {
       it('should return true', () => {
-        result = dateUtils.isSame('25-01-2000', '25-01-2000', 'D');
+        result = dateUtils.isSame('01-25-2000', '01-25-2000', 'd');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Month', () => {
       it('should return true', () => {
-        result = dateUtils.isSame('25-01-2000', '25-01-2000', 'M');
+        result = dateUtils.isSame('01-25-2000', '01-25-2000', 'M');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Year', () => {
       it('should return true', () => {
-        result = dateUtils.isSame('25-01-2000', '25-01-2000', 'Y');
+        result = dateUtils.isSame('01-25-2000', '01-25-2000', 'y');
         expect(result).toBe(true);
       });
     });
@@ -292,37 +291,37 @@ describe('dateUtilsRoutes', () => {
   describe('isSameOrAfter', () => {
     describe('when date is not the same or after', () => {
       it('should return false', () => {
-        result = dateUtils.isSameOrAfter('25-01-1999', '25-01-2000');
+        result = dateUtils.isSameOrAfter('01-25-1999', '01-25-2000');
         expect(result).toBe(false);
       });
     });
     describe('when date is the same', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrAfter('25-01-2000', '25-01-2000');
+        result = dateUtils.isSameOrAfter('01-25-2000', '01-25-2000');
         expect(result).toBe(true);
       });
     });
     describe('when date is after', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrAfter('25-01-2222', '25-01-2000');
+        result = dateUtils.isSameOrAfter('01-25-2222', '01-25-2000');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Day', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrAfter('25-01-2000', '25-01-2000', 'D');
+        result = dateUtils.isSameOrAfter('01-25-2000', '01-25-2000', 'D');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Month', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrAfter('25-01-2000', '25-01-2000', 'M');
+        result = dateUtils.isSameOrAfter('01-25-2000', '01-25-2000', 'M');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Year', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrAfter('25-01-2000', '25-01-2000', 'Y');
+        result = dateUtils.isSameOrAfter('01-25-2000', '01-25-2000', 'Y');
         expect(result).toBe(true);
       });
     });
@@ -331,37 +330,37 @@ describe('dateUtilsRoutes', () => {
   describe('isSameOrBefore', () => {
     describe('when date is not the same or before', () => {
       it('should return false', () => {
-        result = dateUtils.isSameOrBefore('25-01-2222', '25-01-2000');
+        result = dateUtils.isSameOrBefore('01-25-2222', '01-25-2000');
         expect(result).toBe(false);
       });
     });
     describe('when date is the same', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrBefore('25-01-2000', '25-01-2000');
+        result = dateUtils.isSameOrBefore('01-25-2000', '01-25-2000');
         expect(result).toBe(true);
       });
     });
     describe('when date is before', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrBefore('25-01-1999', '25-01-2000');
+        result = dateUtils.isSameOrBefore('01-25-1999', '01-25-2000');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Day', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrBefore('25-01-2000', '25-01-2000', 'D');
+        result = dateUtils.isSameOrBefore('01-25-2000', '01-25-2000', 'D');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Month', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrBefore('25-01-2000', '25-01-2000', 'M');
+        result = dateUtils.isSameOrBefore('01-25-2000', '01-25-2000', 'M');
         expect(result).toBe(true);
       });
     });
     describe('when date is the same and granularity is Year', () => {
       it('should return true', () => {
-        result = dateUtils.isSameOrBefore('25-01-2000', '25-01-2000', 'Y');
+        result = dateUtils.isSameOrBefore('01-25-2000', '01-25-2000', 'Y');
         expect(result).toBe(true);
       });
     });
@@ -398,25 +397,25 @@ describe('dateUtilsRoutes', () => {
     describe('when two dates are the same', () => {
       it('should return the same date', () => {
         result = dateUtils.minimum(['01-01-2000', '01-01-2000']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2000');
+        expect(dateUtils.format(result, 'YYYY-MM-DD', 'DD-MM-YYYY')).toBe('01-01-2000');
       });
     });
     describe('when the first (of three) date is the min', () => {
       it('should return the min date', () => {
         result = dateUtils.minimum(['01-01-2000', '01-01-2001', '01-01-2002']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2000');
+        expect(dateUtils.format(result, 'YYYY-MM-DD', 'DD-MM-YYYY')).toBe('01-01-2000');
       });
     });
     describe('when the second (of three) date is the min', () => {
       it('should return the min date', () => {
         result = dateUtils.minimum(['01-01-2001', '01-01-2002', '01-01-2000']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2000');
+        expect(dateUtils.format(result, 'YYYY-MM-DD', 'DD-MM-YYYY')).toBe('01-01-2000');
       });
     });
     describe('when the third (of three) date is the min', () => {
       it('should return the min date', () => {
         result = dateUtils.minimum(['01-01-2001', '01-01-2002', '01-01-2000']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2000');
+        expect(dateUtils.format(result, 'YYYY-MM-DD', 'DD-MM-YYYY')).toBe('01-01-2000');
       });
     });
   }); // minimum
@@ -425,25 +424,25 @@ describe('dateUtilsRoutes', () => {
     describe('when two dates are the same', () => {
       it('should return the same date', () => {
         result = dateUtils.maximum(['01-01-2000', '01-01-2000']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2000');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-01-01');
       });
     });
     describe('when the first (of three) date is the max', () => {
       it('should return the max date', () => {
         result = dateUtils.maximum(['01-01-2002', '01-01-2000', '01-01-2001']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2002');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2002-01-01');
       });
     });
     describe('when the second (of three) date is the max', () => {
       it('should return the max date', () => {
         result = dateUtils.maximum(['01-01-2000', '01-01-2002', '01-01-2001']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2002');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2002-01-01');
       });
     });
     describe('when the third (of three) date is the max', () => {
       it('should return the max date', () => {
         result = dateUtils.maximum(['01-01-2000', '01-01-2001', '01-01-2002']);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-2002');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2002-01-01');
       });
     });
   }); // maximum
@@ -453,23 +452,23 @@ describe('dateUtilsRoutes', () => {
     var dd = String(today.getDate()).padStart(2, '0');
     var mm = String(today.getMonth() + 1).padStart(2, '0');
     var yyyy = today.getFullYear();
-    today = dd + '-' + mm + '-' + yyyy;
+    today = `${yyyy}-${mm}-${dd}`;
     describe('when the month and year is now', () => {
       it('should only change the day', () => {
         result = dateUtils.setDay(today, 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe(`05-${mm}-${yyyy}`);
+        expect(result).toBe(`${yyyy}-${mm}-05`);
       });
     });
     describe('when the month and year is in the past', () => {
       it('should only change the day', () => {
         result = dateUtils.setDay('01-01-2000', 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('05-01-2000');
+        expect(result).toBe('2000-01-05');
       });
     });
     describe('when the month and year is in the future', () => {
       it('should only change the day', () => {
         result = dateUtils.setDay('01-01-9999', 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('05-01-9999');
+        expect(result).toBe('9999-01-05');
       });
     });
   }); // setDay
@@ -479,23 +478,23 @@ describe('dateUtilsRoutes', () => {
     var dd = String(today.getDate()).padStart(2, '0');
     var mm = String(today.getMonth() + 1).padStart(2, '0');
     var yyyy = today.getFullYear();
-    today = dd + '-' + mm + '-' + yyyy;
+    today = `${yyyy}-${mm}-${dd}`;
     describe('when the month and year is now', () => {
       it('should only change the day', () => {
         result = dateUtils.setMonth(today, 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe(`${dd}-05-${yyyy}`);
+        expect(result).toBe(`${yyyy}-06-${dd}`);
       });
     });
     describe('when the month and year is in the past', () => {
       it('should only change the day', () => {
         result = dateUtils.setMonth('01-01-2000', 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-05-2000');
+        expect(result).toBe('2000-06-01');
       });
     });
     describe('when the month and year is in the future', () => {
       it('should only change the day', () => {
         result = dateUtils.setMonth('01-01-9999', 5);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-05-9999');
+        expect(result).toBe('9999-06-01');
       });
     });
   }); // setMonth
@@ -505,68 +504,67 @@ describe('dateUtilsRoutes', () => {
     var dd = String(today.getDate()).padStart(2, '0');
     var mm = String(today.getMonth() + 1).padStart(2, '0');
     var yyyy = today.getFullYear();
-    today = dd + '-' + mm + '-' + yyyy;
+    today = `${yyyy}-${mm}-${dd}`;
     describe('when the month and year is now', () => {
       it('should only change the day', () => {
         result = dateUtils.setYear(today, 1999);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe(`${dd}-${mm}-1999`);
+        expect(result).toBe(`1999-${mm}-${dd}`);
       });
     });
     describe('when the month and year is in the past', () => {
       it('should only change the day', () => {
         result = dateUtils.setYear('01-01-2000', 1999);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-1999');
+        expect(result).toBe('1999-01-01');
       });
     });
     describe('when the month and year is in the future', () => {
       it('should only change the day', () => {
         result = dateUtils.setYear('01-01-9999', 1999);
-        expect(dateUtils.format(result, 'DD-MM-YYYY')).toBe('01-01-1999');
+        expect(result).toBe('1999-01-01');
       });
     });
   }); // setYear
 
   describe('startOf', () => {
     describe('when granularity is Day', () => {
-      it('should ', () => {
-        result = dateUtils.startOf('01-01-2000', 'D');
-        expect(result).toBe('idk');
+      it('should not really do anything since there\'s no time specified', () => {
+        result = dateUtils.startOf('2000-05-05', 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-05-05');
       });
     });
     describe('when granularity is Month', () => {
-      it('should ', () => {
-        result = dateUtils.startOf('01-01-2000', 'M');
-        expect(result).toBe('idk');
+      it('should set the date to the beginning of the month', () => {
+        result = dateUtils.startOf('2000-05-05', 'M');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-05-01');
       });
     });
     describe('when granularity is Year', () => {
-      it('should ', () => {
-        result = dateUtils.startOf('01-01-2000', 'Y');
-        expect(result).toBe('idk');
+      it('should set the date to the beginning of the year', () => {
+        result = dateUtils.startOf('2000-05-05', 'y');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-01-01');
       });
     });
   }); // startOf
 
   describe('endOf', () => {
     describe('when granularity is Day', () => {
-      it('should ', () => {
-        result = dateUtils.endOf('01-01-2000', 'D');
-        expect(result).toBe('idk');
+      it('should not really do anything since there\'s no time specified', () => {
+        result = dateUtils.endOf('2000-05-05', 'd');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-05-05');
       });
     });
     describe('when granularity is Month', () => {
-      it('should ', () => {
-        result = dateUtils.endOf('01-01-2000', 'M');
-        expect(result).toBe('idk');
+      it('should set the date to the end of the month', () => {
+        result = dateUtils.endOf('2000-05-05', 'M');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-05-31');
       });
     });
     describe('when granularity is Year', () => {
-      it('should ', () => {
-        result = dateUtils.endOf('01-01-2000', 'Y');
-        expect(result).toBe('idk');
+      it('should set the date to the end of the year', () => {
+        result = dateUtils.endOf('2000-05-05', 'y');
+        expect(result.substring(0, 'YYYY-MM-DD'.length)).toBe('2000-12-31');
       });
     });
   }); // endOf
 
 }); // dateUtilsRoutes
-*/
