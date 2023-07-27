@@ -1,8 +1,8 @@
-const PTOCashOut = require('./../models/ptoCashOut');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
 const _ = require('lodash');
+const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 
 const logger = new Logger('ptoCashOutRoutes');
 

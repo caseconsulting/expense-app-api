@@ -51,13 +51,14 @@ describe('tSheetsRoutes', () => {
   };
 
   const PTO_BALANCES_PAYLOAD = {
-    Payload: '{"body": "{ptoBalances}"}'
+    body: '{ptoBalances}'
   };
 
   const PTO_BALANCES = '{ptoBalances}';
 
   const PTO_BALANCES_ERR = {
-    Payload: '{"body" : "", "errorMessage" : "Failed to get pto balances"}'
+    body: '',
+    errorMessage: 'Failed to get pto balances'
   };
 
   let res, tSheetsRoutes;

@@ -29,9 +29,9 @@ const Expense = require('./../../models/expense.js');
 const ExpenseType = require('./../../models/expenseType.js');
 const TrainingUrl = require('./../../models/trainingUrls.js');
 
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
 
 /**
  * Async function to loop an array.
@@ -49,8 +49,7 @@ async function asyncForEach(array, callback) {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -139,13 +138,11 @@ async function removeNull(table) {
         TableName: table,
         Item: entry
       };
-      ddb.put(params, function (err) {
-        if (err) {
-          console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Removed null attributes from entry with id: ${entry.id} category: ${entry.category}`);
-        }
-      });
+      ddb
+        .send(new PutCommand(params))
+        .then(() => console.log(`Removed null attributes from entry with id: ${entry.id} category: ${entry.category}`))
+
+        .catch((err) => console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2)));
     });
   } else {
     await asyncForEach(entries, async (entry) => {
@@ -153,13 +150,11 @@ async function removeNull(table) {
         TableName: table,
         Item: entry
       };
-      ddb.put(params, function (err) {
-        if (err) {
-          console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Removed null attributes from entry with id: ${entry.id}`);
-        }
-      });
+      ddb
+        .send(new PutCommand(params))
+        .then(() => console.log(`Removed null attributes from entry with id: ${entry.id}`))
+
+        .catch((err) => console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2)));
     });
   }
 

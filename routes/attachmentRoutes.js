@@ -1,8 +1,5 @@
 const _ = require('lodash');
-const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const express = require('express');
-const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const multer = require('multer');
@@ -15,11 +12,14 @@ const {
   StartDocumentAnalysisCommand,
   GetDocumentAnalysisCommand
 } = require('@aws-sdk/client-textract');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 
 const STAGE = process.env.STAGE;
-const s3Client = new S3Client({ apiVersion: '2006-03-01' });
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
+const s3Client = new S3Client({ apiVersion: '2006-03-01' });
 const textractClient = new TextractClient({ apiVersion: '2018-06-27' });
 const comprehendClient = new ComprehendClient({ apiVersion: '2017-11-27' });
 const logger = new Logger('attachmentRoutes');
@@ -141,39 +141,41 @@ class Attachment {
 
     // make delete call to s3
     const command = new DeleteObjectCommand(params);
-    try {
-      let data = await s3Client.send(command);
-      // log success
-      logger.log(
-        1,
-        'deleteAttachmentFromS3',
-        `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
-      );
+    await s3Client
+      .send(command)
+      .then((data) => {
+        // log success
+        logger.log(
+          1,
+          'deleteAttachmentFromS3',
+          `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
+        );
 
-      // send successful 200 status
-      res.status(200).send(data);
+        // send successful 200 status
+        res.status(200).send(data);
 
-      // return file read
-      return data;
-    } catch (err) {
-      // log error
-      logger.log(
-        1,
-        'deleteAttachmentFromS3',
-        `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
-      );
+        // return file read
+        return data;
+      })
+      .catch((err) => {
+        // log error
+        logger.log(
+          1,
+          'deleteAttachmentFromS3',
+          `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
+        );
 
-      let error = {
-        code: 403,
-        message: `${err.message}`
-      };
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
 
-      // send error status
-      res.status(error.code).send(error);
+        // send error status
+        res.status(error.code).send(error);
 
-      // return error
-      return error;
-    }
+        // return error
+        return error;
+      });
   } // deleteAttachmentFromS3
 
   /**
@@ -373,7 +375,7 @@ class Attachment {
     };
 
     const command = new DetectEntitiesCommand(comprehendParams);
-    return comprehendClient.send(command);
+    return await comprehendClient.send(command);
   } // comprehendText
 
   /**
@@ -447,31 +449,32 @@ class Attachment {
     let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
     let params = { Bucket: BUCKET, Key: filePath };
     let command = new GetObjectCommand(params);
-    try {
-      const data = await getSignedUrl(s3Client, command, { expiresIn: 60 }); // expires in seconds
-      // log success
-      logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
+    await getSignedUrl(s3Client, command, { expiresIn: 60 })
+      .then((data) => {
+        // log success
+        logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
 
-      // send successful 200 status
-      res.status(200).send(data);
+        // send successful 200 status
+        res.status(200).send(data);
 
-      // return file read
-      return data;
-    } catch (err) {
-      // log error
-      logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
+        // return file read
+        return data;
+      })
+      .catch((err) => {
+        // log error
+        logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
 
-      let error = {
-        code: 403,
-        message: `${err.message}`
-      };
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
 
-      // send error status
-      res.status(error.code).send(error);
+        // send error status
+        res.status(error.code).send(error);
 
-      // return error
-      return error;
-    }
+        // return error
+        return error;
+      });
   } // getAttachmentFromS3
 
   /**

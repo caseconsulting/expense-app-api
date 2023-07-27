@@ -1,0 +1,32 @@
+
+git commit -m "POR-2210: finish upgrading AWS SDK and Multer-S3 V2 - for all routes and util files except for databaseModify still need to test" 
+A	V3
+M	js/GetUserInfoMiddleware.js
+M	js/Logger.js
+M	js/Scripts/ReceiptSync.js
+M	js/Scripts/TrainingSync.js
+M	js/Scripts/budgetScripts.js
+M	js/Scripts/contractScripts.js
+M	js/Scripts/employeeScripts.js
+M	js/Scripts/expenseTypesScripts.js
+M	js/Scripts/expensesScripts.js
+M	js/Scripts/v3.1DataScript.js
+M	routes/attachmentRoutes.js
+M	routes/auditRoutes.js
+M	routes/emsiRoutes.js
+M	routes/expenseRoutes.js
+M	routes/expenseTypeRoutes.js
+M	routes/googleMapsRoutes.js
+M	routes/hippoLabsRoutes.js
+M	routes/ptoCashOutRoutes.js
+M	routes/resumeRoutes.js
+M	routes/roles.js
+M	routes/tSheetsRoutes.js
+M	routes/tagRoutes.js
+M	routes/trainingUrlRoutes.js
+M	routes/utilityRoutes.js
+M	spec/routes/expenseRoutes.spec.js
+M	spec/routes/tSheetsRoutes.spec.js
+
+ERROR: (see above)
+

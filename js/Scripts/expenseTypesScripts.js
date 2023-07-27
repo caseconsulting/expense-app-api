@@ -28,9 +28,9 @@ const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 // set up  AWS DynamoDB
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
 
 // colors for console logging
 const colors = {
@@ -55,8 +55,7 @@ const colors = {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -116,13 +115,10 @@ async function accessibleByAll() {
     };
 
     // update expense type
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated expense type id ${expenseType.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // accessibleByAll
 
@@ -145,13 +141,10 @@ async function addAlwaysOnFeed() {
     };
 
     // update expense type
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated expense type id ${expenseType.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // addAlwaysOnFeed
 
@@ -184,13 +177,10 @@ async function categoryFixer() {
     };
 
     // update expense type
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated expense type id ${expenseType.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // categoryFixer
 
@@ -230,13 +220,10 @@ async function convertExpenseTypeAccessibilities() {
     };
 
     // update expense type
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated expense type id ${expenseType.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // convertExpenseTypeAccessibilities
 
@@ -258,11 +245,10 @@ async function removeAttribute(attribute) {
     };
 
     // update expense
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then()
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // removeAttribute
 
@@ -292,13 +278,10 @@ async function addRequireURLAttrToCategories() {
     };
 
     // update expense type
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated expense type id ${expenseType.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // addRequireURLAttrToCategories
 

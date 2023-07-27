@@ -1,9 +1,10 @@
 const axios = require('axios');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
-const Logger = require('../js/Logger');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+
 const logger = new Logger('emsiRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
@@ -16,7 +17,7 @@ const checkJwt = jwt({
     jwksRequestsPerMinute: 5,
     jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
   }),
-  
+
   // Validate the audience and the issuer.
   audience: process.env.VUE_APP_AUTH0_AUDIENCE,
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
@@ -65,7 +66,7 @@ class HippoLabsRoutes {
       }
       res.status(200).send(finalColleges);
       return finalColleges;
-    } catch(err) {
+    } catch (err) {
       let error = {
         code: 400,
         message: err.message
@@ -76,8 +77,8 @@ class HippoLabsRoutes {
   } // _getColleges
 
   /**
-   * 
-   * @param options - parameters for axios call 
+   *
+   * @param options - parameters for axios call
    * @return promise - axios response
    */
   async callAxios(options) {
@@ -93,11 +94,10 @@ class HippoLabsRoutes {
    */
   _sendError(res, err) {
     // log method
-    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`); 
+    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
 } // HippoLabsRoutes
-
 
 module.exports = HippoLabsRoutes;

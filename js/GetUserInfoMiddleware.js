@@ -1,7 +1,7 @@
-const DB = require('./databaseModify');
+const _ = require('lodash');
+const DB = require(process.env.AWS ? 'databaseModify' : './databaseModify');
 const db = new DB('employees');
 const sensitiveDB = new DB('employees-sensitive');
-const _ = require('lodash');
 const getUserInfo = (req, res, next) => {
   // JWT tokens created by auth0 have to conform to OIDC specification.
   // As a result of this, all custom namespaces have to begin with http or https.

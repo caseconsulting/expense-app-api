@@ -11,15 +11,15 @@ if (process.argv.length > 2) {
   throw new Error();
 }
 
-const AWS = require('aws-sdk');
 const got = require('got');
 const Logger = require('../Logger');
 const metascraper = require('metadata-scraper');
 const TrainingUrl = require('../../models/trainingUrls');
 const _ = require('lodash');
 
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
 const logger = new Logger('TrainingSync');
 const EXPENSE_TABLE = `${STAGE}-expenses`;
 const TRAINING_TABLE = `${STAGE}-training-urls`;
@@ -29,8 +29,7 @@ const EXPENSE_TYPE_TABLE = `${STAGE}-expense-types`;
 const getAllEntries = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -72,8 +71,7 @@ async function deleteAllTrainingUrls() {
 
     // delete entry
     await ddb
-      .delete(params)
-      .promise()
+      .send(new DeleteCommand(params))
       .then((data) => {
         logger.log(
           2,
@@ -218,7 +216,7 @@ async function getAllTrainingUrls() {
     };
 
     await ddb
-      .put(params)
+      .send(new PutCommand(params))
       .promise()
       .then(() => {
         logger.log(

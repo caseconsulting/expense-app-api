@@ -1,10 +1,11 @@
 const axios = require('axios');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
-const Logger = require('../js/Logger');
 const oauth = require('axios-oauth-client');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+
 const logger = new Logger('emsiRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
@@ -17,7 +18,7 @@ const checkJwt = jwt({
     jwksRequestsPerMinute: 5,
     jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
   }),
-  
+
   // Validate the audience and the issuer.
   audience: process.env.VUE_APP_AUTH0_AUDIENCE,
   issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
@@ -66,7 +67,7 @@ class EmsiRoutes {
       let response = await this.callAxios(config);
       res.status(200).send(response.data);
       return response;
-    } catch(err) {
+    } catch (err) {
       let error = {
         code: 400,
         message: err.message
@@ -103,7 +104,7 @@ class EmsiRoutes {
       let accessToken = token.access_token;
       logger.log(1, 'getEmsiToken', 'Successfully retrieved emsi token');
       return accessToken;
-    } catch(err) {
+    } catch (err) {
       logger.log(1, 'getEsmiToken', 'Failed to retrieve emsi token');
       return err;
     }
@@ -118,11 +119,10 @@ class EmsiRoutes {
    */
   _sendError(res, err) {
     // log method
-    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`); 
+    logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
 } // EmsiRoutes
-
 
 module.exports = EmsiRoutes;

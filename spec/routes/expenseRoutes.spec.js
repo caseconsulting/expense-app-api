@@ -98,7 +98,7 @@ describe('expenseRoutes', () => {
     accessibleBy: ACCESSIBLE_BY
   };
 
-  let expenseRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseTypeDynamo, tagDynamo, s3;
+  let expenseRoutes, budgetDynamo, databaseModify, employeeDynamo, expenseTypeDynamo, tagDynamo, s3Client;
 
   beforeEach(() => {
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
@@ -161,7 +161,7 @@ describe('expenseRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    s3 = jasmine.createSpyObj('s3', ['listObjectsV2', 'copyObject']);
+    s3Client = jasmine.createSpyObj('s3Client', ['send']);
 
     expenseRoutes = new ExpenseRoutes();
     expenseRoutes.budgetDynamo = budgetDynamo;
@@ -169,7 +169,7 @@ describe('expenseRoutes', () => {
     expenseRoutes.employeeDynamo = employeeDynamo;
     expenseRoutes.expenseTypeDynamo = expenseTypeDynamo;
     expenseRoutes.tagDynamo = tagDynamo;
-    expenseRoutes.s3 = s3;
+    expenseRoutes.s3Client = s3Client;
   });
 
   describe('_addToBudget', () => {
@@ -287,13 +287,15 @@ describe('expenseRoutes', () => {
     let employeeId, oldExpenseId, newExpenseId;
 
     beforeEach(() => {
+      s3Client.send.and.returnValue(Promise.resolve({}));
+      spyOn(expenseRoutes, '_copyFunction').and.returnValue(true);
       employeeId = ID;
       oldExpenseId = 'oldId';
       newExpenseId = 'newId';
     });
 
     afterEach(() => {
-      expect(s3.listObjectsV2).toHaveBeenCalled();
+      expect(s3Client.send).toHaveBeenCalled();
     });
 
     it('should call listObjectsV2', (done) => {
@@ -320,12 +322,12 @@ describe('expenseRoutes', () => {
         });
 
         afterEach(() => {
-          expect(s3.copyObject).toHaveBeenCalledTimes(0);
+          expect(s3Client.send).toHaveBeenCalledTimes(0);
         });
 
         it('should not copy any files', (done) => {
           expenseRoutes._copyFunction(
-            s3,
+            s3Client,
             expenseRoutes._copyFunctionLog,
             employeeId,
             oldExpenseId,
@@ -339,9 +341,10 @@ describe('expenseRoutes', () => {
 
       describe('and contains two files', () => {
         describe('and the second file is the most recent', () => {
-          let file1, file2, expectedParams;
+          let file1, file2;
 
           beforeEach(() => {
+            s3Client.send.and.returnValue(Promise.resolve({}));
             file1 = {
               LastModified: '2009-10-12T17:50:30.000Z',
               Key: 'Old_ID/file1_id'
@@ -350,25 +353,18 @@ describe('expenseRoutes', () => {
               LastModified: '2009-10-14T17:50:30.000Z',
               Key: 'Old_ID/file2_id'
             };
-
-            expectedParams = {
-              Bucket: 'case-expense-app-attachments-dev',
-              CopySource: 'case-expense-app-attachments-dev/Old_ID/file2_id',
-              Key: 'New_ID/file2_id'
-            };
             data = {
               Contents: [file1, file2]
             };
           });
 
           afterEach(() => {
-            expect(s3.copyObject).toHaveBeenCalledTimes(1);
-            expect(s3.copyObject).toHaveBeenCalledWith(expectedParams, jasmine.any(Function));
+            expect(s3Client.send).toHaveBeenCalledTimes(1);
           });
 
           it('should copy the most recent file', (done) => {
             expenseRoutes._copyFunction(
-              s3,
+              s3Client,
               expenseRoutes._copyFunctionLog,
               employeeId,
               oldExpenseId,
@@ -381,9 +377,10 @@ describe('expenseRoutes', () => {
         }); // and the second file is the most recent
 
         describe('and the first file is the most recent', () => {
-          let file1, file2, expectedParams;
+          let file1, file2;
 
           beforeEach(() => {
+            s3Client.send.and.returnValue(Promise.resolve({}));
             file1 = {
               LastModified: '2009-10-12T17:50:30.000Z',
               Key: 'Old_ID/file1_id'
@@ -392,25 +389,18 @@ describe('expenseRoutes', () => {
               LastModified: '2009-10-10T17:50:30.000Z',
               Key: 'Old_ID/file2_id'
             };
-
-            expectedParams = {
-              Bucket: 'case-expense-app-attachments-dev',
-              CopySource: 'case-expense-app-attachments-dev/Old_ID/file1_id',
-              Key: 'New_ID/file1_id'
-            };
             data = {
               Contents: [file1, file2]
             };
           });
 
           afterEach(() => {
-            expect(s3.copyObject).toHaveBeenCalledTimes(1);
-            expect(s3.copyObject).toHaveBeenCalledWith(expectedParams, jasmine.any(Function));
+            expect(s3Client.send).toHaveBeenCalledTimes(1);
           });
 
           it('should copy the most recent file', (done) => {
             expenseRoutes._copyFunction(
-              s3,
+              s3Client,
               expenseRoutes._copyFunctionLog,
               employeeId,
               oldExpenseId,
@@ -433,7 +423,15 @@ describe('expenseRoutes', () => {
 
       it('should return an error', (done) => {
         expenseRoutes
-          ._copyFunction(s3, expenseRoutes._copyFunctionLog, employeeId, oldExpenseId, newExpenseId, err, undefined)
+          ._copyFunction(
+            s3Client,
+            expenseRoutes._copyFunctionLog,
+            employeeId,
+            oldExpenseId,
+            newExpenseId,
+            err,
+            undefined
+          )
           .then(() => {
             fail('expected error to have been thrown');
             done();

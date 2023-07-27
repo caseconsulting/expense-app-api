@@ -1,13 +1,12 @@
-const Tag = require('./../models/tag');
-const Budget = require('./../models/budget');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
 const _ = require('lodash');
-const dateUtils = require('../js/dateUtils');
+const Tag = require(process.env.AWS ? 'tag' : '../models/tag');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const logger = new Logger('tagRoutes');
-
 const IsoFormat = 'YYYY-MM-DD';
 
 class TagRoutes extends Crud {

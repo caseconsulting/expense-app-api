@@ -3,8 +3,7 @@ require('dotenv').config({
 });
 
 const _ = require('lodash');
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
+const { S3Client, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 
 // validate the stage (dev, test, prod)
 let STAGE;
@@ -19,19 +18,20 @@ if (process.argv.length > 2) {
   throw new Error();
 }
 
-const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+const s3 = new S3Client({ apiVersion: '2006-03-01' });
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, UpdateCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
 const table = `${STAGE}-expenses`;
 
 // get all the entries in dynamo the given table
 const getAllEntries = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -57,8 +57,7 @@ function getAllEntriesInDB() {
 // get all the keys in S3
 const listAllKeys = (params, out = []) =>
   new Promise((resolve, reject) => {
-    s3.listObjectsV2(params)
-      .promise()
+    s3.send(new ListObjectsV2Command(params))
       .then(({ Contents, IsTruncated, NextContinuationToken }) => {
         out.push(...Contents);
         !IsTruncated
@@ -135,13 +134,10 @@ async function updateReceiptFields() {
           };
 
           // update expense
-          ddb.update(params, function (err, data) {
-            if (err) {
-              console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-            } else {
-              console.log(`Updated expenseId ${expense.id} with receipt "${data.Attributes.receipt}"`);
-            }
-          });
+          ddb
+            .send(new UpdateCommand(params))
+            .then((data) => console.log(`Updated expenseId ${expense.id} with receipt "${data.Attributes.receipt}"`))
+            .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
         } else {
           delete expense.receipt;
 
@@ -149,13 +145,10 @@ async function updateReceiptFields() {
             TableName: table,
             Item: expense
           };
-          ddb.put(params, function (err) {
-            if (err) {
-              console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-            } else {
-              console.log(`Could not find receipt for expenseId ${expense.id}. Removed receipt attribute.`);
-            }
-          });
+          ddb
+            .send(new PutCommand(params))
+            .then(() => console.log(`Could not find receipt for expenseId ${expense.id}. Removed receipt attribute.`))
+            .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
         }
       });
     })

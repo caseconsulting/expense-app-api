@@ -30,9 +30,15 @@ const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 // set up AWS DynamoDB
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  ScanCommand,
+  UpdateCommand,
+  PutCommand,
+  DeleteCommand
+} = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
 
 // colors for console logging
 const colors = {
@@ -90,8 +96,7 @@ function getNumExpenses() {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -170,11 +175,10 @@ async function addShowOnFeed() {
     };
 
     // update expense
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then()
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // addShowOnFeed
 
@@ -206,11 +210,9 @@ async function addReceipts() {
         ReturnValues: 'UPDATED_NEW'
       };
       // update expense
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then.catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // addReceipts
@@ -240,13 +242,10 @@ function createItems(numberOfItems) {
         employeeId: 'c722279e-2e11-43bb-a1d2-4999e8a98a6c' // info account
       }
     };
-    ddb.put(params, function (err) {
-      if (err) {
-        console.error('Unable to create item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Created dummy expense with id: ${newId}`);
-      }
-    });
+    ddb
+      .send(new PutCommand(params))
+      .then(() => console.log(`Created dummy expense with id: ${newId}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   }
 } // createItems
 
@@ -263,11 +262,10 @@ async function deleteAllExpenses() {
       }
     };
 
-    ddb.delete(params, function (err) {
-      if (err) {
-        console.error('Unable to delete item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
+    ddb
+      .send(new DeleteCommand(params))
+      .then()
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // deleteAllExpenses
 
@@ -300,13 +298,12 @@ async function copyValues(oldName, newName) {
     }
 
     // update expense
-    ddb.update(params, function (err, data) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Item Updated\n  Expense ID: ${expense.id}\n  ${newName} copied: ${data.Attributes[newName]}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then((data) =>
+        console.log(`Item Updated\n  Expense ID: ${expense.id}\n  ${newName} copied: ${data.Attributes[newName]}`)
+      )
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // copyValues
 
@@ -328,11 +325,10 @@ async function removeAttribute(attribute) {
     };
 
     // update expense
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then()
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // removeAttribute
 

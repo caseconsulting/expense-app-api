@@ -4,7 +4,7 @@ const express = require('express');
 const Audit = require(process.env.AWS ? 'audit' : '../models/audit');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const logger = new Logger('auditRoutes');

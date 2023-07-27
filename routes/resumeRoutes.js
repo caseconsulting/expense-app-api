@@ -1,11 +1,19 @@
-const Logger = require('../js/Logger');
+const _ = require('lodash');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const _ = require('lodash');
+const { S3Client, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { ComprehendClient, BatchDetectEntitiesCommand } = require('@aws-sdk/client-comprehend');
+const {
+  TextractClient,
+  StartDocumentAnalysisCommand,
+  GetDocumentAnalysisCommand
+} = require('@aws-sdk/client-textract');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 
 const logger = new Logger('resumeRoutes');
 
@@ -27,23 +35,11 @@ const checkJwt = jwt({
 });
 
 const STAGE = process.env.STAGE;
-const AWS = require('aws-sdk');
-const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}portal-resumes-${STAGE}`;
-const textract = new AWS.Textract({ apiVersion: '2018-06-27' });
-const comprehend = new AWS.Comprehend({ apiVersion: '2017-11-27' });
-
-// const storage = multerS3({
-//   s3: s3,
-//   bucket: BUCKET,
-//   acl: 'bucket-owner-full-control',
-//   contentType: multerS3.AUTO_CONTENT_TYPE,
-//   serverSideEncryption: 'AES256',
-//   key: function (req, file, cb) {
-//     cb(null, `${req.params.employeeId}/${file.originalname}`);
-//   }
-// });
+const s3Client = new S3Client({ apiVersion: '2006-03-01' });
+const textractClient = new TextractClient({ apiVersion: '2018-06-27' });
+const comprehendClient = new ComprehendClient({ apiVersion: '2017-11-27' });
 
 // file limits
 const limits = {
@@ -83,13 +79,6 @@ const fileFilter = function (req, file, cb) {
   }
 };
 
-// s3 fild upload multer
-// const upload = multer({
-//   storage: storage,
-//   limits: limits,
-//   fileFilter: fileFilter
-// }).single('resume');
-
 class Resume {
   constructor() {
     this._router = express.Router();
@@ -117,8 +106,24 @@ class Resume {
     let params = { Bucket: BUCKET, Key: filePath };
 
     // make delete call to s3
-    s3.deleteObject(params, (err, data) => {
-      if (err) {
+    const command = new DeleteObjectCommand(params);
+    await s3Client
+      .send(command)
+      .then((data) => {
+        // log success
+        logger.log(
+          1,
+          'deleteResumeFromS3',
+          `Successfully deleted resume for employee ${req.params.employeeId} from S3 ${filePath}`
+        );
+
+        // send successful 200 status
+        res.status(200).send(data);
+
+        // return file read
+        return data;
+      })
+      .catch((err) => {
         // log error
         logger.log(
           1,
@@ -136,21 +141,7 @@ class Resume {
 
         // return error
         return error;
-      } else {
-        // log success
-        logger.log(
-          1,
-          'deleteResumeFromS3',
-          `Successfully deleted resume for employee ${req.params.employeeId} from S3 ${filePath}`
-        );
-
-        // send successful 200 status
-        res.status(200).send(data);
-
-        // return file read
-        return data;
-      }
-    });
+      });
   } // deleteResumeFromS3
 
   /**
@@ -174,7 +165,7 @@ class Resume {
     logger.log(1, 'extractText', 'Attempting to upload resume and extract text');
 
     const textractStorage = multerS3({
-      s3: s3,
+      s3: s3Client,
       bucket: BUCKET,
       acl: 'bucket-owner-full-control',
       contentType: multerS3.AUTO_CONTENT_TYPE,
@@ -223,7 +214,8 @@ class Resume {
             },
             FeatureTypes: ['FORMS']
           };
-          let startAnalysisData = await textract.startDocumentAnalysis(startAnalysisParams).promise();
+          const startCommand = new StartDocumentAnalysisCommand(startAnalysisParams);
+          let startAnalysisData = await textractClient.send(startCommand);
           let jobId = startAnalysisData.JobId;
 
           let getAnalysisParams = {
@@ -233,7 +225,8 @@ class Resume {
           let textExtracted;
 
           do {
-            textExtracted = await textract.getDocumentAnalysis(getAnalysisParams).promise();
+            const getCommand = new GetDocumentAnalysisCommand(getAnalysisParams);
+            textExtracted = await textractClient.send(getCommand);
             // We should wait for a little bit of time so we don't get provision issues
             await new Promise((resolve) => setTimeout(resolve, 200));
           } while (textExtracted.JobStatus === 'IN_PROGRESS');
@@ -314,7 +307,8 @@ class Resume {
         };
 
         //Get the entities for this batch of 25 items
-        let entities = await comprehend.batchDetectEntities(comprehendParams).promise();
+        const command = new BatchDetectEntitiesCommand(comprehendParams);
+        let entities = await comprehendClient.send(command);
         _.forEach(entities.ResultList, (entity) => {
           returnEntities.push(...entity.Entities);
         });
@@ -391,22 +385,26 @@ class Resume {
 
     // compute method
     let filePath = `${req.params.employeeId}/resume`;
-    let params = { Bucket: BUCKET, Key: filePath, Expires: 60 };
+    let params = { Bucket: BUCKET, Key: filePath };
     let headParams = { Bucket: BUCKET, Key: filePath };
     // We check if resume exists, if it does, then we get the resume
-    s3.headObject(headParams, function (err) {
-      if (err && err.code === 'NotFound') {
-        // No object found
-        logger.log(1, 'getREsumeFromS3', `No resume found for ${req.params.employeeId}`);
-        let error = {
-          code: 404,
-          message: `No resume found for ${req.params.employeeId}`
-        };
-        res.status(error.code).send(error);
-        return error;
-      } else {
-        s3.getSignedUrl('getObject', params, (err, data) => {
-          if (err) {
+    const command = new HeadObjectCommand(headParams);
+    await s3Client
+      .send(command)
+      .then(async () => {
+        const objCommand = new GetObjectCommand(params);
+        await getSignedUrl(s3Client, objCommand, { expiresIn: 60 })
+          .then((data) => {
+            // log success
+            logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
+
+            // send successful 200 status
+            res.status(200).send(data);
+
+            // return file read
+            return data;
+          })
+          .catch((err) => {
             // log error
             logger.log(1, 'getResumeFromS3', 'Failed to read resume');
 
@@ -420,19 +418,18 @@ class Resume {
 
             // return error
             return error;
-          } else {
-            // log success
-            logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
-
-            // send successful 200 status
-            res.status(200).send(data);
-
-            // return file read
-            return data;
-          }
-        });
-      }
-    });
+          });
+      })
+      .catch(() => {
+        // No object found
+        logger.log(1, 'getResumeFromS3', `No resume found for ${req.params.employeeId}`);
+        let error = {
+          code: 404,
+          message: `No resume found for ${req.params.employeeId}`
+        };
+        res.status(error.code).send(error);
+        return error;
+      });
   } // getResumeFromS3
 
   /**
@@ -456,7 +453,7 @@ class Resume {
    */
   uploadResumeToS3(req, res) {
     const textractStorage = multerS3({
-      s3: s3,
+      s3: s3Client,
       bucket: BUCKET,
       acl: 'bucket-owner-full-control',
       contentType: multerS3.AUTO_CONTENT_TYPE,
@@ -473,8 +470,6 @@ class Resume {
     }).single('resume');
     // log method
     logger.log(1, 'uploadResumeToS3', `Attempting to upload resume for employee ${req.params.employeeId}`);
-    //let x = JSON.stringify(req);
-    //logger.log(1, 'uploadResumeToS3', `req: ${x}`);
 
     // compute method
     textractUpload(req, res, async (err) => {

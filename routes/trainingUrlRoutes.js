@@ -1,14 +1,13 @@
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
-const TrainingUrl = require('../models/trainingUrls');
 const _ = require('lodash');
-
 const atob = require('atob');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
+
 const logger = new Logger('trainingUrlRoutes');
 
 class TrainingUrlRoutes extends Crud {
-
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('training-urls');
@@ -28,7 +27,9 @@ class TrainingUrlRoutes extends Crud {
       await this._validateTrainingUrl(trainingUrl); // validate training url
 
       // log success
-      logger.log(2, '_create',
+      logger.log(
+        2,
+        '_create',
         `Successfully prepared to create training url ${data.id} with category ${data.category}`
       );
 
@@ -95,7 +96,7 @@ class TrainingUrlRoutes extends Crud {
     // compute method
     try {
       let trainingUrlsData = await this.databaseModify.getAllEntriesInDB();
-      let trainingUrls = _.map(trainingUrlsData, trainingUrl => {
+      let trainingUrls = _.map(trainingUrlsData, (trainingUrl) => {
         return new TrainingUrl(trainingUrl);
       });
 
@@ -132,7 +133,9 @@ class TrainingUrlRoutes extends Crud {
       await this._validateUpdate(oldTrainingUrl, newTrainingUrl); // validate update
 
       // log success
-      logger.log(2, '_update',
+      logger.log(
+        2,
+        '_update',
         `Successfully prepared to update training url ${data.id} with category ${data.category}`
       );
 
@@ -156,7 +159,9 @@ class TrainingUrlRoutes extends Crud {
    */
   _validateTrainingUrl(trainingUrl) {
     // log method
-    logger.log(3, '_validateTrainingUrl',
+    logger.log(
+      3,
+      '_validateTrainingUrl',
       `Validating training url ${trainingUrl.id} with category ${trainingUrl.category}`
     );
 
@@ -198,7 +203,9 @@ class TrainingUrlRoutes extends Crud {
       }
 
       // log success
-      logger.log(3, '_validateTrainingUrl',
+      logger.log(
+        3,
+        '_validateTrainingUrl',
         `Successfully validated training url ${trainingUrl.id} with category ${trainingUrl.category}`
       );
 
@@ -206,7 +213,9 @@ class TrainingUrlRoutes extends Crud {
       return Promise.resolve(trainingUrl);
     } catch (err) {
       // log error
-      logger.log(3, '_validateTrainingUrl',
+      logger.log(
+        3,
+        '_validateTrainingUrl',
         `Failed to validate training url ${trainingUrl.id} with category ${trainingUrl.category}`
       );
 
@@ -236,7 +245,9 @@ class TrainingUrlRoutes extends Crud {
       // validate training url
       if (oldTrainingUrl.id != newTrainingUrl.id) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Old training url id ${oldTrainingUrl.id} does not match new training url id ${newTrainingUrl.id}`
         );
 
@@ -248,7 +259,9 @@ class TrainingUrlRoutes extends Crud {
       // validate training url
       if (oldTrainingUrl.category != newTrainingUrl.category) {
         // log error
-        logger.log(3, '_validateUpdate',
+        logger.log(
+          3,
+          '_validateUpdate',
           `Old training url category ${oldTrainingUrl.category} does not match new training url category`,
           `${newTrainingUrl.category}`
         );
