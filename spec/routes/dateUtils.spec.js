@@ -7,9 +7,6 @@ describe('dateUtilsRoutes', () => {
     return d.substring(0, 'YYYY-MM-DD'.length);
   }
 
-  beforeEach(() => {
-  });
-
   // this function is at the top because if it breaks then a lot of them will break
   describe('format', () => {
     describe('when the format is the same', () => {
