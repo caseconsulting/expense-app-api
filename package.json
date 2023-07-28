@@ -87,7 +87,6 @@
     "@aws-sdk/client-comprehend": "3.370",
     "@aws-sdk/lib-dynamodb": "3.370",
     "atob": "2.1.2",
-    "aws-sdk": "2.1420.0",
     "aws-serverless-express": "3.4.0",
     "axios": "0.27.2",
     "axios-oauth-client": "1.5.0",
