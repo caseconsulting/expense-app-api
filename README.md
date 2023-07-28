@@ -1,3 +1,24 @@
+### Table of Contents
+
+- [Setup](#setup)
+- [AWS SSO Configuration](#aws-sso-configuration)
+- [Environment Variables](#environment-variables)
+- [Application Tasks](#application-tasks)
+- [Testing Lambda Functions Locally Without Docker](#testing-lambda-functions-locally-without-docker)
+- [Deployment Notes](#read-notes-before-deployment)
+  - [Deploying Dev](#deployment-dev)
+  - [Deploying Test](#deployment-test)
+  - [Deploying Prod](#deployment-prod)
+  - [One Time Deployment for New Environment](#one-time-deployment-for-new-environment)
+  - [Error Deploying](#error-deploying)
+- [Lambda Functions](#lambda-functions)
+  - [Chiron](#chiron)
+  - [Chronos](#chronos)
+  - [Thanos](#thanos)
+  - [MiFi Status](#mifi-status)
+  - [Portal Data Sync](#portal-data-sync)
+- [Documentation](#documentation)
+
 ## Setup
 
 The **Expense App API** is written in **Node.js** v18.x+.
@@ -59,7 +80,7 @@ email address (unless you recently did so) and then press the _Allow_ button to 
 To remove AWS credentials run `aws sso logout`. This will also clear any authorization.
 Therefore, a subsequent login will launch the web browser again for a new authorization request.
 
-## Environment variables
+## Environment Variables
 
 The following environment variables are required to use **Auth0** authentication:
 
@@ -92,7 +113,7 @@ where _{Stage}_ is the name of the environment (e.g., local, dev, test, prod):
 npm run download:{Stage}:env
 ```
 
-## Application tasks
+## Application Tasks
 
 To run locally (using pm2 configuration defined in `services.yml`):
 
@@ -158,7 +179,7 @@ npm run receiptSync:test
 npm run receiptSync:prod
 ```
 
-## Testing Lambda Functions Locally without Docker
+## Testing Lambda Functions Locally Without Docker
 
 In the main directory there should be a **testLocalScript.js** file.
 This file contains a script that helps test Lambda functions locally.
@@ -246,7 +267,7 @@ and **SAM**/**CloudFormation**:
 npm run deploy:prod
 ```
 
-## One time deployment for new environment
+## One Time Deployment for New Environment
 
 Temporarily comment out the entire 'ChronosFunction' configuration from `CloudFormation.yaml`
 
@@ -337,7 +358,7 @@ To reset for local development, after a deployment:
 npm run download:local:env
 ```
 
-## Error deploying
+## Error Deploying
 
 If getting this error
 
@@ -351,9 +372,72 @@ rm -rf node_modules package-lock.json
 npm run reinstall
 ```
 
+## Lambda Functions
+
+### Chiron
+
+A nightly function that scrapes metadata from URLs provided in all employee expenses. Database entries will be made from the scraped URL data, the expense category, and the number of times a URL was used.
+
+### Chronos
+
+A nightly function that will do two things on an employee's anniversary:
+
+1. Create new budgets for recurring (yearly) expense types <u>**IF**</u> an employee overdrafted from the previous year.
+2. Create an expense of -$150 <u>**IF**</u> an employee is full time and has <u>**NOT**</u> requested the MiFi benefit
+
+### Thanos
+
+A monthly function that updates durations for an employee. Durations that are updated are:
+
+- Technology experiences that are currently being used by the employee
+- Customer Organization experience that the employee is currently under
+
+### MiFi Status
+
+Detects employee MiFi status changes and publishes an SNS message based on the status. An expense will be created for the employee based on two scenarios:
+
+- -$150 expense for a MiFi status turned off
+- $150 expense for a MiFi status turned on when it was previously off
+
+### Portal Data Sync
+
+A nightly function that syncs data between the Portal and external applications. The Portal is the main/predominant source of data. Data will only be synced under specific scenarios:
+
+- Data will be added to the Portal <u>**ONLY IF**</u> the field is empty on the Portal <u>**AND**</u> the external application's field is <u>**NOT**</u> empty
+- Data will be added/modified on the external application under two scenarios:
+  - There is a data mismatch between the Portal's and the external application's field
+  - The data exists on the Portal's field and does <u>**NOT**</u> exist on the external application's field
+
+External applications being synced with the Portal are:
+
+- BambooHR
+
+Fields being synced between the Portal and external applications:
+
+- First Name
+- Middle Name
+- Last Name
+- Nickname
+- Current Street
+- Current City
+- Current State
+- Current ZIP
+- Mobile Phone
+- Home Phone
+- Work Phone
+- Work Phone Extension
+- Date Of Birth
+- Gender
+- Ethnicity
+- Disability
+- Veteran Status
+- Hire Date
+- Twitter
+- LinkedIn
+
 ## Documentation
 
-**AWS SDK:** (we're currently using version 2)
+**AWS SDK:** (we're currently using version 3)
 
 https://docs.aws.amazon.com/sdk-for-javascript/
 
