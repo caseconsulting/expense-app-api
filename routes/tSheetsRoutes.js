@@ -146,10 +146,7 @@ class TSheetsRoutes {
       };
 
       // invoke mysterio monthly hours lambda function
-      let result = await this.invokeLambda(params);
-
-      // invoke mysterio pto balances lambda function
-      let resultPayload = JSON.parse(result.Payload);
+      let resultPayload = await this.invokeLambda(params);
 
       if (resultPayload.body) {
         // log success
