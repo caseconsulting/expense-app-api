@@ -24,14 +24,16 @@ const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
+  marshallOptions: { convertClassInstanceToMap: true }
+});
 const table = `${STAGE}-expenses`;
 
 // get all the entries in dynamo the given table
 const getAllEntries = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .send(ScanCommand(params))
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey

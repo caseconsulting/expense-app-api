@@ -16,13 +16,15 @@ describe('tagRoutes', () => {
     employees: EMPLOYEES
   };
 
-  let databaseModify, res, tagRoutes;
+  let databaseModify, expenseTypeDynamo, res, tagRoutes;
   beforeEach(() => {
     databaseModify = jasmine.createSpyObj('databaseModify', ['getAllEntriesInDB', 'getEntry']);
+    expenseTypeDynamo = jasmine.createSpyObj('expenseTypeDynamo', ['getAllEntriesInDB']);
     res = jasmine.createSpyObj('res', ['status', 'send']);
     res.status.and.returnValue(res);
     tagRoutes = new TagRoutes();
     tagRoutes.databaseModify = databaseModify;
+    tagRoutes.expenseTypeDynamo = expenseTypeDynamo;
     tagRoutes._router = _ROUTER;
   });
 
@@ -438,6 +440,7 @@ describe('tagRoutes', () => {
     describe('when delete is successful', () => {
       beforeEach(() => {
         databaseModify.getEntry.and.returnValue(Promise.resolve(tag));
+        expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([]));
       });
       it('should return deleted tag', (done) => {
         tagRoutes._delete(tag.id).then((data) => {

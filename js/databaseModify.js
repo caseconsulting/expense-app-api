@@ -3,18 +3,29 @@ require('dotenv').config({
 });
 
 const _ = require('lodash');
-const AWS = require('aws-sdk');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  DeleteCommand,
+  PutCommand,
+  ScanCommand,
+  TransactWriteCommand,
+  QueryCommand
+} = require('@aws-sdk/lib-dynamodb');
 const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
 const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
+const documentClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }),
+  { marshallOptions: { convertClassInstanceToMap: true } }
+);
 const logger = new Logger('databaseModify');
 const STAGE = process.env.STAGE;
 
 const scanDB = (params, documentClient, out = []) =>
   new Promise((resolve, reject) => {
     documentClient
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -27,8 +38,7 @@ const scanDB = (params, documentClient, out = []) =>
 const queryDB = (params, documentClient, out = []) =>
   new Promise((resolve, reject) => {
     documentClient
-      .query(params)
-      .promise()
+      .send(new QueryCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -41,13 +51,6 @@ const queryDB = (params, documentClient, out = []) =>
 class databaseModify {
   constructor(name) {
     this.tableName = `${STAGE}-${name}`;
-    AWS.config.apiVersions = {
-      dynamodb: '2012-08-10'
-      // other service API versions
-    };
-    AWS.config.update({
-      region: 'us-east-1'
-    });
   } // constructor
 
   /**
@@ -69,11 +72,9 @@ class databaseModify {
         Item: newDyanmoObj
       };
 
-      const documentClient = new AWS.DynamoDB.DocumentClient();
-
+      const putCommand = new PutCommand(params);
       return documentClient
-        .put(params)
-        .promise()
+        .send(putCommand)
         .then(() => {
           // log success
           logger.log(4, 'addToDB', `Successfully added ${newDyanmoObj.id} to ${tableName}`);
@@ -102,196 +103,6 @@ class databaseModify {
     }
   } // addToDB
 
-  // /**
-  //  * Builds table params to update an entry in the budget dynamodb table.
-  //  *
-  //  * @param objToUpdate - budget to be updated
-  //  * @return Object - update table parameters
-  //  */
-  // _buildBudgetUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildBudgetUpdateParams', `Building update params for ${STAGE}-budgets`);
-  //
-  //   // compute method
-  //   return _.assign(
-  //     {
-  //       TableName: `${STAGE}-budgets`,
-  //       Key: {
-  //         id: objToUpdate.id
-  //       },
-  //       ReturnValues: 'ALL_NEW'
-  //     },
-  //     this._buildExpression(objToUpdate)
-  //   );
-  // } // _buildBudgetUpdateParams
-  //
-  // /**
-  //  * Builds table params to update an entry in the employee dynamodb table.
-  //  *
-  //  * @param objToUpdate - employee to be updated
-  //  * @return Object - update table parameters
-  //  */
-  // _buildEmployeeUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildEmployeeUpdateParams', `Building update params for ${STAGE}-employees`);
-  //
-  //   // compute method
-  //   return _.assign(
-  //     {
-  //       TableName: `${STAGE}-employees`,
-  //       Key: {
-  //         id: objToUpdate.id
-  //       },
-  //       ReturnValues: 'ALL_NEW'
-  //     },
-  //     this._buildExpression(objToUpdate)
-  //   );
-  // } // _buildEmployeeUpdateParams
-  //
-  // /**
-  //  * Builds table params to update an entry in the expense type dynamodb table.
-  //  *
-  //  * @param objToUpdate - expense type to be updated
-  //  * @return
-  //  */
-  // _buildExpenseTypeUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildExpenseTypeUpdateParams', `Building update params for ${STAGE}-expense-types`);
-  //
-  //   // compute method
-  //   return _.assign(
-  //     {
-  //       TableName: `${STAGE}-expense-types`,
-  //       Key: {
-  //         id: objToUpdate.id
-  //       },
-  //       ReturnValues: 'ALL_NEW'
-  //     },
-  //     this._buildExpression(objToUpdate)
-  //   );
-  // } // _buildExpenseTypeUpdateParams
-  //
-  // /**
-  //  * Builds table params to update an entry in the employee dynamodb table.
-  //  *
-  //  * @param objToUpdate - expense to be updated
-  //  * @return Object - update table parameters
-  //  */
-  // _buildExpenseUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildExpenseUpdateParams', `Building update params for ${STAGE}-expenses`);
-  //
-  //   // compute method
-  //   return _.assign(
-  //     {
-  //       TableName: `${STAGE}-expenses`,
-  //       Key: {
-  //         id: objToUpdate.id
-  //       },
-  //       ReturnValues: 'ALL_NEW'
-  //     },
-  //     this._buildExpression(objToUpdate)
-  //   );
-  // } // _buildExpenseUpdateParams
-
-  // /**
-  //  * Builds table expressions for an object.
-  //  *
-  //  * @param data - object to build expresions for
-  //  * @return Object - data table expressions
-  //  */
-  // _buildExpression(data) {
-  //   // log method
-  //   logger.log(4, '_updateWrapper', `Building table expressions for ${data.id}`);
-  //
-  //   // compute method
-  //   const alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
-  //   let ExpressionAttributeValues = {};
-  //   let UpdateExpression = 'set ';
-  //   let ExpressionAttributeNames = {};
-  //
-  //   // remove key indexes
-  //   let attributes;
-  //   if (data instanceof TrainingUrl) {
-  //     attributes = _.keys(_.omit(data, ['id', 'category']));
-  //   } else {
-  //     attributes = _.keys(_.omit(data, ['id']));
-  //   }
-  //
-  //   // loop attributes
-  //   _.each(attributes, (attribute, index) => {
-  //     const value = _.get(data, attribute);
-  //     if (value != null) {
-  //       // object attribute value exists
-  //       let expressionAttribute = `:${alpha[index]}`;
-  //       ExpressionAttributeValues[expressionAttribute] = value;
-  //
-  //       if (attribute === 'url') {
-  //         // NOTE: 'url' is a DynamoDB reserved word, so we have to define an expression attribute name for it
-  //         // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
-  //         UpdateExpression += `#url = ${expressionAttribute},`;
-  //         _.assign(ExpressionAttributeNames, { '#url': 'url' });
-  //       } else {
-  //         UpdateExpression += `${attribute} = ${expressionAttribute},`;
-  //       }
-  //     }
-  //   });
-  //   UpdateExpression = `${_.trimEnd(UpdateExpression, ',')}`;
-  //
-  //   return !_.isEmpty(ExpressionAttributeNames)
-  //     ? { ExpressionAttributeValues, UpdateExpression, ExpressionAttributeNames }
-  //     : { ExpressionAttributeValues, UpdateExpression };
-  // } // _buildExpression
-  //
-  // /**
-  //  * Builds table params to update an entry in the training url dynamodb table.
-  //  *
-  //  * @param objToUpdate - training url to be updated
-  //  * @return Object - update table parameters
-  //  */
-  // _buildTrainingUrlUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildTrainingUrlUpdateParams', `Building update params for ${STAGE}-training-urls`);
-  //
-  //   // compute method
-  //   return _.assign(
-  //     {
-  //       TableName: `${STAGE}-training-urls`,
-  //       Key: {
-  //         id: objToUpdate.id,
-  //         category: objToUpdate.category
-  //       },
-  //       ReturnValues: 'ALL_NEW'
-  //     },
-  //     this._buildExpression(objToUpdate)
-  //   );
-  // } // _buildTrainingUrlUpdateParams
-
-  // /**
-  //  * Builds table params to update an entry in the dynamodb table.
-  //  *
-  //  * @param objToUpdate - entry to be updated
-  //  * @return Object - update table parameters
-  //  */
-  // _buildUpdateParams(objToUpdate) {
-  //   // log method
-  //   logger.log(4, '_buildUpdateParams', 'Building update params');
-  //
-  //   // compute method
-  //   switch (this.tableName) {
-  //     case `${STAGE}-expenses`:
-  //       return this._buildExpenseUpdateParams(objToUpdate);
-  //     case `${STAGE}-employees`:
-  //       return this._buildEmployeeUpdateParams(objToUpdate);
-  //     case `${STAGE}-expense-types`:
-  //       return this._buildExpenseTypeUpdateParams(objToUpdate);
-  //     case `${STAGE}-budgets`:
-  //       return this._buildBudgetUpdateParams(objToUpdate);
-  //     case `${STAGE}-training-urls`:
-  //       return this._buildTrainingUrlUpdateParams(objToUpdate);
-  //   }
-  // } // _buildUpdateParams
-
   /**
    * Gets all entries in the dynamodb table.
    *
@@ -306,8 +117,6 @@ class databaseModify {
     let params = {
       TableName: tableName
     };
-
-    const documentClient = new AWS.DynamoDB.DocumentClient();
 
     return scanDB(params, documentClient)
       .then(function (items) {
@@ -442,7 +251,6 @@ class databaseModify {
       additionalParams
     );
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
     return scanDB(params, documentClient)
       .then((entries) => {
         // log success
@@ -486,7 +294,6 @@ class databaseModify {
       'querySecondaryIndexInDB',
       `Attempting to query ${secondaryIndex} from table ${tableName} with key ${queryKey} and value ${queryParam}`
     );
-
     // compute method
     const params = _.assign(
       {
@@ -499,8 +306,6 @@ class databaseModify {
       },
       additionalParams
     );
-
-    const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
       .then((entries) => {
         // log success
@@ -555,7 +360,6 @@ class databaseModify {
       KeyConditionExpression: 'expenseTypeId = :expenseTypeId and employeeId = :employeeId'
     };
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
       .then((entries) => {
         // log success
@@ -603,7 +407,6 @@ class databaseModify {
       KeyConditionExpression: 'id = :id'
     };
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
       .then(function (entries) {
         // log success
@@ -651,7 +454,6 @@ class databaseModify {
       KeyConditionExpression: 'id = :id AND category = :category'
     };
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
     return queryDB(params, documentClient)
       .then(function (entries) {
         // log success
@@ -697,10 +499,10 @@ class databaseModify {
       },
       ReturnValues: 'ALL_OLD'
     };
-    const documentClient = new AWS.DynamoDB.DocumentClient();
+
+    const deleteCommand = new DeleteCommand(params);
     return documentClient
-      .delete(params)
-      .promise()
+      .send(deleteCommand)
       .then((data) => {
         // log success
         logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
@@ -735,10 +537,9 @@ class databaseModify {
       },
       ReturnValues: 'ALL_OLD'
     };
-    const documentClient = new AWS.DynamoDB.DocumentClient();
+    const deleteCommand = new DeleteCommand(params);
     return documentClient
-      .delete(params)
-      .promise()
+      .send(deleteCommand)
       .then((data) => {
         // log success
         logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
@@ -752,11 +553,6 @@ class databaseModify {
         // throw error
         throw err;
       });
-    // .then(data => data.Attributes)
-    // .catch(function(err) {
-    //   console.error(err);
-    //   throw err;
-    // }); //Throw error and handle properly in crudRoutes
   } // removeFromDB
 
   /**
@@ -801,26 +597,22 @@ class databaseModify {
       Item: newDyanmoObj
     };
 
-    const documentClient = new AWS.DynamoDB.DocumentClient();
-    return (
-      documentClient
-        .put(params)
-        // .update(params)
-        .promise()
-        .then(() => {
-          // log success
-          logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
+    const putCommand = new PutCommand(params);
+    return documentClient
+      .send(putCommand)
+      .then(() => {
+        // log success
+        logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
-          return newDyanmoObj;
-        })
-        .catch(function (err) {
-          // log error
-          logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+        return newDyanmoObj;
+      })
+      .catch(function (err) {
+        // log error
+        logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
-          // throw error
-          throw err;
-        })
-    );
+        // throw error
+        throw err;
+      });
   } // updateEntryInDB
 
   /**
@@ -834,10 +626,9 @@ class databaseModify {
     let params = {
       TransactItems: paramsList
     };
-    const documentClient = new AWS.DynamoDB.DocumentClient();
+    const transactCommand = new TransactWriteCommand(params);
     return documentClient
-      .transactWrite(params)
-      .promise()
+      .send(transactCommand)
       .then((data) => {
         logger.log(4, 'transactItems', 'Successfully performed write operations');
         return data;

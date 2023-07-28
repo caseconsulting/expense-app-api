@@ -1,32 +1,21 @@
-const AWS = require('aws-sdk-mock');
-// const Budget = require('../../models/budget');
+const { mockClient } = require('aws-sdk-client-mock');
+const {
+  DynamoDBDocumentClient,
+  PutCommand,
+  DeleteCommand,
+  ScanCommand,
+  QueryCommand
+} = require('@aws-sdk/lib-dynamodb');
 const DatabaseModify = require('../../js/databaseModify');
-// const Employee = require('../../models/employee');
 const Expense = require('../../models/expense');
-// const ExpenseType = require('../../models/expenseType');
 const TrainingUrl = require('../../models/trainingUrls');
 
 describe('databaseModify', () => {
-  // const ISOFORMAT = 'YYYY-MM-DD';
+  const ddbMock = mockClient(DynamoDBDocumentClient);
   const STAGE = 'dev';
 
   const ID = '{id}';
   const DESCRIPTION = '{description}';
-
-  // const FIRST_NAME = '{firstName}';
-  // const MIDDLE_NAME = '{middleName}';
-  // const LAST_NAME = '{lastName}';
-  // const EMPLOYEE_NUMBER = 0;
-  // const HIRE_DATE = '{hireDate}';
-  // const EMAIL = '{email}';
-  // const EMPLOYEE_ROLE = '{employeeRole}';
-  // const WORK_STATUS = 0;
-  //
-  // const REIMBURSED_AMOUNT = 0;
-  // const PENDING_AMOUNT = 0;
-  // const FISCAL_START_DATE = '{fiscalStartDate}';
-  // const FISCAL_END_DATE = '{fiscalEndDate}';
-  // const AMOUNT = 0;
 
   const PURCHASE_DATE = '{purchaseDate}';
   const REIMBURSED_DATE = '{reimbursedDate}';
@@ -38,41 +27,7 @@ describe('databaseModify', () => {
   const CATEGORY = '{category}';
   const SHOWONFEED = '{showOnFeed}';
 
-  // const NAME = '{name}';
-  // const BUDGET = '{budget}';
-  // const START_DATE = '{startDate}';
-  // const END_DATE = '{endDate}';
-  // const OD_FLAG = '{odFlag}';
-  // const REQUIRED_FLAG = '{requiredFlag}';
-  // const RECURRING_FLAG = '{recurringFlag}';
-  // const IS_INACTIVE = '{isInactive}';
-  // const ACCESSIBLE_BY = '{accessibleBy}';
-  // const CATEGORIES = [];
-
   const HITS = 0;
-
-  // const EMPLOYEE_DATA = {
-  //   id: ID,
-  //   firstName: FIRST_NAME,
-  //   middleName: MIDDLE_NAME,
-  //   lastName: LAST_NAME,
-  //   employeeNumber: EMPLOYEE_NUMBER,
-  //   hireDate: HIRE_DATE,
-  //   email: EMAIL,
-  //   employeeRole: EMPLOYEE_ROLE,
-  //   workStatus: WORK_STATUS
-  // };
-  //
-  // const BUDGET_DATA = {
-  //   id: ID,
-  //   expenseTypeId: ID,
-  //   employeeId: ID,
-  //   reimbursedAmount: REIMBURSED_AMOUNT,
-  //   pendingAmount: PENDING_AMOUNT,
-  //   fiscalStartDate: FISCAL_START_DATE,
-  //   fiscalEndDate: FISCAL_END_DATE,
-  //   amount: AMOUNT
-  // };
 
   const EXPENSE_DATA = {
     id: ID,
@@ -89,21 +44,6 @@ describe('databaseModify', () => {
     category: CATEGORY,
     showOnFeed: SHOWONFEED
   };
-
-  // const EXPENSE_TYPE_DATA = {
-  //   id: ID,
-  //   budgetName: NAME,
-  //   budget: BUDGET,
-  //   startDate: START_DATE,
-  //   endDate: END_DATE,
-  //   odFlag: OD_FLAG,
-  //   requiredFlag: REQUIRED_FLAG,
-  //   recurringFlag: RECURRING_FLAG,
-  //   isInactive: IS_INACTIVE,
-  //   description: DESCRIPTION,
-  //   categories: CATEGORIES,
-  //   accessibleBy: ACCESSIBLE_BY
-  // };
 
   const TRAINING_URL_DATA = {
     id: URL,
@@ -125,16 +65,10 @@ describe('databaseModify', () => {
       newDyanmoObj = new Expense(EXPENSE_DATA);
     });
 
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully adds object to dynamo', () => {
       beforeEach(() => {
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(null, {
-            Data: newDyanmoObj
-          });
+        ddbMock.on(PutCommand).resolves({
+          Data: newDyanmoObj
         });
       });
 
@@ -179,9 +113,7 @@ describe('databaseModify', () => {
           message: 'Failed to put object in database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(PutCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -192,7 +124,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -200,21 +132,13 @@ describe('databaseModify', () => {
   }); // addToDB
 
   describe('getAllEntriesInDB', () => {
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully scans all entries in table', () => {
       let items;
 
       beforeEach(() => {
         items = ['a', 'b', 'c'];
 
-        AWS.mock('DynamoDB.DocumentClient', 'scan', function (params, callback) {
-          callback(null, {
-            Items: items
-          });
-        });
+        ddbMock.on(ScanCommand).resolves({ Items: items });
       });
 
       it('should return all the entries scanned', () => {
@@ -233,9 +157,7 @@ describe('databaseModify', () => {
           message: 'Failed to scan entries from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'scan', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(ScanCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -246,7 +168,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -442,21 +364,13 @@ describe('databaseModify', () => {
       queryParam = '00000000-0000-0000-0000-000000000000';
     });
 
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully queries index from database', () => {
       let entries;
 
       beforeEach(() => {
         entries = ['entry1', 'entry2', 'entry3'];
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(null, {
-            Items: entries
-          });
-        });
+        ddbMock.on(QueryCommand).resolves({ Items: entries });
       });
 
       it('should return the entires queried', (done) => {
@@ -476,9 +390,7 @@ describe('databaseModify', () => {
           message: 'Failed to query index from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(QueryCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -489,7 +401,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -504,21 +416,13 @@ describe('databaseModify', () => {
       expenseTypeId = ID;
     });
 
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully queries index from database', () => {
       let entries;
 
       beforeEach(() => {
         entries = ['entry1', 'entry2', 'entry3'];
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(null, {
-            Items: entries
-          });
-        });
+        ddbMock.on(QueryCommand).resolves({ Items: entries });
       });
 
       it('should return the entires queried', (done) => {
@@ -538,9 +442,7 @@ describe('databaseModify', () => {
           message: 'Failed to query index from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(QueryCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -551,7 +453,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -559,21 +461,13 @@ describe('databaseModify', () => {
   }); // queryWithTwoIndexesInDB
 
   describe('_readFromDB', () => {
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully reads entries from database', () => {
       let entries;
 
       beforeEach(() => {
         entries = ['entry1', 'entry2', 'entry3'];
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(null, {
-            Items: entries
-          });
-        });
+        ddbMock.on(QueryCommand).resolves({ Items: entries });
       });
 
       it('should return the entries read', () => {
@@ -592,9 +486,7 @@ describe('databaseModify', () => {
           message: 'Failed to read entries from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(QueryCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -605,7 +497,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -613,21 +505,13 @@ describe('databaseModify', () => {
   }); // _readFromDB
 
   describe('_readFromDBUrl', () => {
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully reads entries from database', () => {
       let entries;
 
       beforeEach(() => {
         entries = ['entry1', 'entry2', 'entry3'];
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(null, {
-            Items: entries
-          });
-        });
+        ddbMock.on(QueryCommand).resolves({ Items: entries });
       });
 
       it('should return the entries read', () => {
@@ -646,9 +530,7 @@ describe('databaseModify', () => {
           message: 'Failed to read entries from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'query', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(QueryCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -659,7 +541,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return a 404 rejected promise
@@ -667,22 +549,18 @@ describe('databaseModify', () => {
   }); // _readFromDBUrl
 
   describe('removeFromDB', () => {
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully removes entry from database', () => {
       let deletedObject;
 
       beforeEach(() => {
         deletedObject = new Expense(EXPENSE_DATA);
 
-        AWS.mock('DynamoDB.DocumentClient', 'delete', Promise.resolve({ Attributes: deletedObject }));
+        ddbMock.on(DeleteCommand).resolves({ Attributes: deletedObject });
       });
 
       it('should return the deleted object', (done) => {
         databaseModify.removeFromDB(ID).then((data) => {
-          expect(data).toEqual(deletedObject);
+          expect(new Expense(data)).toEqual(deletedObject);
           done();
         });
       });
@@ -697,7 +575,7 @@ describe('databaseModify', () => {
           messge: 'Failed to delete entry from database.'
         };
 
-        AWS.mock('DynamoDB.DocumentClient', 'delete', Promise.reject(err));
+        ddbMock.on(DeleteCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -708,7 +586,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return 404 rejected promise
@@ -722,18 +600,10 @@ describe('databaseModify', () => {
       newDyanmoObj = new Expense(EXPENSE_DATA);
     });
 
-    afterEach(() => {
-      AWS.restore();
-    });
-
     describe('when successfully updates an expense in database', () => {
       beforeEach(() => {
         spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(null, {
-            Data: newDyanmoObj
-          });
-        });
+        ddbMock.on(PutCommand).resolves({ Data: newDyanmoObj });
       });
 
       it('should return the updated object', (done) => {
@@ -751,11 +621,7 @@ describe('databaseModify', () => {
 
       beforeEach(() => {
         spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(null, {
-            Data: newDyanmoObj
-          });
-        });
+        ddbMock.on(PutCommand).resolves({ Data: newDyanmoObj });
       });
 
       it('should return the updated object', (done) => {
@@ -772,7 +638,7 @@ describe('databaseModify', () => {
       beforeEach(() => {
         err = {
           code: 404,
-          messge: 'Failed to find entry to update in database.'
+          message: 'Failed to find entry to update in database.'
         };
 
         spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.reject(err));
@@ -824,13 +690,11 @@ describe('databaseModify', () => {
       beforeEach(() => {
         err = {
           code: 404,
-          messge: 'Failed to update entry in database.'
+          message: 'Failed to update entry in database.'
         };
 
         spyOn(databaseModify, '_readFromDB').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(PutCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -841,7 +705,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return 404 rejected promise
@@ -853,13 +717,11 @@ describe('databaseModify', () => {
       beforeEach(() => {
         err = {
           code: 404,
-          messge: 'Failed to update entry in database.'
+          message: 'Failed to update entry in database.'
         };
         newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
         spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        AWS.mock('DynamoDB.DocumentClient', 'put', function (params, callback) {
-          callback(err);
-        });
+        ddbMock.on(PutCommand).rejects(err);
       });
 
       it('should return a 404 rejected promise', (done) => {
@@ -870,7 +732,7 @@ describe('databaseModify', () => {
             done();
           })
           .catch((error) => {
-            expect(error).toEqual(err);
+            expect(error).toEqual(new Error(err.message));
             done();
           });
       }); // should return 404 rejected promise

@@ -19,7 +19,9 @@ const _ = require('lodash');
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
+  marshallOptions: { convertClassInstanceToMap: true }
+});
 const logger = new Logger('TrainingSync');
 const EXPENSE_TABLE = `${STAGE}-expenses`;
 const TRAINING_TABLE = `${STAGE}-training-urls`;

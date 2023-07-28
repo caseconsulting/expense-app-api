@@ -111,7 +111,7 @@
   },
   "devDependencies": {
     "acorn": "8.10.0",
-    "aws-sdk-mock": "5.8.0",
+    "aws-sdk-client-mock": "3.0.0",
     "claudia": "git+https://github.com/claudiajs/claudia.git#pull/230/head",
     "eslint": "8.44.0",
     "jasmine": "3.99.0",
