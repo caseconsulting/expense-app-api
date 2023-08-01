@@ -15,6 +15,7 @@
     "Logger": "file:../../../js/Logger.js",
     "utils": "file:../../../js/utils.js",
     "crudRoutes": "file:../../../routes/crudRoutes.js",
-    "expenseRoutes": "file:../../../routes/expenseRoutes.js"
+    "expenseRoutes": "file:../../../routes/expenseRoutes.js",
+    "employeeRoutes": "file:../../../routes/employeeRoutes.js"
   }
 }
