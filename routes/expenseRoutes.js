@@ -1002,12 +1002,14 @@ class ExpenseRoutes extends Crud {
 
       // validate receipt exists if required by expense type
       if (expenseType.requiredFlag && !expense.hasReceipt()) {
-        // log error
-        logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
+        if (!(expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours')) {
+          // log error
+          logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
 
-        // throw error
-        err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
-        throw err;
+          // throw error
+          err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
+          throw err;
+        }
       }
 
       // validate expense purchase date is in expense type range
