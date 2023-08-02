@@ -8,7 +8,7 @@ const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../m
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 const EmployeeRoutes = require(process.env.AWS ? 'employeeRoutes' : '../routes/employeeRoutes');
-const { asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { asyncForEach, generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const employeeRoutes = new EmployeeRoutes();
 const logger = new Logger('data-sync');
@@ -29,6 +29,15 @@ const EMPLOYEE_NUMBER = {
   name: 'Employee Number',
   [Applications.CASE]: 'employeeNumber',
   [Applications.BAMBOO]: 'employeeNumber',
+  getter: getFieldValue,
+  isEmpty: isEmpty,
+  updateValue: updateValue
+};
+// FIELD CONSTANTS
+const EMAIL = {
+  name: 'Email',
+  [Applications.CASE]: 'email',
+  [Applications.BAMBOO]: 'workEmail',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -204,6 +213,7 @@ const LINKEDIN = {
 
 const fields = [
   EMPLOYEE_NUMBER,
+  EMAIL,
   FIRST_NAME,
   MIDDLE_NAME,
   LAST_NAME,
@@ -330,7 +340,14 @@ async function syncApplicationData() {
         let workStatus = WORK_STATUS.getter(WORK_STATUS, Applications.BAMBOO, Applications.CASE);
         if (workStatus > 0) {
           // create an employee on the Portal if that employee is active and exists on BambooHR but not the Portal
-          await createPortalEmployee(employee_data[Applications.BAMBOO]);
+          await createPortalEmployee();
+          logger.log(
+            3,
+            'createPortalEmployee',
+            `Successfully created new CASE Portal employee for employee #: ${
+              employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
+            }`
+          );
         }
         // employee number exists on BambooHR but does NOT exist on the portal
       }
@@ -467,9 +484,11 @@ async function updateCaseEmployee(employee) {
     await DatabaseModify.TransactItems(items);
     // log success
     logger.log(3, 'updateCaseEmployee', `Successfully updated Case employee ${employee.id}`);
+    return Promise.resolve(employee);
   } catch (err) {
     // log error
     logger.log(3, 'updateCaseEmployee', `Failed to update Case employee ${employee.id}`);
+    return Promise.reject(err);
   }
 } // updateCaseEmployee
 
@@ -639,7 +658,7 @@ function getDisability(field, applicationFormat, toApplicationFormat) {
     }
   } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
       return null;
     } else {
       if (disability === 'Yes') return true;
@@ -672,7 +691,7 @@ function getVeteranStatus(field, applicationFormat, toApplicationFormat) {
     }
   } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
       return null;
     } else {
       return !!veteranStatus;
@@ -699,7 +718,7 @@ function getGender(field, applicationFormat, toApplicationFormat) {
     return gender ? gender.text : null;
   } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) return null;
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) return null;
     else if (gender === 'Male') return { text: 'Male', value: true };
     else if (gender === 'Female') return { text: 'Female', value: false };
     else return null;
@@ -734,7 +753,11 @@ function getEthnicity(field, applicationFormat, toApplicationFormat) {
     else return ethnicity ? ethnicity.text : null;
   } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify || ethnicity === 'Decline to answer') return null;
+    if (
+      (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) ||
+      ethnicity === 'Decline to answer'
+    )
+      return null;
     else if (ethnicity === 'White') return { text: ethnicity, value: 0 };
     else if (ethnicity === 'Black or African American') return { text: ethnicity, value: 1 };
     else if (ethnicity === 'Native Hawaiian or Other Pacific Islander') return { text: ethnicity, value: 2 };
@@ -852,9 +875,35 @@ function isWorkStatusEmpty(application, field) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function createPortalEmployee(bambooEmployee) {
-  bambooEmployee;
-}
+/**
+ * Creates a new Portal employee with basic and sensitive data.
+ *
+ * @returns Employee - The employee created
+ */
+async function createPortalEmployee() {
+  try {
+    logger.log(
+      3,
+      'createPortalEmployee',
+      `Attempting to create new CASE Portal employee for employee #: ${
+        employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
+      }`
+    );
+    let caseEmployee = {};
+    caseEmployee['id'] = generateUUID();
+    caseEmployee['employeeRole'] = 'user';
+    _.forEach(fields, (f) => {
+      if (!f.isEmpty(Applications.BAMBOO, f)) {
+        caseEmployee[f[Applications.CASE]] = f.getter(f, Applications.BAMBOO, Applications.CASE);
+      }
+    });
+    let validatedEmployee = await employeeRoutes._validateInputs(caseEmployee);
+    let newEmployee = await updateCaseEmployee(validatedEmployee);
+    return Promise.resolve(newEmployee);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+} // createPortalEmployee
 
 /**
  * Invokes lambda function with given params
@@ -884,11 +933,16 @@ async function getBambooHREmployeeData() {
   let result = await invokeLambda(params);
   let employees = result.body;
   if (STAGE === 'prod') {
-    return employees;
-  } else {
+    // return employee #'s less than 90000 on prod
     return _.filter(
       employees,
-      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) > TEST_EMPLOYEE_NUMBER_LIMIT
+      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  } else {
+    // return employee #'s greater than 90000 on dev/test
+    return _.filter(
+      employees,
+      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
     );
   }
 } // getBambooHREmployeeData
