@@ -17,7 +17,7 @@ const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
 const documentClient = DynamoDBDocumentClient.from(
   new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }),
-  { marshallOptions: { convertClassInstanceToMap: true } }
+  { marshallOptions: { convertClassInstanceToMap: true, removeUndefinedValues: true } }
 );
 const logger = new Logger('databaseModify');
 const STAGE = process.env.STAGE;
