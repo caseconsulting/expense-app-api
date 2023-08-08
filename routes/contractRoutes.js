@@ -416,7 +416,7 @@ class ContractRoutes extends Crud {
         _.forEach(employees, (employee) => {
           if (employee.contracts && employee.workStatus != 0) {
             _.forEach(employee.contracts, (c) => {
-              if (newContract.id === c.contractId) {
+              if (newContract.id === c.contractId && _.some(c.projects, (p) => p.presentDate)) {
                 // log error
                 logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
 
@@ -434,7 +434,7 @@ class ContractRoutes extends Crud {
         _.forEach(employees, (employee) => {
           if (employee.contracts && employee.workStatus != 0) {
             _.forEach(employee.contracts, (c) => {
-              if (newContract.id === c.contractId) {
+              if (newContract.id === c.contractId && _.some(c.projects, (p) => p.presentDate)) {
                 // log error
                 logger.log(3, '_validateUpdate', 'Contract found with employee ID: ' + employee.id);
 
