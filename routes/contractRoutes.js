@@ -1,8 +1,8 @@
-const Contract = require('./../models/contract');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Logger = require('../js/Logger');
 const _ = require('lodash');
+const Contract = require(process.env.AWS ? 'contract' : '../models/contract');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 
 const logger = new Logger('contractRoutes');
 

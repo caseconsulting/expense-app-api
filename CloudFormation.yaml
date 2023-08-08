@@ -714,6 +714,7 @@ Resources:
       Handler: chronos.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref SharedLayer
       Timeout: 900
       CodeUri: ./chronos
       Events:
@@ -724,6 +725,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: lambda
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -734,6 +736,7 @@ Resources:
       Handler: thanos.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref SharedLayer
       Timeout: 900
       CodeUri: ./thanos
       Events:
@@ -744,6 +747,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: lambda
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
@@ -779,13 +783,13 @@ Resources:
               - Effect: Allow
                 Action: 'logs:*'
                 Resource: '*'
-        - PolicyName: BambooHRAPIParamKey
+        - PolicyName: LambdaInvoke
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'ssm:GetParameter'
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/BambooHR/APIKey"
+                Action: 'lambda:Invoke*'
+                Resource: '*'
       Tags:
         - Key: Application
           Value: expense-app
@@ -801,6 +805,7 @@ Resources:
       Handler: app.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref SharedLayer
       Timeout: 900
       Role: !GetAtt
         - PortalDataSyncLambdaRole
@@ -814,6 +819,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: lambda
   ChironLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -858,7 +864,7 @@ Resources:
       Handler: chiron.handler
       Layers:
         - !Ref DependenciesLayer
-        - !Ref ExpenseModelLayer
+        - !Ref SharedLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: chiron/
@@ -870,6 +876,7 @@ Resources:
       Environment:
         Variables:
           STAGE: !Ref Stage
+          AWS: lambda
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
@@ -931,6 +938,7 @@ Resources:
       Handler: mifiStatus.handler
       Layers:
         - !Ref DependenciesLayer
+        - !Ref SharedLayer
       Timeout: 900
       MemorySize: 256
       CodeUri: ./mifiStatus
@@ -944,6 +952,7 @@ Resources:
         Variables:
           STAGE: !Ref Stage
           MifiTopicArn: !Ref MifiTopic
+          AWS: lambda
       Role: !GetAtt
         - MifiStatusLambdaRole
         - Arn
@@ -955,18 +964,6 @@ Resources:
         - ''
         - - mifi-status-
           - !Ref Stage
-  ExpenseModelLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Join
-        - ''
-        - - expense-api-expense-model-
-          - !Ref Stage
-      Description: Model for an expense.
-      ContentUri: expense-model/
-      CompatibleRuntimes:
-        - nodejs18.x
-      RetentionPolicy: Retain
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -975,7 +972,19 @@ Resources:
         - - expense-api-dependencies-
           - !Ref Stage
       Description: Packages for lambda functions.
-      ContentUri: dependencies/
+      ContentUri: layers/dependencies
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join
+        - ''
+        - - expense-api-shared-
+          - !Ref Stage
+      Description: Shared code for lambda functions.
+      ContentUri: layers/shared
       CompatibleRuntimes:
         - nodejs18.x
       RetentionPolicy: Retain

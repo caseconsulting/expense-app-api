@@ -1,3 +1,24 @@
+### Table of Contents
+
+- [Setup](#setup)
+- [AWS SSO Configuration](#aws-sso-configuration)
+- [Environment Variables](#environment-variables)
+- [Application Tasks](#application-tasks)
+- [Testing Lambda Functions Locally Without Docker](#testing-lambda-functions-locally-without-docker)
+- [Deployment Notes](#read-notes-before-deployment)
+  - [Deploying Dev](#deployment-dev)
+  - [Deploying Test](#deployment-test)
+  - [Deploying Prod](#deployment-prod)
+  - [One Time Deployment for New Environment](#one-time-deployment-for-new-environment)
+  - [Error Deploying](#error-deploying)
+- [Lambda Functions](#lambda-functions)
+  - [Chiron](#chiron)
+  - [Chronos](#chronos)
+  - [Thanos](#thanos)
+  - [MiFi Status](#mifi-status)
+  - [Portal Data Sync](#portal-data-sync)
+- [Documentation](#documentation)
+
 ## Setup
 
 The **Expense App API** is written in **Node.js** v18.x+.
@@ -11,15 +32,10 @@ npm run reinstall
 ```
 
 Deployment of the **Expense App API** requires the **AWS Command Line Interface (CLI)** and
-**AWS Single Sign-On (SSO)**. We use the **aws-sso-util** utility to simplify AWS SSO configuration and usage.
+**AWS IAM Identity Center** (formerly AWS Single Sign-On [SSO]).
 
 Download and install **AWS CLI** version 2 following instructions from:
 https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-
-**aws-sso-util** is built with **Python**, so first install Python 3.x from: https://www.python.org/downloads/
-
-Download and install **aws-sso-util**, after first installing **pipx** (if not already installed),
-following instructions from: https://github.com/benkehoe/aws-sso-util#quickstart
 
 ## AWS SSO Configuration
 
@@ -35,8 +51,10 @@ aws configure sso
 
 When prompted, enter the following information:
 
+- **SSO session name**: _dev_
 - **SSO start URL**: _https://consultwithcase.awsapps.com/start_
-- **SSO Region**: _us-east-1_
+- **SSO region**: _us-east-1_
+- **SSO registration scopes**: _leave blank to accept default value of sso:account:access_
 
 Your web browser will open a new tab and you will be required to login to Google with your **@consultwithcase.com**
 email address and then press the _Allow_ button to explicitly permit the authorize request.
@@ -47,37 +65,22 @@ Close the web browser tab. Return to your command prompt and continue answering 
 - **CLI default output format**: _json_
 - **CLI profile name**: _default_
 
-In the `~/.aws/config` file, add the following line to the end of your _default_ configuration to use **aws-sso-util**
-to [obtain AWS credentials using an external process](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes):
-
-```
-credential_process = aws-sso-util credential-process
-```
-
 ### AWS Prod Account - _prod_ Profile
 
 If you have been given access to the company's AWS Prod account, run the `aws configure sso` command (one-time)
 to configure a _prod_ profile.
 Choose the same values, except select _Case Consulting Prod_ AWS account and enter _prod_ as **CLI profile name**.
 
-In the `~/.aws/config` file, add the following line to the end of your _profile prod_ configuration to use **aws-sso-util** to obtain AWS credentials for the _prod_ profile:
-
-```
-credential_process = aws-sso-util credential-process --profile prod
-```
-
-_NOTE_: You can alternatively run `aws-sso-util configure profile prod` to accomplish the same result.
-
 ### AWS SSO Login
 
-To explicitly obtain AWS credentials from AWS SSO, use **aws-sso-util** by running `aws-sso-util login`.
-If your web browser opens a new tab, you will be required to login to Google with your **@consultwithcase.com**
-email address and then press the _Allow_ button to explicitly permit the authorize request.
+To explicitly obtain AWS credentials from AWS SSO, running `aws sso login`.
+Your web browser should open a new tab, where you should be required to login to Google with your **@consultwithcase.com**
+email address (unless you recently did so) and then press the _Allow_ button to explicitly permit the authorize request.
 
-To remove AWS credentials run `aws-sso-util logout`. This will also clear any authorization.
+To remove AWS credentials run `aws sso logout`. This will also clear any authorization.
 Therefore, a subsequent login will launch the web browser again for a new authorization request.
 
-## Environment variables
+## Environment Variables
 
 The following environment variables are required to use **Auth0** authentication:
 
@@ -110,7 +113,7 @@ where _{Stage}_ is the name of the environment (e.g., local, dev, test, prod):
 npm run download:{Stage}:env
 ```
 
-## Application tasks
+## Application Tasks
 
 To run locally (using pm2 configuration defined in `services.yml`):
 
@@ -176,7 +179,7 @@ npm run receiptSync:test
 npm run receiptSync:prod
 ```
 
-## Testing Lambda Functions Locally without Docker
+## Testing Lambda Functions Locally Without Docker
 
 In the main directory there should be a **testLocalScript.js** file.
 This file contains a script that helps test Lambda functions locally.
@@ -264,7 +267,7 @@ and **SAM**/**CloudFormation**:
 npm run deploy:prod
 ```
 
-## One time deployment for new environment
+## One Time Deployment for New Environment
 
 Temporarily comment out the entire 'ChronosFunction' configuration from `CloudFormation.yaml`
 
@@ -355,7 +358,7 @@ To reset for local development, after a deployment:
 npm run download:local:env
 ```
 
-## Error deploying
+## Error Deploying
 
 If getting this error
 
@@ -369,9 +372,72 @@ rm -rf node_modules package-lock.json
 npm run reinstall
 ```
 
+## Lambda Functions
+
+### Chiron
+
+A nightly function that scrapes metadata from URLs provided in all employee expenses. Database entries will be made from the scraped URL data, the expense category, and the number of times a URL was used.
+
+### Chronos
+
+A nightly function that will do two things on an employee's anniversary:
+
+1. Create new budgets for recurring (yearly) expense types <u>**IF**</u> an employee overdrafted from the previous year.
+2. Create an expense of -$150 <u>**IF**</u> an employee is full time and has <u>**NOT**</u> requested the MiFi benefit
+
+### Thanos
+
+A monthly function that updates durations for an employee. Durations that are updated are:
+
+- Technology experiences that are currently being used by the employee
+- Customer Organization experience that the employee is currently under
+
+### MiFi Status
+
+Detects employee MiFi status changes and publishes an SNS message based on the status. An expense will be created for the employee based on two scenarios:
+
+- -$150 expense for a MiFi status turned off
+- $150 expense for a MiFi status turned on when it was previously off
+
+### Portal Data Sync
+
+A nightly function that syncs data between the Portal and external applications. The Portal is the main/predominant source of data. Data will only be synced under specific scenarios:
+
+- Data will be added to the Portal <u>**ONLY IF**</u> the field is empty on the Portal <u>**AND**</u> the external application's field is <u>**NOT**</u> empty
+- Data will be added/modified on the external application under two scenarios:
+  - There is a data mismatch between the Portal's and the external application's field
+  - The data exists on the Portal's field and does <u>**NOT**</u> exist on the external application's field
+
+External applications being synced with the Portal are:
+
+- BambooHR
+
+Fields being synced between the Portal and external applications:
+
+- First Name
+- Middle Name
+- Last Name
+- Nickname
+- Current Street
+- Current City
+- Current State
+- Current ZIP
+- Mobile Phone
+- Home Phone
+- Work Phone
+- Work Phone Extension
+- Date Of Birth
+- Gender
+- Ethnicity
+- Disability
+- Veteran Status
+- Hire Date
+- Twitter
+- LinkedIn
+
 ## Documentation
 
-**AWS SDK:** (we're currently using version 2)
+**AWS SDK:** (we're currently using version 3)
 
 https://docs.aws.amazon.com/sdk-for-javascript/
 
@@ -382,10 +448,6 @@ https://docs.aws.amazon.com/cli/index.html
 **AWS SSO:**
 
 https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html
-
-**aws-sso-util:**
-
-https://github.com/benkehoe/aws-sso-util
 
 **AWS CloudFormation:**
 

@@ -1,4 +1,4 @@
-const dateUtils = require('./dateUtils');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : './dateUtils');
 
 const LOG_LEVEL = 5; // 1 for highest priority (most important)
 

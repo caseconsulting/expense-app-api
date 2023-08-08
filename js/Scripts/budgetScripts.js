@@ -38,9 +38,12 @@ const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 // set up AWS DynamoDB
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
+  marshallOptions: { convertClassInstanceToMap: true }
+});
 
 // colors for console logging
 const colors = {
@@ -65,8 +68,7 @@ const colors = {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -208,11 +210,11 @@ async function removeAttribute(attribute) {
     };
 
     // update budget
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      }
-    });
+
+    ddb
+      .send(new UpdateCommand(params))
+      .then()
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // removeAttribute
 
@@ -245,13 +247,12 @@ async function copyValues(oldName, newName) {
     }
 
     // update budget
-    ddb.update(params, function (err, data) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  ${newName} copied: ${data.Attributes[newName]}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then((data) =>
+        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  ${newName} copied: ${data.Attributes[newName]}`)
+      )
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // copyValues
 
@@ -328,18 +329,17 @@ function getUUID() {
  */
 async function uploadAttachmentToS3(file, key) {
   console.info('mifistatus uploadAttachmentToS3: attempting to upload file to key ' + key + ' of bucket: ' + BUCKET);
-  let s3 = new AWS.S3();
+  let s3Client = new S3Client();
   let params = {
     Bucket: BUCKET,
     Key: key,
     Body: file
   };
 
-  s3.putObject(params, function (err, data) {
-    if (err) console.info(err, err.stack);
-    // an error occurred
-    else console.info(data); // successful response
-  });
+  s3Client
+    .send(new PutObjectCommand(params))
+    .then((data) => console.info(data))
+    .catch((err) => console.info(err, err.stack));
 } //uploadAttachmentToS3
 
 /**
@@ -390,13 +390,10 @@ async function maxAmount() {
     };
 
     // update employee
-    ddb.update(params, function (err, data) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${data.Attributes['amount']}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then((data) => console.log(`Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${data.Attributes['amount']}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // maxAmount
 
@@ -415,13 +412,11 @@ async function deleteEmptyBudgets() {
       };
 
       // update employee
-      ddb.delete(params, function (err) {
-        if (err) {
-          console.error('Unable to delete an item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Deleted Budget ${budget.id}`);
-        }
-      });
+
+      ddb
+        .send(new DeleteCommand(params))
+        .then(() => console.log(`Deleted Budget ${budget.id}`))
+        .catch((err) => console.error('Unable to delete an item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // deleteEmptyBudgets

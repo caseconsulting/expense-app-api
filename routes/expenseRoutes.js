@@ -1,13 +1,13 @@
-const AWS = require('aws-sdk');
-const Budget = require('./../models/budget');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Employee = require('./../models/employee');
-const Expense = require('./../models/expense');
-const ExpenseType = require('./../models/expenseType');
-const Logger = require('../js/Logger');
-const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
+const { S3Client, CopyObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
+const Expense = require(process.env.AWS ? 'expense' : '../models/expense');
+const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
@@ -15,13 +15,13 @@ const logger = new Logger('expenseRoutes');
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
-const s3 = new AWS.S3({ params: { Bucket: BUCKET }, region: 'us-east-1', apiVersion: '2006-03-01' });
+const s3Client = new S3Client({ params: { Bucket: BUCKET }, region: 'us-east-1', apiVersion: '2006-03-01' });
 
 class ExpenseRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expenses');
-    this.s3 = s3;
+    this.s3Client = s3Client;
   } // constructor
 
   /**
@@ -93,16 +93,20 @@ class ExpenseRoutes extends Crud {
 
     // set up curry function
     let curryCopy = _.curry(this._copyFunction);
-    let copySetUp = curryCopy(this.s3, this._copyFunctionLog, employeeId, oldExpenseId, newExpenseId);
+    let copySetUp = curryCopy(this.s3Client, this._copyFunctionLog, employeeId, oldExpenseId, newExpenseId);
 
     // list the objects in the current bucket and execute copy curry function
-    await this.s3.listObjectsV2(listParams, copySetUp);
+    const command = new ListObjectsV2Command(listParams);
+    await this.s3Client
+      .send(command)
+      .then(async (data) => await copySetUp(null, data))
+      .catch(async (err) => await copySetUp(err, null));
   } // _changeBucket
 
   /**
    *  Copies a file from one s3 bucket to another.
    *
-   * @param s3 - the s3 sdk to the buckets
+   * @param s3Client - the s3 sdk client to the buckets
    * @param copyFunctionLog - function to log status
    * @param employeeId - employee id of receipt
    * @param oldExpenseId - old expense id
@@ -111,7 +115,7 @@ class ExpenseRoutes extends Crud {
    * @param data - s3 listObjectsV2 data
    * @return Promise - rejected promise if error exists
    */
-  async _copyFunction(s3, copyFunctionLog, employeeId, oldExpenseId, newExpenseId, err, data) {
+  async _copyFunction(s3Client, copyFunctionLog, employeeId, oldExpenseId, newExpenseId, err, data) {
     // log method
     logger.log(
       3,
@@ -143,7 +147,11 @@ class ExpenseRoutes extends Crud {
       };
 
       // copy the file from old s3 bucket to new s3 bucket
-      await s3.copyObject(params, copyFunctionLog);
+      const command = new CopyObjectCommand(params);
+      await s3Client
+        .send(command)
+        .then(async () => await copyFunctionLog())
+        .catch(async (err) => await copyFunctionLog(err));
     } else {
       // no files in bucket to copy
       logger.log(2, '_changeBucket', `No S3 bucket content to copy from ${employeeId}/${oldExpenseId}`);
@@ -994,12 +1002,14 @@ class ExpenseRoutes extends Crud {
 
       // validate receipt exists if required by expense type
       if (expenseType.requiredFlag && !expense.hasReceipt()) {
-        // log error
-        logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
+        if (!(expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours')) {
+          // log error
+          logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
 
-        // throw error
-        err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
-        throw err;
+          // throw error
+          err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
+          throw err;
+        }
       }
 
       // validate expense purchase date is in expense type range

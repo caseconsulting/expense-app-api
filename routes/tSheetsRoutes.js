@@ -1,11 +1,11 @@
-const AWS = require('aws-sdk');
 const express = require('express');
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
-const Logger = require('../js/Logger');
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 
-const lambda = new AWS.Lambda();
+const lambdaClient = new LambdaClient();
 const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
 
@@ -27,7 +27,6 @@ const checkJwt = jwt({
 });
 
 class TSheetsRoutes {
-
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
@@ -69,9 +68,7 @@ class TSheetsRoutes {
    */
   async _getPTOBalances(req, res) {
     // log method
-    logger.log(1, '_getPTOBalances',
-      `Attempting to get PTO balances for employee number ${req.params.employeeNumber}`
-    );
+    logger.log(1, '_getPTOBalances', `Attempting to get PTO balances for employee number ${req.params.employeeNumber}`);
 
     try {
       // mysterio function parameters
@@ -86,14 +83,13 @@ class TSheetsRoutes {
         Qualifier: '$LATEST'
       };
 
-      let result = await this.invokeLambda(params);
-
-      // invoke mysterio pto balances lambda function
-      let resultPayload = JSON.parse(result.Payload);
+      let resultPayload = await this.invokeLambda(params);
 
       if (resultPayload.body) {
         // log success
-        logger.log(1, '_getPTOBalances',
+        logger.log(
+          1,
+          '_getPTOBalances',
           `Successfully got PTO balances for employee number ${req.params.employeeNumber}`
         );
 
@@ -130,12 +126,13 @@ class TSheetsRoutes {
    */
   async _getMonthlyHours(req, res) {
     // log method
-    logger.log(1, '_getMonthlyHours',
+    logger.log(
+      1,
+      '_getMonthlyHours',
       `Attempting to get monthly hours for employee number ${req.params.employeeNumber}`
     );
 
     try {
-
       // mysterio function parameters
       let payload = {
         employeeNumber: req.params.employeeNumber
@@ -149,14 +146,13 @@ class TSheetsRoutes {
       };
 
       // invoke mysterio monthly hours lambda function
-      let result = await this.invokeLambda(params);
-
-      // invoke mysterio pto balances lambda function
-      let resultPayload = JSON.parse(result.Payload);
+      let resultPayload = await this.invokeLambda(params);
 
       if (resultPayload.body) {
         // log success
-        logger.log(1, '_getMonthlyHours',
+        logger.log(
+          1,
+          '_getMonthlyHours',
           `Successfully got monthly hours for employee number ${req.params.employeeNumber}`
         );
 
@@ -175,9 +171,7 @@ class TSheetsRoutes {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_getMonthlyHours',
-        `Failed to get monthly hours for employee number ${req.params.employeeNumber}`
-      );
+      logger.log(1, '_getMonthlyHours', `Failed to get monthly hours for employee number ${req.params.employeeNumber}`);
 
       // send error status
       this._sendError(res, err);
@@ -301,12 +295,13 @@ class TSheetsRoutes {
   /**
    * Invokes lambda function with given params
    *
-   * @param params - params to invoke lambda function with 
+   * @param params - params to invoke lambda function with
    * @return object if successful, error otherwise
    */
   async invokeLambda(params) {
-    let result = await lambda.invoke(params).promise();
-    return result;
+    const command = new InvokeCommand(params);
+    const resp = await lambdaClient.send(command);
+    return JSON.parse(Buffer.from(resp.Payload));
   } // invokeLambda
 } // TSheetsRoutes
 

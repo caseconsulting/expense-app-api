@@ -35,9 +35,11 @@ const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
 // set up AWS DynamoDB
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient();
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
+  marshallOptions: { convertClassInstanceToMap: true }
+});
 const DatabaseModify = require('../databaseModify');
 
 // colors for console logging
@@ -65,8 +67,7 @@ const colors = {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -109,13 +110,10 @@ async function removeAttribute(attribute) {
     };
 
     // update employee
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Refreshed Employee ID: ${employee.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Refreshed Employee ID: ${employee.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // removeAttribute
 
@@ -307,13 +305,12 @@ async function workStatusActive() {
     }
 
     // update employee
-    ddb.update(params, function (err, data) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Item Updated\n  Employee ID: ${employee.id}\n  Work Status: ${data.Attributes.workStatus}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then((data) =>
+        console.log(`Item Updated\n  Employee ID: ${employee.id}\n  Work Status: ${data.Attributes.workStatus}`)
+      )
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // workStatusActive
 
@@ -360,13 +357,10 @@ async function setBirthdayFeed(attribute) {
     };
 
     // update employee
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Refreshed Employee ID: ${employee.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Refreshed Employee ID: ${employee.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // setBirthdayFeed
 
@@ -389,13 +383,10 @@ async function addYearsToTechnologies() {
         ReturnValues: 'UPDATED_NEW'
       };
       //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // addYearsToTechnologies
@@ -419,13 +410,11 @@ async function convertJobsToCompanies() {
         ReturnValues: 'UPDATED_NEW'
       };
       //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } //convertJobsToCompanies
@@ -451,13 +440,10 @@ async function convertBIDates() {
       };
 
       //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // convertBIDates
@@ -482,13 +468,10 @@ async function convertEducation() {
         ReturnValues: 'UPDATED_NEW'
       };
       //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // convertEducation
@@ -527,16 +510,10 @@ async function migratePhoneNumbers() {
       };
 
       // update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to migrate phone number. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(
-            `Number Migrated\n  Employee ID: ${employee.id}\n
-              Private Phone Numbers: ${employee.phoneNumber}`
-          );
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // migratePhoneNumbers
@@ -580,13 +557,10 @@ async function deleteUnusedClearanceExpirationDate() {
 
         console.log('before doc client');
         // update employee
-        ddb.update(params, function (err) {
-          if (err) {
-            console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-          } else {
-            console.log(`Refreshed Employee ID: ${employee.id}`);
-          }
-        });
+        ddb
+          .send(new UpdateCommand(params))
+          .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+          .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
       }
       hasChanged = false;
     }
@@ -616,13 +590,10 @@ async function changeWordingForBasicProficiencyLevel() {
           ':s': employee.languages
         }
       };
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Failed to update basic language proficiency. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Basic language proficiency updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // changeWordingForBasicProficiencyLevel
@@ -664,13 +635,10 @@ async function replaceGithubTwitterUrls() {
       };
 
       // update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Updated Employee ID: ${employee.id}`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // replaceGithubTwitterUrls
@@ -709,13 +677,10 @@ async function moveSchoolsToEducation() {
       };
 
       //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // moveSchoolsToEducation
@@ -755,13 +720,10 @@ async function createPrimesList() {
       };
 
       // //update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Item Updated\n  Employee ID: ${employee.id}\n`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // createPrimesList
@@ -794,13 +756,10 @@ async function addAwardDates() {
       };
 
       // update employee
-      ddb.update(params, function (err) {
-        if (err) {
-          console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log(`Updated Employee ID: ${employee.id}`);
-        }
-      });
+      ddb
+        .send(new UpdateCommand(params))
+        .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
 } // addAwardDates
@@ -889,6 +848,44 @@ async function moveLoginDepartureAndBirthdayFeed() {
     sensitiveModify.updateEntryInDB(sens_emp);
   });
 } // moveLoginDepartureAndBirthdayFeed
+
+/**
+ * Update employee EEO data to fix "Offcial" typo.
+ */
+async function changeOffcialToOfficial() {
+  let sens_employees = await getAllEntries(TABLE_SENS);
+  let sensitiveModify = new DatabaseModify(SENSITIVE_TABLE);
+  _.forEach(sens_employees, (sens_emp) => {
+    let jobCatVal =
+      sens_emp['eeoJobCategory'] && sens_emp['eeoJobCategory'].value ? sens_emp['eeoJobCategory'].value : -1;
+    if (jobCatVal == 1 || jobCatVal == 2) {
+      switch (jobCatVal) {
+        case 1:
+          sens_emp = {
+            ...sens_emp,
+            eeoJobCategory: {
+              value: 1,
+              text: 'Executive/Senior Level Official and Manager'
+            }
+          };
+          break;
+        case 2:
+          sens_emp = {
+            ...sens_emp,
+            eeoJobCategory: {
+              value: 2,
+              text: 'First/Mid Level Official and Manager'
+            }
+          };
+          break;
+      }
+
+      // now update the employee
+      console.log(`Updating employee with ID ${sens_emp['id']}`);
+      sensitiveModify.updateEntryInDB(sens_emp);
+    }
+  });
+} // changeOffcialToOfficial
 
 /**
  * =================================================
@@ -1088,6 +1085,12 @@ async function main() {
       desc: 'Move lastLogin, departureDate, and birthdayFeed back to the regular employees table',
       action: async () => {
         await moveLoginDepartureAndBirthdayFeed();
+      }
+    },
+    {
+      desc: 'Update employee EEO data to fix "Offcial" typo',
+      action: async () => {
+        await changeOffcialToOfficial();
       }
     }
   ];

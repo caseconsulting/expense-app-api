@@ -41,23 +41,25 @@ describe('tSheetsRoutes', () => {
   };
 
   const MONTHLY_HOURS = {
-    Payload: '{"body":"{timesheets}"}'
+    body: '{timesheets}'
   };
 
   const TIMESHEETS = '{timesheets}';
 
   const MONTHLY_HOURS_ERR = {
-    Payload: '{"body" : "", "errorMessage" : "Failed to get monthly hours"}'
+    body: '',
+    errorMessage: 'Failed to get monthly hours'
   };
 
   const PTO_BALANCES_PAYLOAD = {
-    Payload: '{"body": "{ptoBalances}"}'
+    body: '{ptoBalances}'
   };
 
   const PTO_BALANCES = '{ptoBalances}';
 
   const PTO_BALANCES_ERR = {
-    Payload: '{"body" : "", "errorMessage" : "Failed to get pto balances"}'
+    body: '',
+    errorMessage: 'Failed to get pto balances'
   };
 
   let res, tSheetsRoutes;

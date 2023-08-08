@@ -1,9 +1,9 @@
 var express = require('express');
-
-const getUserInfo = require('../js/GetUserInfoMiddleware').getUserInfo;
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
-const Logger = require('../js/Logger');
+const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+
 const logger = new Logger('roles');
 
 // Authentication middleware. When used, the

@@ -30,9 +30,11 @@ const readlineSync = require('readline-sync');
 const { generateUUID } = require('../utils');
 
 // set up  AWS DynamoDB
-const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
-const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, UpdateCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
+  marshallOptions: { convertClassInstanceToMap: true }
+});
 
 // colors for console logging
 const colors = {
@@ -64,8 +66,7 @@ const CONTRACT_STATUSES = {
 const getAllEntriesHelper = (params, out = []) =>
   new Promise((resolve, reject) => {
     ddb
-      .scan(params)
-      .promise()
+      .send(new ScanCommand(params))
       .then(({ Items, LastEvaluatedKey }) => {
         out.push(...Items);
         !LastEvaluatedKey
@@ -101,13 +102,10 @@ function updateEmployees(employees) {
       },
       ReturnValues: 'UPDATED_NEW'
     };
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Updated Employee ID: ${employee.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Item Updated\n  Employee ID: ${employee.id}\n`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 }
 
@@ -125,13 +123,10 @@ function updateContractAttribute(contractId, attribute, value) {
       ':a': value
     }
   };
-  ddb.update(params, function (err) {
-    if (err) {
-      console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-    } else {
-      console.log(`Updated Contract ID: ${contractId}`);
-    }
-  });
+  ddb
+    .send(new UpdateCommand(params))
+    .then(() => console.log(`Item Updated\n  Contract ID: ${contractId}\n`))
+    .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
 }
 
 function addContractsToTable(contracts) {
@@ -142,18 +137,17 @@ function addContractsToTable(contracts) {
     };
 
     // update expense type
-    ddb.put(params, function (err) {
-      if (err) {
-        // item already exists
-        console.error('Unable to create item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
+
+    ddb
+      .send(new PutCommand(params))
+      .then(() =>
         console.log(
           `Created contract ${contract.contractName} with prime ${contract.primeName} and projects ${JSON.stringify(
             contract.projects
           )}`
-        );
-      }
-    });
+        )
+      )
+      .catch((err) => console.error('Unable to create item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 }
 
@@ -175,13 +169,10 @@ async function removeAttribute(attribute) {
     };
 
     // update contract
-    ddb.update(params, function (err) {
-      if (err) {
-        console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2));
-      } else {
-        console.log(`Refreshed Contract ID: ${contract.id}`);
-      }
-    });
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Refreshed Contract ID: ${contract.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
 } // removeAttribute
 

@@ -1,12 +1,11 @@
-const Budget = require('./../models/budget');
-const Crud = require('./crudRoutes');
-const DatabaseModify = require('../js/databaseModify');
-const Employee = require('./../models/employee');
-// const Expense = require('./../models/expense');
-const ExpenseType = require('./../models/expenseType');
-const Logger = require('../js/Logger');
-const dateUtils = require('../js/dateUtils');
 const _ = require('lodash');
+const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
+const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseTypeRoutes');
@@ -234,7 +233,9 @@ class ExpenseTypeRoutes extends Crud {
             // update the budget amount for current budgets
             if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(dateUtils.getTodaysDate())) {
               let employee = _.find(employees, ['id', budgets[i].employeeId]);
-              budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType, tags);
+              if (employee) {
+                budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType, tags);
+              }
             }
           }
 

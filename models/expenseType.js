@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const dateUtils = require('../js/dateUtils');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const ISOFORMAT = 'YYYY-MM-DD';
 
 /**
