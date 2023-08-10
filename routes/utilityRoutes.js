@@ -1014,7 +1014,10 @@ class Utility {
 
     // compute method
     try {
-      let expenseTypesData = await this.expenseTypeDynamo.getAllEntriesInDB();
+      let [expenseTypesData, tags] = await Promise.all([
+        this.expenseTypeDynamo.getAllEntriesInDB(),
+        this.tagDynamo.getAllEntriesInDB()
+      ]);
       let expenseTypes = _.map(expenseTypesData, (expenseType) => {
         expenseType.categories = _.map(expenseType.categories, (category) => {
           return JSON.parse(category);
@@ -1034,10 +1037,12 @@ class Utility {
       let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
       let employeeRole = capitalize(employee.employeeRole);
       expenseTypes = expenseTypes.filter((expenseType) => {
+        let amount = this.calcAdjustedAmount(employee, expenseType, tags);
         return (
-          expenseType.accessibleBy.includes(workStatus) ||
-          expenseType.accessibleBy.includes(employeeRole) ||
-          expenseType.accessibleBy.includes(employee.id)
+          (expenseType.accessibleBy.includes(workStatus) ||
+            expenseType.accessibleBy.includes(employeeRole) ||
+            expenseType.accessibleBy.includes(employee.id)) &&
+          amount > 0
         );
       });
 
