@@ -2,6 +2,7 @@ const _ = require('lodash');
 const express = require('express');
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
@@ -14,7 +15,7 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const Basecamp = require(process.env.AWS ? 'basecampRoutes' : '../routes/basecampRoutes');
 const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
 
-const lambda = new AWS.Lambda();
+const lambdaClient = new LambdaClient();
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
 const STAGE = process.env.STAGE;
@@ -1182,7 +1183,8 @@ class Utility {
         FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
         Qualifier: '$LATEST'
       };
-      let result = await lambda.invoke(params).promise();
+      const resp = await lambdaClient.send(new InvokeCommand(params));
+      const result = JSON.parse(Buffer.from(resp.Payload));
       // send successful 200 status
       res.status(200).send(result);
       // return result from lambda function
