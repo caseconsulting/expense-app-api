@@ -21,7 +21,8 @@ const TEST_EMPLOYEE_NUMBER_LIMIT = 90000;
 // APPLICATIONS
 const Applications = {
   CASE: 'Case',
-  BAMBOO: 'BambooHR'
+  BAMBOO: 'BambooHR',
+  ADP: 'ADP'
 };
 
 // FIELD CONSTANTS
@@ -38,6 +39,7 @@ const EMAIL = {
   name: 'Email',
   [Applications.CASE]: 'email',
   [Applications.BAMBOO]: 'workEmail',
+  [Applications.ADP]: 'businessCommunication.emails[0]',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -46,6 +48,7 @@ const FIRST_NAME = {
   name: 'First Name',
   [Applications.CASE]: 'firstName',
   [Applications.BAMBOO]: 'firstName',
+  [Applications.ADP]: 'person.legalName.givenName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -54,6 +57,7 @@ const MIDDLE_NAME = {
   name: 'Middle Name',
   [Applications.CASE]: 'middleName',
   [Applications.BAMBOO]: 'middleName',
+  [Applications.ADP]: 'person.legalName.middleName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -62,6 +66,7 @@ const LAST_NAME = {
   name: 'Last Name',
   [Applications.CASE]: 'lastName',
   [Applications.BAMBOO]: 'lastName',
+  [Applications.ADP]: 'person.legalName.familyName1',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -70,6 +75,7 @@ const NICKNAME = {
   name: 'Nickname',
   [Applications.CASE]: 'nickname',
   [Applications.BAMBOO]: 'preferredName',
+  [Applications.ADP]: 'person.legalName.nickName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -78,6 +84,7 @@ const CURRENT_STREET = {
   name: 'Current Street',
   [Applications.CASE]: 'currentStreet',
   [Applications.BAMBOO]: 'address1',
+  [Applications.ADP]: 'person.legalAddress.lineOne',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -86,6 +93,7 @@ const CURRENT_CITY = {
   name: 'Current City',
   [Applications.CASE]: 'currentCity',
   [Applications.BAMBOO]: 'city',
+  [Applications.ADP]: 'person.legalAddress.cityName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -94,6 +102,7 @@ const CURRENT_STATE = {
   name: 'Current State',
   [Applications.CASE]: 'currentState',
   [Applications.BAMBOO]: 'state',
+  [Applications.ADP]: 'person.legalAddress.countrySubdivisionLevel1.codeValue', // must be abbreviate (VA, MD)
   getter: getState,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -102,6 +111,7 @@ const CURRENT_ZIP = {
   name: 'Current ZIP',
   [Applications.CASE]: 'currentZIP',
   [Applications.BAMBOO]: 'zipcode',
+  [Applications.ADP]: 'person.legalAddress.postalCode',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -110,6 +120,7 @@ const HOME_PHONE = {
   name: 'Home Phone',
   [Applications.CASE]: 'privatePhoneNumbers',
   [Applications.BAMBOO]: 'homePhone',
+  [Applications.ADP]: 'person.communication.landlines[0]',
   getter: getPhone,
   isEmpty: isPhoneEmpty,
   updateValue: updatePhone
@@ -126,6 +137,7 @@ const MOBILE_PHONE = {
   name: 'Mobile Phone',
   [Applications.CASE]: 'privatePhoneNumbers',
   [Applications.BAMBOO]: 'mobilePhone',
+  [Applications.ADP]: 'person.communication.mobiles[0]',
   getter: getPhone,
   isEmpty: isPhoneEmpty,
   updateValue: updatePhone
@@ -182,6 +194,7 @@ const HIRE_DATE = {
   name: 'Hire Date',
   [Applications.CASE]: 'hireDate',
   [Applications.BAMBOO]: 'hireDate',
+  [Applications.ADP]: 'workerDates.originalHireDate',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -190,6 +203,7 @@ const WORK_STATUS = {
   name: 'Work Status',
   [Applications.CASE]: 'workStatus',
   [Applications.BAMBOO]: 'employmentHistoryStatus',
+  [Applications.ADP]: 'workerStatus.statusCode.codeValue',
   getter: getWorkStatus,
   isEmpty: isWorkStatusEmpty,
   updateValue: updateValue
@@ -253,7 +267,11 @@ let employee_data = { [Applications.CASE]: null, [Applications.BAMBOO]: null }; 
  * @param event - request
  */
 async function handler() {
-  await syncApplicationData();
+  let result = await syncApplicationData();
+  return {
+    statusCode: 200,
+    body: result
+  };
 } // handler
 
 /**
@@ -264,6 +282,7 @@ async function handler() {
  * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
  */
 async function syncApplicationData() {
+  let result = { usersUpdated: 0, usersCreated: 0, failures: 0 };
   const [employeeBambooHRData, employeeCasePortalData] = await Promise.all([
     getBambooHREmployeeData(),
     getCasePortalEmployeeData()
@@ -320,6 +339,7 @@ async function syncApplicationData() {
           let employee = _.cloneDeep(employee_data[Applications.CASE]);
           logger.log(3, 'syncApplicationData', `Updating Case employee id: ${employee.id}`);
           await updateCaseEmployee(employee);
+          result.usersUpdated += 1;
         }
         // update bamboo employee
         if (bambooEmployeeUpdated) {
@@ -327,6 +347,7 @@ async function syncApplicationData() {
           let employee = _.cloneDeep(employee_data[Applications.BAMBOO]);
           logger.log(3, 'syncApplicationData', `Updating BambooHR employee id: ${employee.id}`);
           await updateBambooHREmployee(employee.id, body);
+          !caseEmployeeUpdated ? (result.usersUpdated += 1) : null;
         }
         logger.log(
           3,
@@ -348,16 +369,19 @@ async function syncApplicationData() {
               employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
             }`
           );
+          result.usersCreated += 1;
         }
         // employee number exists on BambooHR but does NOT exist on the portal
       }
     } catch (err) {
       logger.log(3, 'syncApplicationData', `Error syncing employee: ${err}`);
+      result.failures += 1;
     }
     // reset data
     employee_data[Applications.BAMBOO] = null;
     employee_data[Applications.CASE] = null;
   });
+  return result;
 } // syncApplicationData
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
