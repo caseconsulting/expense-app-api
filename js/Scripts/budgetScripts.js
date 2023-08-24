@@ -8,6 +8,8 @@ const ISOFORMAT = 'YYYY-MM-DD';
 const dateUtils = require('../dateUtils');
 const fs = require('fs');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
+const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
+const TagRoutes = require('../../routes/tagRoutes');
 const { generateUUID } = require('../utils');
 
 // handles unhandled rejection errors
@@ -487,6 +489,30 @@ async function adjustTechBudgetMiFiStatus() {
   });
 } // adjustTechBudgetMifiStatus
 
+async function migrateMifiLogicToTag() {
+  const tagRoutes = new TagRoutes();
+  const expenseTypeRoutes = new ExpenseTypeRoutes();
+  let noMifiEmployees = (await employees)
+    .filter((e) => e.workStatus == 100 && !e.mifiStatus && e.employeeNumber > 1000)
+    .map((e) => e.id);
+  let techExpenseType = (await expenseTypes).find((e) => e.budgetName === 'Technology');
+  let tagId = generateUUID();
+  const tagData = {
+    id: tagId,
+    tagName: 'No MiFi',
+    employees: noMifiEmployees
+  };
+  const techNoMifiBudgetTag = {
+    budget: 1950,
+    tags: [tagId]
+  };
+  techExpenseType.tagBudgets.push(techNoMifiBudgetTag);
+  let validatedTag = await tagRoutes._create(tagData);
+  await tagRoutes.databaseModify.addToDB(validatedTag);
+  let validatedTechExpenseType = await expenseTypeRoutes._update(techExpenseType);
+  await expenseTypeRoutes.databaseModify.updateEntryInDB(validatedTechExpenseType);
+}
+
 /**
  * =================================================
  * |                                               |
@@ -579,6 +605,13 @@ async function main() {
       desc: 'Adjust technology budget in response to MiFi status bug?',
       action: async () => {
         await adjustTechBudgetMiFiStatus();
+      }
+    },
+
+    {
+      desc: 'Create MiFi tag, attach employees to that tag, and attach the MiFi tag to Tech expense type',
+      action: async () => {
+        await migrateMifiLogicToTag();
       }
     }
   ];

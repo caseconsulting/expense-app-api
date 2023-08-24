@@ -1,6 +1,0 @@
-{
-  "name": "mifi-status",
-  "version": "3.5.1",
-  "private": true,
-  "main": "mifiStatus.js"
-}
