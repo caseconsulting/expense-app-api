@@ -15,7 +15,6 @@
   - [Chiron](#chiron)
   - [Chronos](#chronos)
   - [Thanos](#thanos)
-  - [MiFi Status](#mifi-status)
   - [Portal Data Sync](#portal-data-sync)
 - [Documentation](#documentation)
 
@@ -380,10 +379,7 @@ A nightly function that scrapes metadata from URLs provided in all employee expe
 
 ### Chronos
 
-A nightly function that will do two things on an employee's anniversary:
-
-1. Create new budgets for recurring (yearly) expense types <u>**IF**</u> an employee overdrafted from the previous year.
-2. Create an expense of -$150 <u>**IF**</u> an employee is full time and has <u>**NOT**</u> requested the MiFi benefit
+A nightly function that will create new budgets for recurring (yearly) expense types <u>**IF**</u> an employee overdrafted from the previous year on an employee's anniversary
 
 ### Thanos
 
@@ -391,13 +387,6 @@ A monthly function that updates durations for an employee. Durations that are up
 
 - Technology experiences that are currently being used by the employee
 - Customer Organization experience that the employee is currently under
-
-### MiFi Status
-
-Detects employee MiFi status changes and publishes an SNS message based on the status. An expense will be created for the employee based on two scenarios:
-
-- -$150 expense for a MiFi status turned off
-- $150 expense for a MiFi status turned on when it was previously off
 
 ### Portal Data Sync
 
