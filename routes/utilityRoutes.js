@@ -1011,9 +1011,9 @@ class Utility {
   async _getEmployeeExpenseTypes(req, res) {
     // log method
     logger.log(1, '_getEmployeeExpenseTypes', `Attempting to get expense types for employee ${req.employee.id}`);
-
     // compute method
     try {
+      let employee = req.employee;
       let [expenseTypesData, tags] = await Promise.all([
         this.expenseTypeDynamo.getAllEntriesInDB(),
         this.tagDynamo.getAllEntriesInDB()
@@ -1022,10 +1022,10 @@ class Utility {
         expenseType.categories = _.map(expenseType.categories, (category) => {
           return JSON.parse(category);
         });
+        expenseType.budget = this.calcAdjustedAmount(employee, expenseType, tags);
         return new ExpenseType(expenseType);
       });
 
-      let employee = req.employee;
       let workStatus;
       if (employee.workStatus == 0) {
         workStatus = 'Inactive';
@@ -1037,12 +1037,11 @@ class Utility {
       let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
       let employeeRole = capitalize(employee.employeeRole);
       expenseTypes = expenseTypes.filter((expenseType) => {
-        let amount = this.calcAdjustedAmount(employee, expenseType, tags);
         return (
           (expenseType.accessibleBy.includes(workStatus) ||
             expenseType.accessibleBy.includes(employeeRole) ||
             expenseType.accessibleBy.includes(employee.id)) &&
-          amount > 0
+          expenseType.budget > 0
         );
       });
 
