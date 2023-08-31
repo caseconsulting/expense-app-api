@@ -23,7 +23,6 @@ describe('dateUtilsRoutes', () => {
     });
   }); // format
 
-
   describe('add', () => {
     describe('when positive days are added', () => {
       it('should be one day in the future', () => {
@@ -52,7 +51,6 @@ describe('dateUtilsRoutes', () => {
         expect(justDate(result)).toBe('2022-10-03');
       });
     });
-
   }); // subtract
 
   describe('difference', () => {
@@ -148,7 +146,7 @@ describe('dateUtilsRoutes', () => {
   describe('getTodaysDate', () => {
     // idk what else to test
     describe('when the day is today', () => {
-      it('should return today\'s date', () => {
+      it("should return today's date", () => {
         var today = new Date();
         var dd = String(today.getDate()).padStart(2, '0');
         var mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -479,8 +477,8 @@ describe('dateUtilsRoutes', () => {
     today = `${yyyy}-${mm}-${dd}`;
     describe('when the month and year is now', () => {
       it('should only change the day', () => {
-        result = dateUtils.setMonth(today, 5);
-        expect(result).toBe(`${yyyy}-06-${dd}`);
+        result = dateUtils.setMonth(today, 0);
+        expect(result).toBe(`${yyyy}-01-${dd}`);
       });
     });
     describe('when the month and year is in the past', () => {
@@ -525,7 +523,7 @@ describe('dateUtilsRoutes', () => {
 
   describe('startOf', () => {
     describe('when granularity is Day', () => {
-      it('should not really do anything since there\'s no time specified', () => {
+      it("should not really do anything since there's no time specified", () => {
         result = dateUtils.startOf('2000-05-05', 'd');
         expect(justDate(result)).toBe('2000-05-05');
       });
@@ -546,7 +544,7 @@ describe('dateUtilsRoutes', () => {
 
   describe('endOf', () => {
     describe('when granularity is Day', () => {
-      it('should not really do anything since there\'s no time specified', () => {
+      it("should not really do anything since there's no time specified", () => {
         result = dateUtils.endOf('2000-05-05', 'd');
         expect(justDate(result)).toBe('2000-05-05');
       });
@@ -564,5 +562,4 @@ describe('dateUtilsRoutes', () => {
       });
     });
   }); // endOf
-
 }); // dateUtilsRoutes
