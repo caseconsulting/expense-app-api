@@ -1,16 +1,6 @@
 const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared.js');
 const { isEmpty } = require('./empty.js');
-const { getPhoneType, invokeLambda } = require('./helpers.js');
 const _ = require('lodash');
-const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
-const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
-const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
-const EmployeeRoutes = require(process.env.AWS ? 'employeeRoutes' : '../routes/employeeRoutes');
-const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
-
-const logger = new Logger('modifiers-data-sync');
-const STAGE = process.env.STAGE;
-const employeeRoutes = new EmployeeRoutes();
 
 /**
  * Generic update method that sets an employee's field.
@@ -45,7 +35,7 @@ function updatePhone(application, field, value) {
     if (isEmpty(application, field)) {
       EMPLOYEE_DATA[application][field[application]] = value;
     } else {
-      let phoneType = getPhoneType(field);
+      let phoneType = field.phoneType;
       let publicPhoneIndex = _.findIndex(EMPLOYEE_DATA[application].publicPhoneNumbers, (p) => p.type === phoneType);
       let privatePhoneIndex = _.findIndex(EMPLOYEE_DATA[application][field[application]], (p) => p.type === phoneType);
       if (publicPhoneIndex != -1)
@@ -84,62 +74,8 @@ function updateEthnicity(application, field, value) {
   }
 } // updateEthnicity
 
-/**
- * Updates an employee through BambooHR's API.
- *
- * @param id String - The employee ID
- * @param body Array - The list of (field: value) object pairs to update
- */
-async function updateBambooHREmployee(id, body) {
-  let payload = { id, body };
-  let params = {
-    FunctionName: `mysterio-update-bamboohr-employee-${STAGE}`,
-    Payload: JSON.stringify(payload),
-    Qualifier: '$LATEST'
-  };
-  await invokeLambda(params);
-} // updateBambooHREmployee
-
-/**
- * Updates an employee in the Case employee/employee-sensitive databases.
- *
- * @param employee Object - The validated employee object
- */
-async function updateCaseEmployee(employee) {
-  let employeeBasic = new Employee(employee);
-  let employeeSensitive = new EmployeeSensitive(employee);
-  try {
-    await employeeRoutes._validateEmployee(employeeBasic, employeeSensitive);
-    let items = [
-      {
-        Put: {
-          TableName: `${STAGE}-employees`,
-          Item: employeeBasic
-        }
-      },
-      {
-        Put: {
-          TableName: `${STAGE}-employees-sensitive`,
-          Item: employeeSensitive
-        }
-      }
-    ];
-    // all or nothing call
-    await DatabaseModify.TransactItems(items);
-    // log success
-    logger.log(3, 'updateCaseEmployee', `Successfully updated Case employee ${employee.id}`);
-    return Promise.resolve(employee);
-  } catch (err) {
-    // log error
-    logger.log(3, 'updateCaseEmployee', `Failed to update Case employee ${employee.id}`);
-    return Promise.reject(err);
-  }
-} // updateCaseEmployee
-
 module.exports = {
   updateValue,
   updatePhone,
-  updateEthnicity,
-  updateBambooHREmployee,
-  updateCaseEmployee
+  updateEthnicity
 };

@@ -1,5 +1,5 @@
 const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared.js');
-const { getPhoneType, convertPhoneNumberToDashed } = require('./helpers.js');
+const { convertPhoneNumberToDashed } = require('./helpers.js');
 const _ = require('lodash');
 
 /**
@@ -23,7 +23,7 @@ function getFieldValue(field, applicationFormat) {
  * @returns The value of the employee's phone number based on the application format needed
  */
 function getPhone(field, applicationFormat, toApplicationFormat) {
-  let phoneType = getPhoneType(field);
+  let phoneType = field.phoneType;
   if (applicationFormat === APPLICATIONS.CASE && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     let publicPhone = _.find(EMPLOYEE_DATA[applicationFormat].publicPhoneNumbers, (p) => p.type === phoneType);
@@ -50,7 +50,7 @@ function getPhone(field, applicationFormat, toApplicationFormat) {
  * @returns The value of the employee's phone number extension based on the application format needed
  */
 function getPhoneExt(field, applicationFormat, toApplicationFormat) {
-  let phoneType = getPhoneType(field);
+  let phoneType = field.phoneType;
   if (applicationFormat === APPLICATIONS.CASE && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     let publicPhone = _.find(EMPLOYEE_DATA[applicationFormat].publicPhoneNumbers, (p) => p.type === phoneType);

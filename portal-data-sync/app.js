@@ -1,23 +1,21 @@
 // BambooHR API documentation: https://documentation.bamboohr.com/docs
 // BambooHR API custom reports: https://documentation.bamboohr.com/reference/request-custom-report-1
 
-const _ = require('lodash');
-const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 const { asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared');
-const { FIELDS, EMPLOYEE_NUMBER, WORK_STATUS } = require('./fields-synced');
-const { updateBambooHREmployee, updateCaseEmployee } = require('./modifiers');
-const { createPortalEmployee, getBambooHREmployeeData, getCasePortalEmployeeData } = require('./helpers');
+const {
+  createPortalEmployee,
+  getBambooHREmployeeData,
+  getCasePortalEmployeeData,
+  updateBambooHREmployee,
+  updateCaseEmployee
+} = require('./async');
+const _ = require('lodash');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
+const Fields = require('./fields-synced');
 
+const fieldsArr = Object.values(Fields);
 const logger = new Logger('app-data-sync');
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////   ENTRY POINT   ////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Handler to execute lamba function.
@@ -50,8 +48,8 @@ async function syncApplicationData() {
       EMPLOYEE_DATA[APPLICATIONS.CASE] = _.find(
         employeeCasePortalData,
         (c) =>
-          parseInt(c[EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) ===
-          parseInt(bambooEmp[EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10)
+          parseInt(c[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) ===
+          parseInt(bambooEmp[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10)
       );
       EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = bambooEmp;
       if (!_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.CASE]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
@@ -59,12 +57,14 @@ async function syncApplicationData() {
         logger.log(
           3,
           'syncApplicationData',
-          `Syncing data for employee #: ${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
+          `Syncing data for employee #: ${
+            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+          }`
         );
         let caseEmployeeUpdated = false;
         let bambooEmployeeUpdated = false;
         let bambooHRBodyParams = [];
-        FIELDS.forEach((f) => {
+        fieldsArr.forEach((f) => {
           //let caseVal = f.getter(f, APPLICATIONS.CASE); // default Case value
           let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
           // convert Case value to BambooHR format
@@ -111,20 +111,27 @@ async function syncApplicationData() {
           3,
           'syncApplicationData',
           `Finished syncing data for employee #: ${
-            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
           }`
         );
       } else if (_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.CASE]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
         // convert BambooHR Work Status to Case format
-        let workStatus = WORK_STATUS.getter(WORK_STATUS, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
+        let workStatus = Fields.WORK_STATUS.getter(Fields.WORK_STATUS, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
         if (workStatus > 0) {
           // create an employee on the Portal if that employee is active and exists on BambooHR but not the Portal
+          logger.log(
+            3,
+            'createPortalEmployee',
+            `Attempting to create new CASE Portal employee for employee #: ${
+              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+            }`
+          );
           await createPortalEmployee();
           logger.log(
             3,
             'createPortalEmployee',
             `Successfully created new CASE Portal employee for employee #: ${
-              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
             }`
           );
           result.usersCreated += 1;
