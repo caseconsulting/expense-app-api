@@ -397,7 +397,12 @@ class ExpenseRoutes extends Crud {
     // set the max amount that can be added to budget
     // overdraft x2 allowed if expense type allows overdraft and employee is full time
     let maxAmount;
-    if (budget.amount == expenseType.budget && expenseType.odFlag) {
+    // ensure budget amount is correct
+    let budgetAmountCorrect = budget.amount == expenseType.budget;
+    for (let i = 0; !budgetAmountCorrect && i < expenseType.tagBudgets.length; i++) {
+      budgetAmountCorrect = budget.amount == expenseType.tagBudgets[i].budget;
+    }
+    if (budgetAmountCorrect && expenseType.odFlag) {
       // budget is full time and od allowed
       maxAmount = budget.amount * 2;
     } else {
