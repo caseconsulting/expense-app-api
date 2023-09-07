@@ -1037,6 +1037,7 @@ class Utility {
       let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
       let employeeRole = capitalize(employee.employeeRole);
       expenseTypes = expenseTypes.filter((expenseType) => {
+        let amount = this.calcAdjustedAmount(employee, expenseType, tags);
         return (
           (expenseType.accessibleBy.includes(workStatus) ||
             expenseType.accessibleBy.includes(employeeRole) ||
