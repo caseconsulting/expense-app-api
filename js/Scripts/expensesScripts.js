@@ -23,6 +23,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 // set expense table
 const TABLE = `${STAGE}-expenses`;
 const ETTABLE = `${STAGE}-expense-types`;
+const BUDGETS_TABLE = `${STAGE}-budgets`;
 
 // imports
 const { generateUUID } = require('../utils');
@@ -346,6 +347,74 @@ async function changeAttributeName(oldName, newName) {
 } // changeAttributeName
 
 /**
+ * Deletes pending mifi expenses
+ */
+async function deletePendingMifi() {
+  let expenses = await getAllEntries(TABLE);
+  const dateUtils = require('../dateUtils');
+  const ExpenseRoutes = require('../../routes/expenseRoutes');
+  const expenseRoutes = new ExpenseRoutes();
+
+  await _.forEach(expenses, async (expense) => {
+    // if expense is a MiFi reimbursement and is pending
+    let expenseIsMifi = expense.cost === -150 && expense.receipt === 'MifiStatusChange.png';
+    let expenseIsPending = expense.reimbursedDate === undefined;
+    if (expenseIsMifi && expenseIsPending) {
+      // fetch employees tech budget on this expense
+      let budgets = await getAllEntries(BUDGETS_TABLE);
+      let budget = _.filter(budgets, { 'expenseTypeId': expense.expenseTypeId, 'employeeId': expense.employeeId });
+      
+      // if budget year is in the past year (aka MiFi reimbursement is in this year's budget)
+      let expenseTypeInBudgetYear = _.filter(budget, (b) => { return b.fiscalEndDate > dateUtils.getTodaysDate(); });
+      expenseTypeInBudgetYear = expenseTypeInBudgetYear.length > 0;
+      if (expenseTypeInBudgetYear) {
+        // delete expense and update budget (expense routes handles both)
+        let deletable = await expenseRoutes._delete(expense.id);
+        await expenseRoutes.databaseModify.removeFromDB(deletable.id);
+      }
+    }
+  });
+} // deletePendingMifi
+
+async function updateReimburseForMifi() {
+  let expenses = await getAllEntries(TABLE);
+  const dateUtils = require('../dateUtils');
+
+  _.forEach(expenses, async (expense) => {
+    let expenseIsMifi = expense.cost === -150 && expense.receipt === 'MifiStatusChange.png';
+    let expenseIsPending = expense.reimbursedDate === undefined;
+    if (expenseIsMifi && !expenseIsPending) {
+      // add to reimburse amount if expense is not pending
+      let budgets = await getAllEntries(BUDGETS_TABLE);
+      let budget = _.filter(budgets, { 'expenseTypeId': expense.expenseTypeId, 'employeeId': expense.employeeId });
+      budget = _.filter(budget, (b) => { return b.fiscalEndDate > dateUtils.getTodaysDate(); });
+      if (budget.length > 0) {
+        budget = budget[0];
+        let reimbursedAmount = budget.reimbursedAmount + 150; // ✨magic number✨ is MiFi reimburse amount
+        let oldAmount = budget.reimbursedAmount; // for logging
+        let params = {
+          TableName: BUDGETS_TABLE,
+          Key: {
+            id: budget.id
+          },
+          UpdateExpression: 'set reimbursedAmount = :a',
+          ExpressionAttributeValues: {
+            ':a': reimbursedAmount
+          },
+          ReturnValues: 'UPDATED_NEW'
+        };
+        await ddb
+          .send(new UpdateCommand(params))
+          .then((data) => console.log(
+            `Item Updated\n  Budget ID: ${budget.id}\n  Amount: ${
+              data.Attributes['reimbursedAmount']} (was ${oldAmount})`))
+          .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+      }
+    }
+  });
+} // updateReimburseForMifi
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -458,6 +527,20 @@ async function main() {
       desc: 'Adding receipts to legacy expenses of types that now require receipt',
       action: async () => {
         await addReceipts();
+      }
+    },
+
+    {
+      desc: 'Delete pending MiFi expenses',
+      action: async () => {
+        await deletePendingMifi();
+      }
+    },
+
+    {
+      desc: 'Update reimburse amounts for reimbursed MiFi expenses',
+      action: async () => {
+        await updateReimburseForMifi();
       }
     }
   ];

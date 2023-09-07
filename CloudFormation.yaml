@@ -803,6 +803,11 @@ Resources:
         - ExpenseAppApiLambdaRole
         - Arn
       Handler: app.handler
+      FunctionName: !Join
+        - '-'
+        - - expense-app
+          - !Ref Stage
+          - PortalDataSyncFunction
       Layers:
         - !Ref DependenciesLayer
         - !Ref SharedLayer
@@ -880,90 +885,6 @@ Resources:
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
-  MifiStatusLambdaRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      RoleName: !Join
-        - ''
-        - - expense-api-lambda-mifi-status-
-          - !Ref Stage
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Policies:
-        - PolicyName: DynamoDB
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: 'dynamodb:*'
-                Resource: '*'
-        - PolicyName: CloudWatchLogs
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: 'logs:*'
-                Resource: '*'
-        - PolicyName: SNS
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: 'sns:*'
-                Resource: '*'
-        - PolicyName: S3
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: 's3:*'
-                Resource: '*'
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-  MifiStatusFunction:
-    Type: 'AWS::Serverless::Function'
-    Properties:
-      Description: Publishes sns message based on if mifiStatus changed for employee
-      Handler: mifiStatus.handler
-      Layers:
-        - !Ref DependenciesLayer
-        - !Ref SharedLayer
-      Timeout: 900
-      MemorySize: 256
-      CodeUri: ./mifiStatus
-      Events:
-        MifiStream:
-          Type: DynamoDB
-          Properties:
-            StartingPosition: TRIM_HORIZON
-            Stream: !GetAtt employeeTable.StreamArn
-      Environment:
-        Variables:
-          STAGE: !Ref Stage
-          MifiTopicArn: !Ref MifiTopic
-          AWS: lambda
-      Role: !GetAtt
-        - MifiStatusLambdaRole
-        - Arn
-  MifiTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: 'Mifi status change'
-      TopicName: !Join
-        - ''
-        - - mifi-status-
-          - !Ref Stage
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

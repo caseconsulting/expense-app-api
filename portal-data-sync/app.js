@@ -7,14 +7,22 @@ const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
 const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
+const EmployeeRoutes = require(process.env.AWS ? 'employeeRoutes' : '../routes/employeeRoutes');
+const { asyncForEach, generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
 
+const employeeRoutes = new EmployeeRoutes();
 const logger = new Logger('data-sync');
 const STAGE = process.env.STAGE;
+
+// any employee number greater than this number can be synced on dev/test environments
+// to prevent syncing dev/test data with prod data, never change this number (unless you know what you're doing)
+const TEST_EMPLOYEE_NUMBER_LIMIT = 90000;
 
 // APPLICATIONS
 const Applications = {
   CASE: 'Case',
-  BAMBOO: 'BambooHR'
+  BAMBOO: 'BambooHR',
+  ADP: 'ADP'
 };
 
 // FIELD CONSTANTS
@@ -26,10 +34,21 @@ const EMPLOYEE_NUMBER = {
   isEmpty: isEmpty,
   updateValue: updateValue
 };
+// FIELD CONSTANTS
+const EMAIL = {
+  name: 'Email',
+  [Applications.CASE]: 'email',
+  [Applications.BAMBOO]: 'workEmail',
+  [Applications.ADP]: 'businessCommunication.emails[0]',
+  getter: getFieldValue,
+  isEmpty: isEmpty,
+  updateValue: updateValue
+};
 const FIRST_NAME = {
   name: 'First Name',
   [Applications.CASE]: 'firstName',
   [Applications.BAMBOO]: 'firstName',
+  [Applications.ADP]: 'person.legalName.givenName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -38,6 +57,7 @@ const MIDDLE_NAME = {
   name: 'Middle Name',
   [Applications.CASE]: 'middleName',
   [Applications.BAMBOO]: 'middleName',
+  [Applications.ADP]: 'person.legalName.middleName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -46,6 +66,7 @@ const LAST_NAME = {
   name: 'Last Name',
   [Applications.CASE]: 'lastName',
   [Applications.BAMBOO]: 'lastName',
+  [Applications.ADP]: 'person.legalName.familyName1',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -54,6 +75,7 @@ const NICKNAME = {
   name: 'Nickname',
   [Applications.CASE]: 'nickname',
   [Applications.BAMBOO]: 'preferredName',
+  [Applications.ADP]: 'person.legalName.nickName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -62,6 +84,7 @@ const CURRENT_STREET = {
   name: 'Current Street',
   [Applications.CASE]: 'currentStreet',
   [Applications.BAMBOO]: 'address1',
+  [Applications.ADP]: 'person.legalAddress.lineOne',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -70,6 +93,7 @@ const CURRENT_CITY = {
   name: 'Current City',
   [Applications.CASE]: 'currentCity',
   [Applications.BAMBOO]: 'city',
+  [Applications.ADP]: 'person.legalAddress.cityName',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -78,6 +102,7 @@ const CURRENT_STATE = {
   name: 'Current State',
   [Applications.CASE]: 'currentState',
   [Applications.BAMBOO]: 'state',
+  [Applications.ADP]: 'person.legalAddress.countrySubdivisionLevel1.codeValue', // must be abbreviate (VA, MD)
   getter: getState,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -86,6 +111,7 @@ const CURRENT_ZIP = {
   name: 'Current ZIP',
   [Applications.CASE]: 'currentZIP',
   [Applications.BAMBOO]: 'zipcode',
+  [Applications.ADP]: 'person.legalAddress.postalCode',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -94,6 +120,7 @@ const HOME_PHONE = {
   name: 'Home Phone',
   [Applications.CASE]: 'privatePhoneNumbers',
   [Applications.BAMBOO]: 'homePhone',
+  [Applications.ADP]: 'person.communication.landlines[0]',
   getter: getPhone,
   isEmpty: isPhoneEmpty,
   updateValue: updatePhone
@@ -110,6 +137,7 @@ const MOBILE_PHONE = {
   name: 'Mobile Phone',
   [Applications.CASE]: 'privatePhoneNumbers',
   [Applications.BAMBOO]: 'mobilePhone',
+  [Applications.ADP]: 'person.communication.mobiles[0]',
   getter: getPhone,
   isEmpty: isPhoneEmpty,
   updateValue: updatePhone
@@ -166,6 +194,7 @@ const HIRE_DATE = {
   name: 'Hire Date',
   [Applications.CASE]: 'hireDate',
   [Applications.BAMBOO]: 'hireDate',
+  [Applications.ADP]: 'workerDates.originalHireDate',
   getter: getFieldValue,
   isEmpty: isEmpty,
   updateValue: updateValue
@@ -174,6 +203,7 @@ const WORK_STATUS = {
   name: 'Work Status',
   [Applications.CASE]: 'workStatus',
   [Applications.BAMBOO]: 'employmentHistoryStatus',
+  [Applications.ADP]: 'workerStatus.statusCode.codeValue',
   getter: getWorkStatus,
   isEmpty: isWorkStatusEmpty,
   updateValue: updateValue
@@ -197,6 +227,7 @@ const LINKEDIN = {
 
 const fields = [
   EMPLOYEE_NUMBER,
+  EMAIL,
   FIRST_NAME,
   MIDDLE_NAME,
   LAST_NAME,
@@ -236,50 +267,37 @@ let employee_data = { [Applications.CASE]: null, [Applications.BAMBOO]: null }; 
  * @param event - request
  */
 async function handler() {
-  // only run on prod so BambooHR does not get synced with dev or test data
-  // if you need to test on dev, remove this if statement and remove the
-  // for-loop in syncApplicationData so only your object is tested
-  if (STAGE == 'prod') {
-    await syncApplicationData();
-  } else {
-    logger.log(3, 'handler', `Not running handler on ${STAGE} environment`);
-  }
+  let result = await syncApplicationData();
+  return {
+    statusCode: 200,
+    body: result
+  };
 } // handler
 
 /**
  * Loops through employees and checks equality between converted values. Case values always take precedence over any
  * other application's values. A Case employee will only be updated if they have an empty field AND another
  * application's correlated field is not empty. An employee will only be updated if they are found in the Case
- * database AND they are active. This method will only run on the production environment to prevent employees getting
- * test data from dev/test environments. To test in the dev environment, 1. Remove the STAGE equality check with prod
- * AND remove the for-loop going through all employees to prevent the syncing of dev data. Test only your own
- * individual employee object.
+ * database AND they are active. NOTE: On dev/test environments, only employee's with employee numbers larger than
+ * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
  */
 async function syncApplicationData() {
+  let result = { usersUpdated: 0, usersCreated: 0, failures: 0 };
   const [employeeBambooHRData, employeeCasePortalData] = await Promise.all([
     getBambooHREmployeeData(),
     getCasePortalEmployeeData()
   ]);
-  // use both commented out lines for testing on dev (use your own employee number)
-  // employee_data[Applications.CASE] = employeeCasePortalData.find((c) =>
-  // parseInt(c[EMPLOYEE_NUMBER[Applications.CASE]], 10) == 10066);
-  // employee_data[Applications.BAMBOO] = employeeBambooHRData.find((b) =>
-  // parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) == 10066);
-  // loop through each case employee (REMOVE IF TESTING ON DEV ENV)
-  await asyncForEach(employeeCasePortalData, async (caseEmp) => {
+  await asyncForEach(employeeBambooHRData, async (bambooEmp) => {
     try {
-      // comment out both lines below if testing on dev
-      employee_data[Applications.CASE] = STAGE == 'prod' ? caseEmp : null;
-      employee_data[Applications.BAMBOO] =
-        STAGE == 'prod'
-          ? employeeBambooHRData.find(
-              (b) =>
-                parseInt(b[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) ==
-                parseInt(caseEmp[EMPLOYEE_NUMBER[Applications.CASE]], 10)
-            )
-          : null;
+      employee_data[Applications.CASE] = _.find(
+        employeeCasePortalData,
+        (c) =>
+          parseInt(c[EMPLOYEE_NUMBER[Applications.CASE]], 10) ===
+          parseInt(bambooEmp[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10)
+      );
+      employee_data[Applications.BAMBOO] = bambooEmp;
       if (!_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
-        // employee number exists on Case and BambooHR
+        // employee number exists on Case and BambooHR, start syncing process
         logger.log(
           3,
           'syncApplicationData',
@@ -316,17 +334,20 @@ async function syncApplicationData() {
             }
           }
         });
-        // update case employee here
+        // update case employee
         if (caseEmployeeUpdated) {
           let employee = _.cloneDeep(employee_data[Applications.CASE]);
           logger.log(3, 'syncApplicationData', `Updating Case employee id: ${employee.id}`);
           await updateCaseEmployee(employee);
+          result.usersUpdated += 1;
         }
+        // update bamboo employee
         if (bambooEmployeeUpdated) {
           let body = Object.assign({}, ...bambooHRBodyParams);
           let employee = _.cloneDeep(employee_data[Applications.BAMBOO]);
           logger.log(3, 'syncApplicationData', `Updating BambooHR employee id: ${employee.id}`);
           await updateBambooHREmployee(employee.id, body);
+          !caseEmployeeUpdated ? (result.usersUpdated += 1) : null;
         }
         logger.log(
           3,
@@ -335,14 +356,32 @@ async function syncApplicationData() {
             employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
           }`
         );
+      } else if (_.isEmpty(employee_data[Applications.CASE]) && !_.isEmpty(employee_data[Applications.BAMBOO])) {
+        // convert BambooHR Work Status to Case format
+        let workStatus = WORK_STATUS.getter(WORK_STATUS, Applications.BAMBOO, Applications.CASE);
+        if (workStatus > 0) {
+          // create an employee on the Portal if that employee is active and exists on BambooHR but not the Portal
+          await createPortalEmployee();
+          logger.log(
+            3,
+            'createPortalEmployee',
+            `Successfully created new CASE Portal employee for employee #: ${
+              employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
+            }`
+          );
+          result.usersCreated += 1;
+        }
+        // employee number exists on BambooHR but does NOT exist on the portal
       }
     } catch (err) {
       logger.log(3, 'syncApplicationData', `Error syncing employee: ${err}`);
+      result.failures += 1;
     }
     // reset data
     employee_data[Applications.BAMBOO] = null;
     employee_data[Applications.CASE] = null;
   });
+  return result;
 } // syncApplicationData
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,10 +401,10 @@ async function syncApplicationData() {
  * @returns Object - The entire employee object OR the field - value object depending on the application
  */
 function updateValue(application, field, value) {
-  if (application == Applications.CASE) {
+  if (application === Applications.CASE) {
     employee_data[application][field[application]] = value;
     return employee_data[application];
-  } else if (application == Applications.BAMBOO) {
+  } else if (application === Applications.BAMBOO) {
     employee_data[application][field[application]] = value;
     return { [field[application]]: value };
   } else {
@@ -382,13 +421,13 @@ function updateValue(application, field, value) {
  * @returns Object - The entire employee object OR the field - value object depending on the application
  */
 function updatePhone(application, field, value) {
-  if (application == Applications.CASE) {
+  if (application === Applications.CASE) {
     if (isEmpty(application, field)) {
       employee_data[application][field[application]] = value;
     } else {
       let phoneType = getPhoneType(field);
-      let publicPhoneIndex = _.findIndex(employee_data[application].publicPhoneNumbers, (p) => p.type == phoneType);
-      let privatePhoneIndex = _.findIndex(employee_data[application][field[application]], (p) => p.type == phoneType);
+      let publicPhoneIndex = _.findIndex(employee_data[application].publicPhoneNumbers, (p) => p.type === phoneType);
+      let privatePhoneIndex = _.findIndex(employee_data[application][field[application]], (p) => p.type === phoneType);
       if (publicPhoneIndex != -1)
         value ? employee_data[application].publicPhoneNumbers.splice(publicPhoneIndex, 1, ...value) : null;
       else if (privatePhoneIndex != -1)
@@ -410,12 +449,12 @@ function updatePhone(application, field, value) {
  * @returns Object - The entire employee object OR the field - value object depending on the application
  */
 function updateEthnicity(application, field, value) {
-  if (application == Applications.CASE) {
+  if (application === Applications.CASE) {
     // Case separates the ethnicity field into two different fields (eeoHispanicOrLatino and eeoRaceOrEthnicity)
     employee_data[application][field[application]] = value;
-    if (value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] == 'Hispanic or Latino') {
+    if (value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] === 'Hispanic or Latino') {
       employee_data[application]['eeoHispanicOrLatino'] = { text: 'Hispanic or Latino', value: true };
-    } else if (!value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] == 'Decline to answer') {
+    } else if (!value && employee_data[Applications.BAMBOO][ETHNICITY[Applications.BAMBOO]] === 'Decline to answer') {
       employee_data[application]['eeoHispanicOrLatino'] = null;
     } else {
       employee_data[application]['eeoHispanicOrLatino'] = { text: 'Not Hispanic or Latino', value: false };
@@ -450,7 +489,7 @@ async function updateCaseEmployee(employee) {
   let employeeBasic = new Employee(employee);
   let employeeSensitive = new EmployeeSensitive(employee);
   try {
-    await _validateEmployee(employeeBasic, employeeSensitive);
+    await employeeRoutes._validateEmployee(employeeBasic, employeeSensitive);
     let items = [
       {
         Put: {
@@ -469,9 +508,11 @@ async function updateCaseEmployee(employee) {
     await DatabaseModify.TransactItems(items);
     // log success
     logger.log(3, 'updateCaseEmployee', `Successfully updated Case employee ${employee.id}`);
+    return Promise.resolve(employee);
   } catch (err) {
     // log error
     logger.log(3, 'updateCaseEmployee', `Failed to update Case employee ${employee.id}`);
+    return Promise.reject(err);
   }
 } // updateCaseEmployee
 
@@ -505,17 +546,17 @@ function getFieldValue(field, applicationFormat) {
  */
 function getPhone(field, applicationFormat, toApplicationFormat) {
   let phoneType = getPhoneType(field);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    let publicPhone = _.find(employee_data[applicationFormat].publicPhoneNumbers, (p) => p.type == phoneType);
-    let privatePhone = _.find(employee_data[applicationFormat][field[applicationFormat]], (p) => p.type == phoneType);
+    let publicPhone = _.find(employee_data[applicationFormat].publicPhoneNumbers, (p) => p.type === phoneType);
+    let privatePhone = _.find(employee_data[applicationFormat][field[applicationFormat]], (p) => p.type === phoneType);
     return publicPhone ? publicPhone.number : privatePhone ? privatePhone.number : null;
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value or null if it cannot be converted
     let number = employee_data[applicationFormat][field[applicationFormat]];
     number = convertPhoneNumberToDashed(number);
     // return converted value or null if the value cannot be converted
-    return number && number.length == 12 ? [{ number: number, private: true, type: phoneType }] : null;
+    return number && number.length === 12 ? [{ number: number, private: true, type: phoneType }] : null;
   } else {
     // only applicationFormat parameter was passed or applicationFormat is equal to toApplicationFormat
     return getFieldValue(field, applicationFormat, toApplicationFormat);
@@ -532,17 +573,17 @@ function getPhone(field, applicationFormat, toApplicationFormat) {
  */
 function getPhoneExt(field, applicationFormat, toApplicationFormat) {
   let phoneType = getPhoneType(field);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    let publicPhone = _.find(employee_data[applicationFormat].publicPhoneNumbers, (p) => p.type == phoneType);
-    let privatePhone = _.find(employee_data[applicationFormat][field[applicationFormat]], (p) => p.type == phoneType);
+    let publicPhone = _.find(employee_data[applicationFormat].publicPhoneNumbers, (p) => p.type === phoneType);
+    let privatePhone = _.find(employee_data[applicationFormat][field[applicationFormat]], (p) => p.type === phoneType);
     return publicPhone ? publicPhone.ext : privatePhone ? privatePhone.ext : null;
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value or null if it cannot be converted
     let bambooWorkPhone = WORK_PHONE.getter(WORK_PHONE, Applications.BAMBOO);
     let ext = employee_data[applicationFormat][field[applicationFormat]];
     bambooWorkPhone = convertPhoneNumberToDashed(bambooWorkPhone);
-    return bambooWorkPhone && bambooWorkPhone.length == 12
+    return bambooWorkPhone && bambooWorkPhone.length === 12
       ? [{ number: bambooWorkPhone, private: true, type: phoneType, ext: ext }]
       : null;
   } else {
@@ -561,21 +602,21 @@ function getPhoneExt(field, applicationFormat, toApplicationFormat) {
  */
 function getState(field, applicationFormat, toApplicationFormat) {
   let state = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    if (state == undefined) {
+    if (state === null || state === undefined) {
       // return empty string because that is how BambooHR stores an empty state field
       return '';
-    } else if (state == 'District Of Columbia') {
+    } else if (state === 'District Of Columbia') {
       return 'District of Columbia';
     } else {
       return state;
     }
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (state == '' || state == null || state == undefined) {
+    if (state === '' || state === null || state === undefined) {
       return undefined;
-    } else if (state == 'District of Columbia') {
+    } else if (state === 'District of Columbia') {
       return 'District Of Columbia';
     } else {
       return state;
@@ -597,20 +638,20 @@ function getState(field, applicationFormat, toApplicationFormat) {
  */
 function getWorkStatus(field, applicationFormat, toApplicationFormat) {
   let workStatus = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    if (workStatus == 0) {
+    if (workStatus === 0) {
       return 'Terminated';
     } else if (workStatus < 100 && workStatus > 0) {
       return 'Part-Time';
     } else {
       return 'Full-Time';
     }
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (workStatus == 'Terminated') {
+    if (workStatus === 'Terminated') {
       return 0;
-    } else if (workStatus == 'Part-Time') {
+    } else if (workStatus === 'Part-Time') {
       return 50;
     } else {
       return 100;
@@ -632,20 +673,20 @@ function getWorkStatus(field, applicationFormat, toApplicationFormat) {
  */
 function getDisability(field, applicationFormat, toApplicationFormat) {
   let disability = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     if (_.isNil(disability)) {
       return null;
     } else {
       return disability ? 'Yes' : 'No';
     }
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
       return null;
     } else {
-      if (disability == 'Yes') return true;
-      else if (disability == 'No') return false;
+      if (disability === 'Yes') return true;
+      else if (disability === 'No') return false;
       else return null;
     }
   } else {
@@ -665,16 +706,16 @@ function getDisability(field, applicationFormat, toApplicationFormat) {
  */
 function getVeteranStatus(field, applicationFormat, toApplicationFormat) {
   let veteranStatus = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     if (_.isNil(veteranStatus)) {
       return null;
     } else {
       return veteranStatus ? 'Active Duty Wartime or Campaign Badge Veteran' : null;
     }
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) {
       return null;
     } else {
       return !!veteranStatus;
@@ -696,14 +737,14 @@ function getVeteranStatus(field, applicationFormat, toApplicationFormat) {
  */
 function getGender(field, applicationFormat, toApplicationFormat) {
   let gender = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     return gender ? gender.text : null;
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify) return null;
-    else if (gender == 'Male') return { text: 'Male', value: true };
-    else if (gender == 'Female') return { text: 'Female', value: false };
+    if (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) return null;
+    else if (gender === 'Male') return { text: 'Male', value: true };
+    else if (gender === 'Female') return { text: 'Female', value: false };
     else return null;
   } else {
     // only applicationFormat parameter was passed or applicationFormat is
@@ -722,27 +763,31 @@ function getGender(field, applicationFormat, toApplicationFormat) {
  */
 function getEthnicity(field, applicationFormat, toApplicationFormat) {
   let ethnicity = getFieldValue(field, applicationFormat, toApplicationFormat);
-  if (applicationFormat == Applications.CASE && toApplicationFormat == Applications.BAMBOO) {
+  if (applicationFormat === Applications.CASE && toApplicationFormat === Applications.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
     if (employee_data[applicationFormat].eeoDeclineSelfIdentify) return 'Decline to answer';
     else if (
       ethnicity &&
-      ethnicity.text == 'Not Applicable' &&
+      ethnicity.text === 'Not Applicable' &&
       employee_data[applicationFormat].eeoHispanicOrLatino &&
       employee_data[applicationFormat].eeoHispanicOrLatino.value
     )
       return 'Hispanic or Latino';
-    else if (ethnicity && ethnicity.text == 'Not Applicable') return 'Decline to answer';
+    else if (ethnicity && ethnicity.text === 'Not Applicable') return 'Decline to answer';
     else return ethnicity ? ethnicity.text : null;
-  } else if (applicationFormat == Applications.BAMBOO && toApplicationFormat == Applications.CASE) {
+  } else if (applicationFormat === Applications.BAMBOO && toApplicationFormat === Applications.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (employee_data[toApplicationFormat].eeoDeclineSelfIdentify || ethnicity == 'Decline to answer') return null;
-    else if (ethnicity == 'White') return { text: ethnicity, value: 0 };
-    else if (ethnicity == 'Black or African American') return { text: ethnicity, value: 1 };
-    else if (ethnicity == 'Native Hawaiian or Other Pacific Islander') return { text: ethnicity, value: 2 };
-    else if (ethnicity == 'Asian') return { text: ethnicity, value: 3 };
-    else if (ethnicity == 'American Indian or Alaska Native') return { text: ethnicity, value: 4 };
-    else if (ethnicity == 'Two or More Races') return { text: ethnicity, value: 5 };
+    if (
+      (employee_data[toApplicationFormat] && employee_data[toApplicationFormat].eeoDeclineSelfIdentify) ||
+      ethnicity === 'Decline to answer'
+    )
+      return null;
+    else if (ethnicity === 'White') return { text: ethnicity, value: 0 };
+    else if (ethnicity === 'Black or African American') return { text: ethnicity, value: 1 };
+    else if (ethnicity === 'Native Hawaiian or Other Pacific Islander') return { text: ethnicity, value: 2 };
+    else if (ethnicity === 'Asian') return { text: ethnicity, value: 3 };
+    else if (ethnicity === 'American Indian or Alaska Native') return { text: ethnicity, value: 4 };
+    else if (ethnicity === 'Two or More Races') return { text: ethnicity, value: 5 };
     else return { text: 'Not Applicable', value: 6 };
   } else {
     // only applicationFormat parameter was passed or applicationFormat is
@@ -780,8 +825,8 @@ function isEmpty(application, field) {
  * @returns Boolean - Whether the application's field is empty or not
  */
 function isEEOEmpty(application, field) {
-  if (application == Applications.CASE) {
-    if (field.name == DISABILITY.name || field.name == VETERAN_STATUS.name) {
+  if (application === Applications.CASE) {
+    if (field.name === DISABILITY.name || field.name === VETERAN_STATUS.name) {
       return (
         !employee_data[application].eeoDeclineSelfIdentify && _.isNil(employee_data[application][field[application]])
       );
@@ -802,9 +847,9 @@ function isEEOEmpty(application, field) {
  */
 function isPhoneEmpty(application, field) {
   let phoneType = getPhoneType(field);
-  if (application == Applications.CASE) {
-    let publicPhone = _.find(employee_data[application].publicPhoneNumbers, (p) => p.type == phoneType);
-    let privatePhone = _.find(employee_data[application][field[application]], (p) => p.type == phoneType);
+  if (application === Applications.CASE) {
+    let publicPhone = _.find(employee_data[application].publicPhoneNumbers, (p) => p.type === phoneType);
+    let privatePhone = _.find(employee_data[application][field[application]], (p) => p.type === phoneType);
     return !publicPhone && !privatePhone;
   } else {
     return isEmpty(application, field);
@@ -820,9 +865,9 @@ function isPhoneEmpty(application, field) {
  */
 function isPhoneExtEmpty(application, field) {
   let phoneType = getPhoneType(field);
-  if (application == Applications.CASE) {
-    let publicPhone = _.find(employee_data[application].publicPhoneNumbers, (p) => p.type == phoneType);
-    let privatePhone = _.find(employee_data[application][field[application]], (p) => p.type == phoneType);
+  if (application === Applications.CASE) {
+    let publicPhone = _.find(employee_data[application].publicPhoneNumbers, (p) => p.type === phoneType);
+    let privatePhone = _.find(employee_data[application][field[application]], (p) => p.type === phoneType);
     return (
       (!publicPhone || (publicPhone && !publicPhone.ext)) && (!privatePhone || (privatePhone && !privatePhone.ext))
     );
@@ -839,7 +884,7 @@ function isPhoneExtEmpty(application, field) {
  * @returns Boolean - Whether the application's field is empty or not
  */
 function isWorkStatusEmpty(application, field) {
-  if (application == Applications.CASE) {
+  if (application === Applications.CASE) {
     return _.isNil(employee_data[application][field[application]]);
   } else {
     return isEmpty(application, field);
@@ -855,16 +900,34 @@ function isWorkStatusEmpty(application, field) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Async function to loop an array.
+ * Creates a new Portal employee with basic and sensitive data.
  *
- * @param array - Array of elements to iterate over
- * @param callback - callback function
+ * @returns Employee - The employee created
  */
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
+async function createPortalEmployee() {
+  try {
+    logger.log(
+      3,
+      'createPortalEmployee',
+      `Attempting to create new CASE Portal employee for employee #: ${
+        employee_data[Applications.BAMBOO][EMPLOYEE_NUMBER[Applications.BAMBOO]]
+      }`
+    );
+    let caseEmployee = {};
+    caseEmployee['id'] = generateUUID();
+    caseEmployee['employeeRole'] = 'user';
+    _.forEach(fields, (f) => {
+      if (!f.isEmpty(Applications.BAMBOO, f)) {
+        caseEmployee[f[Applications.CASE]] = f.getter(f, Applications.BAMBOO, Applications.CASE);
+      }
+    });
+    let validatedEmployee = await employeeRoutes._validateInputs(caseEmployee);
+    let newEmployee = await updateCaseEmployee(validatedEmployee);
+    return Promise.resolve(newEmployee);
+  } catch (err) {
+    return Promise.reject(err);
   }
-} // asyncForEach
+} // createPortalEmployee
 
 /**
  * Invokes lambda function with given params
@@ -893,7 +956,19 @@ async function getBambooHREmployeeData() {
   };
   let result = await invokeLambda(params);
   let employees = result.body;
-  return employees;
+  if (STAGE === 'prod') {
+    // return employee #'s less than 90000 on prod
+    return _.filter(
+      employees,
+      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  } else {
+    // return employee #'s greater than 90000 on dev/test
+    return _.filter(
+      employees,
+      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.BAMBOO]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  }
 } // getBambooHREmployeeData
 
 /**
@@ -911,10 +986,17 @@ async function getCasePortalEmployeeData() {
 
   // merges employee non-sensitive data with sensitive data into one object
   let employeeData = employees.map((e) => {
-    let employeeSensitiveData = employeesSensitive.find((es) => es.id == e.id);
+    let employeeSensitiveData = employeesSensitive.find((es) => es.id === e.id);
     return { ...employeeSensitiveData, ...e };
   });
-  return employeeData;
+  if (STAGE === 'prod') {
+    return employeeData;
+  } else {
+    return _.filter(
+      employeeData,
+      (e) => parseInt(e[EMPLOYEE_NUMBER[Applications.CASE]], 10) > TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  }
 } // getCasePortalEmployeeData
 
 /**
@@ -924,11 +1006,11 @@ async function getCasePortalEmployeeData() {
  * @returns String - The phone type
  */
 function getPhoneType(field) {
-  if (field.name == MOBILE_PHONE.name) {
+  if (field.name === MOBILE_PHONE.name) {
     return 'Cell';
-  } else if (field.name == HOME_PHONE.name) {
+  } else if (field.name === HOME_PHONE.name) {
     return 'Home';
-  } else if (field.name == WORK_PHONE.name || field.name == WORK_PHONE_EXT.name) {
+  } else if (field.name === WORK_PHONE.name || field.name === WORK_PHONE_EXT.name) {
     return 'Work';
   }
 } // getPhoneType
@@ -949,125 +1031,5 @@ function convertPhoneNumberToDashed(number) {
     return null;
   }
 } // convertPhoneNumberToDashed
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////   VALIDATORS   /////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Validate that an employee is valid. Returns the employee if successfully validated, otherwise returns an error.
- *
- * @param employee - Employee object to be validated
- * @param employeeSensitive - Employee sensitive data object to be validated
- * @return Employee - validated employee
- */
-async function _validateEmployee(employee, employeeSensitive) {
-  // log method
-  logger.log(3, '_validateEmployee', `Validating employee ${employee.id}`);
-
-  // compute method
-  try {
-    let err = {
-      code: 403,
-      message: 'Error validating employee.'
-    };
-
-    // validate id
-    if (_.isNil(employee.id)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee id is empty');
-
-      // throw error
-      err.message = 'Invalid employee id.';
-      throw err;
-    }
-
-    // validate first name
-    if (_.isNil(employee.firstName)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee first name is empty');
-
-      // throw error
-      err.message = 'Invalid employee first name.';
-      throw err;
-    }
-
-    // validate last name
-    if (_.isNil(employee.lastName)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee last name is empty');
-
-      // throw error
-      err.message = 'Invalid employee last name.';
-      throw err;
-    }
-
-    // validate employee number
-    if (_.isNil(employee.employeeNumber)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee number is empty');
-
-      // throw error
-      err.message = 'Invalid employee number.';
-      throw err;
-    }
-
-    // validate hire date
-    if (_.isNil(employee.hireDate)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee hire date is empty');
-
-      // throw error
-      err.message = 'Invalid employee hire date.';
-      throw err;
-    }
-
-    // validate email
-    if (_.isNil(employee.email)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee email is empty');
-
-      // throw error
-      err.message = 'Invalid employee email.';
-      throw err;
-    }
-
-    // validate employee role
-    if (_.isNil(employeeSensitive.employeeRole)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee role is empty');
-
-      // throw error
-      err.message = 'Invalid employee role.';
-      throw err;
-    }
-
-    // validate work status
-    if (_.isNil(employee.workStatus)) {
-      // log error
-      logger.log(3, '_validateEmployee', 'Employee work status is empty');
-
-      // throw error
-      err.message = 'Invalid employee work status.';
-      throw err;
-    }
-
-    // log success
-    logger.log(3, '_validateEmployee', `Successfully validated employee ${employee.id}`);
-
-    // return employee on success
-    return Promise.resolve(employee);
-  } catch (err) {
-    // log error
-    logger.log(3, '_validateEmployee', `Failed to validate employee ${employee.id}`);
-
-    // return rejected promise
-    return Promise.reject(err);
-  }
-} // _validateEmployee
 
 module.exports = { handler };

@@ -49,7 +49,6 @@ class Employee {
     this.setRequiredAttribute(data, 'hireDate');
     this.setRequiredAttribute(data, 'lastName');
     this.setRequiredAttribute(data, 'workStatus');
-    this.setRequiredAttribute(data, 'hireDate');
 
     // optional attributes
     this.setOptionalAttribute(data, 'agencyIdentificationNumber');

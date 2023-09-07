@@ -2,6 +2,7 @@ const _ = require('lodash');
 const express = require('express');
 const jwksRsa = require('jwks-rsa');
 const jwt = require('express-jwt');
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
@@ -14,8 +15,10 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const Basecamp = require(process.env.AWS ? 'basecampRoutes' : '../routes/basecampRoutes');
 const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
 
+const lambdaClient = new LambdaClient();
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
+const STAGE = process.env.STAGE;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = jwt({
@@ -97,6 +100,7 @@ class Utility {
       this._getUserInfo,
       this._getUnreimbursedExpenses.bind(this)
     );
+    this._router.post('/syncApplications', this._checkJwt, this._getUserInfo, this._syncApplications.bind(this));
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
@@ -1007,9 +1011,9 @@ class Utility {
   async _getEmployeeExpenseTypes(req, res) {
     // log method
     logger.log(1, '_getEmployeeExpenseTypes', `Attempting to get expense types for employee ${req.employee.id}`);
-
     // compute method
     try {
+      let employee = req.employee;
       let [expenseTypesData, tags] = await Promise.all([
         this.expenseTypeDynamo.getAllEntriesInDB(),
         this.tagDynamo.getAllEntriesInDB()
@@ -1018,10 +1022,10 @@ class Utility {
         expenseType.categories = _.map(expenseType.categories, (category) => {
           return JSON.parse(category);
         });
+        expenseType.budget = this.calcAdjustedAmount(employee, expenseType, tags);
         return new ExpenseType(expenseType);
       });
 
-      let employee = req.employee;
       let workStatus;
       if (employee.workStatus == 0) {
         workStatus = 'Inactive';
@@ -1038,7 +1042,7 @@ class Utility {
           (expenseType.accessibleBy.includes(workStatus) ||
             expenseType.accessibleBy.includes(employeeRole) ||
             expenseType.accessibleBy.includes(employee.id)) &&
-          amount > 0
+          expenseType.budget > 0
         );
       });
 
@@ -1167,6 +1171,38 @@ class Utility {
       return err;
     }
   } // _getFiscalDateViewBudgets
+
+  /**
+   * Invokes the data sync lambda function to sync application data between the Portal, BambooHR, ADP, etc.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - The response from the lambda function
+   */
+  async _syncApplications(req, res) {
+    // log method
+    logger.log(1, '_syncApplications', 'Attempting to sync applications');
+    try {
+      // lambda invoke parameters
+      let params = {
+        FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
+        Qualifier: '$LATEST'
+      };
+      const resp = await lambdaClient.send(new InvokeCommand(params));
+      const result = JSON.parse(Buffer.from(resp.Payload));
+      // send successful 200 status
+      res.status(200).send(result);
+      // return result from lambda function
+      return result;
+    } catch (err) {
+      // log error
+      logger.log(1, '_syncApplications', 'Failed to sync applications');
+      // send error status
+      this._sendError(res, err);
+      // return error
+      return err;
+    }
+  } // _syncApplications
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.

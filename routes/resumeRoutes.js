@@ -391,16 +391,17 @@ class Resume {
     const command = new HeadObjectCommand(headParams);
     await s3Client
       .send(command)
-      .then(async () => {
+      .then(async (headObjectData) => {
+        const lastModified = headObjectData.LastModified;
         const objCommand = new GetObjectCommand(params);
         await getSignedUrl(s3Client, objCommand, { expiresIn: 60 })
-          .then((data) => {
+          .then((urlData) => {
             // log success
             logger.log(1, 'getResumeFromS3', `Successfully read resume from s3 ${filePath}`);
 
+            const data = { data: urlData, lastModified: lastModified };
             // send successful 200 status
             res.status(200).send(data);
-
             // return file read
             return data;
           })
