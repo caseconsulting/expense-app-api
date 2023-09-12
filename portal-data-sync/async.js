@@ -1,6 +1,6 @@
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const { APPLICATIONS } = require('./fields-shared');
 const { generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
-const { invokeLambda } = require('./helpers');
 const _ = require('lodash');
 const Fields = require('./fields-synced');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
@@ -41,6 +41,16 @@ async function createPortalEmployee() {
   }
 } // createPortalEmployee
 
+async function updateADPEmployee(employee) {
+  let payload = { employeeData: employee };
+  let params = {
+    FunctionName: `mysterio-adp-update-employee-${STAGE}`,
+    Payload: JSON.stringify(payload),
+    Qualifier: '$LATEST'
+  };
+  return await invokeLambda(params);
+}
+
 /**
  * Updates an employee through BambooHR's API.
  *
@@ -54,7 +64,7 @@ async function updateBambooHREmployee(id, body) {
     Payload: JSON.stringify(payload),
     Qualifier: '$LATEST'
   };
-  await invokeLambda(params);
+  return await invokeLambda(params);
 } // updateBambooHREmployee
 
 /**
@@ -92,6 +102,33 @@ async function updateCaseEmployee(employee) {
     return Promise.reject(err);
   }
 } // updateCaseEmployee
+
+/**
+ * Gets the ADP employees data from all of the given fields
+ *
+ * @returns Array - The list of BambooHR employees
+ */
+async function getADPEmployeeData() {
+  let params = {
+    FunctionName: `mysterio-adp-employees-${STAGE}`,
+    Qualifier: '$LATEST'
+  };
+  let result = await invokeLambda(params);
+  let employees = result.body;
+  if (STAGE === 'prod') {
+    // return employee #'s less than 90000 on prod
+    return _.filter(
+      employees,
+      (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  } else {
+    // return employee #'s greater than 90000 on dev/test
+    return _.filter(
+      employees,
+      (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
+    );
+  }
+} // getADPEmployeeData
 
 /**
  * Gets the BambooHR employees data from all of the given fields
@@ -154,10 +191,26 @@ async function getCasePortalEmployeeData() {
   }
 } // getCasePortalEmployeeData
 
+/**
+ * Invokes lambda function with given params
+ *
+ * @param params - params to invoke lambda function with
+ * @return object if successful, error otherwise
+ */
+async function invokeLambda(params) {
+  const client = new LambdaClient();
+  const command = new InvokeCommand(params);
+  const resp = await client.send(command);
+  return JSON.parse(Buffer.from(resp.Payload));
+} // invokeLambda
+
 module.exports = {
   createPortalEmployee,
+  updateADPEmployee,
   updateCaseEmployee,
   updateBambooHREmployee,
+  getADPEmployeeData,
   getBambooHREmployeeData,
-  getCasePortalEmployeeData
+  getCasePortalEmployeeData,
+  invokeLambda
 };

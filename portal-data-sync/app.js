@@ -5,8 +5,10 @@ const { asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared');
 const {
   createPortalEmployee,
+  getADPEmployeeData,
   getBambooHREmployeeData,
   getCasePortalEmployeeData,
+  updateADPEmployee,
   updateBambooHREmployee,
   updateCaseEmployee
 } = require('./async');
@@ -23,10 +25,11 @@ const logger = new Logger('app-data-sync');
  * @param event - request
  */
 async function handler() {
-  let result = await syncApplicationData();
+  let result1 = await syncPortalAndBamboo();
+  let result2 = await syncBambooAndADP();
   return {
     statusCode: 200, // should change this to not default to 200
-    body: result
+    body: { caseAndBambooSyncResult: result1, bambooAndADPSyncResult: result2 }
   };
 } // handler
 
@@ -37,16 +40,16 @@ async function handler() {
  * database AND they are active. NOTE: On dev/test environments, only employee's with employee numbers larger than
  * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
  */
-async function syncApplicationData() {
+async function syncPortalAndBamboo() {
   let result = { usersUpdated: 0, usersCreated: 0, failures: 0 };
-  const [employeeBambooHRData, employeeCasePortalData] = await Promise.all([
+  const [bambooEmployees, casePortalEmployees] = await Promise.all([
     getBambooHREmployeeData(),
     getCasePortalEmployeeData()
   ]);
-  await asyncForEach(employeeBambooHRData, async (bambooEmp) => {
+  await asyncForEach(bambooEmployees, async (bambooEmp) => {
     try {
       EMPLOYEE_DATA[APPLICATIONS.CASE] = _.find(
-        employeeCasePortalData,
+        casePortalEmployees,
         (c) =>
           parseInt(c[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) ===
           parseInt(bambooEmp[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10)
@@ -56,7 +59,7 @@ async function syncApplicationData() {
         // employee number exists on Case and BambooHR, start syncing process
         logger.log(
           3,
-          'syncApplicationData',
+          'syncPortalAndBamboo',
           `Syncing data for employee #: ${
             EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
           }`
@@ -65,37 +68,38 @@ async function syncApplicationData() {
         let bambooEmployeeUpdated = false;
         let bambooHRBodyParams = [];
         fieldsArr.forEach((f) => {
-          //let caseVal = f.getter(f, APPLICATIONS.CASE); // default Case value
-          let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
-          // convert Case value to BambooHR format
-          let caseValConverted = f.getter(f, APPLICATIONS.CASE, APPLICATIONS.BAMBOO);
-          // convert BambooHR value to Case format
-          let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
-          // Check equality by converting the field to the same value format (do not check equality on values converted
-          // to Case format since there could be data loss) If needed, write generic and custom equality methods
-          // attached to the field objects
-          if (bambooHRVal != caseValConverted) {
-            // Field values do NOT match
-            if (f.isEmpty(APPLICATIONS.CASE, f) && !f.isEmpty(APPLICATIONS.BAMBOO, f)) {
-              // Case field is empty AND BambooHR field is NOT empty (update Case field value with BambooHR field value)
-              logger.log(3, 'syncApplicationData', `Fields do NOT match (${f.name}): updating Case value`);
-              f.updateValue(APPLICATIONS.CASE, f, bambooValConverted);
-              caseEmployeeUpdated = true;
-            } else {
-              // Either Bamboo HR field is empty OR both Case and BambooHR field values are NOT empty AND they are
-              // conflicting (update BambooHR field value with Case field value since Case values take precedence over
-              // BambooHR values)
-              logger.log(3, 'syncApplicationData', `Fields do NOT match (${f.name}): updating BambooHR value`);
-              let param = f.updateValue(APPLICATIONS.BAMBOO, f, caseValConverted);
-              bambooHRBodyParams.push(param);
-              bambooEmployeeUpdated = true;
+          if (f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.CASE]) {
+            let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
+            // convert Case value to BambooHR format
+            let caseValConverted = f.getter(f, APPLICATIONS.CASE, APPLICATIONS.BAMBOO);
+            // convert BambooHR value to Case format
+            let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
+            // Check equality by converting the field to the same value format (do not check equality on values
+            // converted to Case format since there could be data loss) If needed, write generic and custom equality
+            // methods attached to the field objects
+            if (bambooHRVal != caseValConverted) {
+              // Field values do NOT match
+              if (f.isEmpty(APPLICATIONS.CASE, f) && !f.isEmpty(APPLICATIONS.BAMBOO, f)) {
+                // Case field is empty AND Bamboo field is NOT empty (update Case field value with BambooHR field value)
+                logger.log(3, 'syncPortalAndBamboo', `Fields do NOT match (${f.name}): updating Case value`);
+                f.updateValue(APPLICATIONS.CASE, f, bambooValConverted);
+                caseEmployeeUpdated = true;
+              } else {
+                // Either Bamboo field is empty OR both Case and BambooHR field values are NOT empty AND they are
+                // conflicting (update BambooHR field value with Case field value since Case values take precedence over
+                // BambooHR values)
+                logger.log(3, 'syncPortalAndBamboo', `Fields do NOT match (${f.name}): updating BambooHR value`);
+                let param = f.updateValue(APPLICATIONS.BAMBOO, f, caseValConverted);
+                bambooHRBodyParams.push(param);
+                bambooEmployeeUpdated = true;
+              }
             }
           }
         });
         // update case employee
         if (caseEmployeeUpdated) {
           let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.CASE]);
-          logger.log(3, 'syncApplicationData', `Updating Case employee id: ${employee.id}`);
+          logger.log(3, 'syncPortalAndBamboo', `Updating Case employee id: ${employee.id}`);
           await updateCaseEmployee(employee);
           result.usersUpdated += 1;
         }
@@ -103,13 +107,13 @@ async function syncApplicationData() {
         if (bambooEmployeeUpdated) {
           let body = Object.assign({}, ...bambooHRBodyParams);
           let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.BAMBOO]);
-          logger.log(3, 'syncApplicationData', `Updating BambooHR employee id: ${employee.id}`);
+          logger.log(3, 'syncPortalAndBamboo', `Updating BambooHR employee id: ${employee.id}`);
           await updateBambooHREmployee(employee.id, body);
           !caseEmployeeUpdated ? (result.usersUpdated += 1) : null;
         }
         logger.log(
           3,
-          'syncApplicationData',
+          'syncPortalAndBamboo',
           `Finished syncing data for employee #: ${
             EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
           }`
@@ -121,7 +125,7 @@ async function syncApplicationData() {
           // create an employee on the Portal if that employee is active and exists on BambooHR but not the Portal
           logger.log(
             3,
-            'createPortalEmployee',
+            'syncPortalAndBamboo',
             `Attempting to create new CASE Portal employee for employee #: ${
               EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
             }`
@@ -129,7 +133,7 @@ async function syncApplicationData() {
           await createPortalEmployee();
           logger.log(
             3,
-            'createPortalEmployee',
+            'syncPortalAndBamboo',
             `Successfully created new CASE Portal employee for employee #: ${
               EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
             }`
@@ -139,12 +143,106 @@ async function syncApplicationData() {
         // employee number exists on BambooHR but does NOT exist on the portal
       }
     } catch (err) {
-      logger.log(3, 'syncApplicationData', `Error syncing employee: ${err}`);
+      logger.log(3, 'syncPortalAndBamboo', `Error syncing employee: ${err}`);
       result.failures += 1;
     }
     // reset data
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
     EMPLOYEE_DATA[APPLICATIONS.CASE] = null;
+  });
+  return result;
+} // syncPortalAndBamboo
+
+/**
+ * Loops through employees and checks equality between converted values. Case values always take precedence over any
+ * other application's values. A Case employee will only be updated if they have an empty field AND another
+ * application's correlated field is not empty. An employee will only be updated if they are found in the Case
+ * database AND they are active. NOTE: On dev/test environments, only employee's with employee numbers larger than
+ * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
+ */
+async function syncBambooAndADP() {
+  let result = { usersUpdated: 0, usersCreated: 0, failures: 0 };
+  const [bambooEmployees, adpEmployees] = await Promise.all([getBambooHREmployeeData(), getADPEmployeeData()]);
+  await asyncForEach(bambooEmployees, async (bambooEmp) => {
+    try {
+      EMPLOYEE_DATA[APPLICATIONS.ADP] = _.find(
+        adpEmployees,
+        (a) =>
+          parseInt(_.get(a, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) ===
+          parseInt(bambooEmp[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10)
+      );
+      EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = bambooEmp;
+      if (!_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.ADP]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
+        // employee number exists on ADP and BambooHR, start syncing process
+        logger.log(
+          3,
+          'syncBambooAndADP',
+          `Syncing data for employee #: ${
+            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+          }`
+        );
+        let adpEmployeeUpdated = false;
+        let bambooEmployeeUpdated = false;
+        let bambooHRBodyParams = [];
+        fieldsArr.forEach((f) => {
+          if (f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.ADP]) {
+            let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
+            // convert ADP value to BambooHR format
+            let adpValConverted = f.getter(f, APPLICATIONS.ADP, APPLICATIONS.BAMBOO);
+            // convert BambooHR value to ADP format
+            let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.ADP);
+            // Check equality by converting the field to the same value format (do not check equality on values
+            // converted to ADP format since there could be data loss) If needed, write generic and custom equality
+            // methods attached to the field objects
+            if (bambooHRVal != adpValConverted) {
+              // Field values do NOT match
+              if (f.isEmpty(APPLICATIONS.BAMBOO, f) && !f.isEmpty(APPLICATIONS.ADP, f)) {
+                // BambooHR field is empty AND ADP field is NOT empty (update BambooHR field value with ADP field value)
+                logger.log(3, 'syncBambooAndADP', `Fields do NOT match (${f.name}): updating Bamboo value`);
+                let param = f.updateValue(APPLICATIONS.BAMBOO, f, adpValConverted);
+                bambooHRBodyParams.push(param);
+                bambooEmployeeUpdated = true;
+              } else {
+                // Either ADP field is empty OR both ADP and BambooHR field values are NOT empty AND they are
+                // conflicting (update ADP field value with BambooHR field value since BambooHR values take
+                // precedence over ADP values)
+                logger.log(3, 'syncBambooAndADP', `Fields do NOT match (${f.name}): updating BambooHR value`);
+                f.updateValue(APPLICATIONS.ADP, f, bambooValConverted);
+                adpEmployeeUpdated = true;
+              }
+            }
+          }
+        });
+        // update ADP employee
+        if (adpEmployeeUpdated) {
+          let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.ADP]);
+          logger.log(3, 'syncBambooAndADP', `Updating ADP employee id: ${employee.id}`);
+          await updateADPEmployee(employee);
+          result.usersUpdated += 1;
+        }
+        // update bamboo employee
+        if (bambooEmployeeUpdated) {
+          let body = Object.assign({}, ...bambooHRBodyParams);
+          let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.BAMBOO]);
+          logger.log(3, 'syncBambooAndADP', `Updating BambooHR employee id: ${employee.id}`);
+          await updateBambooHREmployee(employee.id, body);
+          !adpEmployeeUpdated ? (result.usersUpdated += 1) : null;
+        }
+        logger.log(
+          3,
+          'syncBambooAndADP',
+          `Finished syncing data for employee #: ${
+            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+          }`
+        );
+      }
+    } catch (err) {
+      logger.log(3, 'syncBambooAndADP', `Error syncing employee: ${err}`);
+      result.failures += 1;
+    }
+    // reset data
+    EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
+    EMPLOYEE_DATA[APPLICATIONS.ADP] = null;
   });
   return result;
 } // syncApplicationData

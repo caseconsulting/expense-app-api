@@ -11,7 +11,7 @@ const _ = require('lodash');
  * @returns The value of the application's field from the employee
  */
 function getFieldValue(field, applicationFormat) {
-  return EMPLOYEE_DATA[applicationFormat][field[applicationFormat]];
+  return _.get(EMPLOYEE_DATA[applicationFormat], field[applicationFormat]);
 } // getFieldValue
 
 /**
@@ -23,6 +23,7 @@ function getFieldValue(field, applicationFormat) {
  * @returns The value of the employee's phone number based on the application format needed
  */
 function getPhone(field, applicationFormat, toApplicationFormat) {
+  let phone = getFieldValue(field, applicationFormat);
   let phoneType = field.phoneType;
   if (applicationFormat === APPLICATIONS.CASE && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
@@ -35,9 +36,22 @@ function getPhone(field, applicationFormat, toApplicationFormat) {
     number = convertPhoneNumberToDashed(number);
     // return converted value or null if the value cannot be converted
     return number && number.length === 12 ? [{ number: number, private: true, type: phoneType }] : null;
+  } else if (applicationFormat === APPLICATIONS.ADP && toApplicationFormat === APPLICATIONS.BAMBOO) {
+    // convert ADP value to Bamboo format
+    return phone ? convertPhoneNumberToDashed(phone.areaDialing + phone.dialNumber) : null;
+  } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.ADP) {
+    // convert Bamboo value to ADP format
+    let unformattedPhone = phone.replace(/[^A-Z0-9]/gi, '');
+    return {
+      areaDialing: unformattedPhone.substring(0, 3),
+      dialNumber: unformattedPhone.substring(3, unformattedPhone.length)
+    };
+  } else if (applicationFormat === APPLICATIONS.ADP && !toApplicationFormat) {
+    // ADP does not return full phone number, only an object of the area and dial number
+    return phone ? phone.areaDialing + phone.dialNumber : null;
   } else {
     // only applicationFormat parameter was passed or applicationFormat is equal to toApplicationFormat
-    return getFieldValue(field, applicationFormat, toApplicationFormat);
+    return phone;
   }
 } // getPhone
 

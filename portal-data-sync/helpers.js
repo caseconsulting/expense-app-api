@@ -1,18 +1,3 @@
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
-
-/**
- * Invokes lambda function with given params
- *
- * @param params - params to invoke lambda function with
- * @return object if successful, error otherwise
- */
-async function invokeLambda(params) {
-  const client = new LambdaClient();
-  const command = new InvokeCommand(params);
-  const resp = await client.send(command);
-  return JSON.parse(Buffer.from(resp.Payload));
-} // invokeLambda
-
 /**
  * Converts a number of any format (1234567890 / 123-456-7890 / 123.456.7890) and converts it to a
  * dashed format (123-456-7890).
@@ -31,6 +16,5 @@ function convertPhoneNumberToDashed(number) {
 } // convertPhoneNumberToDashed
 
 module.exports = {
-  invokeLambda,
   convertPhoneNumberToDashed
 };

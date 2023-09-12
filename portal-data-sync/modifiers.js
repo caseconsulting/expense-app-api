@@ -11,8 +11,8 @@ const _ = require('lodash');
  * @returns Object - The entire employee object OR the field - value object depending on the application
  */
 function updateValue(application, field, value) {
-  if (application === APPLICATIONS.CASE) {
-    EMPLOYEE_DATA[application][field[application]] = value;
+  if (application === APPLICATIONS.CASE || application === APPLICATIONS.ADP) {
+    _.set(EMPLOYEE_DATA[application], field[application], value);
     return EMPLOYEE_DATA[application];
   } else if (application === APPLICATIONS.BAMBOO) {
     EMPLOYEE_DATA[application][field[application]] = value;

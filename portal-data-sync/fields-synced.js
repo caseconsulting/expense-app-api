@@ -7,16 +7,26 @@ const EMPLOYEE_NUMBER = {
   name: 'Employee Number',
   [APPLICATIONS.CASE]: 'employeeNumber',
   [APPLICATIONS.BAMBOO]: 'employeeNumber',
+  [APPLICATIONS.ADP]: 'customFieldGroup.stringFields[0].stringValue',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
 };
 
-const EMAIL = {
-  name: 'Email',
+const WORK_EMAIL = {
+  name: 'Work Email',
   [APPLICATIONS.CASE]: 'email',
   [APPLICATIONS.BAMBOO]: 'workEmail',
-  [APPLICATIONS.ADP]: 'businessCommunication.emails[0]',
+  [APPLICATIONS.ADP]: 'businessCommunication.emails[0].emailUri',
+  getter: Getters.getFieldValue,
+  isEmpty: Empty.isEmpty,
+  updateValue: Modifiers.updateValue
+};
+
+const PERSONAL_EMAIL = {
+  name: 'Personal Email',
+  [APPLICATIONS.BAMBOO]: 'homeEmail',
+  [APPLICATIONS.ADP]: 'person.communication.emails[0].emailUri',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -26,7 +36,7 @@ const FIRST_NAME = {
   name: 'First Name',
   [APPLICATIONS.CASE]: 'firstName',
   [APPLICATIONS.BAMBOO]: 'firstName',
-  [APPLICATIONS.ADP]: 'person.legalName.givenName',
+  //[APPLICATIONS.ADP]: 'person.legalName.givenName',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -36,7 +46,7 @@ const MIDDLE_NAME = {
   name: 'Middle Name',
   [APPLICATIONS.CASE]: 'middleName',
   [APPLICATIONS.BAMBOO]: 'middleName',
-  [APPLICATIONS.ADP]: 'person.legalName.middleName',
+  //[APPLICATIONS.ADP]: 'person.legalName.middleName',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -46,7 +56,7 @@ const LAST_NAME = {
   name: 'Last Name',
   [APPLICATIONS.CASE]: 'lastName',
   [APPLICATIONS.BAMBOO]: 'lastName',
-  [APPLICATIONS.ADP]: 'person.legalName.familyName1',
+  //[APPLICATIONS.ADP]: 'person.legalName.familyName1',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -56,7 +66,7 @@ const NICKNAME = {
   name: 'Nickname',
   [APPLICATIONS.CASE]: 'nickname',
   [APPLICATIONS.BAMBOO]: 'preferredName',
-  [APPLICATIONS.ADP]: 'person.legalName.nickName',
+  //[APPLICATIONS.ADP]: 'person.legalName.nickName',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -67,6 +77,16 @@ const CURRENT_STREET = {
   [APPLICATIONS.CASE]: 'currentStreet',
   [APPLICATIONS.BAMBOO]: 'address1',
   [APPLICATIONS.ADP]: 'person.legalAddress.lineOne',
+  getter: Getters.getFieldValue,
+  isEmpty: Empty.isEmpty,
+  updateValue: Modifiers.updateValue
+};
+
+const CURRENT_STREET_2 = {
+  name: 'Current Street 2',
+  [APPLICATIONS.CASE]: 'currentStreet2',
+  [APPLICATIONS.BAMBOO]: 'address2',
+  [APPLICATIONS.ADP]: 'person.legalAddress.lineTwo',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -196,7 +216,7 @@ const HIRE_DATE = {
   name: 'Hire Date',
   [APPLICATIONS.CASE]: 'hireDate',
   [APPLICATIONS.BAMBOO]: 'hireDate',
-  [APPLICATIONS.ADP]: 'workerDates.originalHireDate',
+  //[APPLICATIONS.ADP]: 'workerDates.originalHireDate',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue
@@ -206,7 +226,7 @@ const WORK_STATUS = {
   name: 'Work Status',
   [APPLICATIONS.CASE]: 'workStatus',
   [APPLICATIONS.BAMBOO]: 'employmentHistoryStatus',
-  [APPLICATIONS.ADP]: 'workerStatus.statusCode.codeValue',
+  //[APPLICATIONS.ADP]: 'workerStatus.statusCode.codeValue',
   getter: Getters.getWorkStatus,
   isEmpty: Empty.isWorkStatusEmpty,
   updateValue: Modifiers.updateValue
@@ -232,12 +252,14 @@ const LINKEDIN = {
 
 module.exports = {
   EMPLOYEE_NUMBER,
-  EMAIL,
+  WORK_EMAIL,
+  PERSONAL_EMAIL,
   FIRST_NAME,
   MIDDLE_NAME,
   LAST_NAME,
   NICKNAME,
   CURRENT_STREET,
+  CURRENT_STREET_2,
   CURRENT_CITY,
   CURRENT_STATE,
   CURRENT_ZIP,
