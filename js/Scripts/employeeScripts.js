@@ -888,6 +888,26 @@ async function changeOffcialToOfficial() {
 } // changeOffcialToOfficial
 
 /**
+ * Update old HIPPOLABS Virginia Tech name
+ */
+async function updateVTInEducation() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let employees = await getAllEntries(TABLE);
+  _.forEach(employees, (e) => {
+    if (e.education) {
+      for (let i = 0; i < e.education.length; i++) {
+        let edu = e.education[i];
+        if (edu.name && edu.name === 'Virginia Polytechnic Institute and State University (Virginia Tech)') {
+          e.education[i].name = 'Virginia Tech';
+          console.log(`Updating employee with ID ${e.id} to new VT name`);
+          databaseModify.updateEntryInDB(e);
+        }
+      }
+    }
+  });
+} // updateVTInEducation
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -1091,6 +1111,12 @@ async function main() {
       desc: 'Update employee EEO data to fix "Offcial" typo',
       action: async () => {
         await changeOffcialToOfficial();
+      }
+    },
+    {
+      desc: 'Update HIPPOLABS Virginia Tech name',
+      action: async () => {
+        await updateVTInEducation();
       }
     }
   ];
