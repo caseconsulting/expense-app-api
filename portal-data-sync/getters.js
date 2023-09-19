@@ -1,5 +1,4 @@
-const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared.js');
-const { convertPhoneNumberToDashed } = require('./helpers.js');
+const { APPLICATIONS, EMPLOYEE_DATA, STATES } = require('./fields-shared.js');
 const _ = require('lodash');
 
 /**
@@ -33,22 +32,28 @@ function getPhone(field, applicationFormat, toApplicationFormat) {
   } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.CASE) {
     // convert BambooHR value to Case format -> return the converted value or null if it cannot be converted
     let number = EMPLOYEE_DATA[applicationFormat][field[applicationFormat]];
-    number = convertPhoneNumberToDashed(number);
+    number = _convertPhoneNumberToDashed(number);
     // return converted value or null if the value cannot be converted
     return number && number.length === 12 ? [{ number: number, private: true, type: phoneType }] : null;
   } else if (applicationFormat === APPLICATIONS.ADP && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert ADP value to Bamboo format
-    return phone ? convertPhoneNumberToDashed(phone.areaDialing + phone.dialNumber) : null;
+    return phone ? _convertPhoneNumberToDashed(phone.areaDialing + phone.dialNumber) : null;
   } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.ADP) {
     // convert Bamboo value to ADP format
-    let unformattedPhone = phone.replace(/[^A-Z0-9]/gi, '');
-    return {
-      areaDialing: unformattedPhone.substring(0, 3),
-      dialNumber: unformattedPhone.substring(3, unformattedPhone.length)
-    };
-  } else if (applicationFormat === APPLICATIONS.ADP && !toApplicationFormat) {
-    // ADP does not return full phone number, only an object of the area and dial number
-    return phone ? phone.areaDialing + phone.dialNumber : null;
+    if (phone) {
+      let unformattedPhone = phone.replace(/[^A-Z0-9]/gi, '');
+      return {
+        areaDialing: unformattedPhone.substring(0, 3),
+        dialNumber: unformattedPhone.substring(3, unformattedPhone.length),
+        countryDialing: '1',
+        access: '1'
+      };
+    } else {
+      return null;
+    }
+  } else if (applicationFormat === APPLICATIONS.BAMBOO && !toApplicationFormat) {
+    // convert bamboo to be dashed to standardize syncing
+    return phone ? _convertPhoneNumberToDashed(phone) : null;
   } else {
     // only applicationFormat parameter was passed or applicationFormat is equal to toApplicationFormat
     return phone;
@@ -74,7 +79,7 @@ function getPhoneExt(field, applicationFormat, toApplicationFormat) {
     // convert BambooHR value to Case format -> return the converted value or null if it cannot be converted
     let bambooWorkPhone = field.extra.getter(field.extra, APPLICATIONS.BAMBOO);
     let ext = EMPLOYEE_DATA[applicationFormat][field[applicationFormat]];
-    bambooWorkPhone = convertPhoneNumberToDashed(bambooWorkPhone);
+    bambooWorkPhone = _convertPhoneNumberToDashed(bambooWorkPhone);
     return bambooWorkPhone && bambooWorkPhone.length === 12
       ? [{ number: bambooWorkPhone, private: true, type: phoneType, ext: ext }]
       : null;
@@ -113,6 +118,12 @@ function getState(field, applicationFormat, toApplicationFormat) {
     } else {
       return state;
     }
+  } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.ADP) {
+    // return the state abbreviation
+    return Object.keys(STATES).find((stateCode) => STATES[stateCode] === state);
+  } else if (applicationFormat === APPLICATIONS.ADP && toApplicationFormat === APPLICATIONS.BAMBOO) {
+    // return the full state name
+    return STATES[state];
   } else {
     // only applicationFormat parameter was passed or applicationFormat is
     // equal to toApplicationFormat -> return regular value
@@ -287,6 +298,29 @@ function getEthnicity(field, applicationFormat, toApplicationFormat) {
     return ethnicity;
   }
 } // getEthnicity
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////// HELPERS /////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Converts a number of any format (1234567890 / 123-456-7890 / 123.456.7890) and converts it to a
+ * dashed format (123-456-7890).
+ *
+ * @param number String - The passed phone number
+ * @returns String - The phone number in dashed format
+ */
+function _convertPhoneNumberToDashed(number) {
+  if (number) {
+    let n = number.replace(/\D/g, '');
+    n = n.slice(0, 3) + '-' + n.slice(3, 6) + '-' + n.slice(6, 15);
+    return n;
+  } else {
+    return null;
+  }
+} // convertPhoneNumberToDashed
 
 module.exports = {
   getFieldValue,

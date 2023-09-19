@@ -1,4 +1,11 @@
 const { APPLICATIONS } = require('./fields-shared');
+const {
+  getADPWorkEmailDataTemplate,
+  getADPPersonalEmailDataTemplate,
+  getADPLandlineDataTemplate,
+  getADPMobilePhoneDataTemplate,
+  getADPLegalAddressDataTemplate
+} = require('./adp-templates');
 const Getters = require('./getters');
 const Modifiers = require('./modifiers');
 const Empty = require('./empty');
@@ -20,16 +27,20 @@ const WORK_EMAIL = {
   [APPLICATIONS.ADP]: 'businessCommunication.emails[0].emailUri',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.business-communication.email.change',
+  adpUpdateDataTemplate: getADPWorkEmailDataTemplate
 };
 
 const PERSONAL_EMAIL = {
   name: 'Personal Email',
   [APPLICATIONS.BAMBOO]: 'homeEmail',
-  [APPLICATIONS.ADP]: 'person.communication.emails[0].emailUri',
+  //[APPLICATIONS.ADP]: 'person.communication.emails[0].emailUri',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.personal-communication.email.change',
+  adpUpdateDataTemplate: getADPPersonalEmailDataTemplate
 };
 
 const FIRST_NAME = {
@@ -79,7 +90,10 @@ const CURRENT_STREET = {
   [APPLICATIONS.ADP]: 'person.legalAddress.lineOne',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.legal-address.change',
+  adpUpdateDataTemplate: getADPLegalAddressDataTemplate,
+  fieldType: 'Address'
 };
 
 const CURRENT_STREET_2 = {
@@ -89,7 +103,10 @@ const CURRENT_STREET_2 = {
   [APPLICATIONS.ADP]: 'person.legalAddress.lineTwo',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.legal-address.change',
+  adpUpdateDataTemplate: getADPLegalAddressDataTemplate,
+  fieldType: 'Address'
 };
 
 const CURRENT_CITY = {
@@ -99,7 +116,10 @@ const CURRENT_CITY = {
   [APPLICATIONS.ADP]: 'person.legalAddress.cityName',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.legal-address.change',
+  adpUpdateDataTemplate: getADPLegalAddressDataTemplate,
+  fieldType: 'Address'
 };
 
 const CURRENT_STATE = {
@@ -109,7 +129,10 @@ const CURRENT_STATE = {
   [APPLICATIONS.ADP]: 'person.legalAddress.countrySubdivisionLevel1.codeValue', // must be abbreviate (VA, MD)
   getter: Getters.getState,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.legal-address.change',
+  adpUpdateDataTemplate: getADPLegalAddressDataTemplate,
+  fieldType: 'Address'
 };
 
 const CURRENT_ZIP = {
@@ -119,7 +142,10 @@ const CURRENT_ZIP = {
   [APPLICATIONS.ADP]: 'person.legalAddress.postalCode',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  adpUpdatePath: '/events/hr/v1/worker.legal-address.change',
+  adpUpdateDataTemplate: getADPLegalAddressDataTemplate,
+  fieldType: 'Address'
 };
 
 const HOME_PHONE = {
@@ -130,6 +156,8 @@ const HOME_PHONE = {
   getter: Getters.getPhone,
   isEmpty: Empty.isPhoneEmpty,
   updateValue: Modifiers.updatePhone,
+  adpUpdatePath: '/events/hr/v1/worker.personal-communication.landline.change',
+  adpUpdateDataTemplate: getADPLandlineDataTemplate,
   phoneType: 'Home' // used for the Portal
 };
 
@@ -141,6 +169,8 @@ const MOBILE_PHONE = {
   getter: Getters.getPhone,
   isEmpty: Empty.isPhoneEmpty,
   updateValue: Modifiers.updatePhone,
+  adpUpdatePath: '/events/hr/v1/worker.personal-communication.mobile.change',
+  adpUpdateDataTemplate: getADPMobilePhoneDataTemplate,
   phoneType: 'Cell' // used for the Portal
 };
 
@@ -229,7 +259,8 @@ const WORK_STATUS = {
   //[APPLICATIONS.ADP]: 'workerStatus.statusCode.codeValue',
   getter: Getters.getWorkStatus,
   isEmpty: Empty.isWorkStatusEmpty,
-  updateValue: Modifiers.updateValue
+  updateValue: Modifiers.updateValue,
+  extra: 'deptDate' // departure date for the Portal
 };
 
 const TWITTER = {

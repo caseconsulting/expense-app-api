@@ -41,8 +41,8 @@ async function createPortalEmployee() {
   }
 } // createPortalEmployee
 
-async function updateADPEmployee(employee) {
-  let payload = { employeeData: employee };
+async function updateADPEmployee(path, data) {
+  let payload = { path, data };
   let params = {
     FunctionName: `mysterio-adp-update-employee-${STAGE}`,
     Payload: JSON.stringify(payload),
@@ -57,8 +57,8 @@ async function updateADPEmployee(employee) {
  * @param id String - The employee ID
  * @param body Array - The list of (field: value) object pairs to update
  */
-async function updateBambooHREmployee(id, body) {
-  let payload = { id, body };
+async function updateBambooHREmployee(id, body, bambooHRTabularData) {
+  let payload = { id: id, body: body, tabularData: bambooHRTabularData };
   let params = {
     FunctionName: `mysterio-update-bamboohr-employee-${STAGE}`,
     Payload: JSON.stringify(payload),

@@ -15,8 +15,13 @@ function updateValue(application, field, value) {
     _.set(EMPLOYEE_DATA[application], field[application], value);
     return EMPLOYEE_DATA[application];
   } else if (application === APPLICATIONS.BAMBOO) {
-    EMPLOYEE_DATA[application][field[application]] = value;
-    return { [field[application]]: value };
+    if (value === undefined || value === null) {
+      EMPLOYEE_DATA[application][field[application]] = '';
+      return { [field[application]]: '' };
+    } else {
+      EMPLOYEE_DATA[application][field[application]] = value;
+      return { [field[application]]: value };
+    }
   } else {
     return null;
   }
