@@ -42,6 +42,10 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-0
 });
 const DatabaseModify = require('../databaseModify');
 
+// set up s3
+const { CopyObjectCommand, ListObjectsCommand, DeleteObjectCommand, S3Client } = require('@aws-sdk/client-s3');
+const RESUME_BUCKET = `case-portal-resumes-${STAGE}`;
+
 // colors for console logging
 const colors = {
   RED: '\x1b[31m',
@@ -908,6 +912,58 @@ async function updateVTInEducation() {
 } // updateVTInEducation
 
 /**
+ * Update resume name in S3 and add date to employee object
+ */
+async function updateResumeObject() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let employees = await getAllEntries(TABLE);
+  let input, command, response;
+  const client = new S3Client({});
+  
+  // get list of resume objects
+  let resumes = {};
+  let currentKey;
+  input = {
+    'Bucket': RESUME_BUCKET,
+  };
+  command = new ListObjectsCommand(input);
+  response = await client.send(command);
+  for (let o of response.Contents) {
+    currentKey =  o.Key.slice(0, -('/resume'.length));
+    resumes[currentKey] = o.LastModified;
+  }
+
+  let n; // employee number
+  for (let e of employees) {
+    n = `${e.employeeNumber}`;
+    if (!resumes[n]) continue;
+
+    // update employee object
+    let date = new Date(resumes[n]);
+    date = `${date.getFullYear()}-${('0'+date.getMonth()).slice(-2)}-${('0'+date.getDay()).slice(-2)}`;
+    e.resumeUpdated = date;
+    databaseModify.updateEntryInDB(e);
+
+    // now update the resume name in S3
+    input = {
+      'Bucket': RESUME_BUCKET,
+      'CopySource': `/${RESUME_BUCKET}/${n}/resume`,
+      'Key': `${e.id}/resume`,
+    };
+    command = new CopyObjectCommand(input);
+    await client.send(command);
+
+    // finally, delete the old resume
+    input = {
+      'Bucket': RESUME_BUCKET,
+      'Key': `${n}/resume`
+    };
+    command = new DeleteObjectCommand(input);
+    await client.send(command);
+  }
+} // updateResumeObject
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -1117,6 +1173,12 @@ async function main() {
       desc: 'Update HIPPOLABS Virginia Tech name',
       action: async () => {
         await updateVTInEducation();
+      },
+    },
+    {
+      desc: 'Update resume name in S3 and add date to employee object',
+      action: async () => {
+        await updateResumeObject();
       }
     }
   ];

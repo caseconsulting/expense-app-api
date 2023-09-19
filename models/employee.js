@@ -79,6 +79,7 @@ class Employee {
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
+    this.setOptionalAttribute(data, 'resumeUpdated');
   } // constructor
 
   /**
