@@ -41,10 +41,18 @@ async function handler() {
  */
 async function syncPortalAndBamboo() {
   let result = { fieldsUpdated: [], usersCreated: [], failures: [] };
-  const [bambooEmployees, casePortalEmployees] = await Promise.all([
-    getBambooHREmployeeData(),
-    getCasePortalEmployeeData()
-  ]);
+  let bambooEmployees;
+  let casePortalEmployees;
+  try {
+    [bambooEmployees, casePortalEmployees] = await Promise.all([
+      getBambooHREmployeeData(),
+      getCasePortalEmployeeData()
+    ]);
+  } catch (err) {
+    // early exit, could not fetch employees
+    result.failures.push(err);
+    return result;
+  }
   await asyncForEach(bambooEmployees, async (bambooEmp) => {
     try {
       EMPLOYEE_DATA[APPLICATIONS.CASE] = _.find(
@@ -155,7 +163,15 @@ async function syncPortalAndBamboo() {
  */
 async function syncBambooAndADP() {
   let result = { fieldsUpdated: [], usersCreated: [], failures: [] };
-  const [bambooEmployees, adpEmployees] = await Promise.all([getBambooHREmployeeData(), getADPEmployeeData()]);
+  let bambooEmployees;
+  let adpEmployees;
+  try {
+    [bambooEmployees, adpEmployees] = await Promise.all([getBambooHREmployeeData(), getADPEmployeeData()]);
+  } catch (err) {
+    // early exit, could not fetch employees
+    result.failures.push(err);
+    return result;
+  }
   await asyncForEach(bambooEmployees, async (bambooEmp) => {
     try {
       EMPLOYEE_DATA[APPLICATIONS.ADP] = _.find(
@@ -200,14 +216,14 @@ async function syncBambooAndADP() {
         if (adpEmployeeUpdated) {
           let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.ADP]);
           let legalAddressUpdated = false;
-          let promises = [];
-          let tmpFieldsUpdated = [];
+          let updatesToMake = [];
+          let userFieldsUpdated = [];
           _.forEach(fieldsToUpdate, (field) => {
             if (field.fieldType === 'Address') {
               if (!legalAddressUpdated) {
                 // address with all of its fields only needs to be updated once
                 let data = field.adpUpdateDataTemplate(employee.associateOID, employee.person.legalAddress);
-                promises.push(updateADPEmployee(field.adpUpdatePath, data));
+                updatesToMake.push({ path: field.adpUpdatePath, data: data });
                 legalAddressUpdated = true;
                 logger.log(
                   3,
@@ -217,19 +233,19 @@ async function syncBambooAndADP() {
               }
             } else {
               let data = field.adpUpdateDataTemplate(employee.associateOID, field.getter(field, APPLICATIONS.ADP));
-              promises.push(updateADPEmployee(field.adpUpdatePath, data));
+              updatesToMake.push({ path: field.adpUpdatePath, data: data });
               logger.log(
                 3,
                 'syncBambooAndADP',
                 `Updating ADP ${field.name} field for employee id: ${employee.associateOID}`
               );
             }
-            tmpFieldsUpdated.push({
+            userFieldsUpdated.push({
               [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: field.name
             });
           });
-          await Promise.all(promises);
-          result.fieldsUpdated.push(...tmpFieldsUpdated);
+          await updateADPEmployee(updatesToMake);
+          result.fieldsUpdated.push(...userFieldsUpdated);
         }
         logger.log(
           3,

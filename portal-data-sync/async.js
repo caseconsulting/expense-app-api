@@ -41,14 +41,19 @@ async function createPortalEmployee() {
   }
 } // createPortalEmployee
 
-async function updateADPEmployee(path, data) {
-  let payload = { path, data };
-  let params = {
-    FunctionName: `mysterio-adp-update-employee-${STAGE}`,
-    Payload: JSON.stringify(payload),
-    Qualifier: '$LATEST'
-  };
-  return await invokeLambda(params);
+async function updateADPEmployee(updatesToMake) {
+  try {
+    let payload = { updates: updatesToMake };
+    let params = {
+      FunctionName: `mysterio-adp-update-employee-${STAGE}`,
+      Payload: JSON.stringify(payload),
+      Qualifier: '$LATEST'
+    };
+    let resp = await invokeLambda(params);
+    return Promise.resolve(resp);
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 /**
@@ -58,13 +63,18 @@ async function updateADPEmployee(path, data) {
  * @param body Array - The list of (field: value) object pairs to update
  */
 async function updateBambooHREmployee(id, body, bambooHRTabularData) {
-  let payload = { id: id, body: body, tabularData: bambooHRTabularData };
-  let params = {
-    FunctionName: `mysterio-update-bamboohr-employee-${STAGE}`,
-    Payload: JSON.stringify(payload),
-    Qualifier: '$LATEST'
-  };
-  return await invokeLambda(params);
+  try {
+    let payload = { id: id, body: body, tabularData: bambooHRTabularData };
+    let params = {
+      FunctionName: `mysterio-update-bamboohr-employee-${STAGE}`,
+      Payload: JSON.stringify(payload),
+      Qualifier: '$LATEST'
+    };
+    let resp = await invokeLambda(params);
+    return Promise.resolve(resp);
+  } catch (err) {
+    return Promise.reject(err);
+  }
 } // updateBambooHREmployee
 
 /**
@@ -109,24 +119,30 @@ async function updateCaseEmployee(employee) {
  * @returns Array - The list of BambooHR employees
  */
 async function getADPEmployeeData() {
-  let params = {
-    FunctionName: `mysterio-adp-employees-${STAGE}`,
-    Qualifier: '$LATEST'
-  };
-  let result = await invokeLambda(params);
-  let employees = result.body;
-  if (STAGE === 'prod') {
-    // return employee #'s less than 90000 on prod
-    return _.filter(
-      employees,
-      (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) < TEST_EMPLOYEE_NUMBER_LIMIT
-    );
-  } else {
-    // return employee #'s greater than 90000 on dev/test
-    return _.filter(
-      employees,
-      (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
-    );
+  try {
+    let params = {
+      FunctionName: `mysterio-adp-employees-${STAGE}`,
+      Qualifier: '$LATEST'
+    };
+    let result = await invokeLambda(params);
+    let employees = result.body;
+    let retData;
+    if (STAGE === 'prod') {
+      // return employee #'s less than 90000 on prod
+      retData = _.filter(
+        employees,
+        (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    } else {
+      // return employee #'s greater than 90000 on dev/test
+      retData = _.filter(
+        employees,
+        (e) => parseInt(_.get(e, Fields.EMPLOYEE_NUMBER[APPLICATIONS.ADP]), 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    }
+    return Promise.resolve(retData);
+  } catch (err) {
+    return Promise.reject(err);
   }
 } // getADPEmployeeData
 
@@ -136,26 +152,32 @@ async function getADPEmployeeData() {
  * @returns Array - The list of BambooHR employees
  */
 async function getBambooHREmployeeData() {
-  let payload = { fields: fieldsArr.map((f) => f[APPLICATIONS.BAMBOO]) };
-  let params = {
-    FunctionName: `mysterio-bamboohr-employees-${STAGE}`,
-    Payload: JSON.stringify(payload),
-    Qualifier: '$LATEST'
-  };
-  let result = await invokeLambda(params);
-  let employees = result.body;
-  if (STAGE === 'prod') {
-    // return employee #'s less than 90000 on prod
-    return _.filter(
-      employees,
-      (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
-    );
-  } else {
-    // return employee #'s greater than 90000 on dev/test
-    return _.filter(
-      employees,
-      (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
-    );
+  try {
+    let payload = { fields: fieldsArr.map((f) => f[APPLICATIONS.BAMBOO]) };
+    let params = {
+      FunctionName: `mysterio-bamboohr-employees-${STAGE}`,
+      Payload: JSON.stringify(payload),
+      Qualifier: '$LATEST'
+    };
+    let result = await invokeLambda(params);
+    let employees = result.body;
+    let retData;
+    if (STAGE === 'prod') {
+      // return employee #'s less than 90000 on prod
+      retData = _.filter(
+        employees,
+        (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    } else {
+      // return employee #'s greater than 90000 on dev/test
+      retData = _.filter(
+        employees,
+        (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    }
+    return Promise.resolve(retData);
+  } catch (err) {
+    return Promise.reject(err);
   }
 } // getBambooHREmployeeData
 
@@ -165,29 +187,35 @@ async function getBambooHREmployeeData() {
  * @returns Array - The list of Case employees
  */
 async function getCasePortalEmployeeData() {
-  let employeeDynamo = new DatabaseModify('employees');
-  let employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
-  let [employees, employeesSensitive] = await Promise.all([
-    employeeDynamo.getAllEntriesInDB(),
-    employeeSensitiveDynamo.getAllEntriesInDB()
-  ]);
+  try {
+    let employeeDynamo = new DatabaseModify('employees');
+    let employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
+    let [employees, employeesSensitive] = await Promise.all([
+      employeeDynamo.getAllEntriesInDB(),
+      employeeSensitiveDynamo.getAllEntriesInDB()
+    ]);
 
-  // merges employee non-sensitive data with sensitive data into one object
-  let employeeData = employees.map((e) => {
-    let employeeSensitiveData = employeesSensitive.find((es) => es.id === e.id);
-    return { ...employeeSensitiveData, ...e };
-  });
-  if (STAGE === 'prod') {
-    // return employee #'s less than 90000 on prod
-    return _.filter(
-      employees,
-      (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
-    );
-  } else {
-    return _.filter(
-      employeeData,
-      (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
-    );
+    // merges employee non-sensitive data with sensitive data into one object
+    let employeeData = employees.map((e) => {
+      let employeeSensitiveData = employeesSensitive.find((es) => es.id === e.id);
+      return { ...employeeSensitiveData, ...e };
+    });
+    let retData;
+    if (STAGE === 'prod') {
+      // return employee #'s less than 90000 on prod
+      retData = _.filter(
+        employees,
+        (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    } else {
+      retData = _.filter(
+        employeeData,
+        (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) >= TEST_EMPLOYEE_NUMBER_LIMIT
+      );
+    }
+    return Promise.resolve(retData);
+  } catch (err) {
+    return Promise.reject(err);
   }
 } // getCasePortalEmployeeData
 
@@ -198,10 +226,19 @@ async function getCasePortalEmployeeData() {
  * @return object if successful, error otherwise
  */
 async function invokeLambda(params) {
-  const client = new LambdaClient();
-  const command = new InvokeCommand(params);
-  const resp = await client.send(command);
-  return JSON.parse(Buffer.from(resp.Payload));
+  try {
+    const client = new LambdaClient();
+    const command = new InvokeCommand(params);
+    const resp = await client.send(command);
+    const parsedResp = JSON.parse(Buffer.from(resp.Payload));
+    if (!_.has(parsedResp, 'errorType')) {
+      return Promise.resolve(parsedResp);
+    } else {
+      return Promise.reject(parsedResp.errorMessage);
+    }
+  } catch (err) {
+    return Promise.reject(err);
+  }
 } // invokeLambda
 
 module.exports = {
