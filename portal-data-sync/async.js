@@ -41,6 +41,12 @@ async function createPortalEmployee() {
   }
 } // createPortalEmployee
 
+/**
+ * Updates all fields for an employee through ADP's API.
+ *
+ * @param {Array} updatesToMake - Array of fields to update with thier udpate path/data
+ * @returns The response from ADP
+ */
 async function updateADPEmployee(updatesToMake) {
   try {
     let payload = { updates: updatesToMake };
@@ -54,7 +60,7 @@ async function updateADPEmployee(updatesToMake) {
   } catch (err) {
     return Promise.reject(err);
   }
-}
+} // updateADPEmployee
 
 /**
  * Updates an employee through BambooHR's API.

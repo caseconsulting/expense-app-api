@@ -34,8 +34,7 @@ async function handler() {
 
 /**
  * Loops through employees and checks equality between converted values. Case values always take precedence over any
- * other application's values. A Case employee will only be updated if they have an empty field AND another
- * application's correlated field is not empty. An employee will only be updated if they are found in the Case
+ * other application's values. An employee will only be updated if they are found in the Portal
  * database AND they are active. NOTE: On dev/test environments, only employee's with employee numbers larger than
  * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
  */
@@ -89,7 +88,9 @@ async function syncPortalAndBamboo() {
               logger.log(3, 'syncPortalAndBamboo', `Fields do NOT match (${f.name}): updating BambooHR value`);
               let param = f.updateValue(APPLICATIONS.BAMBOO, f, caseValConverted);
               if (f.name === Fields.WORK_STATUS.name && caseValConverted === 'Terminated') {
+                // terminating an employee on Bamboo, use Portal departure date for termination date
                 let departureDate = EMPLOYEE_DATA[APPLICATIONS.CASE][Fields.WORK_STATUS.extra];
+                // BambooHR uses tabular data for employment status, this will add a data row
                 bambooHRTabularData.push({
                   table: 'employmentStatus',
                   body: { date: departureDate, employmentStatus: caseValConverted }
@@ -120,6 +121,7 @@ async function syncPortalAndBamboo() {
           }`
         );
       } else if (_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.CASE]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
+        // employee is active on BambooHR AND does not exist on the Portal
         // convert BambooHR Work Status to Case format
         let workStatus = Fields.WORK_STATUS.getter(Fields.WORK_STATUS, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
         if (workStatus > 0) {
@@ -155,11 +157,8 @@ async function syncPortalAndBamboo() {
 } // syncPortalAndBamboo
 
 /**
- * Loops through employees and checks equality between converted values. Case values always take precedence over any
- * other application's values. A Case employee will only be updated if they have an empty field AND another
- * application's correlated field is not empty. An employee will only be updated if they are found in the Case
- * database AND they are active. NOTE: On dev/test environments, only employee's with employee numbers larger than
- * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
+ * Behaves similarly to the syncPortalAndBamboo function except now BambooHR is the central source
+ * of data over ADP. Only ADP will ever be updated if there is a missing field or a field conflict.
  */
 async function syncBambooAndADP() {
   let result = { fieldsUpdated: [], usersCreated: [], failures: [] };
@@ -182,78 +181,80 @@ async function syncBambooAndADP() {
       );
       EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = bambooEmp;
       if (!_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.ADP]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
-        // employee number exists on ADP and BambooHR, start syncing process
-        logger.log(
-          3,
-          'syncBambooAndADP',
-          `Syncing data for employee #: ${
-            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-          }`
-        );
-        let adpEmployeeUpdated = false;
-        let fieldsToUpdate = [];
-        fieldsArr.forEach((f) => {
-          if (f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.ADP]) {
-            let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
-            // convert ADP value to BambooHR format
-            let adpValConverted = f.getter(f, APPLICATIONS.ADP, APPLICATIONS.BAMBOO);
-            // convert BambooHR value to ADP format
-            let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.ADP);
-            // Check equality by converting the field to the same value format (do not check equality on values
-            // converted to ADP format since there could be data loss) If needed, write generic and custom equality
-            // methods attached to the field objects
-            if (bambooHRVal != adpValConverted) {
-              // Field values do NOT match (update ADP field value with BambooHR field value since BambooHR values take
-              // precedence over ADP values)
-              logger.log(3, 'syncBambooAndADP', `Fields do NOT match (${f.name}): updating ADP value`);
-              f.updateValue(APPLICATIONS.ADP, f, bambooValConverted);
-              fieldsToUpdate.push(f); // used for ADP update API calls after locally updating all fields
-              adpEmployeeUpdated = true;
+        if (EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.WORK_STATUS[APPLICATIONS.BAMBOO]] !== 'Terminated') {
+          // employee number exists on ADP and BambooHR and they are active, start syncing process
+          logger.log(
+            3,
+            'syncBambooAndADP',
+            `Syncing data for employee #: ${
+              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+            }`
+          );
+          let adpEmployeeUpdated = false;
+          let fieldsToUpdate = [];
+          fieldsArr.forEach((f) => {
+            if (f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.ADP]) {
+              let bambooHRVal = f.getter(f, APPLICATIONS.BAMBOO); // default BambooHR value
+              // convert ADP value to BambooHR format
+              let adpValConverted = f.getter(f, APPLICATIONS.ADP, APPLICATIONS.BAMBOO);
+              // convert BambooHR value to ADP format
+              let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.ADP);
+              // Check equality by converting the field to the same value format (do not check equality on values
+              // converted to ADP format since there could be data loss) If needed, write generic and custom equality
+              // methods attached to the field objects
+              if (bambooHRVal != adpValConverted) {
+                // Field values do NOT match (update ADP field value with BambooHR field value since BambooHR values
+                // take precedence over ADP values)
+                logger.log(3, 'syncBambooAndADP', `Fields do NOT match (${f.name}): updating ADP value`);
+                f.updateValue(APPLICATIONS.ADP, f, bambooValConverted);
+                fieldsToUpdate.push(f); // used for ADP update API calls after locally updating all fields
+                adpEmployeeUpdated = true;
+              }
             }
-          }
-        });
-        // update ADP employee
-        if (adpEmployeeUpdated) {
-          let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.ADP]);
-          let legalAddressUpdated = false;
-          let updatesToMake = [];
-          let userFieldsUpdated = [];
-          _.forEach(fieldsToUpdate, (field) => {
-            if (field.fieldType === 'Address') {
-              if (!legalAddressUpdated) {
-                // address with all of its fields only needs to be updated once
-                let data = field.adpUpdateDataTemplate(employee.associateOID, employee.person.legalAddress);
+          });
+          // update ADP employee
+          if (adpEmployeeUpdated) {
+            let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.ADP]);
+            let legalAddressUpdated = false;
+            let updatesToMake = [];
+            let userFieldsUpdated = [];
+            _.forEach(fieldsToUpdate, (field) => {
+              if (field.fieldType === 'Address') {
+                if (!legalAddressUpdated) {
+                  // address with all of its fields only needs to be updated once
+                  let data = field.adpUpdateDataTemplate(employee.associateOID, employee.person.legalAddress);
+                  updatesToMake.push({ path: field.adpUpdatePath, data: data });
+                  legalAddressUpdated = true;
+                  logger.log(
+                    3,
+                    'syncBambooAndADP',
+                    `Updating ADP address field for employee id: ${employee.associateOID}`
+                  );
+                }
+              } else {
+                let data = field.adpUpdateDataTemplate(employee.associateOID, field.getter(field, APPLICATIONS.ADP));
                 updatesToMake.push({ path: field.adpUpdatePath, data: data });
-                legalAddressUpdated = true;
                 logger.log(
                   3,
                   'syncBambooAndADP',
-                  `Updating ADP address field for employee id: ${employee.associateOID}`
+                  `Updating ADP ${field.name} field for employee id: ${employee.associateOID}`
                 );
               }
-            } else {
-              let data = field.adpUpdateDataTemplate(employee.associateOID, field.getter(field, APPLICATIONS.ADP));
-              updatesToMake.push({ path: field.adpUpdatePath, data: data });
-              logger.log(
-                3,
-                'syncBambooAndADP',
-                `Updating ADP ${field.name} field for employee id: ${employee.associateOID}`
-              );
-            }
-            userFieldsUpdated.push({
-              [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: field.name
+              userFieldsUpdated.push({
+                [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: field.name
+              });
             });
-          });
-          await updateADPEmployee(updatesToMake);
-          result.fieldsUpdated.push(...userFieldsUpdated);
+            await updateADPEmployee(updatesToMake);
+            result.fieldsUpdated.push(...userFieldsUpdated);
+          }
+          logger.log(
+            3,
+            'syncBambooAndADP',
+            `Finished syncing data for employee #: ${
+              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
+            }`
+          );
         }
-        logger.log(
-          3,
-          'syncBambooAndADP',
-          `Finished syncing data for employee #: ${
-            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-          }`
-        );
       }
     } catch (err) {
       logger.log(3, 'syncBambooAndADP', `Error syncing employee: ${err}`);
