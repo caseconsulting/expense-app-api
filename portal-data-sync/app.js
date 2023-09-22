@@ -39,7 +39,15 @@ async function handler() {
  * TEST_EMPLOYEE_NUMBER_LIMIT will be synced to prevent dev/test data syncing with prod data on external applications.
  */
 async function syncPortalAndBamboo() {
-  let result = { fieldsUpdated: [], usersCreated: [], failures: [] };
+  let result = {
+    fields: _.map(
+      _.filter(fieldsArr, (f) => f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.CASE]),
+      (f) => f.name
+    ),
+    fieldsUpdated: [],
+    usersCreated: [],
+    failures: []
+  };
   let bambooEmployees;
   let casePortalEmployees;
   try {
@@ -161,7 +169,15 @@ async function syncPortalAndBamboo() {
  * of data over ADP. Only ADP will ever be updated if there is a missing field or a field conflict.
  */
 async function syncBambooAndADP() {
-  let result = { fieldsUpdated: [], usersCreated: [], failures: [] };
+  let result = {
+    fields: _.map(
+      _.filter(fieldsArr, (f) => f[APPLICATIONS.BAMBOO] && f[APPLICATIONS.ADP]),
+      (f) => f.name
+    ),
+    fieldsUpdated: [],
+    usersCreated: [],
+    failures: []
+  };
   let bambooEmployees;
   let adpEmployees;
   try {
