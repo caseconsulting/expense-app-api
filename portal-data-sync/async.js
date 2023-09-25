@@ -1,5 +1,5 @@
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
-const { APPLICATIONS } = require('./fields-shared');
+const { APPLICATIONS, EMPLOYEE_DATA } = require('./fields-shared');
 const { generateUUID } = require(process.env.AWS ? 'utils' : '../js/utils');
 const _ = require('lodash');
 const Fields = require('./fields-synced');
@@ -25,14 +25,16 @@ const TEST_EMPLOYEE_NUMBER_LIMIT = 90000;
  */
 async function createPortalEmployee() {
   try {
+    EMPLOYEE_DATA[APPLICATIONS.CASE] = {};
     let caseEmployee = {};
-    caseEmployee['id'] = generateUUID();
-    caseEmployee['employeeRole'] = 'user';
     _.forEach(fieldsArr, (f) => {
       if (!f.isEmpty(APPLICATIONS.BAMBOO, f)) {
-        caseEmployee[f[APPLICATIONS.CASE]] = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
+        let bambooValConverted = f.getter(f, APPLICATIONS.BAMBOO, APPLICATIONS.CASE);
+        caseEmployee = f.updateValue(APPLICATIONS.CASE, f, bambooValConverted);
       }
     });
+    caseEmployee['id'] = generateUUID();
+    caseEmployee['employeeRole'] = 'user';
     let validatedEmployee = await employeeRoutes._validateInputs(caseEmployee);
     let newEmployee = await updateCaseEmployee(validatedEmployee);
     return Promise.resolve(newEmployee);

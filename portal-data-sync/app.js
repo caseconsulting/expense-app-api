@@ -155,7 +155,15 @@ async function syncPortalAndBamboo() {
       }
     } catch (err) {
       logger.log(3, 'syncPortalAndBamboo', `Error syncing employee: ${err}`);
-      result.failures.push({ [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err });
+      if (err.messsage) {
+        result.failures.push({
+          [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err.message
+        });
+      } else {
+        result.failures.push({
+          [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err
+        });
+      }
     }
     // reset data
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
