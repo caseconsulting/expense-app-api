@@ -24,7 +24,7 @@ const WORK_EMAIL = {
   name: 'Work Email',
   [APPLICATIONS.CASE]: 'email',
   [APPLICATIONS.BAMBOO]: 'workEmail',
-  [APPLICATIONS.ADP]: 'businessCommunication.emails[0].emailUri',
+  // [APPLICATIONS.ADP]: 'businessCommunication.emails[0].emailUri',
   getter: Getters.getFieldValue,
   isEmpty: Empty.isEmpty,
   updateValue: Modifiers.updateValue,
