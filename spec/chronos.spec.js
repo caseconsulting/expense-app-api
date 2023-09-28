@@ -504,7 +504,7 @@ describe('chronos', () => {
             yesterday
           );
           expect(chronos._getAllExpenseTypes).toHaveBeenCalledWith();
-          expect(chronos._makeNewBudget).toHaveBeenCalledWith(new Budget(budget), expenseType);
+          expect(chronos._makeNewBudget).toHaveBeenCalledWith(new Budget(budget));
         });
 
         describe('and creates 1 new budget', () => {

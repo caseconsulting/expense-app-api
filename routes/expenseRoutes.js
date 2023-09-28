@@ -399,7 +399,7 @@ class ExpenseRoutes extends Crud {
     let maxAmount;
     // ensure budget amount is correct
     let budgetAmountCorrect = budget.amount == expenseType.budget;
-    for (let i = 0; !budgetAmountCorrect && i < expenseType.tagBudgets.length; i++) {
+    for (let i = 0; !budgetAmountCorrect && expenseType.tagBudgets && i < expenseType.tagBudgets.length; i++) {
       budgetAmountCorrect = budget.amount == expenseType.tagBudgets[i].budget;
     }
     if (budgetAmountCorrect && expenseType.odFlag) {

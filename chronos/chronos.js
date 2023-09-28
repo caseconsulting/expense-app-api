@@ -134,9 +134,14 @@ async function _handleNewBudgetsWithOverdraft() {
       if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
         // old budget has overdraft
         let expenseType = lib._getExpenseType(expenseTypes, oldBudget.expenseTypeId);
-        if (expenseType.recurringFlag && expenseType.budget == oldBudget.amount) {
+        // ensure budget amount is correct
+        let budgetAmountCorrect = oldBudget.amount == expenseType.budget;
+        for (let i = 0; !budgetAmountCorrect && expenseType.tagBudgets && i < expenseType.tagBudgets.length; i++) {
+          budgetAmountCorrect = oldBudget.amount == expenseType.tagBudgets[i].budget;
+        }
+        if (expenseType.recurringFlag && budgetAmountCorrect) {
           // expense type is recurring and old budget is full time
-          let newBudget = await lib._makeNewBudget(oldBudget, expenseType);
+          let newBudget = await lib._makeNewBudget(oldBudget);
           let msg = `Happy Anniversary employee: ${newBudget.employeeId} 🥳 \n
                        created new budget with id: ${newBudget.id}`;
           console.log(msg);
@@ -156,7 +161,7 @@ async function _handleNewBudgetsWithOverdraft() {
  * @param expenseType - Expense Type of new budget
  * @return Budget - new budget
  */
-async function _makeNewBudget(oldBudget, expenseType) {
+async function _makeNewBudget(oldBudget) {
   let updatedBudget = _.cloneDeep(oldBudget);
   let newBudgetData = {
     id: lib._getUUID(),
@@ -168,19 +173,19 @@ async function _makeNewBudget(oldBudget, expenseType) {
     fiscalStartDate: dateUtils.format(dateUtils.add(oldBudget.fiscalStartDate, 1, 'year'), null, ISOFORMAT),
     //increment the budgets fiscal end day by one year
     fiscalEndDate: dateUtils.format(dateUtils.add(oldBudget.fiscalEndDate, 1, 'year'), null, ISOFORMAT),
-    amount: expenseType.budget
+    amount: oldBudget.amount
   };
   let newBudget = new Budget(newBudgetData); // convert to budget object
-  if (oldBudget.reimbursedAmount > expenseType.budget) {
+  if (oldBudget.reimbursedAmount > oldBudget.amount) {
     // reimburse amount is greater than budget
-    newBudget.reimbursedAmount = oldBudget.reimbursedAmount - expenseType.budget; // set new reimburse amount
+    newBudget.reimbursedAmount = oldBudget.reimbursedAmount - oldBudget.amount; // set new reimburse amount
     newBudget.pendingAmount = oldBudget.pendingAmount; // set new pending amount
-    updatedBudget.reimbursedAmount = expenseType.budget; // update old reimbursed amount
+    updatedBudget.reimbursedAmount = oldBudget.amount; // update old reimbursed amount
     updatedBudget.pendingAmount = 0; // update old pending amount
   } else {
     // set new pending amount
-    newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - expenseType.budget;
-    updatedBudget.pendingAmount = expenseType.budget - oldBudget.reimbursedAmount; // update old pending amount
+    newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - oldBudget.amount;
+    updatedBudget.pendingAmount = oldBudget.amount - oldBudget.reimbursedAmount; // update old pending amount
   }
   return lib
     ._budgetDynamo()
