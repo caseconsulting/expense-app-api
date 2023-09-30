@@ -37,7 +37,7 @@
     "employeeScripts:dev": "node ./js/Scripts/employeeScripts.js dev",
     "employeeScripts:prod": "node ./js/Scripts/employeeScripts.js prod",
     "employeeScripts:test": "node ./js/Scripts/employeeScripts.js test",
-    "eslint": "eslint . --ext .js --ignore-path .jshintignore --fix",
+    "eslint": "eslint . --ext .js --ignore-path .eslintignore --fix",
     "install:chiron": "cd chiron && npm ci",
     "install:chronos": "cd chronos && npm ci",
     "install:layers": "(cd layers/dependencies/nodejs && npm ci) && (cd layers/shared/nodejs && npm ci)",
@@ -126,6 +126,7 @@
     "precommit-hook": "3.0.0"
   },
   "pre-commit": [
+    "validate",
     "eslint",
     "test"
   ]
