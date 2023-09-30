@@ -80,6 +80,10 @@
     "upload:test:env": "aws s3 cp .env s3://case-expense-app-resources-test/.env --sse",
     "validate": "npm ls"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "3.421.0",
     "@aws-sdk/s3-request-presigner": "3.421.0",
