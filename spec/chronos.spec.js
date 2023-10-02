@@ -115,10 +115,9 @@ describe('chronos', () => {
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([etData]));
       });
 
-      it('should return all the expense types', (done) => {
+      it('should return all the expense types', () => {
         return chronos._getAllExpenseTypes().then((data) => {
           expect(data[0]).toEqual(etReturned);
-          done();
         });
       }); // should return all the expense types
     }); // when successfully reads all entries from db
@@ -134,16 +133,14 @@ describe('chronos', () => {
         expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
       });
 
-      it('should return a 404 rejected promise', (done) => {
+      it('should return a 404 rejected promise', () => {
         return chronos
           ._getAllExpenseTypes()
           .then(() => {
             fail('expected error to have been thrown');
-            done();
           })
           .catch((error) => {
             expect(error).toEqual(err);
-            done();
           });
       }); // should return a 404 rejected promise
     }); // when fails to read all entries from db
@@ -187,16 +184,14 @@ describe('chronos', () => {
       spyOn(chronos, 'start').and.returnValue('hello world');
     });
 
-    it('SHOULD return nothing', (done) => {
+    it('SHOULD return nothing', () => {
       return chronos
         .handler()
         .then((result) => {
           expect(result).toEqual('hello world');
-          done();
         })
         .catch((error) => {
           fail('should not have thrown error: ' + JSON.stringify(error));
-          done();
         });
     }); // SHOULD return nothing
   }); // handler
@@ -255,10 +250,9 @@ describe('chronos', () => {
             budgetDynamo.addToDB.and.returnValue(Promise.resolve(newBudget));
           });
 
-          it('should return the new budget', (done) => {
+          it('should return the new budget', () => {
             return chronos._makeNewBudget(oldBudget, expenseType).then((result) => {
               expect(result).toEqual(newBudget);
-              done();
             });
           }); // should return the new budget
         }); // when successfully adds new budget to db
@@ -274,16 +268,14 @@ describe('chronos', () => {
             budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
           });
 
-          it('should return a 404 rejected promise', (done) => {
+          it('should return a 404 rejected promise', () => {
             return chronos
               ._makeNewBudget(oldBudget, expenseType)
               .then(() => {
                 fail('expected error to have been thrown');
-                done();
               })
               .catch((error) => {
                 expect(error).toEqual(err);
-                done();
               });
           }); // should return a 404 rejected promise
         }); // when fails to add new budget to db
@@ -300,16 +292,14 @@ describe('chronos', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', (done) => {
+        it('should return a 404 rejected promise', () => {
           return chronos
             ._makeNewBudget(oldBudget, expenseType)
             .then(() => {
               fail('expected error to have been thrown');
-              done();
             })
             .catch((error) => {
               expect(error).toEqual(err);
-              done();
             });
         }); // should return a 404 rejected promise
       }); // when fails to update the old budget
@@ -356,10 +346,9 @@ describe('chronos', () => {
             budgetDynamo.addToDB.and.returnValue(Promise.resolve(newBudget));
           });
 
-          it('should return the new budget', (done) => {
+          it('should return the new budget', () => {
             return chronos._makeNewBudget(oldBudget, expenseType).then((result) => {
               expect(result).toEqual(newBudget);
-              done();
             });
           }); // should return the new budget
         }); // when successfully adds new budget to db
@@ -375,16 +364,14 @@ describe('chronos', () => {
             budgetDynamo.addToDB.and.returnValue(Promise.reject(err));
           });
 
-          it('should return a 404 rejected promise', (done) => {
+          it('should return a 404 rejected promise', () => {
             return chronos
               ._makeNewBudget(oldBudget, expenseType)
               .then(() => {
                 fail('expected error to have been thrown');
-                done();
               })
               .catch((error) => {
                 expect(error).toEqual(err);
-                done();
               });
           }); // should return a 404 rejected promise
         }); // when fails to add new budget to db
@@ -401,16 +388,14 @@ describe('chronos', () => {
           budgetDynamo.updateEntryInDB.and.returnValue(Promise.reject(err));
         });
 
-        it('should return a 404 rejected promise', (done) => {
+        it('should return a 404 rejected promise', () => {
           return chronos
             ._makeNewBudget(oldBudget, expenseType)
             .then(() => {
               fail('expected error to have been thrown');
-              done();
             })
             .catch((error) => {
               expect(error).toEqual(err);
-              done();
             });
         }); // should return a 404 rejected promise
       }); // when fails to update the old budget
@@ -450,16 +435,14 @@ describe('chronos', () => {
         expect(chronos._asyncForEach).not.toHaveBeenCalled();
       });
 
-      it('SHOULD return nothing', (done) => {
+      it('SHOULD return nothing', () => {
         return chronos
           .start()
           .then((result) => {
             expect(result).toBeUndefined();
-            done();
           })
           .catch((error) => {
             fail('unexpected error was thrown: ' + JSON.stringify(error));
-            done();
           });
       });
     }); // WHEN no budgets
@@ -521,10 +504,9 @@ describe('chronos', () => {
             );
           });
 
-          it('SHOULD return nothing', (done) => {
+          it('SHOULD return nothing', () => {
             return chronos.start().then((result) => {
               expect(result).toBeUndefined();
-              done();
             });
           });
         }); // and makes 1 budget
@@ -546,10 +528,9 @@ describe('chronos', () => {
             );
           });
 
-          it('SHOULD return nothing', (done) => {
+          it('SHOULD return nothing', () => {
             return chronos.start().then((result) => {
               expect(result).toBeUndefined();
-              done();
             });
           });
         }); // and makes 1 budget
@@ -575,10 +556,9 @@ describe('chronos', () => {
           expect(chronos._asyncForEach).toHaveBeenCalledTimes(0);
         });
 
-        it('SHOULD return nothing', (done) => {
+        it('SHOULD return nothing', () => {
           return chronos.start().then((result) => {
             expect(result).toBeUndefined();
-            done();
           });
         });
       });
