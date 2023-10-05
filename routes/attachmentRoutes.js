@@ -90,7 +90,7 @@ const fileFilter = function (req, file, cb) {
   }
 };
 
-// s3 fild upload multer
+// s3 file upload multer
 const upload = multer({
   storage: storage,
   limits: limits,

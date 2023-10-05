@@ -16,6 +16,7 @@ const _ = require('lodash');
  * - currentCity
  * - currentState
  * - currentStreet
+ * - currentStreet2
  * - currentZIP
  * - EEO fields
  * - deptDate
@@ -44,6 +45,7 @@ class EmployeeSensitive {
     this.setOptionalAttribute(data, 'currentCity');
     this.setOptionalAttribute(data, 'currentState');
     this.setOptionalAttribute(data, 'currentStreet');
+    this.setOptionalAttribute(data, 'currentStreet2');
     this.setOptionalAttribute(data, 'currentZIP');
     this.setOptionalAttribute(data, 'privatePhoneNumbers');
   } // constructor
