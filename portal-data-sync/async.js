@@ -212,7 +212,7 @@ async function getCasePortalEmployeeData() {
     if (STAGE === 'prod') {
       // return employee #'s less than 90000 on prod
       retData = _.filter(
-        employees,
+        employeeData,
         (e) => parseInt(e[Fields.EMPLOYEE_NUMBER[APPLICATIONS.CASE]], 10) < TEST_EMPLOYEE_NUMBER_LIMIT
       );
     } else {
