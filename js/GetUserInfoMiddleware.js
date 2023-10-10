@@ -7,7 +7,7 @@ const getUserInfo = (req, res, next) => {
   // As a result of this, all custom namespaces have to begin with http or https.
   // see here for more detailed discussion: https://auth0.com/docs/api-auth/tutorials/adoption/scope-custom-claims
   const emailDomain = '@consultwithcase.com';
-  let userEmail = _.find(req.user, (field) => {
+  let userEmail = _.find(req.auth, (field) => {
     return _.endsWith(field, emailDomain);
   });
   db.querySecondaryIndexInDB('email-index', 'email', userEmail)

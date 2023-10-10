@@ -2,7 +2,7 @@ const _ = require('lodash');
 const axios = require('axios');
 const express = require('express');
 const jwksRsa = require('jwks-rsa');
-const jwt = require('express-jwt');
+const { expressjwt } = require('express-jwt');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
@@ -29,7 +29,7 @@ const BASECAMP_PROJECTS = {
 };
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = jwt({
+const checkJwt = expressjwt({
   // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
   // endpoint.
   secret: jwksRsa.expressJwtSecret({

@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const express = require('express');
 const jwksRsa = require('jwks-rsa');
-const jwt = require('express-jwt');
+const { expressjwt } = require('express-jwt');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const { S3Client, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -26,7 +26,7 @@ const logger = new Logger('attachmentRoutes');
 const expenseDynamo = new databaseModify('expenses');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = jwt({
+const checkJwt = expressjwt({
   // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
   // endpoint.
   secret: jwksRsa.expressJwtSecret({

@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const express = require('express');
-const jwt = require('express-jwt');
+const { expressjwt } = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
@@ -15,7 +15,7 @@ const logger = new Logger('crudRoutes');
 const STAGE = process.env.STAGE;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = jwt({
+const checkJwt = expressjwt({
   // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
   // endpoint.
   secret: jwksRsa.expressJwtSecret({
