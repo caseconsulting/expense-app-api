@@ -49,9 +49,6 @@ const basecampRoutes = new BasecampRoutes();
 const EmsiRoutes = require('./routes/emsiRoutes');
 const emsiRoutes = new EmsiRoutes();
 
-const HippoLabsRoutes = require('./routes/hippoLabsRoutes');
-const hippoLabsRoutes = new HippoLabsRoutes();
-
 const GoogleMapRoutes = require('./routes/googleMapsRoutes');
 const googleMapRoutes = new GoogleMapRoutes();
 
@@ -104,7 +101,6 @@ app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/tSheets', tSheetsRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);
-app.use('/hippoLabs', hippoLabsRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
 app.use('/contracts', contractRoutes.router);
