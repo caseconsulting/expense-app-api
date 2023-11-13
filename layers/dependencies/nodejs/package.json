@@ -11,7 +11,6 @@
     "express": "4.18.2",
     "express-jwt": "8.4.1",
     "express-jwt-authz": "2.4.1",
-    "form-data": "3.0.1",
     "got": "11.8.6",
     "jwks-rsa": "3.1.0",
     "lodash": "4.17.21",
