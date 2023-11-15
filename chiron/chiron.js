@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const got = require('got');
 const metascraper = require('metadata-scraper');
-const urlExists = require('url-exists');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger'); // from shared layer
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify'); // from shared layer
 const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls'); // from shared layer
@@ -91,18 +90,12 @@ async function _got(id) {
   // log method
   logger.log(2, '_got', `Getting http request for ${id}`);
 
-  let exist = false;
-  urlExists(id, (err, exists) => {
-    if (err) return err;
-    exist = exists;
-  });
-
   // compute method
-  if (exist) {
+  try {
     const { body: html, url } = await got(id);
     return { html, url };
-  } else {
-    throw 'invalid url';
+  } catch (err) {
+    throw `invalid url: ${err}`;
   }
 } // _got
 
