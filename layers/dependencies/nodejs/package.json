@@ -1,17 +1,17 @@
 {
   "dependencies": {
-    "@aws-sdk/client-s3": "3.451.0",
-    "@aws-sdk/client-sns": "3.451.0",
-    "@aws-sdk/client-dynamodb": "3.451.0",
-    "@aws-sdk/client-lambda": "3.452.0",
-    "@aws-sdk/lib-dynamodb": "3.451.0",
+    "@aws-sdk/client-s3": "3.456.0",
+    "@aws-sdk/client-sns": "3.454.0",
+    "@aws-sdk/client-dynamodb": "3.454.0",
+    "@aws-sdk/client-lambda": "3.454.0",
+    "@aws-sdk/lib-dynamodb": "3.454.0",
     "axios": "1.6.2",
     "dayjs": "1.11.10",
     "dotenv": "16.3.1",
     "express": "4.18.2",
     "express-jwt": "8.4.1",
     "express-jwt-authz": "2.4.1",
-    "got": "11.8.6",
+    "got": "13.0.0",
     "jwks-rsa": "3.1.0",
     "lodash": "4.17.21",
     "metadata-scraper": "0.2.61"
