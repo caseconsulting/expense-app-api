@@ -223,11 +223,12 @@ class BasecampRoutes {
           let chat = _.find(project.dock, (tools) => {
             return tools.title == 'Campfire';
           });
+          if (!chat) return; // if project doesn't have campfire, return null to filter out later
           return {
             name: project.name,
             url: chat.app_url
           };
-        });
+        }).filter(x => x); // filter out null values
         campfires = _.union(campfires, pageCampfires);
         page++;
       } while (!_.isEmpty(pageCampfires));
