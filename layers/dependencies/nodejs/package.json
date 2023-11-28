@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@aws-sdk/client-s3": "3.456.0",
-    "@aws-sdk/client-sns": "3.454.0",
-    "@aws-sdk/client-dynamodb": "3.454.0",
-    "@aws-sdk/client-lambda": "3.454.0",
-    "@aws-sdk/lib-dynamodb": "3.454.0",
+    "@aws-sdk/client-s3": "3.460.0",
+    "@aws-sdk/client-sns": "3.460.0",
+    "@aws-sdk/client-dynamodb": "3.460.0",
+    "@aws-sdk/client-lambda": "3.460.0",
+    "@aws-sdk/lib-dynamodb": "3.460.0",
     "axios": "1.6.2",
     "dayjs": "1.11.10",
     "dotenv": "16.3.1",
