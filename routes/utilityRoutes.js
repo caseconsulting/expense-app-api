@@ -1097,7 +1097,6 @@ class Utility {
 
       // get all expense types
       let allExpenseTypes = await this.getAllExpenseTypes();
-
       // get all budgets
       let budgetsData = await this.budgetDynamo.querySecondaryIndexInDB(
         'employeeId-expenseTypeId-index',
@@ -1113,7 +1112,7 @@ class Utility {
       budgets = _.filter(budgets, (budget) => {
         let expenseType = _.find(allExpenseTypes, ['id', budget.expenseTypeId]);
 
-        if (expenseType.recurringFlag) {
+        if (expenseType && expenseType.recurringFlag) {
           return budget.isDateInRange(anniversaryStartDate) || budget.isDateInRange(anniversaryEndDate);
         } else {
           let startOfYear = anniversaryStartDate.slice(0, 5) + '01-01';
@@ -1135,13 +1134,15 @@ class Utility {
       // map aggregate data to budgets
       budgets = _.map(budgets, (budget) => {
         let expenseType = _.find(allExpenseTypes, ['id', budget.expenseTypeId]);
-        return {
-          expenseTypeName: expenseType.budgetName,
-          description: expenseType.description,
-          odFlag: expenseType.odFlag,
-          expenseTypeId: expenseType.id,
-          budgetObject: budget
-        };
+        if (expenseType) {
+          return {
+            expenseTypeName: expenseType.budgetName,
+            description: expenseType.description,
+            odFlag: expenseType.odFlag,
+            expenseTypeId: expenseType.id,
+            budgetObject: budget
+          };
+        }
       });
       // log success
       logger.log(
@@ -1366,7 +1367,6 @@ class Utility {
   _sendError(res, err) {
     // log method
     logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
-
     // return error status
     return res.status(err.code).send(err);
   } // _sendError
