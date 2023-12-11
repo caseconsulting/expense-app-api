@@ -48,6 +48,7 @@ const storage = multerS3({
   acl: 'bucket-owner-full-control',
   serverSideEncryption: 'AES256',
   key: function (req, file, cb) {
+    file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
     cb(null, `${req.params.employeeId}/${req.params.expenseId}/${file.originalname}`);
   }
 });
@@ -205,6 +206,7 @@ class Attachment {
       contentType: multerS3.AUTO_CONTENT_TYPE,
       serverSideEncryption: 'AES256',
       key: function (req, file, cb) {
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
         cb(null, `${req.params.employeeId}/${file.originalname}`);
       }
     });
@@ -219,6 +221,7 @@ class Attachment {
     // compute method
     try {
       textractUpload(req, res, async (err) => {
+        req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
         if (err) {
           // log error
           logger.log(2, 'extractText', 'Failed to upload file');
@@ -499,9 +502,9 @@ class Attachment {
   uploadAttachmentToS3(req, res) {
     // log method
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
-
     // compute method
     upload(req, res, async (err) => {
+      req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       if (err) {
         // log error
         logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
