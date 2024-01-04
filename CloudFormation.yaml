@@ -635,6 +635,53 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  giftCardTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - gift-cards
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: expenseId
+          AttributeType: S
+        - AttributeName: creationDate
+          AttributeType: S
+        - AttributeName: gcClaimCode
+          AttributeType: S
+        - AttributeName: gcId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: employeeId-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: expenseId-index
+          KeySchema:
+            - AttributeName: expenseId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
