@@ -655,12 +655,6 @@ Resources:
           AttributeType: S
         - AttributeName: creationDate
           AttributeType: S
-        - AttributeName: gcClaimCode
-          AttributeType: S
-        - AttributeName: gcId
-          AttributeType: S
-        - AttributeName: status
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -675,6 +669,20 @@ Resources:
           KeySchema:
             - AttributeName: expenseId
               KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: creationDate-index
+          KeySchema:
+            - AttributeName: creationDate
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: expenseId-employeeId-index
+          KeySchema:
+            - AttributeName: expenseId
+              KeyType: HASH
+            - AttributeName: employeeId
+              KeyType: RANGE
           Projection:
             ProjectionType: ALL
       Tags:

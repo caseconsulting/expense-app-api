@@ -336,6 +336,16 @@ function maximum(dates) {
 } // maximum
 
 /**
+ * Returns the current time in UTC format.
+ * Example: 2023-12-13T20:18:29Z
+ *
+ * @returns String - A UTC time format of now
+ */
+function now() {
+  return dayjs.utc().tz(DEFAULT_TIME_ZONE);
+} // now
+
+/**
  * Sets the dates day and returns a string of the date.
  *
  * @param {String} date The given date
@@ -413,6 +423,7 @@ module.exports = {
   isValid,
   maximum,
   minimum,
+  now,
   setDay,
   setMonth,
   setYear,

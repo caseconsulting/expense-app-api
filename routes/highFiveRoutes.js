@@ -2,14 +2,12 @@ const express = require('express');
 const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-// const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
-const ExpenseRoutes = require('../routes/expenseRoutes');
+const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 
-const REGION = 'us-east-1';
-const sesClient = new SESClient({ region: REGION });
+const sesClient = new SESClient({ region: 'us-east-1' });
 const expenseRoutes = new ExpenseRoutes();
 const lambdaClient = new LambdaClient();
 const logger = new Logger('giftCardRoutes');
@@ -19,12 +17,12 @@ const EMAIL_SENDER_ADDRESS = process.env.APP_COMPANY_EMAIL_ADDRESS;
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = getExpressJwt();
 
-class GiftCardRoutes {
+class HighFiveRoutes {
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    this._router.post('/processHighFive/:id', this._checkJwt, this._getUserInfo, this._processHighFive.bind(this));
+    this._router.post('/process', this._checkJwt, this._getUserInfo, this._processHighFive.bind(this));
     this.employeeDynamo = new databaseModify('employees');
   } // constructor
 
@@ -57,6 +55,9 @@ class GiftCardRoutes {
       };
       const resp = await lambdaClient.send(new InvokeCommand(params));
       const result = JSON.parse(Buffer.from(resp.Payload));
+      if ((result && result.errorType) || result instanceof Error) {
+        return Promise.reject('Failed to get gift card');
+      }
       // return result from lambda function
       return result;
     } catch (err) {
@@ -68,7 +69,6 @@ class GiftCardRoutes {
   } // _syncApplications
 
   async _processHighFive(req, res) {
-    // TODO
     let data = req.body;
     let expense, giftCard;
     // 1: reimburse high five expense
@@ -113,51 +113,60 @@ class GiftCardRoutes {
     }
     // 3: email user gift card info
     try {
+      console.info('high five: ' + 'step 6');
       let isProd = STAGE === 'prod';
       let [donor, recipient] = await Promise.all([
         this.employeeDynamo.getEntry(expense.employeeId),
         this.employeeDynamo.getEntry(expense.recipient)
       ]);
+      console.info('high five: ' + 'step 7');
       if (isProd || (!isProd && req.employee.email === recipient.email)) {
-        await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient, isProd);
+        let result = await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient, isProd);
+        console.info('high five: ' + 'step 7 result: ' + result);
       }
+      console.info('high five: ' + 'step 8');
     } catch (err) {
+      console.info('high five: ' + 'step 6, 7, or 8 fail');
       logger.log(2, '_processHighFive', `Failed to send gift card information to user ${expense.employeeId}`);
     }
     // 4: store gift card info with expense and employee ID
     // TODO
     // return reimbursed expense
+    console.info('high five: ' + 'last step finish');
     res.status(200).send(expense);
     return Promise.resolve(expense);
   } // _processHighFive
 
   async _sendGiftCardEmail(giftCard, message, donor, recipient, isProd) {
-    let command = new SendEmailCommand({
-      Destination: {
-        ToAddresses: [recipient.email]
-      },
-      Message: {
-        Body: {
-          Html: {
+    try {
+      let command = new SendEmailCommand({
+        Destination: {
+          ToAddresses: [recipient.email]
+        },
+        Message: {
+          Body: {
+            Html: {
+              Charset: 'UTF-8',
+              // prettier-ignore
+              // eslint-disable-next-line max-len
+              Data: `<!DOCTYPE html><html><head><title>Page Title</title><style>html { background: url('https://www.bu.edu/files/2020/12/Feature-iStock-1184848537.jpg') no-repeat center center fixed; background-size: cover; color: white}a.button {-webkit-appearance: button; -moz-appearance: button; appearance: button; text-decoration: none; padding: 7px 20px 7px 20px; background-color: orange; color: black;}.flex-container {display: flex; flex-direction: row; justify-content: space-between; align-items: center}.container {padding: 10px 60px 10px 60px; margin-top: 415px;}.claim-code {padding: 7px 20px 7px 20px;border: 2px dashed; border-image: linear-gradient(to right, red 18%, orange 36%, yellow 51%, green 69%, blue 87%, purple 100%) 6;}.message {font-weight: 400; font-size: 20px;}</style></head><body><div class="container"> ${!isProd ? '<div class="message" style="margin-bottom: 20px;">Note: Claim code is invalid because it was generated on a non-production environment</div>' : '' } <div class="message">Congratulations, ${recipient.nickname || recipient.firstName}! ${donor.nickname || donor.firstName} ${donor.lastName} has given you have High Five with a message of "${message}"</div> <hr> <div class="flex-container"> <div> <div style="font-weight: bold; font-size: 25px;">$50</div> <div style="color: azure;">Amazon Gift Card</div> </div> <div> <img src="https://www.pngall.com/wp-content/uploads/15/Amazon-Smile-Logo-PNG-Photos.png" width="100px" /> </div> </div> <hr> <div class="flex-container"> <div class="claim-code"> Claim Code: ${giftCard.gcClaimCode} </div> <div> <a href="https://www.amazon.com/gc/redeem" target="_blank" class="button">Redeem on Amazon</a> <div> </div></div></body></html>`
+            }
+          },
+          Subject: {
             Charset: 'UTF-8',
-            // prettier-ignore
-            // eslint-disable-next-line max-len
-            Data: `<!DOCTYPE html><html><head><title>Page Title</title><style>html { background: url('https://www.bu.edu/files/2020/12/Feature-iStock-1184848537.jpg') no-repeat center center fixed; background-size: cover; color: white}a.button {-webkit-appearance: button; -moz-appearance: button; appearance: button; text-decoration: none; padding: 7px 20px 7px 20px; background-color: orange; color: black;}.flex-container {display: flex; flex-direction: row; justify-content: space-between; align-items: center}.container {padding: 10px 60px 10px 60px}.claim-code {padding: 7px 20px 7px 20px;border: 2px dashed; border-image: linear-gradient(to right, red 18%, orange 36%, yellow 51%, green 69%, blue 87%, purple 100%) 6;}.message {font-weight: 400; font-size: 20px;margin-top: 415px;}</style></head><body><div class="container"> ${!isProd ? '<div class="message" style="margin-bottom: 20px;">Note: Claim code is invalid because it was generated on a non-production environment</div>' : '' } <div class="message">Congratulations, ${recipient.nickname || recipient.firstName}! ${donor.nickname || donor.firstName} has given you have High Five with a message of "${message}"</div> <hr> <div class="flex-container"> <div> <div style="font-weight: bold; font-size: 25px;">$50</div> <div style="color: azure;">Amazon Gift Card</div> </div> <div> <img src="https://www.pngall.com/wp-content/uploads/15/Amazon-Smile-Logo-PNG-Photos.png" width="100px" /> </div> </div> <hr> <div class="flex-container"> <div class="claim-code"> Claim Code: ${giftCard.gcClaimCode} </div> <div> <a href="https://www.amazon.com/gc/redeem" class="button">Redeem on Amazon</a> <div> </div></div></body></html>`
+            Data: 'CASE sent you an Amazon Gift Card for receiving a High Five!'
           }
         },
-        Subject: {
-          Charset: 'UTF-8',
-          Data: 'CASE sent you an Amazon Gift Card for receiving a High Five!'
-        }
-      },
-      Source: EMAIL_SENDER_ADDRESS
-    });
-    try {
-      return await sesClient.send(command);
+        Source: EMAIL_SENDER_ADDRESS
+      });
+      console.info('gc message setup: ' + JSON.stringify(command));
+      let result = await sesClient.send(command);
+      return Promise.resolve(result);
     } catch (err) {
+      console.info('gc err: ' + err);
       return Promise.reject(err);
     }
   }
 } // EmsiRoutes
 
-module.exports = GiftCardRoutes;
+module.exports = HighFiveRoutes;
