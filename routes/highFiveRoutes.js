@@ -3,6 +3,8 @@ const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/datab
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
+const GiftCard = require(process.env.AWS ? 'giftCard' : '../models/giftCard');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
@@ -24,6 +26,7 @@ class HighFiveRoutes {
     this._getUserInfo = getUserInfo;
     this._router.post('/process', this._checkJwt, this._getUserInfo, this._processHighFive.bind(this));
     this.employeeDynamo = new databaseModify('employees');
+    this.giftCardDynamo = new databaseModify('gift-cards');
   } // constructor
 
   /**
@@ -40,14 +43,12 @@ class HighFiveRoutes {
   /**
    * Invokes the gift card lambda function to get a gift card for an employee and email them their code.
    *
-   * @param req - api request
-   * @param res - api response
    * @return Object - The response from the lambda function
    */
   async _getGiftCard() {
-    // log method
-    logger.log(1, '_getGiftCard', 'Attempting to get gift card');
     try {
+      // log method
+      logger.log(1, '_getGiftCard', 'Attempting to get gift card');
       // lambda invoke parameters
       let params = {
         FunctionName: `mysterio-generate-gift-card-${STAGE}`,
@@ -56,28 +57,33 @@ class HighFiveRoutes {
       const resp = await lambdaClient.send(new InvokeCommand(params));
       const result = JSON.parse(Buffer.from(resp.Payload));
       if ((result && result.errorType) || result instanceof Error) {
-        return Promise.reject('Failed to get gift card');
+        return Promise.reject(result.errorType);
       }
       // return result from lambda function
       return result;
     } catch (err) {
-      // log error
-      logger.log(1, '_getGiftCard', 'Failed to get gift card');
       // return error
       return Promise.reject(err);
     }
-  } // _syncApplications
+  } // _getGiftCard
 
+  /**
+   * Processes the reimbursement of a high five.
+   *
+   * @param {Object} req - The request
+   * @param {Object} res - The response
+   * @returns
+   */
   async _processHighFive(req, res) {
-    let data = req.body;
-    let expense, giftCard;
+    let expense, giftCard, emailSent;
     // 1: reimburse high five expense
     try {
+      let data = req.body;
       let expenseUpdated = await expenseRoutes._update(data);
       expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
     } catch (err) {
       // log error
-      logger.log(2, '_processHighFive', `Failed to prepare update for expense ${expense.id}`);
+      logger.log(2, '_processHighFive', `Failed to reimburse expense ${expense.id}`);
       // early exit and return rejected promise
       res.status(403).send(err);
       return Promise.reject(err);
@@ -85,6 +91,7 @@ class HighFiveRoutes {
     // 2: generate gift card
     try {
       giftCard = await this._getGiftCard();
+      logger.log(2, '_processHighFive', 'Successfully generated gift card');
     } catch (err) {
       // gift card creation failed -> now unreimburse expense
       try {
@@ -113,30 +120,43 @@ class HighFiveRoutes {
     }
     // 3: email user gift card info
     try {
-      console.info('high five: ' + 'step 6');
       let isProd = STAGE === 'prod';
       let [donor, recipient] = await Promise.all([
         this.employeeDynamo.getEntry(expense.employeeId),
         this.employeeDynamo.getEntry(expense.recipient)
       ]);
-      console.info('high five: ' + 'step 7');
       if (isProd || (!isProd && req.employee.email === recipient.email)) {
-        let result = await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient, isProd);
-        console.info('high five: ' + 'step 7 result: ' + result);
+        await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient, isProd);
+        emailSent = true;
+        logger.log(2, '_processHighFive', `Successfully sent gift card information to user ${expense.employeeId}`);
       }
-      console.info('high five: ' + 'step 8');
     } catch (err) {
-      console.info('high five: ' + 'step 6, 7, or 8 fail');
-      logger.log(2, '_processHighFive', `Failed to send gift card information to user ${expense.employeeId}`);
+      emailSent = false;
+      logger.log(2, '_processHighFive', `Failed to email gift card information to user ${expense.employeeId}`);
     }
     // 4: store gift card info with expense and employee ID
-    // TODO
+    try {
+      let resp = await this._storeGiftCard(giftCard, expense, emailSent);
+      logger.log(2, '_processHighFive', `Successfully stored gift card information with ID ${resp.id}`);
+    } catch (err) {
+      logger.log(2, '_processHighFive', 'Failed to store gift card information: ' + err);
+    }
     // return reimbursed expense
-    console.info('high five: ' + 'last step finish');
     res.status(200).send(expense);
     return Promise.resolve(expense);
   } // _processHighFive
 
+  /**
+   * Sends the recipient an email containing the message from the donor and the generated gift
+   * card details.
+   *
+   * @param {Object} giftCard - The gift card object
+   * @param {String} message - The message from the high five
+   * @param {Object} donor - The user giving the high five
+   * @param {Object} recipient - The user recceiving the high five
+   * @param {Object} isProd - If on production
+   * @returns Promise - Resolves if the email was sent
+   */
   async _sendGiftCardEmail(giftCard, message, donor, recipient, isProd) {
     try {
       let command = new SendEmailCommand({
@@ -159,14 +179,40 @@ class HighFiveRoutes {
         },
         Source: EMAIL_SENDER_ADDRESS
       });
-      console.info('gc message setup: ' + JSON.stringify(command));
       let result = await sesClient.send(command);
       return Promise.resolve(result);
     } catch (err) {
-      console.info('gc err: ' + err);
       return Promise.reject(err);
     }
-  }
-} // EmsiRoutes
+  } // _sendGiftCardEmail
+
+  /**
+   * Stores the gift card information and relevant high five data.
+   *
+   * @param {Object} giftCard - The gift card object
+   * @param {Object} expense - The expense
+   * @param {Boolean} emailSent - True if email was sent to recipient
+   * @returns Promise - The object stored in DynamoDB if successful
+   */
+  async _storeGiftCard(giftCard, expense, emailSent) {
+    try {
+      let model = {
+        id: giftCard.creationRequestId,
+        employeeId: expense.employeeId,
+        expenseId: expense.id,
+        creationDate: dateUtils.getTodaysDate(dateUtils.ISO8601_ISOFORMAT),
+        gcClaimCode: giftCard.gcClaimCode,
+        gcId: giftCard.gcId,
+        status: giftCard.status,
+        emailSent: emailSent
+      };
+      let giftCardModel = new GiftCard(model);
+      let resp = await this.giftCardDynamo.addToDB(giftCardModel);
+      return Promise.resolve(resp);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  } // storeGiftCard
+} // HighFiveRoutes
 
 module.exports = HighFiveRoutes;

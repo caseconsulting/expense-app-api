@@ -31,6 +31,7 @@ dayjs.tz.setDefault(DEFAULT_TIME_ZONE);
 const DEFAULT_ISOFORMAT = 'YYYY-MM-DD';
 const FORMATTED_ISOFORMAT = 'MM/DD/YYYY';
 const PARSED_ISOFORMAT = 'YYYY-MM-DD';
+const ISO8601_ISOFORMAT = 'YYYY-MM-DDTHH:mm:ssZ[Z]';
 
 /**
  * Adds an amount to the given date.
@@ -404,6 +405,7 @@ module.exports = {
   DEFAULT_ISOFORMAT,
   FORMATTED_ISOFORMAT,
   PARSED_ISOFORMAT,
+  ISO8601_ISOFORMAT,
   add,
   subtract,
   difference,
