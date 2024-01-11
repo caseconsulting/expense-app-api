@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
@@ -82,10 +83,14 @@ class HighFiveRoutes {
       let expenseUpdated = await expenseRoutes._update(data);
       expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
     } catch (err) {
+      let error = {
+        code: 403,
+        message: 'Failed to reimburse High Five expense, gift card will not be generated.'
+      };
       // log error
       logger.log(2, '_processHighFive', `Failed to reimburse expense ${expense.id}`);
       // early exit and return rejected promise
-      res.status(403).send(err);
+      res.status(error.code).send(error);
       return Promise.reject(err);
     }
     // 2: generate gift card
@@ -93,6 +98,11 @@ class HighFiveRoutes {
       giftCard = await this._getGiftCard();
       logger.log(2, '_processHighFive', 'Successfully generated gift card');
     } catch (err) {
+      let error = {
+        code: 403,
+        message:
+          'Failed to generate gift card, please check balance and try again later. Expense will remain unreimbursed.'
+      };
       // gift card creation failed -> now unreimburse expense
       try {
         expense.reimbursedDate = null;
@@ -104,9 +114,15 @@ class HighFiveRoutes {
           `Failed to create gift card then successfully unreimbursed expense ${expense.id}`
         );
         // early exit and return rejected promise
-        res.status(403).send(err);
-        return Promise.reject(err);
+        res.status(error.code).send(error);
+        return Promise.reject(error);
       } catch (err) {
+        let error = {
+          code: 403,
+          message:
+            'Expense has been reimbursed but failed to generate gift card. ' +
+            'Please unreimburse expense, check account balance, and try again later.'
+        };
         // gift card creation failed AND failed to unreimburse expense
         logger.log(
           2,
@@ -114,8 +130,8 @@ class HighFiveRoutes {
           `Failed to unreimburse expense ${expense.id} after gift card creation failed`
         );
         // early exit and return rejected promise
-        res.status(403).send(err);
-        return Promise.reject(err);
+        res.status(error.code).send(error);
+        return Promise.reject(error);
       }
     }
     // 3: email user gift card info
@@ -126,13 +142,17 @@ class HighFiveRoutes {
         this.employeeDynamo.getEntry(expense.recipient)
       ]);
       if (isProd || (!isProd && req.employee.email === recipient.email)) {
-        await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient, isProd);
+        await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient);
         emailSent = true;
         logger.log(2, '_processHighFive', `Successfully sent gift card information to user ${expense.employeeId}`);
       }
     } catch (err) {
       emailSent = false;
-      logger.log(2, '_processHighFive', `Failed to email gift card information to user ${expense.employeeId}`);
+      logger.log(
+        2,
+        '_processHighFive',
+        `Failed to email gift card information to user ${expense.employeeId} with error: ${err}`
+      );
     }
     // 4: store gift card info with expense and employee ID
     try {
@@ -141,6 +161,7 @@ class HighFiveRoutes {
     } catch (err) {
       logger.log(2, '_processHighFive', 'Failed to store gift card information: ' + err);
     }
+    expense['emailSent'] = emailSent;
     // return reimbursed expense
     res.status(200).send(expense);
     return Promise.resolve(expense);
@@ -157,7 +178,12 @@ class HighFiveRoutes {
    * @param {Object} isProd - If on production
    * @returns Promise - Resolves if the email was sent
    */
-  async _sendGiftCardEmail(giftCard, message, donor, recipient, isProd) {
+  async _sendGiftCardEmail(giftCard, message, donor, recipient) {
+    let template = fs.readFileSync(require.resolve('../views/giftCardTemplate.html')).toString();
+    template = template.replace(':recipient:', recipient.nickname || recipient.firstName);
+    template = template.replace(':donor:', `${donor.nickname || donor.firstName} ${donor.lastName}`);
+    template = template.replace(':giftCardInfo:', giftCard.gcClaimCode);
+    template = template.replace(':message:', message);
     try {
       let command = new SendEmailCommand({
         Destination: {
@@ -167,9 +193,7 @@ class HighFiveRoutes {
           Body: {
             Html: {
               Charset: 'UTF-8',
-              // prettier-ignore
-              // eslint-disable-next-line max-len
-              Data: `<!DOCTYPE html><html><head><title>Page Title</title><style>html { background: url('https://www.bu.edu/files/2020/12/Feature-iStock-1184848537.jpg') no-repeat center center fixed; background-size: cover; color: white}a.button {-webkit-appearance: button; -moz-appearance: button; appearance: button; text-decoration: none; padding: 7px 20px 7px 20px; background-color: orange; color: black;}.flex-container {display: flex; flex-direction: row; justify-content: space-between; align-items: center}.container {padding: 10px 60px 10px 60px; margin-top: 415px;}.claim-code {padding: 7px 20px 7px 20px;border: 2px dashed; border-image: linear-gradient(to right, red 18%, orange 36%, yellow 51%, green 69%, blue 87%, purple 100%) 6;}.message {font-weight: 400; font-size: 20px;}</style></head><body><div class="container"> ${!isProd ? '<div class="message" style="margin-bottom: 20px;">Note: Claim code is invalid because it was generated on a non-production environment</div>' : '' } <div class="message">Congratulations, ${recipient.nickname || recipient.firstName}! ${donor.nickname || donor.firstName} ${donor.lastName} has given you have High Five with a message of "${message}"</div> <hr> <div class="flex-container"> <div> <div style="font-weight: bold; font-size: 25px;">$50</div> <div style="color: azure;">Amazon Gift Card</div> </div> <div> <img src="https://www.pngall.com/wp-content/uploads/15/Amazon-Smile-Logo-PNG-Photos.png" width="100px" /> </div> </div> <hr> <div class="flex-container"> <div class="claim-code"> Claim Code: ${giftCard.gcClaimCode} </div> <div> <a href="https://www.amazon.com/gc/redeem" target="_blank" class="button">Redeem on Amazon</a> <div> </div></div></body></html>`
+              Data: template
             }
           },
           Subject: {
@@ -201,7 +225,6 @@ class HighFiveRoutes {
         employeeId: expense.employeeId,
         expenseId: expense.id,
         creationDate: dateUtils.getTodaysDate(dateUtils.ISO8601_ISOFORMAT),
-        gcClaimCode: giftCard.gcClaimCode,
         gcId: giftCard.gcId,
         status: giftCard.status,
         emailSent: emailSent

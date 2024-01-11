@@ -10,7 +10,6 @@ class GiftCard {
     this.setRequiredAttribute(data, 'employeeId');
     this.setRequiredAttribute(data, 'expenseId');
     this.setRequiredAttribute(data, 'creationDate');
-    this.setRequiredAttribute(data, 'gcClaimCode');
     this.setRequiredAttribute(data, 'gcId');
     this.setRequiredAttribute(data, 'emailSent');
     this.setRequiredAttribute(data, 'status');
