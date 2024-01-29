@@ -268,23 +268,14 @@ function getEthnicity(field, applicationFormat, toApplicationFormat) {
   let ethnicity = getFieldValue(field, applicationFormat, toApplicationFormat);
   if (applicationFormat === APPLICATIONS.CASE && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    if (EMPLOYEE_DATA[applicationFormat].eeoDeclineSelfIdentify) return 'Decline to answer';
-    else if (
-      ethnicity &&
-      ethnicity.text === 'Not Applicable' &&
-      EMPLOYEE_DATA[applicationFormat].eeoHispanicOrLatino &&
-      EMPLOYEE_DATA[applicationFormat].eeoHispanicOrLatino.value
-    )
+    if (EMPLOYEE_DATA[applicationFormat].eeoDeclineSelfIdentify && !ethnicity?.text) return 'Decline to answer';
+    else if (ethnicity?.text === 'Not Applicable' && EMPLOYEE_DATA[applicationFormat]?.eeoHispanicOrLatino.value)
       return 'Hispanic or Latino';
-    else if (ethnicity && ethnicity.text === 'Not Applicable') return 'Decline to answer';
-    else return ethnicity ? ethnicity.text : null;
+    else if (ethnicity?.text === 'Not Applicable') return 'Decline to answer';
+    else return ethnicity?.text ?? null;
   } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.CASE) {
     // convert BambooHR value to Case format -> return the converted value
-    if (
-      (EMPLOYEE_DATA[toApplicationFormat] && EMPLOYEE_DATA[toApplicationFormat].eeoDeclineSelfIdentify) ||
-      ethnicity === 'Decline to answer'
-    )
-      return null;
+    if (EMPLOYEE_DATA[toApplicationFormat]?.eeoDeclineSelfIdentify || ethnicity === 'Decline to answer') return null;
     else if (ethnicity === 'White') return { text: ethnicity, value: 0 };
     else if (ethnicity === 'Black or African American') return { text: ethnicity, value: 1 };
     else if (ethnicity === 'Native Hawaiian or Other Pacific Islander') return { text: ethnicity, value: 2 };
