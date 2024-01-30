@@ -31,6 +31,9 @@ function isEEOEmpty(application, field) {
     } else {
       return !EMPLOYEE_DATA[application].eeoDeclineSelfIdentify && isEmpty(application, field);
     }
+  } else if (application === APPLICATIONS.BAMBOO) {
+    if (field.name === 'Veteran Status') return false;
+    return isEmpty(application, field);
   } else {
     return isEmpty(application, field);
   }
