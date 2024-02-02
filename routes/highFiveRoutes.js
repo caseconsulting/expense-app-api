@@ -79,9 +79,7 @@ class HighFiveRoutes {
     let expense, giftCard, emailSent;
     // 1: reimburse high five expense
     try {
-      let data = req.body;
-      let expenseUpdated = await expenseRoutes._update(data);
-      expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
+      expense = await expenseRoutes._updateWrapper(req, res);
     } catch (err) {
       let error = {
         code: 403,
@@ -91,7 +89,7 @@ class HighFiveRoutes {
       logger.log(2, '_processHighFive', `Failed to reimburse expense ${expense.id}`);
       // early exit and return rejected promise
       res.status(error.code).send(error);
-      return Promise.reject(err);
+      return Promise.reject(error);
     }
     // 2: generate gift card
     try {
