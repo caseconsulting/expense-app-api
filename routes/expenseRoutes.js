@@ -570,7 +570,7 @@ class ExpenseRoutes extends Crud {
         let onlyReimbursing = this._isOnlyReimburseDateChange(oldExpense, newExpense); // check if only reimbursing
         if (onlyReimbursing) {
           // only need to validate date change
-          if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate)) {
+          if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate, 'd')) {
             throw {
               code: 403,
               message: 'Reimbursed date must be after purchase date.'
@@ -982,7 +982,7 @@ class ExpenseRoutes extends Crud {
       };
 
       // validate reimburse date is after purchase date
-      if (dateUtils.isBefore(expense.reimbursedDate, expense.purchaseDate)) {
+      if (dateUtils.isBefore(expense.reimbursedDate, expense.purchaseDate, 'd')) {
         // log error
         logger.log(
           3,
