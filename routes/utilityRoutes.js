@@ -1,7 +1,5 @@
 const _ = require('lodash');
 const express = require('express');
-const jwksRsa = require('jwks-rsa');
-const { expressjwt } = require('express-jwt');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
@@ -12,6 +10,7 @@ const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expense
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 const Basecamp = require(process.env.AWS ? 'basecampRoutes' : '../routes/basecampRoutes');
 const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
 
@@ -21,21 +20,7 @@ const logger = new Logger('utilityRoutes');
 const STAGE = process.env.STAGE;
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = expressjwt({
-  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
-  // endpoint.
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
-
-  // Validate the audience and the issuer.
-  audience: process.env.VUE_APP_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
+const checkJwt = getExpressJwt();
 
 class Utility {
   constructor() {

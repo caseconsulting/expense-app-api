@@ -1,12 +1,11 @@
 const _ = require('lodash');
 const express = require('express');
-const jwksRsa = require('jwks-rsa');
-const { expressjwt } = require('express-jwt');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const { S3Client, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { ComprehendClient, BatchDetectEntitiesCommand } = require('@aws-sdk/client-comprehend');
+const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 const {
   TextractClient,
   StartDocumentAnalysisCommand,
@@ -18,21 +17,7 @@ const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const logger = new Logger('resumeRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = expressjwt({
-  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
-  // endpoint.
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
-
-  // Validate the audience and the issuer.
-  audience: process.env.VUE_APP_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
+const checkJwt = getExpressJwt();
 
 const STAGE = process.env.STAGE;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';

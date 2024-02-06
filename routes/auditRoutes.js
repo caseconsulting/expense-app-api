@@ -1,30 +1,15 @@
-const jwksRsa = require('jwks-rsa');
-const { expressjwt } = require('express-jwt');
 const express = require('express');
 const Audit = require(process.env.AWS ? 'audit' : '../models/audit');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const logger = new Logger('auditRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = expressjwt({
-  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
-  // endpoint.
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
-
-  // Validate the audience and the issuer.
-  audience: process.env.VUE_APP_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
+const checkJwt = getExpressJwt();
 
 class AuditRoutes {
   constructor() {

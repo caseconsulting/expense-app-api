@@ -1,29 +1,14 @@
 const axios = require('axios');
 const express = require('express');
-const jwksRsa = require('jwks-rsa');
-const { expressjwt } = require('express-jwt');
 const oauth = require('axios-oauth-client');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const logger = new Logger('emsiRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = expressjwt({
-  // Dynamically provide a signing key based on the kid in the header and the signing keys provided by the JWKS
-  // endpoint.
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
-
-  // Validate the audience and the issuer.
-  audience: process.env.VUE_APP_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VUE_APP_AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
+const checkJwt = getExpressJwt();
 
 const BASE_URL = 'https://emsiservices.com';
 class EmsiRoutes {

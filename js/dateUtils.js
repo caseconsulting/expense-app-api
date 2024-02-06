@@ -31,6 +31,7 @@ dayjs.tz.setDefault(DEFAULT_TIME_ZONE);
 const DEFAULT_ISOFORMAT = 'YYYY-MM-DD';
 const FORMATTED_ISOFORMAT = 'MM/DD/YYYY';
 const PARSED_ISOFORMAT = 'YYYY-MM-DD';
+const ISO8601_ISOFORMAT = 'YYYY-MM-DDTHH:mm:ssZ[Z]';
 
 /**
  * Adds an amount to the given date.
@@ -336,6 +337,16 @@ function maximum(dates) {
 } // maximum
 
 /**
+ * Returns the current time in UTC format.
+ * Example: 2023-12-13T20:18:29Z
+ *
+ * @returns String - A UTC time format of now
+ */
+function now() {
+  return dayjs.utc().tz(DEFAULT_TIME_ZONE);
+} // now
+
+/**
  * Sets the dates day and returns a string of the date.
  *
  * @param {String} date The given date
@@ -394,6 +405,7 @@ module.exports = {
   DEFAULT_ISOFORMAT,
   FORMATTED_ISOFORMAT,
   PARSED_ISOFORMAT,
+  ISO8601_ISOFORMAT,
   add,
   subtract,
   difference,
@@ -413,6 +425,7 @@ module.exports = {
   isValid,
   maximum,
   minimum,
+  now,
   setDay,
   setMonth,
   setYear,

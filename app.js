@@ -58,6 +58,9 @@ const auditRoutes = new AuditRoutes();
 const ContractRoutes = require('./routes/contractRoutes');
 const contractRoutes = new ContractRoutes();
 
+const HighFiveRoutes = require('./routes/highFiveRoutes');
+const highFiveRoutes = new HighFiveRoutes();
+
 const PTOCashOutRoutes = require('./routes/ptoCashOutRoutes');
 const ptoCashOutRoutes = new PTOCashOutRoutes();
 
@@ -104,6 +107,7 @@ app.use('/emsi', emsiRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
 app.use('/contracts', contractRoutes.router);
+app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/tags', tagRoutes.router);
 // catch 404 and forward to error handler

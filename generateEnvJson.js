@@ -8,6 +8,7 @@ require('dotenv').config({
 
 //include name of key to include in env-variables.json
 let listOfEnvToInclude = [
+  'APP_COMPANY_EMAIL_ADDRESS',
   'AWS_SDK_LOAD_CONFIG',
   'NODE_ENV_GOOGLE_MAPS_KEY',
   'STAGE',
