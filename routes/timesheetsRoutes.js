@@ -3,6 +3,7 @@ const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
+const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const lambdaClient = new LambdaClient();
 const logger = new Logger('tSheetsRoutes');
@@ -11,96 +12,19 @@ const STAGE = process.env.STAGE;
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = getExpressJwt();
 
-class TSheetsRoutes {
+class TimesheetsRoutes {
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
 
     this._router.get(
-      '/getPTOBalances/:employeeNumber',
+      '/:employeeNumber/:startDate/:endDate',
       this._checkJwt,
       this._getUserInfo,
-      this._getPTOBalances.bind(this)
-    );
-    this._router.get(
-      '/getMonthlyHours/:employeeNumber',
-      this._checkJwt,
-      this._getUserInfo,
-      this._getMonthlyHours.bind(this)
+      this._getTimesheetsData.bind(this)
     );
   } // constructor
-
-  /**
-   * Async function to loop an array.
-   *
-   * @param array - Array of elements to iterate over
-   * @param callback - callback function
-   */
-  async asyncForEach(array, callback) {
-    for (let index = 0; index < array.length; index++) {
-      await callback(array[index], index, array);
-    }
-  } // asyncForEach
-
-  /**
-   * Gets an employee's paid time off (PTO) balances, given an employee number. If the employee number is 0, PTO
-   * balances of ALL employees will be returned.
-   *
-   * @param req - api request
-   * @param res - api response
-   * @return Object - pto balances
-   */
-  async _getPTOBalances(req, res) {
-    // log method
-    logger.log(1, '_getPTOBalances', `Attempting to get PTO balances for employee number ${req.params.employeeNumber}`);
-
-    try {
-      // mysterio function parameters
-      let payload = {
-        employeeNumber: req.params.employeeNumber
-      };
-
-      // lambda invoke parameters
-      let params = {
-        FunctionName: `mysterio-pto-balances-${STAGE}`,
-        Payload: JSON.stringify(payload),
-        Qualifier: '$LATEST'
-      };
-
-      let resultPayload = await this.invokeLambda(params);
-
-      if (resultPayload.body) {
-        // log success
-        logger.log(
-          1,
-          '_getPTOBalances',
-          `Successfully got PTO balances for employee number ${req.params.employeeNumber}`
-        );
-
-        let ptoBalances = resultPayload.body;
-        // send successful 200 status
-        res.status(200).send(ptoBalances);
-
-        // return employee pto balances
-        return ptoBalances;
-      } else {
-        throw {
-          code: 404,
-          message: resultPayload.errorMessage
-        };
-      }
-    } catch (err) {
-      // log error
-      logger.log(1, '_getPTOBalances', `Failed to get PTO balances for employee number ${req.params.employeeNumber}`);
-
-      // send error status
-      this._sendError(res, err);
-
-      // return error
-      return err;
-    }
-  } // _getPTOBalances
 
   /**
    * Gets an employee's monthly hours charged, given an employee number.
@@ -109,23 +33,29 @@ class TSheetsRoutes {
    * @param res - api response
    * @return Object - monthly hours
    */
-  async _getMonthlyHours(req, res) {
-    // log method
-    logger.log(
-      1,
-      '_getMonthlyHours',
-      `Attempting to get monthly hours for employee number ${req.params.employeeNumber}`
-    );
-
+  async _getTimesheetsData(req, res) {
     try {
+      let employeeNumber = req.params.employeeNumber;
+      let startDate = req.params.startDate;
+      let endDate = req.params.endDate;
+
+      // log method
+      logger.log(1, '_getMonthlyHours', `Attempting to get timesheet data for employee number ${employeeNumber}`);
+
+      // validations
+      this._validateUser(req.employee, employeeNumber);
+      this._validateDates(startDate, endDate);
+
       // mysterio function parameters
       let payload = {
-        employeeNumber: req.params.employeeNumber
+        employeeNumber: employeeNumber,
+        startDate: startDate,
+        endDate: endDate
       };
 
       // lambda invoke parameters
       let params = {
-        FunctionName: `mysterio-monthly-hours-${STAGE}`,
+        FunctionName: `mysterio-get-timesheet-data-${STAGE}`,
         Payload: JSON.stringify(payload),
         Qualifier: '$LATEST'
       };
@@ -135,11 +65,7 @@ class TSheetsRoutes {
 
       if (resultPayload.body) {
         // log success
-        logger.log(
-          1,
-          '_getMonthlyHours',
-          `Successfully got monthly hours for employee number ${req.params.employeeNumber}`
-        );
+        logger.log(1, '_getMonthlyHours', `Successfully got timesheet data for employee number ${employeeNumber}`);
 
         let timeSheets = resultPayload.body;
 
@@ -150,7 +76,7 @@ class TSheetsRoutes {
         return timeSheets;
       } else {
         throw {
-          code: 404,
+          code: 400,
           message: resultPayload.errorMessage
         };
       }
@@ -164,7 +90,7 @@ class TSheetsRoutes {
       // return error
       return err;
     }
-  } // _getMonthlyHours
+  } // _getTimesheetsData
 
   /**
    * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
@@ -189,18 +115,6 @@ class TSheetsRoutes {
     // return result
     return result;
   } // isAdmin
-
-  /**
-   * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
-   * false.
-   *
-   * @param value - value to check
-   * @return boolean - value is in iso-format
-   */
-  isIsoFormat(value) {
-    let dateRegex = RegExp('[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$');
-    return dateRegex.test(value);
-  } // isIsoFormat
 
   /**
    * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
@@ -277,6 +191,29 @@ class TSheetsRoutes {
     return res.status(err.code).send(err);
   } // _sendError
 
+  _validateDates(startDate, endDate) {
+    if (!dateUtils.isValid(startDate, 'YYYY-MM') || !dateUtils.isValid(endDate, 'YYYY-MM')) {
+      throw {
+        code: 400,
+        message: 'Invalid start or end date, must use YYYY-MM format'
+      };
+    } else if (dateUtils.isAfter(startDate, endDate, 'month', 'YYYY-MM')) {
+      throw {
+        code: 400,
+        message: 'Invalid start or end date, start date must be before end date'
+      };
+    }
+  }
+
+  _validateUser(authUser, empNum) {
+    if (!this.isAdmin(authUser) && !this.isManager(authUser) && Number(authUser.employeeNumber) !== Number(empNum)) {
+      throw {
+        code: 401,
+        message: `User does not have permission to access timesheet data for employeeNumber ${empNum}`
+      };
+    }
+  }
+
   /**
    * Invokes lambda function with given params
    *
@@ -290,4 +227,4 @@ class TSheetsRoutes {
   } // invokeLambda
 } // TSheetsRoutes
 
-module.exports = TSheetsRoutes;
+module.exports = TimesheetsRoutes;
