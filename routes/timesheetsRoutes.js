@@ -62,7 +62,6 @@ class TimesheetsRoutes {
 
       // invoke mysterio monthly hours lambda function
       let resultPayload = await this.invokeLambda(params);
-
       if (resultPayload.body) {
         // log success
         logger.log(1, '_getMonthlyHours', `Successfully got timesheet data for employee number ${employeeNumber}`);
@@ -77,7 +76,7 @@ class TimesheetsRoutes {
       } else {
         throw {
           code: 400,
-          message: resultPayload.errorMessage
+          message: resultPayload?.message || resultPayload
         };
       }
     } catch (err) {
@@ -188,7 +187,7 @@ class TimesheetsRoutes {
     logger.log(3, '_sendError', `Sending ${err.code} error status: ${err.message}`);
 
     // return error status
-    return res.status(err.code).send(err);
+    return res.status(err?.code || 500).send(err);
   } // _sendError
 
   _validateDates(startDate, endDate) {
