@@ -24,6 +24,7 @@ class TimesheetsRoutes {
       this._getUserInfo,
       this._getTimesheetsData.bind(this)
     );
+    this._router.get('/pto/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
   } // constructor
 
   /**
@@ -38,20 +39,17 @@ class TimesheetsRoutes {
       let employeeNumber = req.params.employeeNumber;
       let startDate = req.params.startDate;
       let endDate = req.params.endDate;
+      let onlyPto = !startDate && !endDate;
 
       // log method
       logger.log(1, '_getMonthlyHours', `Attempting to get timesheet data for employee number ${employeeNumber}`);
 
       // validations
       this._validateUser(req.employee, employeeNumber);
-      this._validateDates(startDate, endDate);
+      onlyPto || this._validateDates(startDate, endDate);
 
       // mysterio function parameters
-      let payload = {
-        employeeNumber: employeeNumber,
-        startDate: startDate,
-        endDate: endDate
-      };
+      let payload = { employeeNumber, startDate, endDate, onlyPto };
 
       // lambda invoke parameters
       let params = {
