@@ -40,8 +40,8 @@ const attachmentRoutes = new AttachmentRoutes();
 const ResumeRoutes = require('./routes/resumeRoutes');
 const resumeRoutes = new ResumeRoutes();
 
-const TSheetsRoutes = require('./routes/tSheetsRoutes');
-const tSheetsRoutes = new TSheetsRoutes();
+const TimesheetsRoutes = require('./routes/timesheetsRoutes');
+const timesheetsRoutes = new TimesheetsRoutes();
 
 const BasecampRoutes = require('./routes/basecampRoutes');
 const basecampRoutes = new BasecampRoutes();
@@ -101,7 +101,7 @@ app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
 app.use('/resume', resumeRoutes.router);
 app.use('/training-urls', trainingUrlRoutes.router);
-app.use('/tSheets', tSheetsRoutes.router);
+app.use('/timesheets', timesheetsRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
