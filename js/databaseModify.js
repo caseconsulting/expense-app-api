@@ -16,7 +16,10 @@ const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/traini
 const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
 const documentClient = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }),
+  new DynamoDBClient({
+    apiVersion: '2012-08-10',
+    region: 'us-east-1'
+  }),
   { marshallOptions: { convertClassInstanceToMap: true, removeUndefinedValues: true } }
 );
 const logger = new Logger('databaseModify');
