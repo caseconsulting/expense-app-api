@@ -5,7 +5,7 @@
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "claudia": "claudia",
-    "create:claudia:dev": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs120.x --set-env-from-json ./env-variables.json --role expense-api-lambda-dev",
+    "create:claudia:dev": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-dev",
     "create:claudia:prod": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-prod --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-prod",
     "create:claudia:test": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-test --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-test",
     "debug": "nodemon --trace-warnings --inspect bin/www",
