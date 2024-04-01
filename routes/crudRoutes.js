@@ -512,19 +512,8 @@ class Crud {
         let objectValidated = await this._validateInputs(objectCreated); // validate inputs
         let dataCreated = await this.databaseModify.addToDB(objectValidated); // add object to database
 
-        // log success
-        if (dataCreated instanceof TrainingUrl) {
-          // created a training url
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully created object ${dataCreated.id} with category ${dataCreated.category} in`,
-            `${this._getTableName()}`
-          );
-        } else {
-          // created an expense, expense type, or employee
-          logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
-        }
+        // log success, created an expense, expense type, or employee
+        logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataCreated);
