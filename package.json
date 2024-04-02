@@ -5,6 +5,9 @@
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "claudia": "claudia",
+    "clean:dev": "export AWS_PROFILE=dev && node versionCleanup.js",
+    "clean:test": "export AWS_PROFILE=dev && node versionCleanup.js",
+    "clean:prod": "export AWS_PROFILE=prod && node versionCleanup.js",
     "create:claudia:dev": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-dev",
     "create:claudia:prod": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-prod --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-prod",
     "create:claudia:test": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-test --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-test",

@@ -15,7 +15,7 @@ const VERSIONS_TO_KEEP = 5;
  * Deletes all older Lambda versions except for the 5 most recent
  */
 async function deleteOldLambdaVersions() {
-  console.log('Initiating process to delete old Lambda versions');
+  console.log('\x1b[36m%s\x1b[0m', 'Initiating process to delete old Lambda versions');
   const listFunctionsCommand = new ListFunctionsCommand();
   const resp = await client.send(listFunctionsCommand);
 
@@ -41,7 +41,7 @@ async function deleteOldLambdaVersions() {
     versionsToDelete = versionsToDelete.filter((v) => v.Version !== '$LATEST');
     if (versionsToDelete.length > 0) {
       console.log(
-        `Deleting versions ${versionsToDelete[0].Version} to ${
+        `\x1b[31mDeleting\x1b[0m versions ${versionsToDelete[0].Version} to ${
           versionsToDelete[versionsToDelete.length - 1].Version
         } from function ${functionName}`
       );
@@ -55,7 +55,7 @@ async function deleteOldLambdaVersions() {
         await client.send(deleteFunctionCommand);
       }
     } else {
-      console.log(`No older versions to delete for function ${functionName}`);
+      console.log('\x1b[90m%s\x1b[0m', `No older versions to delete for function ${functionName}`);
     }
   }
 } // deleteOldLambdaVersions
@@ -64,7 +64,7 @@ async function deleteOldLambdaVersions() {
  * Deletes all older Lambda Layer versions except for the 5 most recent
  */
 async function deleteOldLambdaLayerVersions() {
-  console.log('\nInitiating process to delete old Lambda Layer versions');
+  console.log('\x1b[36m%s\x1b[0m', '\nInitiating process to delete old Lambda Layer versions');
   const listLayersCommand = new ListLayersCommand();
   const resp = await client.send(listLayersCommand);
 
@@ -76,7 +76,7 @@ async function deleteOldLambdaLayerVersions() {
     const versionsToDelete = resp?.LayerVersions?.slice(VERSIONS_TO_KEEP);
     if (versionsToDelete.length > 0) {
       console.log(
-        `Deleting versions ${versionsToDelete[versionsToDelete.length - 1].Version} to ${
+        `\x1b[31mDeleting\x1b[0m versions ${versionsToDelete[versionsToDelete.length - 1].Version} to ${
           versionsToDelete[0].Version
         } from layer ${layerName}`
       );
@@ -91,7 +91,7 @@ async function deleteOldLambdaLayerVersions() {
         await client.send(deleteLayerVersionCommand);
       }
     } else {
-      console.log(`No older versions to delete for layer ${layerName}`);
+      console.log('\x1b[90m%s\x1b[0m', `No older versions to delete for layer ${layerName}`);
     }
   }
 } // deleteOldLambdaLayerVersions
