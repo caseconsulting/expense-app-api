@@ -2,7 +2,7 @@ const _ = require('lodash');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
-const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
+const Employee = require(process.env.AWS ? 'databaseModify' : '../models/employee');
 const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
@@ -387,6 +387,7 @@ class EmployeeRoutes extends Crud {
         }
         return emp;
       });
+      console.log(employees);
 
       // log success
       logger.log(2, '_readAll', 'Successfully read all employees');
@@ -415,15 +416,19 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
-      let oldEmployee = new Employee(await this.databaseModify.getEntry(data.id));
+      let oldEmployeeBasic = new Employee(await this.databaseModify.getEntry(data.id));
       let oldEmployeeSensitive = new EmployeeSensitive(await this.employeeSensitiveDynamo.getEntry(data.id));
-      let newEmployee = new Employee(data);
+      let newEmployeeBasic = new Employee(data);
       let newEmployeeSensitive = new EmployeeSensitive(data);
       newEmployeeSensitive.handleEEOData(oldEmployeeSensitive, req.employee);
+      let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
       await Promise.all([
-        this._validateEmployee(newEmployee, newEmployeeSensitive),
-        this._validateUpdate(oldEmployee, newEmployee),
-        this._updateBudgets(oldEmployee, newEmployee)
+        this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
+        this._validateUpdate(oldEmployeeBasic, newEmployeeBasic),
+        oldEmployeeBasic.workStatus !== newEmployeeBasic.workStatus ||
+        oldEmployeeBasic.employeeRole !== newEmployeeBasic.employeeRole
+          ? this._updateBudgets(oldEmployeeBasic, newEmployeeBasic)
+          : _
       ]);
 
       // log success
@@ -439,6 +444,21 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _update
+
+  /**
+   * Prepares an employee's attribute to be updated. Returns the employee if it can be successfully updated.
+   *
+   * @param req - request
+   * @return Employee - employee prepared to update
+   */
+  async _updateAttribute(req) {
+    let tableToUpdate = this.databaseModify;
+    let employeeSensitive = new EmployeeSensitive(req.body);
+    // check if the attribute is in the sensitive employee table, if so, change the table name
+    if (req.params.attribute in employeeSensitive) tableToUpdate = this.employeeSensitiveDynamo;
+    let objectUpdated = await this._update(req);
+    return { objectUpdated, table: tableToUpdate };
+  } // _updateAttribute
 
   /**
    * Update employee in database. If successful, sends 200 status request with the
@@ -458,7 +478,6 @@ class EmployeeRoutes extends Crud {
         // employee has permission to update table
         let employeeUpdated = await this._update(req); // update employee
         let employeeValidated = await this._validateInputs(employeeUpdated); // validate inputs
-        let dataUpdated = employeeValidated;
         // add object to database
         let sameIds = false;
         if (employeeValidated.id == req.body.id) {
@@ -466,27 +485,31 @@ class EmployeeRoutes extends Crud {
           sameIds = true;
         }
 
-        let sensitiveData = new EmployeeSensitive(req.body);
-        let sensitiveObjectValidated = await this._validateInputs(sensitiveData); // validate inputs
+        let basicData = new Employee(employeeValidated);
+        let sensitiveData = new EmployeeSensitive(employeeValidated);
         if (sameIds) {
-          await this.updateEmployeeInDB(employeeValidated, sensitiveObjectValidated);
+          await this.updateEmployeeInDB(basicData, sensitiveData);
         }
         // updated an entry for an employees sensitive data
         logger.log(
           1,
           '_createWrapper',
-          `Successfully created object ${dataUpdated.id} in ${this.STAGE}-employees-sensitive`
+          `Successfully created object ${employeeValidated.id} in ${this.STAGE}-employees-sensitive`
         );
-        dataUpdated = { ...dataUpdated, ...sensitiveData };
+        employeeValidated = { ...employeeValidated, ...sensitiveData };
 
         // log success
-        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+        logger.log(
+          1,
+          '_updateWrapper',
+          `Successfully updated object ${employeeValidated.id} from ${this._getTableName()}`
+        );
 
         // send successful 200 status
-        res.status(200).send(dataUpdated);
+        res.status(200).send(employeeValidated);
 
         // return updated data
-        return dataUpdated;
+        return employeeValidated;
       } else {
         // employee does not have permissions to update table
         throw {
@@ -848,33 +871,35 @@ class EmployeeRoutes extends Crud {
         throw err;
       }
 
-      let employeesData = await this.databaseModify.getAllEntriesInDB();
-      let employees = _.map(employeesData, (employeeData) => {
-        return new Employee(employeeData);
-      });
+      if (oldEmployee.email !== newEmployee.email || oldEmployee.employeeNumber !== newEmployee.employeeNumber) {
+        let employeesData = await this.databaseModify.getAllEntriesInDB();
+        let employees = _.map(employeesData, (employeeData) => {
+          return new Employee(employeeData);
+        });
 
-      employees = _.reject(employees, (e) => {
-        return _.isEqual(e, oldEmployee);
-      });
+        employees = _.reject(employees, (e) => {
+          return _.isEqual(e, oldEmployee);
+        });
 
-      // validateduplicate employee number
-      if (employees.some((e) => e.employeeNumber === newEmployee.employeeNumber)) {
-        // log error
-        logger.log(3, '_validateUpdate', `Employee number ${newEmployee.employeeNumber} is duplicated`);
+        // validateduplicate employee number
+        if (employees.some((e) => e.employeeNumber === newEmployee.employeeNumber)) {
+          // log error
+          logger.log(3, '_validateUpdate', `Employee number ${newEmployee.employeeNumber} is duplicated`);
 
-        // throw error
-        err.message = `Employee number ${newEmployee.employeeNumber} already taken. Please enter a new number.`;
-        throw err;
-      }
+          // throw error
+          err.message = `Employee number ${newEmployee.employeeNumber} already taken. Please enter a new number.`;
+          throw err;
+        }
 
-      // validate duplicate employee email
-      if (employees.some((e) => e.email === newEmployee.email)) {
-        // log error
-        logger.log(3, '_validateUpdate', `Employee ID ${newEmployee.id} is duplicated`);
+        // validate duplicate employee email
+        if (employees.some((e) => e.email === newEmployee.email)) {
+          // log error
+          logger.log(3, '_validateUpdate', `Employee ID ${newEmployee.id} is duplicated`);
 
-        // throw error
-        err.message = `Employee email ${newEmployee.email} already taken. Please enter a new email.`;
-        throw err;
+          // throw error
+          err.message = `Employee email ${newEmployee.email} already taken. Please enter a new email.`;
+          throw err;
+        }
       }
 
       // validate no budgets exist when changing hire date
