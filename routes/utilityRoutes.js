@@ -85,7 +85,18 @@ class Utility {
       this._getUserInfo,
       this._getUnreimbursedExpenses.bind(this)
     );
-    this._router.post('/syncApplications', this._checkJwt, this._getUserInfo, this._syncApplications.bind(this));
+    this._router.post(
+      '/syncApplications',
+      this._checkJwt,
+      this._getUserInfo,
+      this._syncApplications.bind(this)
+    );
+    this._router.get(
+      '/getEmployeesFromAdp',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getADPEmployeeData.bind(this)
+    );
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
@@ -1188,6 +1199,32 @@ class Utility {
       return err;
     }
   } // _syncApplications
+
+  /**
+   * Invokes the ADP employee fetch lambda function.
+   * DO NOT USE FOR CHANGING DATA ON ADP. THERE IS NO SAFETY LIKE THERE IS IN THE PORTAL DATA SYNC
+   */
+  async _getADPEmployeeData(req, res) {
+    logger.log(1, '_getADPEmployeeData', 'Attempting to get ADP employee info');
+    try {
+      let params = {
+        FunctionName: `mysterio-adp-employees-${STAGE}`,
+        Qualifier: '$LATEST'
+      };
+      const resp = await lambdaClient.send(new InvokeCommand(params));
+      let result = JSON.parse(Buffer.from(resp.Payload));
+      let employees = result.body;
+      res.status(200).send(employees);
+      logger.log(1, '_getADPEmployeeData', 'Returning  ADP employee info');
+      return employees;
+    } catch (err) {
+      logger.log(1, '_getADPEmployeeData', 'Failed to get ADP employee info');
+      // send error status
+      this._sendError(res, err);
+      // return error
+      return err;
+    }
+  } // _getADPEmployeeData
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
