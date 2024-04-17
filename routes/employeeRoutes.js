@@ -387,7 +387,6 @@ class EmployeeRoutes extends Crud {
         }
         return emp;
       });
-      console.log(employees);
 
       // log success
       logger.log(2, '_readAll', 'Successfully read all employees');

@@ -630,16 +630,13 @@ class databaseModify {
     // log method
     logger.log(4, 'updateEntryInDB', `Attempting to update attribute in ${tableName} with ID ${dynamoObj.id}`);
 
-    const params = {
-      TableName: tableName,
-      Key: {
-        id: dynamoObj.id
-      },
-      UpdateExpression: `set ${attribute} = :a`,
-      ExpressionAttributeValues: {
-        ':a': dynamoObj[attribute]
-      }
-    };
+    let params = { TableName: tableName, Key: { id: dynamoObj.id } };
+    if (dynamoObj[attribute]) {
+      params['UpdateExpression'] = `set ${attribute} = :a`;
+      params['ExpressionAttributeValues'] = { ':a': dynamoObj[attribute] };
+    } else {
+      params['UpdateExpression'] = `remove ${attribute}`;
+    }
 
     const updateCommand = new UpdateCommand(params);
     try {
