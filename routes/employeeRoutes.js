@@ -454,7 +454,7 @@ class EmployeeRoutes extends Crud {
     let tableToUpdate = this.databaseModify;
     let employeeSensitive = new EmployeeSensitive(req.body);
     // check if the attribute is in the sensitive employee table, if so, change the table name
-    if (req.params.attribute in employeeSensitive) tableToUpdate = this.employeeSensitiveDynamo;
+    if (employeeSensitive.getFields()?.includes(req.params.attribute)) tableToUpdate = this.employeeSensitiveDynamo;
     let objectUpdated = await this._update(req);
     return { objectUpdated, table: tableToUpdate };
   } // _updateAttribute

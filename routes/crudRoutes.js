@@ -1100,7 +1100,7 @@ class Crud {
    */
   async _updateAttributeWrapper(req, res) {
     // log method
-    logger.log(1, '_updateWrapper', `Attempting to update an object in ${this._getTableName()}`);
+    logger.log(1, '_updateAttributeWrapper', `Attempting to update an object in ${this._getTableName()}`);
 
     // compute method
     try {
