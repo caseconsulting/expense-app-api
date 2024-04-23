@@ -451,12 +451,47 @@ class EmployeeRoutes extends Crud {
    * @return Employee - employee prepared to update
    */
   async _updateAttribute(req) {
+    let data = req.body;
     let tableToUpdate = this.databaseModify;
-    let employeeSensitive = new EmployeeSensitive(req.body);
-    // check if the attribute is in the sensitive employee table, if so, change the table name
-    if (employeeSensitive.getFields()?.includes(req.params.attribute)) tableToUpdate = this.employeeSensitiveDynamo;
-    let objectUpdated = await this._update(req);
-    return { objectUpdated, table: tableToUpdate };
+    // log method
+    logger.log(2, '_update', `Preparing to update employee ${data.id}`);
+
+    // compute method
+    try {
+      let [employeeBasic, employeeSensitive] = await Promise.all([
+        this.databaseModify.getEntry(data.id),
+        this.employeeSensitiveDynamo.getEntry(data.id)
+      ]);
+      employeeBasic = new Employee(employeeBasic);
+      employeeSensitive = new EmployeeSensitive(employeeSensitive);
+      let newEmployeeBasic = new Employee({ ...employeeBasic, ...req.body });
+      let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...req.body });
+      newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
+      let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
+      await Promise.all([
+        this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
+        this._validateUpdate(employeeBasic, newEmployeeBasic),
+        employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
+        employeeBasic.employeeRole !== newEmployeeBasic.employeeRole
+          ? this._updateBudgets(employeeBasic, newEmployeeBasic)
+          : _
+      ]);
+
+      if (newEmployeeSensitive.getFields()?.includes(req.params.attribute))
+        tableToUpdate = this.employeeSensitiveDynamo;
+
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+
+      // return employee to update
+      return { objectUpdated: newEmployee, table: tableToUpdate };
+    } catch (err) {
+      // log error
+      logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
   } // _updateAttribute
 
   /**
