@@ -2,7 +2,7 @@ const _ = require('lodash');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
-const Employee = require(process.env.AWS ? 'databaseModify' : '../models/employee');
+const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
 const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../models/employee-sensitive');
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
@@ -425,7 +425,7 @@ class EmployeeRoutes extends Crud {
         this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
         this._validateUpdate(oldEmployeeBasic, newEmployeeBasic),
         oldEmployeeBasic.workStatus !== newEmployeeBasic.workStatus ||
-        oldEmployeeBasic.employeeRole !== newEmployeeBasic.employeeRole
+        oldEmployeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
           ? this._updateBudgets(oldEmployeeBasic, newEmployeeBasic)
           : _
       ]);
@@ -472,7 +472,7 @@ class EmployeeRoutes extends Crud {
         this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
         this._validateUpdate(employeeBasic, newEmployeeBasic),
         employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
-        employeeBasic.employeeRole !== newEmployeeBasic.employeeRole
+        employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
           ? this._updateBudgets(employeeBasic, newEmployeeBasic)
           : _
       ]);
