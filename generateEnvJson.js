@@ -13,8 +13,8 @@ let listOfEnvToInclude = [
   'AWS_SDK_LOAD_CONFIG',
   'NODE_ENV_GOOGLE_MAPS_KEY',
   'STAGE',
-  'VUE_APP_AUTH0_DOMAIN',
-  'VUE_APP_AUTH0_AUDIENCE'
+  'VITE_AUTH0_DOMAIN',
+  'VITE_AUTH0_AUDIENCE'
 ];
 let envJson = {};
 //iterates thru lists of keys to include

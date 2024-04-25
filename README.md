@@ -83,8 +83,8 @@ Therefore, a subsequent login will launch the web browser again for a new author
 
 The following environment variables are required to use **Auth0** authentication:
 
-- **VUE_APP_AUTH0_AUDIENCE**
-- **VUE_APP_AUTH0_DOMAIN**
+- **VITE_AUTH0_AUDIENCE**
+- **VITE_AUTH0_DOMAIN**
 
 The following environment variables are required to support multiple environments:
 
