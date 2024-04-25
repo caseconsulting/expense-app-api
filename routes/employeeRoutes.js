@@ -464,8 +464,8 @@ class EmployeeRoutes extends Crud {
       ]);
       employeeBasic = new Employee(employeeBasic);
       employeeSensitive = new EmployeeSensitive(employeeSensitive);
-      let newEmployeeBasic = new Employee({ ...employeeBasic, ...req.body });
-      let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...req.body });
+      let newEmployeeBasic = new Employee({ ...employeeBasic, ...data });
+      let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...data });
       newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
       let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
       await Promise.all([
