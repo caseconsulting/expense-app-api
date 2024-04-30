@@ -20,9 +20,9 @@
 
 ## Setup
 
-The **Expense App API** is written in **Node.js** v18.x+.
+The **Expense App API** is written in **Node.js** v20.x+.
 
-Download and install **Node.js** v18.x from: https://nodejs.org/en/ or https://nodejs.org/dist/latest-v18.x/
+Download and install **Node.js** v20.x from: https://nodejs.org/en/ or https://nodejs.org/dist/latest-v20.x/
 
 Install required **Node.js** modules:
 
@@ -83,8 +83,8 @@ Therefore, a subsequent login will launch the web browser again for a new author
 
 The following environment variables are required to use **Auth0** authentication:
 
-- **VUE_APP_AUTH0_AUDIENCE**
-- **VUE_APP_AUTH0_DOMAIN**
+- **VITE_AUTH0_AUDIENCE**
+- **VITE_AUTH0_DOMAIN**
 
 The following environment variables are required to support multiple environments:
 

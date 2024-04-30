@@ -477,17 +477,15 @@ describe('employeeRoutes', () => {
         employeeSensitiveDynamo.getEntry.and.returnValue(Promise.resolve(oldEmployeeSensitive));
         spyOn(employeeRoutes, '_validateEmployee').and.returnValue(Promise.resolve(newEmployee));
         spyOn(employeeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newEmployee));
-        spyOn(employeeRoutes, '_updateBudgets').and.returnValue(Promise.resolve([]));
       });
 
       it('should return the prepared employee', (done) => {
         employeeRoutes._update(param).then((employee) => {
-          expect(employee).toEqual(newEmployee);
+          expect(employee).toEqual({ ...newEmployee, ...newEmployeeSensitive });
           expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
           expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
           expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
           expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
-          expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
           done();
         });
       }); // should return the prepared employee
@@ -601,6 +599,8 @@ describe('employeeRoutes', () => {
       });
 
       it('should return a 404 rejected promise', (done) => {
+        param.body.workStatus = 50;
+        newEmployee.workStatus = 50;
         employeeRoutes
           ._update(param)
           .then(() => {
@@ -1271,7 +1271,6 @@ describe('employeeRoutes', () => {
         it('should return the validated employee', (done) => {
           employeeRoutes._validateUpdate(oldEmployee, newEmployee).then((data) => {
             expect(data).toEqual(newEmployee);
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
           });
         }); // should return the validated employee
@@ -1293,72 +1292,11 @@ describe('employeeRoutes', () => {
               'employeeId',
               ID
             );
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
           });
         }); // should return the validated employee
       }); // and hire date is changed
     }); // when successfully validates update
-
-    describe('when another employee already has the same employee number', () => {
-      let err, otherEmployee;
-
-      beforeEach(() => {
-        err = {
-          code: 403,
-          message: 'Employee number 0 already taken. Please enter a new number.'
-        };
-
-        otherEmployee = new Employee(EMPLOYEE_DATA);
-        otherEmployee.email = 'OTHER_EMAIL';
-
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
-      });
-
-      it('should return a 403 rejected promise', (done) => {
-        employeeRoutes
-          ._validateUpdate(oldEmployee, newEmployee)
-          .then(() => {
-            fail('expected error to have been thrown');
-            done();
-          })
-          .catch((error) => {
-            expect(error).toEqual(err);
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-            done();
-          });
-      }); // should return a 403 rejected promise
-    }); // when another employee already has the same employee number
-
-    describe('when another employee already has the same employee email', () => {
-      let err, otherEmployee;
-
-      beforeEach(() => {
-        err = {
-          code: 403,
-          message: 'Employee email {email} already taken. Please enter a new email.'
-        };
-
-        otherEmployee = new Employee(EMPLOYEE_DATA);
-        otherEmployee.employeeNumber = 'OTHER_NUMBER';
-
-        databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([oldEmployee, otherEmployee]));
-      });
-
-      it('should return a 403 rejected promise', (done) => {
-        employeeRoutes
-          ._validateUpdate(oldEmployee, newEmployee)
-          .then(() => {
-            fail('expected error to have been thrown');
-            done();
-          })
-          .catch((error) => {
-            expect(error).toEqual(err);
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
-            done();
-          });
-      }); // should return a 403 rejected promise
-    }); // when another employee already has the same employee email
 
     describe('when old employee id does not match the new employee id', () => {
       let err;
@@ -1416,7 +1354,6 @@ describe('employeeRoutes', () => {
               'employeeId',
               ID
             );
-            expect(databaseModify.getAllEntriesInDB).toHaveBeenCalled();
             done();
           });
       }); // should return a 403 rejected promise

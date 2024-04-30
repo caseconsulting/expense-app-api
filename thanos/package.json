@@ -1,6 +1,6 @@
 {
   "name": "thanos",
-  "version": "3.5.1",
+  "version": "4.3.0",
   "private": true,
   "main": "thanos.js"
 }

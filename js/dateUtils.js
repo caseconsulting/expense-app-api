@@ -342,8 +342,8 @@ function maximum(dates) {
  *
  * @returns String - A UTC time format of now
  */
-function now() {
-  return dayjs.utc().tz(DEFAULT_TIME_ZONE);
+function now(timezone = DEFAULT_TIME_ZONE) {
+  return dayjs.utc().tz(timezone);
 } // now
 
 /**

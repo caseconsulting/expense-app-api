@@ -10,13 +10,17 @@ const {
   PutCommand,
   ScanCommand,
   TransactWriteCommand,
-  QueryCommand
+  QueryCommand,
+  UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
 const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
 const documentClient = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }),
+  new DynamoDBClient({
+    apiVersion: '2012-08-10',
+    region: 'us-east-1'
+  }),
   { marshallOptions: { convertClassInstanceToMap: true, removeUndefinedValues: true } }
 );
 const logger = new Logger('databaseModify');
@@ -613,6 +617,39 @@ class databaseModify {
         // throw error
         throw err;
       });
+  } // updateEntryInDB
+
+  /**
+   * Updates an entry in the dynamodb table.
+   *
+   * @param newDyanmoObj - object to update dynamodb entry to
+   * @return Object - object updated in dynamodb
+   */
+  async updateAttributeInDB(dynamoObj, attribute) {
+    let tableName = this.tableName;
+    // log method
+    logger.log(4, 'updateEntryInDB', `Attempting to update attribute in ${tableName} with ID ${dynamoObj.id}`);
+
+    let params = { TableName: tableName, Key: { id: dynamoObj.id } };
+    if (dynamoObj[attribute]) {
+      params['UpdateExpression'] = `set ${attribute} = :a`;
+      params['ExpressionAttributeValues'] = { ':a': dynamoObj[attribute] };
+    } else {
+      params['UpdateExpression'] = `remove ${attribute}`;
+    }
+
+    const updateCommand = new UpdateCommand(params);
+    try {
+      let dynamoObj = await documentClient.send(updateCommand);
+      logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${dynamoObj.id}`);
+      return dynamoObj;
+    } catch (err) {
+      // log error
+      logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${dynamoObj.id}`);
+
+      // throw error
+      throw err;
+    }
   } // updateEntryInDB
 
   /**

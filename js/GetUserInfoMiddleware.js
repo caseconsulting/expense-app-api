@@ -2,7 +2,7 @@ const _ = require('lodash');
 const DB = require(process.env.AWS ? 'databaseModify' : './databaseModify');
 const db = new DB('employees');
 const sensitiveDB = new DB('employees-sensitive');
-const getUserInfo = (req, res, next) => {
+const getUserInfo = async (req, res, next) => {
   // JWT tokens created by auth0 have to conform to OIDC specification.
   // As a result of this, all custom namespaces have to begin with http or https.
   // see here for more detailed discussion: https://auth0.com/docs/api-auth/tutorials/adoption/scope-custom-claims
@@ -10,17 +10,16 @@ const getUserInfo = (req, res, next) => {
   let userEmail = _.find(req.auth, (field) => {
     return _.endsWith(field, emailDomain);
   });
-  db.querySecondaryIndexInDB('email-index', 'email', userEmail)
-    .then(async (data) => {
-      let sensitiveData = await sensitiveDB.getEntry(data[0].id);
-      req.employee = { ...data[0], ...sensitiveData };
-      next();
-    })
-    .catch((err) => {
-      console.error(err);
-      throw err;
-    });
 
+  try {
+    let data = await db.querySecondaryIndexInDB('email-index', 'email', userEmail);
+    let sensitiveData = await sensitiveDB.getEntry(data[0].id);
+    req.employee = { ...data[0], ...sensitiveData };
+    next();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
   //$$$ PROFIT $$$💰
 };
 

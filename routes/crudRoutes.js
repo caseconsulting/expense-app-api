@@ -24,6 +24,7 @@ class Crud {
     this._router.get('/', this._checkJwt, this._getUserInfo, this._readAllWrapper.bind(this));
     this._router.get('/:id', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
+    this._router.patch('/:attribute', this._checkJwt, this._getUserInfo, this._updateAttributeWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
     this.employeeDynamo = new DatabaseModify('employees');
@@ -278,6 +279,7 @@ class Crud {
         'expenses',
         'expense-types',
         'employees',
+        'employees-sensitive',
         'training-urls',
         'contracts',
         'pto-cashouts',
@@ -289,6 +291,7 @@ class Crud {
       this.isManager(employee) &&
       this._checkTableName([
         'employees',
+        'employees-sensitive',
         'training-urls',
         'expense-types',
         'contracts',
@@ -512,19 +515,8 @@ class Crud {
         let objectValidated = await this._validateInputs(objectCreated); // validate inputs
         let dataCreated = await this.databaseModify.addToDB(objectValidated); // add object to database
 
-        // log success
-        if (dataCreated instanceof TrainingUrl) {
-          // created a training url
-          logger.log(
-            1,
-            '_createWrapper',
-            `Successfully created object ${dataCreated.id} with category ${dataCreated.category} in`,
-            `${this._getTableName()}`
-          );
-        } else {
-          // created an expense, expense type, or employee
-          logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
-        }
+        // log success, created an expense, expense type, or employee
+        logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataCreated);
@@ -1077,6 +1069,73 @@ class Crud {
     } catch (err) {
       // log error
       logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _updateWrapper
+
+  // eslint-disable-next-line no-unused-vars
+
+  /**
+   * Updates an attribute of an object. Returns the object updated.
+   *
+   * @param body - data of object
+   * @return Object - object updated
+   */
+  // eslint-disable-next-line no-unused-vars
+  async _updateAttribute(body) {
+    // This function must be overwritten
+  } // _updateAttribute
+
+  /**
+   * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - object updated
+   */
+  async _updateAttributeWrapper(req, res) {
+    // log method
+    logger.log(1, '_updateAttributeWrapper', `Attempting to update an object in ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let { objectUpdated, table } = await this._updateAttribute(req); // update object
+        let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
+        let dataUpdated;
+        // add object to database
+        if (objectValidated.id == req.body.id) {
+          table = table || this.databaseModify;
+          // update database if the id's are the same
+          dataUpdated = await table.updateAttributeInDB(objectValidated, req.params.attribute);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = objectValidated;
+        }
+        // updated an attribute expense, expense-type, or employee
+        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+
+        // send successful 200 status
+        res.status(200).send(dataUpdated);
+
+        // return updated data
+        return dataUpdated;
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update attribute in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_updateWrapper', `Failed to update attribute in ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);

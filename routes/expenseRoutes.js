@@ -8,6 +8,7 @@ const Expense = require(process.env.AWS ? 'expense' : '../models/expense');
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const utils = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('expenseRoutes');
@@ -215,6 +216,10 @@ class ExpenseRoutes extends Crud {
       }
 
       await this._addToBudget(expense, employee, expenseType, budget); // add expense to budget
+
+      if (expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours') {
+        this._emailPayroll(employee, expense);
+      }
 
       // log success
       logger.log(
@@ -670,11 +675,6 @@ class ExpenseRoutes extends Crud {
       let expenses = _.map(expensesData, (expenseData) => {
         return new Expense(expenseData);
       });
-      // used to dertermine if deleting a budget is necessary
-      // let unreimbursedExpenses = _.filter(expenses, (exp) => {
-      //   return exp.id != oldExpense.id && exp.reimbursedDate == undefined;
-      // });
-      //logger.log(2, '_updateBudgets', `Unreimbursed Expenses ${JSON.stringify(unreimbursedExpenses)}`);
 
       // remove matching old expense
       _.remove(expenses, (exp) => {
@@ -859,6 +859,39 @@ class ExpenseRoutes extends Crud {
       return Promise.reject(error);
     }
   } // _updateBudgets
+
+  /**
+   * Emails payroll of the exchange for training hours expense details submitted.
+   *
+   * @param {Object} employee - The employee object of the submitted expense
+   * @param {Object} expense - The submitted expense object
+   */
+  _emailPayroll(employee, expense) {
+    let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
+    // to test on dev/test envs, insert your own email in the env file for payroll address
+    let payrollAddress = process.env.APP_COMPANY_PAYROLL_ADDRESS;
+    if (source && payrollAddress) {
+      logger.log(
+        2,
+        '_emailPayroll',
+        `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
+        `${employee.employeeId}`
+      );
+      let toAddress = [payrollAddress];
+      let subject = 'New exchange for training hours expense submitted';
+      let body = `${employee.nickname || employee.firstName} ${
+        employee.lastName
+      } submitted an expense to exchange their training budget for training hours\n
+        Expense details:
+        Cost: $${expense.cost}
+        Description: ${expense.description}
+        Note: ${expense.note || 'None'}
+        URL: ${expense.url || 'None'}
+        Category: ${expense.category}
+        Created: ${expense.createdAt}`;
+      utils.sendEmail(source, toAddress, subject, body);
+    }
+  } // _emailPayroll
 
   /**
    * Validate that an expense can be added. Returns the expense if the expense being added is in the current annual

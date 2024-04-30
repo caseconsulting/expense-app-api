@@ -1,4 +1,25 @@
 const _ = require('lodash');
+const REQUIRED_FIELDS = ['id', 'employeeRole'];
+const OPTIONAL_FIELDS = [
+  'eeoGender',
+  'eeoHispanicOrLatino',
+  'eeoRaceOrEthnicity',
+  'eeoJobCategory',
+  'eeoHasDisability',
+  'eeoIsProtectedVeteran',
+  'eeoDeclineSelfIdentify',
+  'eeoAdminHasFilledOutEeoForm',
+  'birthday',
+  'city',
+  'country',
+  'st',
+  'currentCity',
+  'currentState',
+  'currentStreet',
+  'currentStreet2',
+  'currentZIP',
+  'privatePhoneNumbers'
+];
 
 /**
  * Employee sensitive model
@@ -26,28 +47,9 @@ const _ = require('lodash');
 class EmployeeSensitive {
   constructor(data) {
     // required attributes
-    this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'employeeRole');
-
+    _.forEach(REQUIRED_FIELDS, (f) => this.setRequiredAttribute(data, f));
     // optional attributes
-    this.setOptionalAttribute(data, 'eeoGender');
-    this.setOptionalAttribute(data, 'eeoHispanicOrLatino');
-    this.setOptionalAttribute(data, 'eeoRaceOrEthnicity');
-    this.setOptionalAttribute(data, 'eeoJobCategory');
-    this.setOptionalAttribute(data, 'eeoHasDisability');
-    this.setOptionalAttribute(data, 'eeoIsProtectedVeteran');
-    this.setOptionalAttribute(data, 'eeoDeclineSelfIdentify');
-    this.setOptionalAttribute(data, 'eeoAdminHasFilledOutEeoForm');
-    this.setOptionalAttribute(data, 'birthday');
-    this.setOptionalAttribute(data, 'city');
-    this.setOptionalAttribute(data, 'country');
-    this.setOptionalAttribute(data, 'st');
-    this.setOptionalAttribute(data, 'currentCity');
-    this.setOptionalAttribute(data, 'currentState');
-    this.setOptionalAttribute(data, 'currentStreet');
-    this.setOptionalAttribute(data, 'currentStreet2');
-    this.setOptionalAttribute(data, 'currentZIP');
-    this.setOptionalAttribute(data, 'privatePhoneNumbers');
+    _.forEach(OPTIONAL_FIELDS, (f) => this.setOptionalAttribute(data, f));
   } // constructor
 
   /**
@@ -111,6 +113,15 @@ class EmployeeSensitive {
   isUser() {
     return this.employeeRole == 'user';
   } // isUser
+
+  /**
+   * Gets all field keys.
+   *
+   * @returns Array - The array of fields
+   */
+  getFields() {
+    return [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
+  } // getFields
 
   /**
    * Sets an employee attribute if it is not null or an empty/blank string.
