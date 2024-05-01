@@ -39,6 +39,7 @@ const _ = require('lodash');
  * - technologies
  * - twitter
  * - mifiStatus
+ * - plannedPto
  */
 class Employee {
   constructor(data) {
@@ -82,6 +83,7 @@ class Employee {
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
+    this.setOptionalAttribute(data, 'plannedPto');
   } // constructor
 
   /**
