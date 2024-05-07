@@ -143,7 +143,9 @@ function getWorkStatus(field, applicationFormat, toApplicationFormat) {
   let workStatus = getFieldValue(field, applicationFormat, toApplicationFormat);
   if (applicationFormat === APPLICATIONS.CASE && toApplicationFormat === APPLICATIONS.BAMBOO) {
     // convert Case value to BambooHR format -> return the converted value
-    if (workStatus === 0) {
+    if (EMPLOYEE_DATA[applicationFormat].employeeRole === 'intern') {
+      return 'Intern';
+    } else if (workStatus === 0) {
       return 'Terminated';
     } else if (workStatus < 100 && workStatus > 0) {
       return 'Part-Time';
