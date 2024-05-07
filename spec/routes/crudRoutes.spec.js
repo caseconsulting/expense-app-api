@@ -298,10 +298,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'user';
       });
 
       describe('and valid table name', () => {
@@ -327,10 +324,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'admin';
       });
 
       describe('and valid table name', () => {
@@ -356,10 +350,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'intern';
       });
 
       describe('and valid table name', () => {
@@ -385,10 +376,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(true);
+        employee.employeeRole = 'manager';
       });
 
       describe('and valid table name', () => {
@@ -414,10 +402,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is not a user or admin or intern or manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'none';
       });
 
       it('should return false', () => {
@@ -435,10 +420,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'user';
       });
 
       describe('and valid table name', () => {
@@ -464,10 +446,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'admin';
       });
 
       describe('and valid table name', () => {
@@ -493,10 +472,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(true);
+        employee.employeeRole = 'manager';
       });
 
       describe('and valid table name', () => {
@@ -522,10 +498,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'intern';
       });
 
       describe('and valid table name', () => {
@@ -551,10 +524,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is not a user or admin or intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'none';
       });
 
       it('should return false', () => {
@@ -572,10 +542,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'user';
       });
 
       describe('and valid table name', () => {
@@ -601,10 +568,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(true);
+        employee.employeeRole = 'manager';
       });
 
       describe('and valid table name', () => {
@@ -630,10 +594,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'intern';
       });
 
       describe('and valid table name', () => {
@@ -659,10 +620,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'admin';
       });
 
       describe('and valid table name', () => {
@@ -688,10 +646,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is not a user or admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'none';
       });
 
       it('should return false', () => {
@@ -709,10 +664,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'user';
       });
 
       describe('and valid table name', () => {
@@ -738,10 +690,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(true);
+        employee.employeeRole = 'manager';
       });
 
       describe('and valid table name', () => {
@@ -767,10 +716,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'admin';
       });
 
       describe('and valid table name', () => {
@@ -796,10 +742,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'intern';
       });
 
       describe('and valid table name', () => {
@@ -825,10 +768,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is not a user or admin or intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'none';
       });
 
       it('should return false', () => {
@@ -846,10 +786,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'user';
       });
 
       describe('and valid table name', () => {
@@ -875,10 +812,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is a manager', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(true);
+        employee.employeeRole = 'manager';
       });
 
       describe('and valid table name', () => {
@@ -904,10 +838,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(true);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'intern';
       });
 
       describe('and valid table name', () => {
@@ -923,10 +854,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'admin';
       });
 
       describe('and valid table name', () => {
@@ -952,10 +880,7 @@ describe('crudRoutes', () => {
 
     describe('when employee is not a user or admin or intern', () => {
       beforeEach(() => {
-        spyOn(crudRoutes, 'isUser').and.returnValue(false);
-        spyOn(crudRoutes, 'isIntern').and.returnValue(false);
-        spyOn(crudRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(crudRoutes, 'isManager').and.returnValue(false);
+        employee.employeeRole = 'none';
       });
 
       it('should return false', () => {
@@ -1630,120 +1555,6 @@ describe('crudRoutes', () => {
     }); // when expense type is accessible by custom employees
   }); // hasAccess
 
-  describe('isAdmin', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is an admin', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return true', () => {
-        expect(crudRoutes.isAdmin(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is an admin
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      it('should return false', () => {
-        expect(crudRoutes.isAdmin(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is not an admin
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return false', () => {
-        expect(crudRoutes.isAdmin(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is not an admin
-  }); // isAdmin
-
-  describe('isUser', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      it('should return true', () => {
-        expect(crudRoutes.isUser(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return true', () => {
-        expect(crudRoutes.isUser(employee)).toBe(false);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is not a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return false', () => {
-        expect(crudRoutes.isUser(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is not an user
-  }); // isUser
-
-  describe('isManager', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'manager';
-      });
-
-      it('should return true', () => {
-        expect(crudRoutes.isManager(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return true', () => {
-        expect(crudRoutes.isManager(employee)).toBe(false);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is not a manager', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return false', () => {
-        expect(crudRoutes.isManager(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is not an user
-  }); // isManager
-
   describe('_readWrapper', () => {
     let req;
 
@@ -1757,7 +1568,7 @@ describe('crudRoutes', () => {
         let objectRead;
 
         beforeEach(() => {
-          spyOn(crudRoutes, 'isUser').and.returnValue(true);
+          req.employee.employeeRole = 'user';
           req.employee.id = 'id';
           objectRead = _.cloneDeep(BODY_DATA);
           objectRead.employeeId = 'id';
@@ -1863,7 +1674,7 @@ describe('crudRoutes', () => {
 
       beforeEach(() => {
         spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
-        spyOn(crudRoutes, 'isUser').and.returnValue(true);
+        req.employee.employeeRole = 'user';
         req.employee.id = 'invalid-id';
         err = {
           code: 403,
