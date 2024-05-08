@@ -1,10 +1,23 @@
+const _ = require('lodash');
 const express = require('express');
+const { isBefore } = require('../js/dateUtils');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const { getExpressJwt, invokeLambda, isAdmin, isManager } = require(process.env.AWS ? 'utils' : '../js/utils');
-const { getTodaysDate, format, isAfter, isValid, startOf, endOf, subtract, DEFAULT_ISOFORMAT } = require(process.env.AWS
-  ? 'dateUtils'
-  : '../js/dateUtils');
+const {
+  add,
+  getTodaysDate,
+  getYear,
+  setYear,
+  format,
+  isAfter,
+  isValid,
+  startOf,
+  endOf,
+  subtract,
+  DEFAULT_ISOFORMAT
+} = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
 const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
@@ -17,6 +30,7 @@ class TimesheetsRoutes {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+    this._employeeDynamo = new DatabaseModify('employees');
 
     this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
   } // constructor
@@ -36,7 +50,7 @@ class TimesheetsRoutes {
       let code = Number(req.query.code);
 
       // log method
-      logger.log(1, '_getMonthlyHours', `Attempting to get timesheet data for employee number ${employeeNumber}`);
+      logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
 
       // validations
       this._validateUser(req.employee, employeeNumber);
@@ -55,9 +69,15 @@ class TimesheetsRoutes {
           payload.periods = this._getPayPeriods(employeeNumber, 2);
           break;
         case 3:
-          // yearly timesheets (start and end date of current year)
-          payload.periods = [this._getYearlyPeriod()];
+          // calendar year timesheets (start and end date of current year)
+          payload.periods = this._getCalendarYearPeriod();
           break;
+        case 4: {
+          // contract year timesheets (start and end date of employee current contract year)
+          let employee = await this._employeeDynamo.getEntry(req.query.employeeId);
+          payload.periods = this._getContractYearPeriod(employee);
+          break;
+        }
         default:
           // timesheets that fall within the requested start and end dates
           payload.periods = [{ startDate, endDate }];
@@ -74,7 +94,7 @@ class TimesheetsRoutes {
       let resultPayload = await invokeLambda(params);
       if (resultPayload.body) {
         // log success
-        logger.log(1, '_getMonthlyHours', `Successfully got timesheet data for employee number ${employeeNumber}`);
+        logger.log(1, '_getTimesheetsData', `Successfully got timesheet data for employee number ${employeeNumber}`);
 
         let timeSheets = resultPayload.body;
 
@@ -91,7 +111,11 @@ class TimesheetsRoutes {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_getMonthlyHours', `Failed to get monthly hours for employee number ${req.params.employeeNumber}`);
+      logger.log(
+        1,
+        '_getTimesheetsData',
+        `Failed to get timesheet data for employee number ${req.params.employeeNumber}`
+      );
 
       // send error status
       this._sendError(res, err);
@@ -134,12 +158,41 @@ class TimesheetsRoutes {
    *
    * @returns Object - The start and end date of the year and a formatted title
    */
-  _getYearlyPeriod() {
+  _getCalendarYearPeriod() {
     let today = getTodaysDate();
     let startDate = format(startOf(today, 'year'), null, DEFAULT_ISOFORMAT);
     let endDate = format(endOf(today, 'year'), null, DEFAULT_ISOFORMAT);
     let title = format(startDate, null, 'YYYY');
-    return { startDate, endDate, title };
+    return [{ startDate, endDate, title }];
+  } // _getYearlyPeriod
+
+  _getCurrentProject(employee) {
+    let currentProject = null;
+    _.forEach(employee.contracts, (c) => {
+      currentProject = _.find(c.projects, (p) => !p.endDate);
+      if (currentProject) return;
+    });
+    return currentProject;
+  }
+
+  /**
+   * Gets the yearly time period.
+   *
+   * @returns Object - The start and end date of the year and a formatted title
+   */
+  _getContractYearPeriod(employee) {
+    let project = this._getCurrentProject(employee);
+    if (!project) return null;
+    let today = getTodaysDate();
+    let currentYear = getYear(getTodaysDate());
+    let startDate = format(project.startDate, null, DEFAULT_ISOFORMAT);
+    startDate = setYear(startDate, currentYear);
+    if (isBefore(today, startDate, 'day')) startDate = setYear(startDate, currentYear - 1);
+    let endDate = format(add(startDate, 1, 'year'), null, DEFAULT_ISOFORMAT);
+    endDate = format(subtract(endDate, 1, 'day'), null, DEFAULT_ISOFORMAT);
+    let startDateTitle = format(startDate, null, 'MMM D, YYYY');
+    let endDateTitle = format(endDate, null, 'MMM D, YYYY');
+    return [{ startDate, endDate, title: `${startDateTitle} - ${endDateTitle}` }];
   } // _getYearlyPeriod
 
   /**
