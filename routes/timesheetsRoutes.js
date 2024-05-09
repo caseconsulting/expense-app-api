@@ -182,8 +182,8 @@ class TimesheetsRoutes {
   _getCurrentProject(employee) {
     let currentProject = null;
     _.forEach(employee.contracts, (c) => {
-      currentProject = _.find(c.projects, (p) => p.bonusCalculationDate);
-      if (currentProject) return;
+      let project = _.find(c.projects, (p) => p.bonusCalculationDate);
+      if (project) currentProject = _.cloneDeep(project);
     });
     return currentProject;
   } // _getCurrentProject
