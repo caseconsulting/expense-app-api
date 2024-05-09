@@ -125,6 +125,13 @@ class TimesheetsRoutes {
     }
   } // _getTimesheetsData
 
+  /**
+   * Gets the array of pay periods to recieve timesheet data for.
+   *
+   * @param {Number} employeeNumber - The user's employee number
+   * @param {Number} amount - The amount of pay periods to get
+   * @returns Array - An array of pay periods
+   */
   _getPayPeriods(employeeNumber, amount) {
     if (Number(employeeNumber) > 0) {
       // CASE pay period
@@ -132,7 +139,7 @@ class TimesheetsRoutes {
     } else {
       // TODO: CYK bi-weekly integration
     }
-  }
+  } // _getPayPeriods
 
   /**
    * Gets the array of monthly pay period dates.
@@ -166,14 +173,20 @@ class TimesheetsRoutes {
     return [{ startDate, endDate, title }];
   } // _getYearlyPeriod
 
+  /**
+   * Gets the current project that is toggled to show for contract year.
+   *
+   * @param {Object} employee - The employee object
+   * @returns Object - The current project to show
+   */
   _getCurrentProject(employee) {
     let currentProject = null;
     _.forEach(employee.contracts, (c) => {
-      currentProject = _.find(c.projects, (p) => !p.endDate);
+      currentProject = _.find(c.projects, (p) => p.bonusCalculationDate);
       if (currentProject) return;
     });
     return currentProject;
-  }
+  } // _getCurrentProject
 
   /**
    * Gets the yearly time period.
@@ -184,7 +197,7 @@ class TimesheetsRoutes {
     let project = this._getCurrentProject(employee);
     if (!project) return null;
     let today = getTodaysDate();
-    let currentYear = getYear(getTodaysDate());
+    let currentYear = getYear(today);
     let startDate = format(project.startDate, null, DEFAULT_ISOFORMAT);
     startDate = setYear(startDate, currentYear);
     if (isBefore(today, startDate, 'day')) startDate = setYear(startDate, currentYear - 1);
