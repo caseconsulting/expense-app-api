@@ -1,6 +1,6 @@
 const axios = require('axios');
+const qs = require('qs');
 const express = require('express');
-const oauth = require('axios-oauth-client');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
@@ -79,14 +79,20 @@ class EmsiRoutes {
   async getEmsiToken() {
     logger.log(1, 'getEmsiToken', 'Attempting to retrieve emsi token');
     try {
-      const token = await oauth.client(axios.create(), {
-        url: 'https://auth.emsicloud.com/connect/token',
-        grant_type: 'client_credentials',
+      let data = qs.stringify({
         client_id: 'ij4t48a91zkw30tq',
         client_secret: 'G1sWyMUo',
+        grant_type: 'client_credentials',
         scope: 'emsi_open'
-      })();
-      let accessToken = token.access_token;
+      });
+      const options = {
+        method: 'POST',
+        url: 'https://auth.emsicloud.com/connect/token',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        data: data
+      };
+      const resp = await axios(options);
+      let accessToken = resp.data.access_token;
       logger.log(1, 'getEmsiToken', 'Successfully retrieved emsi token');
       return accessToken;
     } catch (err) {
