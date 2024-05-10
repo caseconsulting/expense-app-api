@@ -122,6 +122,7 @@
     "multer-s3": "3.0.1",
     "pm2": "5.3.1",
     "pug": "3.0.2",
+    "qs": "6.12.1",
     "readline-sync": "1.4.10"
   },
   "devDependencies": {
