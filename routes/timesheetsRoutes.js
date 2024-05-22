@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const express = require('express');
-const { isBefore } = require('../js/dateUtils');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
@@ -12,7 +11,9 @@ const {
   setYear,
   format,
   isAfter,
+  isBefore,
   isValid,
+  isBetween,
   startOf,
   endOf,
   subtract,
@@ -31,6 +32,7 @@ class TimesheetsRoutes {
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._employeeDynamo = new DatabaseModify('employees');
+    this.tagDynamo = new DatabaseModify('tags');
 
     this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
   } // constructor
@@ -45,9 +47,16 @@ class TimesheetsRoutes {
   async _getTimesheetsData(req, res) {
     try {
       let employeeNumber = req.params.employeeNumber;
+      let employeeId = req.query.employeeId;
       let startDate = req.query.startDate;
       let endDate = req.query.endDate;
       let code = Number(req.query.code);
+      let [tags, employee] = await Promise.all([
+        this.tagDynamo.getAllEntriesInDB(),
+        code === 4 ? this._employeeDynamo.getEntry(employeeId) : ''
+      ]);
+      let cykTag = _.find(tags, (t) => t.tagName === 'CYK');
+      let isCyk = _.some(cykTag?.employees, (e) => e === employeeId);
 
       // log method
       logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
@@ -57,7 +66,7 @@ class TimesheetsRoutes {
       code || this._validateDates(startDate, endDate);
 
       // mysterio function parameters
-      let payload = { employeeNumber };
+      let payload = { employeeNumber, isCyk };
 
       switch (code) {
         case 1:
@@ -74,7 +83,6 @@ class TimesheetsRoutes {
           break;
         case 4: {
           // contract year timesheets (start and end date of employee current contract year)
-          let employee = await this._employeeDynamo.getEntry(req.query.employeeId);
           payload.periods = this._getContractYearPeriod(employee);
           break;
         }
@@ -138,8 +146,51 @@ class TimesheetsRoutes {
       return this._getMonthlyPayPeriods(amount);
     } else {
       // TODO: CYK bi-weekly integration
+      const ORIG_START_DATE = '2024-04-15';
+      const ORIG_END_DATE = '2024-04-28';
+      let currentPeriod = this._getCykCurrentPeriod(ORIG_START_DATE, ORIG_END_DATE);
+      return this._getBiWeeklyPayPeriods(currentPeriod, amount);
     }
   } // _getPayPeriods
+
+  /**
+   * Gets the current bi-weekly pay period for CYK employees.
+   *
+   * @param {String} originalStartDate - A pay period start date in the past
+   * @param {String} originalEndDate - A pay period end date in the past
+   * @returns Object - The start and end date of the current bi-weekly period
+   */
+  _getCykCurrentPeriod(originalStartDate, originalEndDate) {
+    let today = getTodaysDate();
+    let startDate = _.cloneDeep(originalStartDate);
+    let endDate = _.cloneDeep(originalEndDate);
+    while (!isBetween(today, startDate, endDate, 'day', '[]')) {
+      startDate = add(startDate, 14, 'day', DEFAULT_ISOFORMAT);
+      endDate = add(endDate, 14, 'day', DEFAULT_ISOFORMAT);
+    }
+    return { startDate, endDate };
+  } // _getCykCurrentPeriod
+
+  /**
+   * Gets the array of bi-weekly pay period dates.
+   *
+   * @param {Object} currentPeriod - The start and end date of the current pay period
+   * @param {Number} amount - the sum of current and previous pay periods to get
+   * @returns Array - The array of pay period objects
+   */
+  _getBiWeeklyPayPeriods(currentPeriod, amount) {
+    let periods = [];
+    let period = _.cloneDeep(currentPeriod);
+    for (let i = 0; i < amount; i++) {
+      let startDateTitle = format(period.startDate, null, 'MMM D, YYYY');
+      let endDateTitle = format(period.endDate, null, 'MMM D, YYYY');
+      period.title = `${startDateTitle} - ${endDateTitle}`;
+      periods.unshift(period);
+      period.startDate = subtract(period.startDate, 14, 'day', DEFAULT_ISOFORMAT);
+      period.endDate = subtract(period.endDate, 14, 'day', DEFAULT_ISOFORMAT);
+    }
+    return periods;
+  } // _getBiWeeklyPayPeriods
 
   /**
    * Gets the array of monthly pay period dates.
