@@ -1078,10 +1078,7 @@ describe('utilityRoutes', () => {
 
     describe('when employee is an admin', () => {
       beforeEach(() => {
-        spyOn(utilityRoutes, 'isAdmin').and.returnValue(true);
-        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
-        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
-        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
+        req.employee.employeeRole = 'admin';
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1182,10 +1179,7 @@ describe('utilityRoutes', () => {
 
     describe('when employee is an manager', () => {
       beforeEach(() => {
-        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
-        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
-        spyOn(utilityRoutes, 'isManager').and.returnValue(true);
+        req.employee.employeeRole = 'manager';
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1285,10 +1279,7 @@ describe('utilityRoutes', () => {
 
     describe('when employee is a user', () => {
       beforeEach(() => {
-        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(utilityRoutes, 'isUser').and.returnValue(true);
-        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
-        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
+        req.employee.employeeRole = 'user';
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1389,10 +1380,7 @@ describe('utilityRoutes', () => {
 
     describe('when employee is an intern', () => {
       beforeEach(() => {
-        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
-        spyOn(utilityRoutes, 'isIntern').and.returnValue(true);
-        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
+        req.employee.employeeRole = 'intern';
       });
 
       describe('and successfully gets all aggregate expenses', () => {
@@ -1498,10 +1486,7 @@ describe('utilityRoutes', () => {
           code: 403,
           message: 'Unable to get all aggregate expenses due to insufficient employee permissions.'
         };
-        spyOn(utilityRoutes, 'isAdmin').and.returnValue(false);
-        spyOn(utilityRoutes, 'isUser').and.returnValue(false);
-        spyOn(utilityRoutes, 'isIntern').and.returnValue(false);
-        spyOn(utilityRoutes, 'isManager').and.returnValue(false);
+        req.employee.employeeRole = 'none';
       });
 
       it('should respond with a 403 and error', (done) => {
@@ -2184,158 +2169,6 @@ describe('utilityRoutes', () => {
       }); // and employee is not included in the custom list
     }); // when expense type is accessible by custom employees
   }); // hasAccess
-
-  describe('isAdmin', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is an admin', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return true', () => {
-        expect(utilityRoutes.isAdmin(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is an admin
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isAdmin(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is a user
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isAdmin(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is an intern
-  }); // isAdmin
-
-  describe('isUser', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      it('should return true', () => {
-        expect(utilityRoutes.isUser(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is an admin', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isUser(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is an admin
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isUser(employee)).toBe(false);
-      }); // should return true
-    }); // when the employee is an intern
-  }); // isUser
-
-  describe('isIntern', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is a user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return true', () => {
-        expect(utilityRoutes.isIntern(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is an admin', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isIntern(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is an admin
-
-    describe('when the employee is an user', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'user';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isIntern(employee)).toBe(false);
-      }); // should return true
-    }); // when the employee is an intern
-  }); // isIntern
-
-  describe('isManager', () => {
-    let employee;
-
-    beforeEach(() => {
-      employee = _.cloneDeep(EMPLOYEE_DATA);
-    });
-
-    describe('when the employee is a manager', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'manager';
-      });
-
-      it('should return true', () => {
-        expect(utilityRoutes.isManager(employee)).toBe(true);
-      }); // should return true
-    }); // when the employee is a user
-
-    describe('when the employee is an admin', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'admin';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isManager(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is an admin
-
-    describe('when the employee is an intern', () => {
-      beforeEach(() => {
-        employee.employeeRole = 'intern';
-      });
-
-      it('should return false', () => {
-        expect(utilityRoutes.isManager(employee)).toBe(false);
-      }); // should return false
-    }); // when the employee is an intern
-  }); // isManager
 
   describe('router', () => {
     it('should return the router', () => {

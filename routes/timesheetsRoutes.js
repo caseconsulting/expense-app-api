@@ -1,11 +1,24 @@
+const _ = require('lodash');
 const express = require('express');
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
+const { isBefore } = require('../js/dateUtils');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
-const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { getExpressJwt, invokeLambda, isAdmin, isManager } = require(process.env.AWS ? 'utils' : '../js/utils');
+const {
+  add,
+  getTodaysDate,
+  getYear,
+  setYear,
+  format,
+  isAfter,
+  isValid,
+  startOf,
+  endOf,
+  subtract,
+  DEFAULT_ISOFORMAT
+} = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 
-const lambdaClient = new LambdaClient();
 const logger = new Logger('tSheetsRoutes');
 const STAGE = process.env.STAGE;
 
@@ -17,14 +30,9 @@ class TimesheetsRoutes {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+    this._employeeDynamo = new DatabaseModify('employees');
 
-    this._router.get(
-      '/:employeeNumber/:startDate/:endDate',
-      this._checkJwt,
-      this._getUserInfo,
-      this._getTimesheetsData.bind(this)
-    );
-    this._router.get('/pto/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
+    this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
   } // constructor
 
   /**
@@ -37,19 +45,43 @@ class TimesheetsRoutes {
   async _getTimesheetsData(req, res) {
     try {
       let employeeNumber = req.params.employeeNumber;
-      let startDate = req.params.startDate;
-      let endDate = req.params.endDate;
-      let onlyPto = !startDate && !endDate;
+      let startDate = req.query.startDate;
+      let endDate = req.query.endDate;
+      let code = Number(req.query.code);
 
       // log method
-      logger.log(1, '_getMonthlyHours', `Attempting to get timesheet data for employee number ${employeeNumber}`);
+      logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
 
       // validations
       this._validateUser(req.employee, employeeNumber);
-      onlyPto || this._validateDates(startDate, endDate);
+      code || this._validateDates(startDate, endDate);
 
       // mysterio function parameters
-      let payload = { employeeNumber, startDate, endDate, onlyPto };
+      let payload = { employeeNumber };
+
+      switch (code) {
+        case 1:
+          // only PTO data requested
+          payload.onlyPto = true;
+          break;
+        case 2:
+          // current and previous pay period timesheets
+          payload.periods = this._getPayPeriods(employeeNumber, 2);
+          break;
+        case 3:
+          // calendar year timesheets (start and end date of current year)
+          payload.periods = this._getCalendarYearPeriod();
+          break;
+        case 4: {
+          // contract year timesheets (start and end date of employee current contract year)
+          let employee = await this._employeeDynamo.getEntry(req.query.employeeId);
+          payload.periods = this._getContractYearPeriod(employee);
+          break;
+        }
+        default:
+          // timesheets that fall within the requested start and end dates
+          payload.periods = [{ startDate, endDate }];
+      }
 
       // lambda invoke parameters
       let params = {
@@ -59,10 +91,10 @@ class TimesheetsRoutes {
       };
 
       // invoke mysterio monthly hours lambda function
-      let resultPayload = await this.invokeLambda(params);
+      let resultPayload = await invokeLambda(params);
       if (resultPayload.body) {
         // log success
-        logger.log(1, '_getMonthlyHours', `Successfully got timesheet data for employee number ${employeeNumber}`);
+        logger.log(1, '_getTimesheetsData', `Successfully got timesheet data for employee number ${employeeNumber}`);
 
         let timeSheets = resultPayload.body;
 
@@ -79,7 +111,11 @@ class TimesheetsRoutes {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_getMonthlyHours', `Failed to get monthly hours for employee number ${req.params.employeeNumber}`);
+      logger.log(
+        1,
+        '_getTimesheetsData',
+        `Failed to get timesheet data for employee number ${req.params.employeeNumber}`
+      );
 
       // send error status
       this._sendError(res, err);
@@ -90,76 +126,87 @@ class TimesheetsRoutes {
   } // _getTimesheetsData
 
   /**
-   * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
+   * Gets the array of pay periods to recieve timesheet data for.
    *
-   * @param employee - Employee to check
-   * @return boolean - employee is admin
+   * @param {Number} employeeNumber - The user's employee number
+   * @param {Number} amount - The amount of pay periods to get
+   * @returns Array - An array of pay periods
    */
-  isAdmin(employee) {
-    // log method
-    logger.log(5, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
-
-    // compute method
-    let result = employee.employeeRole === 'admin';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is an admin`);
+  _getPayPeriods(employeeNumber, amount) {
+    if (Number(employeeNumber) > 0) {
+      // CASE pay period
+      return this._getMonthlyPayPeriods(amount);
     } else {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is not an admin`);
+      // TODO: CYK bi-weekly integration
     }
-
-    // return result
-    return result;
-  } // isAdmin
+  } // _getPayPeriods
 
   /**
-   * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
+   * Gets the array of monthly pay period dates.
    *
-   * @param employee - Employee to check
-   * @return boolean - employee is user
+   * @param {Number} amount - The sum of current and previous pay periods to get
+   * @returns Array - The array of pay period objects
    */
-  isUser(employee) {
-    // log method
-    logger.log(5, 'isUser', `Checking if employee ${employee.id} is a user`);
-
-    // compute method
-    let result = employee.employeeRole === 'user';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isUser', `Employee ${employee.id} is a user`);
-    } else {
-      logger.log(5, 'isUser', `Employee ${employee.id} is not a user`);
+  _getMonthlyPayPeriods(amount) {
+    let periods = [];
+    let today = getTodaysDate();
+    for (let i = 0; i < amount; i++) {
+      let date = subtract(today, i, 'month');
+      let startDate = format(startOf(date, 'month'), null, DEFAULT_ISOFORMAT);
+      let endDate = format(endOf(date, 'month'), null, DEFAULT_ISOFORMAT);
+      let title = format(startDate, null, 'MMMM');
+      periods.unshift({ startDate, endDate, title });
     }
-
-    // return result
-    return result;
-  } // isUser
+    return periods;
+  } // _getMonthlyPayPeriods
 
   /**
-   * Check if an employee is a manager. Returns true if employee role is 'manager', otherwise returns false.
+   * Gets the yearly time period.
    *
-   * @param employee - Employee to check
-   * @return boolean - employee is manager
+   * @returns Object - The start and end date of the year and a formatted title
    */
-  isManager(employee) {
-    // log method
-    logger.log(5, 'isManager', `Checking if employee ${employee.id} is a manager`);
+  _getCalendarYearPeriod() {
+    let today = getTodaysDate();
+    let startDate = format(startOf(today, 'year'), null, DEFAULT_ISOFORMAT);
+    let endDate = format(endOf(today, 'year'), null, DEFAULT_ISOFORMAT);
+    let title = format(startDate, null, 'YYYY');
+    return [{ startDate, endDate, title }];
+  } // _getYearlyPeriod
 
-    // compute method
-    let result = employee.employeeRole === 'manager';
+  /**
+   * Gets the current project that is toggled to show for contract year.
+   *
+   * @param {Object} employee - The employee object
+   * @returns Object - The current project to show
+   */
+  _getCurrentProject(employee) {
+    let currentProject = null;
+    _.forEach(employee.contracts, (c) => {
+      let project = _.find(c.projects, (p) => p.bonusCalculationDate);
+      if (project) currentProject = _.cloneDeep(project);
+    });
+    return currentProject;
+  } // _getCurrentProject
 
-    // log result
-    if (result) {
-      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
-    } else {
-      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
-    }
-
-    // return result
-    return result;
-  } // isManager
+  /**
+   * Gets the yearly time period.
+   *
+   * @returns Object - The start and end date of the year and a formatted title
+   */
+  _getContractYearPeriod(employee) {
+    let project = this._getCurrentProject(employee);
+    if (!project) return null;
+    let today = getTodaysDate();
+    let currentYear = getYear(today);
+    let startDate = format(project.startDate, null, DEFAULT_ISOFORMAT);
+    startDate = setYear(startDate, currentYear);
+    if (isBefore(today, startDate, 'day')) startDate = setYear(startDate, currentYear - 1);
+    let endDate = format(add(startDate, 1, 'year'), null, DEFAULT_ISOFORMAT);
+    endDate = format(subtract(endDate, 1, 'day'), null, DEFAULT_ISOFORMAT);
+    let startDateTitle = format(startDate, null, 'MMM D, YYYY');
+    let endDateTitle = format(endDate, null, 'MMM D, YYYY');
+    return [{ startDate, endDate, title: `${startDateTitle} - ${endDateTitle}` }];
+  } // _getYearlyPeriod
 
   /**
    * Returns the instace express router.
@@ -188,40 +235,39 @@ class TimesheetsRoutes {
     return res.status(err?.code || 500).send(err);
   } // _sendError
 
+  /**
+   * Validates the start and end date.
+   *
+   * @param {String} startDate - The start date
+   * @param {String} endDate - The end date
+   */
   _validateDates(startDate, endDate) {
-    if (!dateUtils.isValid(startDate, 'YYYY-MM') || !dateUtils.isValid(endDate, 'YYYY-MM')) {
+    if (!isValid(startDate, 'YYYY-MM-DD') || !isValid(endDate, 'YYYY-MM-DD')) {
       throw {
         code: 400,
-        message: 'Invalid start or end date, must use YYYY-MM format'
+        message: 'Invalid start or end date, must use YYYY-MM-DD format'
       };
-    } else if (dateUtils.isAfter(startDate, endDate, 'month', 'YYYY-MM')) {
+    } else if (isAfter(startDate, endDate, 'day', 'YYYY-MM-DD')) {
       throw {
         code: 400,
         message: 'Invalid start or end date, start date must be before end date'
       };
     }
-  }
+  } // _validateDates
 
+  /**
+   *
+   * @param {Objeect} authUser - The user requesting data
+   * @param {*} empNum - The employee number of the user's data to be received
+   */
   _validateUser(authUser, empNum) {
-    if (!this.isAdmin(authUser) && !this.isManager(authUser) && Number(authUser.employeeNumber) !== Number(empNum)) {
+    if (!isAdmin(authUser) && !isManager(authUser) && Number(authUser.employeeNumber) !== Number(empNum)) {
       throw {
         code: 401,
         message: `User does not have permission to access timesheet data for employeeNumber ${empNum}`
       };
     }
-  }
-
-  /**
-   * Invokes lambda function with given params
-   *
-   * @param params - params to invoke lambda function with
-   * @return object if successful, error otherwise
-   */
-  async invokeLambda(params) {
-    const command = new InvokeCommand(params);
-    const resp = await lambdaClient.send(command);
-    return JSON.parse(Buffer.from(resp.Payload));
-  } // invokeLambda
+  } // _validateUser
 } // TSheetsRoutes
 
 module.exports = TimesheetsRoutes;

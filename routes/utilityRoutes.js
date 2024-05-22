@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const express = require('express');
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Employee = require(process.env.AWS ? 'employee' : '../models/employee');
@@ -10,11 +9,12 @@ const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expense
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
-const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { getExpressJwt, invokeLambda, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
+  ? 'utils'
+  : '../js/utils');
 const Basecamp = require(process.env.AWS ? 'basecampRoutes' : '../routes/basecampRoutes');
 const PTOCashOut = require(process.env.AWS ? 'ptoCashOut' : '../models/ptoCashOut');
 
-const lambdaClient = new LambdaClient();
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('utilityRoutes');
 const STAGE = process.env.STAGE;
@@ -85,18 +85,8 @@ class Utility {
       this._getUserInfo,
       this._getUnreimbursedExpenses.bind(this)
     );
-    this._router.post(
-      '/syncApplications',
-      this._checkJwt,
-      this._getUserInfo,
-      this._syncApplications.bind(this)
-    );
-    this._router.get(
-      '/getEmployeesFromAdp',
-      this._checkJwt,
-      this._getUserInfo,
-      this._getADPEmployeeData.bind(this)
-    );
+    this._router.post('/syncApplications', this._checkJwt, this._getUserInfo, this._syncApplications.bind(this));
+    this._router.get('/getEmployeesFromAdp', this._checkJwt, this._getUserInfo, this._getADPEmployeeData.bind(this));
 
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
@@ -457,12 +447,7 @@ class Utility {
 
     // compute method
     try {
-      if (
-        this.isAdmin(req.employee) ||
-        this.isUser(req.employee) ||
-        this.isIntern(req.employee) ||
-        this.isManager(req.employee)
-      ) {
+      if (isAdmin(req.employee) || isUser(req.employee) || isIntern(req.employee) || isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes = await this.getAllExpenseTypes();
@@ -654,19 +639,14 @@ class Utility {
 
     // compute method
     try {
-      if (
-        this.isAdmin(req.employee) ||
-        this.isUser(req.employee) ||
-        this.isIntern(req.employee) ||
-        this.isManager(req.employee)
-      ) {
+      if (isAdmin(req.employee) || isUser(req.employee) || isIntern(req.employee) || isManager(req.employee)) {
         // employee is an admin or user
         // get expense types
         let expenseTypes;
 
         let employeesData;
         let expensesData;
-        if (this.isAdmin(req.employee) || this.isManager(req.employee)) {
+        if (isAdmin(req.employee) || isManager(req.employee)) {
           // get all employee and expense data if admin
           [expenseTypes, employeesData, expensesData] = await Promise.all([
             this.getAllExpenseTypes(),
@@ -735,7 +715,7 @@ class Utility {
     // compute method
     try {
       // Restricts access to admin, manager and signed-in user
-      if (this.isUser(req.employee) && this.isIntern(req.employee) && req.params.id != req.employee.id) {
+      if (isUser(req.employee) && isIntern(req.employee) && req.params.id != req.employee.id) {
         let err = {
           code: 403,
           message: `Unable to get all expenses for employee ${req.params.id} due to insufficient
@@ -787,7 +767,7 @@ class Utility {
     // compute method
     try {
       // Restricts access to signed-in user
-      if (this.isIntern(req.employee) || (!this.isAdmin(req.employee) && req.params.id != req.employee.id)) {
+      if (isIntern(req.employee) || (!isAdmin(req.employee) && req.params.id != req.employee.id)) {
         let err = {
           code: 403,
           message: `Unable to get all PTO Cash Outs for employee ${req.params.id} due to insufficient
@@ -839,7 +819,7 @@ class Utility {
     // compute method
     try {
       // restrict access only to admin and manager
-      if (!this.isAdmin(req.employee)) {
+      if (!isAdmin(req.employee)) {
         let err = {
           code: 403,
           message: `Unable to get all expenses for expense type ${req.params.id} due to insufficient
@@ -1184,8 +1164,7 @@ class Utility {
         FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
         Qualifier: '$LATEST'
       };
-      const resp = await lambdaClient.send(new InvokeCommand(params));
-      const result = JSON.parse(Buffer.from(resp.Payload));
+      const result = await invokeLambda(params);
       // send successful 200 status
       res.status(200).send(result);
       // return result from lambda function
@@ -1211,8 +1190,7 @@ class Utility {
         FunctionName: `mysterio-adp-employees-${STAGE}`,
         Qualifier: '$LATEST'
       };
-      const resp = await lambdaClient.send(new InvokeCommand(params));
-      let result = JSON.parse(Buffer.from(resp.Payload));
+      let result = await invokeLambda(params);
       let employees = result.body;
       res.status(200).send(employees);
       logger.log(1, '_getADPEmployeeData', 'Returning  ADP employee info');
@@ -1270,102 +1248,6 @@ class Utility {
     // return result
     return result;
   } // hasAccess
-
-  /**
-   * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is admin
-   */
-  isAdmin(employee) {
-    // log method
-    logger.log(5, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
-
-    // compute method
-    let result = employee.employeeRole === 'admin';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is an admin`);
-    } else {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is not an admin`);
-    }
-
-    // return result
-    return result;
-  } // isAdmin
-
-  /**
-   * Check if an employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is intern
-   */
-  isIntern(employee) {
-    // log method
-    logger.log(5, 'isIntern', `Checking if employee ${employee.id} is an intern`);
-
-    // compute method
-    let result = employee.employeeRole === 'intern';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isIntern', `Employee ${employee.id} is an intern`);
-    } else {
-      logger.log(5, 'isIntern', `Employee ${employee.id} is not an intern`);
-    }
-
-    // return result
-    return result;
-  } // isIntern
-
-  /**
-   * Check if an employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is intern
-   */
-  isManager(employee) {
-    // log method
-    logger.log(5, 'isManager', `Checking if employee ${employee.id} is a manager`);
-
-    // compute method
-    let result = employee.employeeRole === 'manager';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
-    } else {
-      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
-    }
-
-    // return result
-    return result;
-  } // isManager
-
-  /**
-   * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is user
-   */
-  isUser(employee) {
-    // log method
-    logger.log(5, 'isUser', `Checking if employee ${employee.id} is a user`);
-
-    // compute method
-    let result = employee.employeeRole === 'user';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isUser', `Employee ${employee.id} is a user`);
-    } else {
-      logger.log(5, 'isUser', `Employee ${employee.id} is not a user`);
-    }
-
-    // return result
-    return result;
-  } // isUser
 
   /**
    * Returns the instace express router.

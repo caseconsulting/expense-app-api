@@ -400,6 +400,7 @@ A nightly function that syncs data between the Portal and external applications.
 External applications being synced with the Portal are:
 
 - BambooHR
+- ADP
 
 Fields being synced between the Portal and external applications:
 
@@ -426,11 +427,11 @@ Fields being synced between the Portal and external applications:
 
 ## Documentation
 
-**AWS SDK:** (we're currently using version 3)
+**AWS SDK V3:**
 
 https://docs.aws.amazon.com/sdk-for-javascript/
 
-**AWS CLI:** (we're currently using version 2)
+**AWS CLI V2:**
 
 https://docs.aws.amazon.com/cli/index.html
 

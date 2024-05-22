@@ -1,6 +1,6 @@
 {
   "name": "expense-app-api",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "private": true,
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
@@ -11,6 +11,9 @@
     "create:claudia:dev": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-dev --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-dev",
     "create:claudia:prod": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-prod --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-prod",
     "create:claudia:test": "node ./generateEnvJson.js && claudia create --handler lambda.handler --deploy-proxy-api --region us-east-1 --name expense-app-api-test --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-test",
+    "csvScripts:dev": "node ./js/Scripts/csvScripts.js dev",
+    "csvScripts:prod": "node ./js/Scripts/csvScripts.js prod",
+    "csvScripts:test": "node ./js/Scripts/csvScripts.js test",
     "debug": "nodemon --trace-warnings --inspect bin/www",
     "deploy:cloudformation:dev": "aws cloudformation deploy --template-file packaged.yaml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-dev --region us-east-1",
     "deploy:cloudformation:prod": "aws cloudformation deploy --template-file packaged.yaml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-prod --region us-east-1",
