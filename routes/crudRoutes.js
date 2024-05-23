@@ -6,7 +6,9 @@ const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/datab
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
-const { generateUUID, getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
+  ? 'utils'
+  : '../js/utils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -108,12 +110,12 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
     let managerPermissions =
-      this.isManager(employee) &&
+      isManager(employee) &&
       this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
-      this.isAdmin(employee) &&
+      isAdmin(employee) &&
       this._checkTableName([
         'expenses',
         'expense-types',
@@ -123,7 +125,7 @@ class Crud {
         'pto-cashouts',
         'tags'
       ]);
-    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -163,13 +165,13 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
     let adminPermissions =
-      this.isAdmin(employee) &&
+      isAdmin(employee) &&
       this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
-    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
     let managerPermissions =
-      this.isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -210,9 +212,9 @@ class Crud {
 
     // compute method
     let userPermissions =
-      this.isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
+      isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
     let adminPermissions =
-      this.isAdmin(employee) &&
+      isAdmin(employee) &&
       this._checkTableName([
         'expenses',
         'expense-types',
@@ -222,10 +224,9 @@ class Crud {
         'pto-cashouts',
         'tags'
       ]);
-    let internPermissions =
-      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) &&
+      isManager(employee) &&
       this._checkTableName([
         'employees',
         'training-urls',
@@ -272,9 +273,9 @@ class Crud {
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
-    let userPermissions = this.isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let adminPermissions =
-      this.isAdmin(employee) &&
+      isAdmin(employee) &&
       this._checkTableName([
         'expenses',
         'expense-types',
@@ -285,10 +286,9 @@ class Crud {
         'pto-cashouts',
         'tags'
       ]);
-    let internPermissions =
-      this.isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
     let managerPermissions =
-      this.isManager(employee) &&
+      isManager(employee) &&
       this._checkTableName([
         'employees',
         'employees-sensitive',
@@ -338,9 +338,9 @@ class Crud {
 
     // compute method
     let userPermissions =
-      this.isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
+      isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
     let adminPermissions =
-      this.isAdmin(employee) &&
+      isAdmin(employee) &&
       this._checkTableName([
         'expenses',
         'expense-types',
@@ -350,9 +350,9 @@ class Crud {
         'pto-cashouts',
         'tags'
       ]);
-    let internPermissions = this.isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
     let managerPermissions =
-      this.isManager(employee) &&
+      isManager(employee) &&
       this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -726,78 +726,6 @@ class Crud {
   } // hasAccess
 
   /**
-   * Check if an employee is an admin. Returns true if employee role is 'admin', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is admin
-   */
-  isAdmin(employee) {
-    // log method
-    logger.log(5, 'isAdmin', `Checking if employee ${employee.id} is an admin`);
-
-    // compute method
-    let result = employee.employeeRole === 'admin';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is an admin`);
-    } else {
-      logger.log(5, 'isAdmin', `Employee ${employee.id} is not an admin`);
-    }
-
-    // return result
-    return result;
-  } // isAdmin
-
-  /**
-   * Check if an employee is an intern. Returns true if employee role is 'intern', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is intern
-   */
-  isIntern(employee) {
-    // log method
-    logger.log(5, 'isIntern', `Checking if employee ${employee.id} is an intern`);
-
-    // compute method
-    let result = employee.employeeRole === 'intern';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isIntern', `Employee ${employee.id} is an intern`);
-    } else {
-      logger.log(5, 'isIntern', `Employee ${employee.id} is not an intern`);
-    }
-
-    // return result
-    return result;
-  } // isIntern
-
-  /**
-   * Check if an employee is an manager. Returns true if employee role is 'manager', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is manager
-   */
-  isManager(employee) {
-    // log method
-    logger.log(5, 'isManager', `Checking if employee ${employee.id} is an manager`);
-
-    // compute method
-    let result = employee.employeeRole === 'manager';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isManager', `Employee ${employee.id} is a manager`);
-    } else {
-      logger.log(5, 'isManager', `Employee ${employee.id} is not a manager`);
-    }
-
-    // return result
-    return result;
-  } // isManager
-
-  /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
    * false.
    *
@@ -807,30 +735,6 @@ class Crud {
   isIsoFormat(value) {
     return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
   } // isIsoFormat
-
-  /**
-   * Check if an employee is a user. Returns true if employee role is 'user', otherwise returns false.
-   *
-   * @param employee - Employee to check
-   * @return boolean - employee is user
-   */
-  isUser(employee) {
-    // log method
-    logger.log(5, 'isUser', `Checking if employee ${employee.id} is a user`);
-
-    // compute method
-    let result = employee.employeeRole === 'user';
-
-    // log result
-    if (result) {
-      logger.log(5, 'isUser', `Employee ${employee.id} is a user`);
-    } else {
-      logger.log(5, 'isUser', `Employee ${employee.id} is not a user`);
-    }
-
-    // return result
-    return result;
-  } // isUser
 
   /* eslint-disable no-unused-vars */
 
@@ -869,7 +773,7 @@ class Crud {
         let dataRead = await this._read(req.params); // read object
 
         // validate user permission to the read expense
-        if ((this.isUser(req.employee) || this.isManager(req.employee)) && this._checkTableName(['expenses'])) {
+        if ((isUser(req.employee) || isManager(req.employee)) && this._checkTableName(['expenses'])) {
           // user is reading an expense
           // check the expense belongs to the user
           if (dataRead.employeeId !== req.employee.id) {

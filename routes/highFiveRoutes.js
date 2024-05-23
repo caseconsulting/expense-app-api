@@ -6,13 +6,9 @@ const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const ExpenseRoutes = require(process.env.AWS ? 'expenseRoutes' : '../routes/expenseRoutes');
 const GiftCard = require(process.env.AWS ? 'giftCard' : '../models/giftCard');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
-const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
-const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+const { getExpressJwt, invokeLambda, sendEmail } = require(process.env.AWS ? 'utils' : '../js/utils');
 
-const sesClient = new SESClient({ region: 'us-east-1' });
 const expenseRoutes = new ExpenseRoutes();
-const lambdaClient = new LambdaClient();
 const logger = new Logger('giftCardRoutes');
 const STAGE = process.env.STAGE;
 const EMAIL_SENDER_ADDRESS = process.env.APP_COMPANY_EMAIL_ADDRESS;
@@ -55,8 +51,7 @@ class HighFiveRoutes {
         FunctionName: `mysterio-generate-gift-card-${STAGE}`,
         Qualifier: '$LATEST'
       };
-      const resp = await lambdaClient.send(new InvokeCommand(params));
-      const result = JSON.parse(Buffer.from(resp.Payload));
+      const result = await invokeLambda(params);
       if ((result && result.errorType) || result instanceof Error) {
         return Promise.reject(result.errorType);
       }
@@ -176,36 +171,21 @@ class HighFiveRoutes {
    * @param {String} message - The message from the high five
    * @param {Object} donor - The user giving the high five
    * @param {Object} recipient - The user recceiving the high five
-   * @param {Object} isProd - If on production
    * @returns Promise - Resolves if the email was sent
    */
   async _sendGiftCardEmail(giftCard, message, donor, recipient) {
-    let template = fs.readFileSync(require.resolve('../views/giftCardTemplate.html')).toString();
-    template = template.replace(':recipient:', recipient.nickname || recipient.firstName);
-    template = template.replace(':donor:', `${donor.nickname || donor.firstName} ${donor.lastName}`);
-    template = template.replace(':giftCardInfo:', giftCard.gcClaimCode);
-    template = template.replace(':message:', message);
     try {
-      let command = new SendEmailCommand({
-        Destination: {
-          ToAddresses: [recipient.email]
-        },
-        Message: {
-          Body: {
-            Html: {
-              Charset: 'UTF-8',
-              Data: template
-            }
-          },
-          Subject: {
-            Charset: 'UTF-8',
-            Data: 'CASE sent you an Amazon Gift Card for receiving a High Five!'
-          }
-        },
-        Source: EMAIL_SENDER_ADDRESS
-      });
-      let result = await sesClient.send(command);
-      return Promise.resolve(result);
+      let template = fs.readFileSync(require.resolve('../views/giftCardTemplate.html')).toString();
+      template = template.replace(':recipient:', recipient.nickname || recipient.firstName);
+      template = template.replace(':donor:', `${donor.nickname || donor.firstName} ${donor.lastName}`);
+      template = template.replace(':giftCardInfo:', giftCard.gcClaimCode);
+      template = template.replace(':message:', message);
+      let source = EMAIL_SENDER_ADDRESS;
+      let toAddresses = [recipient.email];
+      let subject = 'CASE sent you an Amazon Gift Card for receiving a High Five!';
+      let body = template;
+      let isHtml = true;
+      await sendEmail(source, toAddresses, subject, body, isHtml);
     } catch (err) {
       return Promise.reject(err);
     }

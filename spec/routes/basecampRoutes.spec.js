@@ -192,13 +192,13 @@ describe('basecampRoutes', () => {
 
     describe('when it succeeds to return basecamp token', () => {
       beforeEach(() => {
-        spyOn(basecampRoutes, 'getToken').and.returnValue(Promise.resolve(rawToken));
+        spyOn(basecampRoutes, '_invokeLambda').and.returnValue(Promise.resolve(rawToken));
       });
 
       it('should respond with the data', (done) => {
         basecampRoutes._getBasecampToken().then((data) => {
           expect(data).toEqual(basecampToken);
-          expect(basecampRoutes.getToken).toHaveBeenCalled();
+          expect(basecampRoutes._invokeLambda).toHaveBeenCalled();
           done();
         });
       }); // it should respond with the data
@@ -213,13 +213,13 @@ describe('basecampRoutes', () => {
           message: 'Failed to get basecamp token.'
         };
 
-        spyOn(basecampRoutes, 'getToken').and.returnValue(Promise.reject(err));
+        spyOn(basecampRoutes, '_invokeLambda').and.returnValue(Promise.reject(err));
       });
 
       it('should return 404 error', (done) => {
         basecampRoutes._getBasecampToken().then((data) => {
           expect(data).toEqual(err);
-          expect(basecampRoutes.getToken).toHaveBeenCalled();
+          expect(basecampRoutes._invokeLambda).toHaveBeenCalled();
           done();
         });
       }); // should return 404 error

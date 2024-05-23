@@ -1,12 +1,10 @@
 const _ = require('lodash');
 const axios = require('axios');
 const express = require('express');
-const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { getExpressJwt, invokeLambda } = require(process.env.AWS ? 'utils' : '../js/utils');
 
-const lambdaClient = new LambdaClient();
 const logger = new Logger('basecampRoutes');
 const STAGE = process.env.STAGE;
 
@@ -35,24 +33,13 @@ class BasecampRoutes {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+    this._invokeLambda = invokeLambda;
 
     this._router.get('/getBasecampToken', this._checkJwt, this._getUserInfo, this._getBasecampToken.bind(this));
     this._router.get('/getFeedEvents', this._checkJwt, this._getUserInfo, this._getFeedEvents.bind(this));
     this._router.get('/getBasecampAvatars', this._checkJwt, this._getUserInfo, this._getBasecampAvatars.bind(this));
     this._router.get('/getBasecampCampfires', this._checkJwt, this._getUserInfo, this._getBasecampCampfires.bind(this));
   } // constructor
-
-  /**
-   * gets the token
-   *
-   * @param params - params for the lambda invoke call
-   * @return - promise containing token
-   */
-  async getToken(params) {
-    const command = new InvokeCommand(params);
-    const resp = await lambdaClient.send(command);
-    return JSON.parse(Buffer.from(resp.Payload));
-  } // getToken
 
   /**
    * get the basecamp token
@@ -70,7 +57,7 @@ class BasecampRoutes {
       };
 
       // invoke mysterio basecamp lambda function
-      let resultPayload = await this.getToken(params);
+      let resultPayload = await this._invokeLambda(params);
 
       if (resultPayload.body) {
         logger.log(1, '_getBasecampToken', 'Successfully acquired token');
@@ -213,7 +200,7 @@ class BasecampRoutes {
             name: project.name,
             url: chat.app_url
           };
-        }).filter(x => x); // filter out null values
+        }).filter((x) => x); // filter out null values
         campfires = _.union(campfires, pageCampfires);
         page++;
       } while (!_.isEmpty(pageCampfires));
