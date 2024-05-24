@@ -31,6 +31,7 @@ class TimesheetsRoutes {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+    this._ACCOUNTS = { CASE: 'CASE', CYK: 'CYK' };
     this._employeeDynamo = new DatabaseModify('employees');
     this.tagDynamo = new DatabaseModify('tags');
 
@@ -53,10 +54,12 @@ class TimesheetsRoutes {
       let code = Number(req.query.code);
       let [tags, employee] = await Promise.all([
         this.tagDynamo.getAllEntriesInDB(),
-        code === 4 ? this._employeeDynamo.getEntry(employeeId) : ''
+        this._employeeDynamo.getEntry(employeeId)
       ]);
       let cykTag = _.find(tags, (t) => t.tagName === 'CYK');
       let isCyk = _.some(cykTag?.employees, (e) => e === employeeId);
+      let cykAoidKey = 'cykAoid';
+      let account = isCyk ? this._ACCOUNTS.CYK : this._ACCOUNTS.CASE;
 
       // log method
       logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
@@ -66,7 +69,7 @@ class TimesheetsRoutes {
       code || this._validateDates(startDate, endDate);
 
       // mysterio function parameters
-      let payload = { employeeNumber, isCyk };
+      let payload = { employeeNumber, account, ...(isCyk && { aoid: employee[cykAoidKey] }) };
 
       switch (code) {
         case 1:
@@ -75,7 +78,7 @@ class TimesheetsRoutes {
           break;
         case 2:
           // current and previous pay period timesheets
-          payload.periods = this._getPayPeriods(employeeNumber, 2);
+          payload.periods = this._getPayPeriods(2, account);
           break;
         case 3:
           // calendar year timesheets (start and end date of current year)
@@ -105,6 +108,14 @@ class TimesheetsRoutes {
         logger.log(1, '_getTimesheetsData', `Successfully got timesheet data for employee number ${employeeNumber}`);
 
         let timeSheets = resultPayload.body;
+
+        if (account === this._ACCOUNTS.CYK) {
+          if (!(cykAoidKey in employee)) {
+            // add CYK aoid to employee record for optimization
+            employee[cykAoidKey] = timeSheets.aoid;
+            await this._employeeDynamo.updateAttributeInDB(employee, cykAoidKey);
+          }
+        }
 
         // send successful 200 status
         res.status(200).send(timeSheets);
@@ -138,18 +149,21 @@ class TimesheetsRoutes {
    *
    * @param {Number} employeeNumber - The user's employee number
    * @param {Number} amount - The amount of pay periods to get
+   * @param {String} account - The account to get pay periods for
    * @returns Array - An array of pay periods
    */
-  _getPayPeriods(employeeNumber, amount) {
-    if (Number(employeeNumber) > 0) {
+  _getPayPeriods(amount, account) {
+    if (account === this._ACCOUNTS.CASE) {
       // CASE pay period
       return this._getMonthlyPayPeriods(amount);
-    } else {
-      // TODO: CYK bi-weekly integration
-      const ORIG_START_DATE = '2024-04-15';
-      const ORIG_END_DATE = '2024-04-28';
-      let currentPeriod = this._getCykCurrentPeriod(ORIG_START_DATE, ORIG_END_DATE);
+    } else if (account === this._ACCOUNTS.CYK) {
+      // CYK bi-weekly integration
+      const CYK_ORIG_START_DATE = '2024-04-15';
+      const CYK_ORIG_END_DATE = '2024-04-28';
+      let currentPeriod = this._getCykCurrentPeriod(CYK_ORIG_START_DATE, CYK_ORIG_END_DATE);
       return this._getBiWeeklyPayPeriods(currentPeriod, amount);
+    } else {
+      return null;
     }
   } // _getPayPeriods
 
@@ -182,6 +196,7 @@ class TimesheetsRoutes {
     let periods = [];
     let period = _.cloneDeep(currentPeriod);
     for (let i = 0; i < amount; i++) {
+      period = _.cloneDeep(period);
       let startDateTitle = format(period.startDate, null, 'MMM D, YYYY');
       let endDateTitle = format(period.endDate, null, 'MMM D, YYYY');
       period.title = `${startDateTitle} - ${endDateTitle}`;

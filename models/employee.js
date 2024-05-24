@@ -21,6 +21,7 @@ const _ = require('lodash');
  * - contract
  * - contracts
  * - customerOrgExp
+ * - cykAoid
  * - degrees
  * - education
  * - github
@@ -62,6 +63,7 @@ class Employee {
     this.setOptionalAttribute(data, 'contract');
     this.setOptionalAttribute(data, 'contracts');
     this.setOptionalAttribute(data, 'customerOrgExp');
+    this.setOptionalAttribute(data, 'cykAoid');
     this.setOptionalAttribute(data, 'degrees');
     this.setOptionalAttribute(data, 'deptDate');
     this.setOptionalAttribute(data, 'education');
