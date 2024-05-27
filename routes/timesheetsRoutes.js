@@ -196,11 +196,11 @@ class TimesheetsRoutes {
     let periods = [];
     let period = _.cloneDeep(currentPeriod);
     for (let i = 0; i < amount; i++) {
-      period = _.cloneDeep(period);
       let startDateTitle = format(period.startDate, null, 'MMM D, YYYY');
       let endDateTitle = format(period.endDate, null, 'MMM D, YYYY');
       period.title = `${startDateTitle} - ${endDateTitle}`;
       periods.unshift(period);
+      period = _.cloneDeep(period);
       period.startDate = subtract(period.startDate, 14, 'day', DEFAULT_ISOFORMAT);
       period.endDate = subtract(period.endDate, 14, 'day', DEFAULT_ISOFORMAT);
     }
