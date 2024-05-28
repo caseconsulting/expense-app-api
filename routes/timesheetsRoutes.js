@@ -84,11 +84,10 @@ class TimesheetsRoutes {
           // calendar year timesheets (start and end date of current year)
           payload.periods = this._getCalendarYearPeriod();
           break;
-        case 4: {
+        case 4:
           // contract year timesheets (start and end date of employee current contract year)
           payload.periods = this._getContractYearPeriod(employee);
           break;
-        }
         default:
           // timesheets that fall within the requested start and end dates
           payload.periods = [{ startDate, endDate }];
