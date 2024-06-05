@@ -1186,8 +1186,10 @@ class Utility {
   async _getADPEmployeeData(req, res) {
     logger.log(1, '_getADPEmployeeData', 'Attempting to get ADP employee info');
     try {
+      let payload = { account: 'CASE', connector: 'Employees' };
       let params = {
         FunctionName: `mysterio-adp-employees-${STAGE}`,
+        Payload: JSON.stringify(payload),
         Qualifier: '$LATEST'
       };
       let result = await invokeLambda(params);

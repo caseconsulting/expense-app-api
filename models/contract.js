@@ -29,6 +29,7 @@ class Contract {
     this.setOptionalAttribute(data, 'status');
     this.setOptionalAttribute(data, 'description');
     this.setOptionalAttribute(data, 'directorate');
+    this.setOptionalAttribute(data, 'contractViewEnabled');
   } // constructor
 
   /**
