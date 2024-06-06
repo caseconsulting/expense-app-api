@@ -108,6 +108,36 @@ class ContractRoutes extends Crud {
   } // _update
 
   /**
+   * Prepares an attribute of a contract to be updated. Returns the contract if it can be successfully updated.
+   *
+   * @param req - request
+   * @return Contract - contract prepared to update
+   */
+  async _updateAttribute(req) {
+    let data = req.body;
+    // log method
+    logger.log(2, '_update', `Preparing to update contract ${data.id}`);
+
+    // compute method
+    try {
+      let oldContract = new Contract(await this.databaseModify.getEntry(data.id));
+      let newContract = new Contract({ ...oldContract, ...data });
+      await Promise.all([this._validateContract(newContract), this._validateUpdate(oldContract, newContract)]);
+
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update contract ${data.id}`);
+      // return contract to update
+      return { objectUpdated: newContract };
+    } catch (err) {
+      // log error
+      logger.log(2, '_update', `Failed to prepare update for contract ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateAttribute
+
+  /**
    * Validate that a contract can be created. Returns the contract if the contract can be created.
    *
    * @param contract - Contract to be created
@@ -328,7 +358,10 @@ class ContractRoutes extends Crud {
         throw err;
       }
 
-      let contractData = await this.databaseModify.getAllEntriesInDB();
+      let [contractData, employees] = await Promise.all([
+        this.databaseModify.getAllEntriesInDB(),
+        this.employeeDynamo.getAllEntriesInDB()
+      ]);
       let contracts = _.map(contractData, (contractData) => {
         return new Contract(contractData);
       });
@@ -352,8 +385,6 @@ class ContractRoutes extends Crud {
           'Please enter a unique contract and prime combination.';
         throw err;
       }
-
-      let employees = await this.employeeDynamo.getAllEntriesInDB();
 
       // validated on closed status update project
       oldContract.projects.forEach((p) => {

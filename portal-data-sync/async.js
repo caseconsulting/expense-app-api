@@ -128,8 +128,10 @@ async function updateCaseEmployee(employee) {
  */
 async function getADPEmployeeData() {
   try {
+    let payload = { account: 'CASE', connector: 'Employees' };
     let params = {
       FunctionName: `mysterio-adp-employees-${STAGE}`,
+      Payload: JSON.stringify(payload),
       Qualifier: '$LATEST'
     };
     let result = await invokeLambda(params);
