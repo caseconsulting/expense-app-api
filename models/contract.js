@@ -13,6 +13,7 @@ const _ = require('lodash');
  * - status
  * - description
  * - directorate
+ * - settings
  */
 
 class Contract {
@@ -29,7 +30,7 @@ class Contract {
     this.setOptionalAttribute(data, 'status');
     this.setOptionalAttribute(data, 'description');
     this.setOptionalAttribute(data, 'directorate');
-    this.setOptionalAttribute(data, 'contractViewEnabled');
+    this.setOptionalAttribute(data, 'settings');
   } // constructor
 
   /**
