@@ -18,6 +18,7 @@ const _ = require('lodash');
  * - recipient
  * - reimbursedDate
  * - receipt
+ * - rejections
  * - note
  * - url
  * - canDelete
@@ -38,6 +39,7 @@ class Expense {
     this.setOptionalAttribute(data, 'recipient');
     this.setOptionalAttribute(data, 'reimbursedDate');
     this.setOptionalAttribute(data, 'receipt');
+    this.setOptionalAttribute(data, 'rejections');
     this.setOptionalAttribute(data, 'note');
     this.setOptionalAttribute(data, 'url');
     this.setOptionalAttribute(data, 'canDelete');

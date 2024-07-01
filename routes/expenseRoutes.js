@@ -384,6 +384,15 @@ class ExpenseRoutes extends Crud {
     return result;
   } // _isOnlyReimburseDateChange
 
+  _isOnlyRejectingExpenses(oldExpense, newExpense) {
+    let oldRejections = oldExpense.rejections;
+    let newRejections = newExpense.rejections;
+    return (
+      oldRejections?.softRejections?.reasons?.length !== newRejections?.softRejections?.reasons?.length ||
+      oldRejections?.hardRejections?.reasons?.length !== newRejections?.hardRejections?.reasons?.length
+    );
+  }
+
   /**
    * Checks if a cost change is valid. Returns true if the cost is below the budget limit, otherwise returns false.
    *
@@ -553,15 +562,17 @@ class ExpenseRoutes extends Crud {
   /**
    * Update expense and budgets. Returns the expense updated.
    *
-   * @param data - data of expense
+   * @param req - the update request
    * @return Expense - expense updated
    */
-  async _update(data) {
+  async _update(req) {
+    let data = req.body;
     // log method
     logger.log(2, '_update', `Preparing to update expense ${data.id} for employee ${data.employeeId}`);
 
     // compute method
     try {
+      let isProd = STAGE === 'prod';
       let oldExpense = new Expense(await this.databaseModify.getEntry(data.id));
       let newExpense = new Expense(data);
       let employee = new Employee(await this.employeeDynamo.getEntry(newExpense.employeeId));
@@ -573,6 +584,7 @@ class ExpenseRoutes extends Crud {
       if (oldExpense.expenseTypeId == newExpense.expenseTypeId) {
         // expense types are the same
         let onlyReimbursing = this._isOnlyReimburseDateChange(oldExpense, newExpense); // check if only reimbursing
+        let onlyRejecting = this._isOnlyRejectingExpenses(oldExpense, newExpense);
         if (onlyReimbursing) {
           // only need to validate date change
           if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate, 'd')) {
@@ -587,6 +599,12 @@ class ExpenseRoutes extends Crud {
           await this._validateUpdate(oldExpense, newExpense, employee, expenseType); // validate update
         }
         await this._updateBudgets(oldExpense, newExpense, employee, expenseType); // update budgets
+
+        if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
+          // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
+          // if dev/test make sure APP_COMPANY_PAYROLL_ADDRESS in .env is not empty
+          this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
+        }
 
         // log success
         logger.log(
@@ -678,11 +696,11 @@ class ExpenseRoutes extends Crud {
 
       // remove matching old expense
       _.remove(expenses, (exp) => {
-        return _.isEqual(exp, oldExpense);
+        return _.isEqual(exp, oldExpense) || exp?.rejections?.hardRejections?.reasons?.length >= 1;
       });
 
       let expense = newExpense ? newExpense : oldExpense;
-      if (newExpense) {
+      if (newExpense && !(newExpense?.rejections?.hardRejections?.reasons?.length >= 1)) {
         expenses.push(newExpense);
       }
 
@@ -871,12 +889,6 @@ class ExpenseRoutes extends Crud {
     // to test on dev/test envs, insert your own email in the env file for payroll address
     let payrollAddress = process.env.APP_COMPANY_PAYROLL_ADDRESS;
     if (source && payrollAddress) {
-      logger.log(
-        2,
-        '_emailPayroll',
-        `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
-        `${employee.employeeId}`
-      );
       let toAddress = [payrollAddress];
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
@@ -889,9 +901,48 @@ class ExpenseRoutes extends Crud {
         URL: ${expense.url || 'None'}
         Category: ${expense.category}
         Created: ${expense.createdAt}`;
+      logger.log(
+        2,
+        '_emailPayroll',
+        `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
+        `${employee.employeeId}`
+      );
       utils.sendEmail(source, toAddress, subject, body);
     }
   } // _emailPayroll
+
+  _emailRejectedUser(employee, expense, expenseTypeName) {
+    let source = process.env.APP_COMPANY_PAYROLL_ADDRESS;
+    let userAddress = employee.email;
+    if (source && userAddress) {
+      let hardRejections = expense?.rejections?.hardRejections;
+      let softRejections = expense?.rejections?.softRejections;
+      let isHardRejected = hardRejections?.reasons?.length > 0;
+      let toAddress = [userAddress];
+      let subject = 'Your expense submitted on the Portal has been rejected';
+      let body = `Rejection reason: ${
+        isHardRejected
+          ? hardRejections.reasons[hardRejections.reasons.length - 1] || 'No reason provided'
+          : softRejections.reasons[softRejections.reasons.length - 1] || 'No reason provided'
+      }
+        ${!isHardRejected ? '\nPlease make revisions by editing the expense on the Portal, then resubmit.\n' : ''}`;
+      body += `\nExpense details:
+        Expense type: ${expenseTypeName}
+        Cost: $${expense.cost}
+        Description: ${expense.description}
+        Note: ${expense.note || 'None'}
+        Created On: ${expense.createdAt}
+        URL: ${expense.url || 'None'}`;
+      logger.log(2, '_emailRejectedUser', `Sending expense rejection email to user ${employee.id}`);
+      utils.sendEmail(source, toAddress, subject, body);
+    } else {
+      logger.log(
+        2,
+        '_emailRejectedUser',
+        `NOT sending expense rejection email to user ${employee.id} since source or userAdress is invalid`
+      );
+    }
+  }
 
   /**
    * Validate that an expense can be added. Returns the expense if the expense being added is in the current annual

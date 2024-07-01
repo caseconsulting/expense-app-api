@@ -1625,7 +1625,7 @@ describe('expenseRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         expenseRoutes
-          ._update(newExpenseData)
+          ._update({ body: newExpenseData })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1651,7 +1651,7 @@ describe('expenseRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         expenseRoutes
-          ._update(newExpenseData)
+          ._update({ body: newExpenseData })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1678,7 +1678,7 @@ describe('expenseRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         expenseRoutes
-          ._update(newExpenseData)
+          ._update({ body: newExpenseData })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -1706,7 +1706,7 @@ describe('expenseRoutes', () => {
           });
 
           it('should return the expense updated and update budgets', (done) => {
-            expenseRoutes._update(newExpenseData).then((data) => {
+            expenseRoutes._update({ body: newExpenseData }).then((data) => {
               expect(data).toEqual(newExpense);
               expect(databaseModify.getEntry).toHaveBeenCalledWith(newExpenseData.id);
               expect(employeeDynamo.getEntry).toHaveBeenCalledWith(newExpense.employeeId);
@@ -1735,7 +1735,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 403 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -1763,7 +1763,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 404 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -1793,7 +1793,7 @@ describe('expenseRoutes', () => {
           });
 
           it('should return the expense updated and update budgets', (done) => {
-            expenseRoutes._update(newExpenseData).then((data) => {
+            expenseRoutes._update({ body: newExpenseData }).then((data) => {
               expect(data).toEqual(newExpense);
               expect(expenseRoutes._validateExpense).toHaveBeenCalled();
               expect(expenseRoutes._validateExpense).toHaveBeenCalled();
@@ -1850,7 +1850,7 @@ describe('expenseRoutes', () => {
               });
 
               it('should create a new expense and delete the old', (done) => {
-                expenseRoutes._update(newExpenseData).then((data) => {
+                expenseRoutes._update({ body: newExpenseData }).then((data) => {
                   expect(data).toEqual(newExpense);
                   expect(expenseRoutes._changeBucket).toHaveBeenCalledWith(
                     oldExpense.employeeId,
@@ -1879,7 +1879,7 @@ describe('expenseRoutes', () => {
               });
 
               it('should create a new expense and delete the old', (done) => {
-                expenseRoutes._update(newExpenseData).then((data) => {
+                expenseRoutes._update({ body: newExpenseData }).then((data) => {
                   expect(data).toEqual(newExpense);
                   expect(expenseRoutes._changeBucket).toHaveBeenCalledWith(
                     oldExpense.employeeId,
@@ -1914,7 +1914,7 @@ describe('expenseRoutes', () => {
               });
 
               it('should create a new expense and delete the old', (done) => {
-                expenseRoutes._update(newExpenseData).then((data) => {
+                expenseRoutes._update({ body: newExpenseData }).then((data) => {
                   expect(data).toEqual(newExpense);
                   expect(expenseRoutes._changeBucket).toHaveBeenCalledTimes(0);
                   expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
@@ -1940,7 +1940,7 @@ describe('expenseRoutes', () => {
               });
 
               it('should create a new expense and delete the old', (done) => {
-                expenseRoutes._update(newExpenseData).then((data) => {
+                expenseRoutes._update({ body: newExpenseData }).then((data) => {
                   expect(data).toEqual(newExpense);
                   expect(expenseRoutes._changeBucket).toHaveBeenCalledTimes(0);
                   expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
@@ -1974,7 +1974,7 @@ describe('expenseRoutes', () => {
             });
 
             it('should create a new expense and delete the old', (done) => {
-              expenseRoutes._update(newExpenseData).then((data) => {
+              expenseRoutes._update({ body: newExpenseData }).then((data) => {
                 expect(data).toEqual(newExpense);
                 expect(expenseRoutes._changeBucket).toHaveBeenCalledTimes(0);
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
@@ -1994,7 +1994,7 @@ describe('expenseRoutes', () => {
             });
 
             it('should create a new expense and delete the old', (done) => {
-              expenseRoutes._update(newExpenseData).then((data) => {
+              expenseRoutes._update({ body: newExpenseData }).then((data) => {
                 expect(data).toEqual(newExpense);
                 expect(expenseRoutes._changeBucket).toHaveBeenCalledTimes(0);
                 expect(expenseRoutes._create).toHaveBeenCalledWith(newExpense);
@@ -2030,7 +2030,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 404 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -2057,7 +2057,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 403 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -2086,7 +2086,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 404 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -2117,7 +2117,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 404 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();
@@ -2150,7 +2150,7 @@ describe('expenseRoutes', () => {
 
           it('should return a 404 rejected promise', (done) => {
             expenseRoutes
-              ._update(newExpenseData)
+              ._update({ body: newExpenseData })
               .then(() => {
                 fail('expected error to have been thrown');
                 done();

@@ -1817,7 +1817,7 @@ describe('crudRoutes', () => {
         it('should respond with a 200 and data', (done) => {
           crudRoutes._updateWrapper(req, res).then((data) => {
             expect(data).toEqual(trainingUrl);
-            expect(crudRoutes._update).toHaveBeenCalledWith(trainingUrl);
+            expect(crudRoutes._update).toHaveBeenCalledWith(req);
             expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(trainingUrl);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(trainingUrl);
@@ -1835,7 +1835,7 @@ describe('crudRoutes', () => {
         it('should respond with a 200 and data', (done) => {
           crudRoutes._updateWrapper(req, res).then((data) => {
             expect(data).toEqual(BODY_DATA);
-            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+            expect(crudRoutes._update).toHaveBeenCalledWith(req);
             expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(BODY_DATA);
@@ -1857,7 +1857,7 @@ describe('crudRoutes', () => {
         it('should respond with a 200 and data', (done) => {
           crudRoutes._updateWrapper(req, res).then((data) => {
             expect(data).toEqual(newObject);
-            expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+            expect(crudRoutes._update).toHaveBeenCalledWith(req);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(newObject);
             done();
@@ -1902,7 +1902,7 @@ describe('crudRoutes', () => {
       it('should respond with a 403 and error', (done) => {
         crudRoutes._updateWrapper(req, res).then((data) => {
           expect(data).toEqual(err);
-          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(crudRoutes._update).toHaveBeenCalledWith(req);
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.send).toHaveBeenCalledWith(err);
           done();
@@ -1926,7 +1926,7 @@ describe('crudRoutes', () => {
       it('should respond with a 403 and error', (done) => {
         crudRoutes._updateWrapper(req, res).then((data) => {
           expect(data).toEqual(err);
-          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(crudRoutes._update).toHaveBeenCalledWith(req);
           expect(crudRoutes._validateInputs).toHaveBeenCalledWith(BODY_DATA);
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.send).toHaveBeenCalledWith(err);
@@ -1951,7 +1951,7 @@ describe('crudRoutes', () => {
       it('should respond with a 403 and error', (done) => {
         crudRoutes._updateWrapper(req, res).then((data) => {
           expect(data).toEqual(err);
-          expect(crudRoutes._update).toHaveBeenCalledWith(BODY_DATA);
+          expect(crudRoutes._update).toHaveBeenCalledWith(req);
           expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.send).toHaveBeenCalledWith(err);
