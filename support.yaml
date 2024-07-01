@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Template for expense app support resources
+
+Parameters:
+  Stage:
+    Type: String
+    Description: Deployment environment (e.g., dev, test, or prod)
+    AllowedValues:
+      - dev
+      - test
+      - prod
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+# Globals:
+
+Conditions:
+  ProdDeployment: !Equals
+    - !Ref Stage
+    - prod
+
+Conditions:
+  ProdDeployment: !Equals
+    - !Ref Stage
+    - prod
+
+Resources:
+  deployments:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-deployments-prod
+        - !Join
+          - ''
+          - - case-expense-app-deployments-
+            - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Remove previous deployment versions
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 60
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !If
+          - ProdDeployment
+          - case-consulting-expense-app-logs-prod
+          - !Join
+            - ''
+            - - case-expense-app-logs-
+              - !Ref Stage
+        LogFilePrefix: s3-logs/deployments/
