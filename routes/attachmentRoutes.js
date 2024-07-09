@@ -489,22 +489,22 @@ class Attachment {
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
     // compute method
     upload(req, res, async (err) => {
-      req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       if (err) {
         // log error
         logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
-
+        
         let error = {
           code: 403,
           message: `${err.message}`
         };
-
+        
         // send error status
         res.status(error.code).send(error);
-
+        
         // return error
         return error;
       } else {
+        req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
         // log success
         logger.log(
           1,
