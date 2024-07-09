@@ -553,12 +553,12 @@ class Utility {
         promises.push(this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
 
-      let [hqAnnouncements, entries] = await Promise.all([promises[0], promises.splice(1)]);
+      let resolvedPromises = await Promise.all(promises);
       let payload = {
         employees: employees,
         expenses: aggregateExpenses,
-        schedules: entries,
-        announcements: hqAnnouncements
+        schedules: resolvedPromises.splice(1),
+        announcements: resolvedPromises[0]
       };
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
