@@ -170,7 +170,8 @@ describe('basecampRoutes', () => {
     },
     HQ: {
       ID: 4708396,
-      SCHEDULE_ID: 650769733
+      SCHEDULE_ID: 650769733,
+      MESSAGE_BOARD_ID: 650769731
     },
     TECH_CORNER: {
       ID: 219642,

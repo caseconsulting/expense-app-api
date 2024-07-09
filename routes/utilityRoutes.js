@@ -421,6 +421,16 @@ class Utility {
   } // getBasecampInfo
 
   /**
+   * Gets announcements from Basecamp HQ
+   * @returns {Object} All the messages in Basecamp HQ
+   */
+  async getBasecampHqAnnouncements(basecampToken) {
+    const basecamp = new Basecamp();
+
+    return await basecamp._getBasecampHqAnnouncements(basecampToken);
+  } // getBasecampHqAnnouncements
+
+  /**
    * get the entries in the basecamp schedule for a given project
    *
    * @param accessToken - the basecamp access token
@@ -533,19 +543,22 @@ class Utility {
 
       let aggregateExpenses = this._aggregateExpenseData(expensesData, employees, expenseTypes);
 
-      let entries = [];
-
       const basecampInfo = this.getBasecampInfo();
 
       promises = [];
+
+      promises.push(this.getBasecampHqAnnouncements(accessToken));
+
       for (let proj in basecampInfo) {
         promises.push(this.getScheduleEntries(accessToken, basecampInfo[proj]));
       }
-      entries = await Promise.all(promises);
+
+      let [hqAnnouncements, entries] = await Promise.all([promises[0], promises.splice(1)]);
       let payload = {
         employees: employees,
         expenses: aggregateExpenses,
-        schedules: entries
+        schedules: entries,
+        announcements: hqAnnouncements
       };
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
