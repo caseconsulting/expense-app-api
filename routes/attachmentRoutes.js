@@ -2,7 +2,7 @@ const _ = require('lodash');
 const express = require('express');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const { S3Client, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { ComprehendClient, DetectEntitiesCommand } = require('@aws-sdk/client-comprehend');
 const {
@@ -106,7 +106,7 @@ class Attachment {
   } // constructor
 
   /**
-   * Deletes an attachment from S3.
+   * Deletes all attachments from S3 folder. Deletes all objects in the folder `employeeId/expenseId/`
    *
    * @param req - api request
    * @param res - api response
@@ -117,52 +117,82 @@ class Attachment {
     logger.log(
       1,
       'deleteAttachmentFromS3',
-      `Attempting to delete attachment ${req.params.receipt} for expense ${req.params.expenseId}`
+      `Attempting to delete attachments ${req.params.receipt} for expense ${req.params.expenseId}`
     );
 
-    // set up params
-    let fileExt = req.params.receipt;
-    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
-    let params = { Bucket: BUCKET, Key: filePath };
+    let folderPath = `${req.params.employeeId}/${req.params.expenseId}/`;
+    try {
+      //get all attachments from S3 folder
+      const [fileContents, keyCount] = await this.listObjectsFromS3Folder(folderPath);
+      
+      // set up params
+      const params = { Bucket: BUCKET, Delete: { Objects: fileContents } };
 
-    // make delete call to s3
-    const command = new DeleteObjectCommand(params);
-    await s3Client
-      .send(command)
-      .then((data) => {
-        // log success
-        logger.log(
-          1,
-          'deleteAttachmentFromS3',
-          `Successfully deleted attachment for expense ${req.params.expenseId} from S3 ${filePath}`
-        );
+      // make delete call to s3 on all file objects
+      const command = new DeleteObjectsCommand(params);
+      const data = await s3Client.send(command);
+      //log success for all attachments
+      logger.log(
+        1,
+        'deleteAttachmentFromS3',
+        `Successfully deleted ${keyCount} attachments for expense ${req.params.expenseId} from S3 ${folderPath}`
+      );
+      // send successful 200 status
+      res.status(200).send(data);
 
-        // send successful 200 status
-        res.status(200).send(data);
+      // return file read
+      return data;
+    } catch (err) {
+      // log error
+      logger.log(
+        1,
+        'deleteAttachmentFromS3',
+        `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${folderPath}`
+      );
 
-        // return file read
-        return data;
-      })
-      .catch((err) => {
-        // log error
-        logger.log(
-          1,
-          'deleteAttachmentFromS3',
-          `Failed to delete attachment for expense ${req.params.expenseId} from S3 ${filePath}`
-        );
+      let error = {
+        code: 403,
+        message: `${err.message}`
+      };
 
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
+      // send error status
+      res.status(error.code).send(error);
 
-        // send error status
-        res.status(error.code).send(error);
-
-        // return error
-        return error;
-      });
+      // return error
+      return error;
+    }
   } // deleteAttachmentFromS3
+
+  /**
+   *
+   * @param {string} folderPath - filepath key to folder in S3 Bucket
+   * @returns {[object[], number]} [Content, KeyCount] - array of objects and count
+   * @throws err
+   */
+  async listObjectsFromS3Folder(folderPath) {
+    try {
+      // set up params
+      const params = {
+        Bucket: BUCKET,
+        Prefix: folderPath
+      };
+
+      //make call to s3
+      const command = new ListObjectsV2Command(params);
+      const response = await s3Client.send(command);
+
+      logger.log(
+        1,
+        'listObjectsFromS3Folder',
+        `Listing ${response.KeyCount} keys from ${folderPath}:`,
+        response.Contents.reduce((str, content) => (str += ' ' + content.Key), '')
+      );
+      return [response.Contents, response.KeyCount];
+    } catch (err) {
+      logger.log(1, 'listObjectsFromS3Folder', `Failed to list objects from ${folderPath}`);
+      throw err;
+    }
+  } //listObjectsFromS3Folder
 
   /**
    *
@@ -492,15 +522,15 @@ class Attachment {
       if (err) {
         // log error
         logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
-        
+
         let error = {
           code: 403,
           message: `${err.message}`
         };
-        
+
         // send error status
         res.status(error.code).send(error);
-        
+
         // return error
         return error;
       } else {
