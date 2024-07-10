@@ -68,7 +68,7 @@ class GoogleMapRoutes {
   async _getZipCode(req, res) {
     let addressId = req.params.addressId;
     let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
-    let baseURL = `https://maps.googleapis.com/maps/api/place/place/json?key=${googleKey}`;
+    let baseURL = `https://maps.googleapis.com/maps/api/place/details/json?key=${googleKey}`;
     logger.log(1, '_getZipCode', `Attempting to get requested zip code for ${addressId}`);
     var config = {
       method: 'get',
