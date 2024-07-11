@@ -17,7 +17,8 @@ const BASECAMP_PROJECTS = {
   },
   HQ: {
     ID: 4708396,
-    SCHEDULE_ID: 650769733
+    SCHEDULE_ID: 650769733,
+    MESSAGE_BOARD_ID: 650769731
   },
   TECH_CORNER: {
     ID: 219642,
@@ -229,6 +230,60 @@ class BasecampRoutes {
       return err;
     }
   } // _getBasecampCampfires
+
+  /**
+   * Helper function to get the posts in the message board in HQ
+   *
+   * @param {*} basecampToken A valid basecamp access token
+   * @return {Object} The announcements from Basecamp HQ > Message Boards
+   */
+  async _getBasecampHqAnnouncements(basecampToken) {
+    logger.log(1, '_getBasecampHqAnnouncements', 'Attempting to get Basecamp HQ Announcements');
+
+    try {
+      let token = basecampToken;
+      const hqProjectId = BASECAMP_PROJECTS.HQ.ID;
+      const hqMessageBoardId = BASECAMP_PROJECTS.HQ.MESSAGE_BOARD_ID;
+      const url = `${BASECAMP_ROOT_URL}/buckets/${hqProjectId}/message_boards/${hqMessageBoardId}/messages.json`;
+
+      let options = {
+        method: 'GET',
+        url: url,
+        params: {
+          page: 1
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'User-Agent': 'CasePortal (info@consultwithcase.com)'
+        }
+      };
+
+      let response = await this.callAxios(options);
+
+      // log success
+      logger.log(1, '_getBasecampHqAnnouncements', 'Successfully got Basecamp HQ Announcements');
+
+      let filteredResponse = [];
+      for (let i = 0; i < response.data.length; i++) {
+        const responseItem = response.data[i];
+
+        filteredResponse.push({
+          title: responseItem.title,
+          url: responseItem.app_url,
+          author: responseItem.creator.name,
+          createdAt: responseItem.created_at,
+          updatedAt: responseItem.updated_at
+        });
+      }
+
+      return filteredResponse;
+    } catch (err) {
+      // log error
+      logger.log(1, '_getBasecampHqAnnouncements', 'Failed to get Basecamp HQ Announcements:', err.message);
+      // return error;
+      return err;
+    }
+  } // _getBasecampHqAnnouncements
 
   /**
    * Get basecamp Schedule entries for the info@consultwithcase.com basecamp account.

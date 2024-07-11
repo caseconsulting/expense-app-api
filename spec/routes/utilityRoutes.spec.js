@@ -50,6 +50,8 @@ describe('utilityRoutes', () => {
   const CATEGORIES = [];
   const CAMPFIRE = '{campfire}';
   const PRORATED = '{proRated}';
+  const TITLE = '{title}';
+  const AUTHOR = '{author}';
 
   const BASE_CAMP_TOKEN = '{basecampToken}';
 
@@ -120,6 +122,13 @@ describe('utilityRoutes', () => {
 
   const BASE_CAMP_DATA = {
     id: ID
+  };
+
+  const HQ_ANNOUNCEMENTS = {
+    title: TITLE,
+    url: URL,
+    author: AUTHOR,
+    createdAt: CREATED_AT
   };
 
   // const TRAINING_URL_DATA = {
@@ -839,6 +848,7 @@ describe('utilityRoutes', () => {
       basecampEvent,
       basecampInfo,
       basecampToken,
+      announcement,
       payload;
 
     beforeEach(() => {
@@ -861,7 +871,13 @@ describe('utilityRoutes', () => {
       basecampEvent = _.cloneDeep(BASE_CAMP_DATA);
       basecampInfo = _.cloneDeep(BASE_CAMP_INFO);
       basecampToken = _.cloneDeep(BASE_CAMP_TOKEN);
-      payload = { employees: [expectedEmployee], expenses: [aggregateExpense], schedules: [basecampEvent] };
+      announcement = _.cloneDeep(HQ_ANNOUNCEMENTS);
+      payload = {
+        employees: [expectedEmployee],
+        expenses: [aggregateExpense],
+        schedules: [basecampEvent],
+        announcements: [announcement]
+      };
     });
 
     describe('when successfully gets all events for the payload', () => {
@@ -871,6 +887,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
+        spyOn(utilityRoutes, 'getBasecampHqAnnouncements').and.returnValue(Promise.resolve([announcement]));
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(basecampEvent);
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
@@ -901,6 +918,7 @@ describe('utilityRoutes', () => {
 
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue(Promise.reject(err));
+        spyOn(utilityRoutes, 'getBasecampHqAnnouncements').and.returnValue(Promise.resolve([announcement]));
       });
 
       it('should respond with a 404 and error', (done) => {
@@ -926,6 +944,7 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.reject(err));
+        spyOn(utilityRoutes, 'getBasecampHqAnnouncements').and.returnValue(Promise.resolve([announcement]));
       });
 
       it('should respond with a 404 and error', (done) => {
@@ -957,6 +976,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
+        spyOn(utilityRoutes, 'getBasecampHqAnnouncements').and.returnValue(Promise.resolve([announcement]));
       });
 
       it('should respond with a 404 and error', (done) => {
@@ -987,6 +1007,7 @@ describe('utilityRoutes', () => {
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
+        spyOn(utilityRoutes, 'getBasecampHqAnnouncements').and.returnValue(Promise.resolve([announcement]));
         spyOn(utilityRoutes, 'getScheduleEntries').and.returnValue(Promise.reject(err));
         spyOn(utilityRoutes, '_aggregateExpenseData').and.returnValue([aggregateExpense]);
       });
