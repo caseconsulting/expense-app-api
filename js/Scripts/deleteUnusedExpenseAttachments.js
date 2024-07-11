@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /**
  * node ./js/Scripts/deleteUnusedExpenseAttachments.js dev
  * node ./js/Scripts/deleteUnusedExpenseAttachments.js test
@@ -27,6 +28,8 @@ const TABLE = `${STAGE}-expenses`;
 let prodFormat = STAGE == 'prod' ? 'consulting-' : '';
 const BUCKET = `case-${prodFormat}expense-app-attachments-${STAGE}`;
 
+const BUCKET_DELETE_MAX_LENGTH = 1000;
+
 //imports
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
@@ -34,9 +37,44 @@ const readlineSync = require('readline-sync');
 // set up AWS Clients
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
-const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }));
-const { ListObjectsV2Command, S3Client } = require('@aws-sdk/client-s3');
+const docClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ apiVersion: '2012-08-BUCKET_DELETE_MAX_LENGTH', region: 'us-east-1' })
+);
+const { ListObjectsV2Command, S3Client, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const s3Client = new S3Client();
+
+/**
+ * =================================================
+ * |                                               |
+ * |            Begin helper functions             |
+ * |                                               |
+ * =================================================
+ */
+
+/**
+ * Prints out error and exits process.
+ * @param {string} msg - error message
+ */
+function errorExit(msg) {
+  console.error('🛑 ERROR 🛑:');
+  console.error(msg);
+  process.exit(1);
+}
+
+// get all the keys in S3
+const listAllKeys = (params, out = { Contents: [], KeyCount: 0 }) =>
+  new Promise((resolve, reject) => {
+    s3Client
+      .send(new ListObjectsV2Command(params))
+      .then((data) => {
+        out.Contents.push(...data.Contents);
+        out.KeyCount += data.KeyCount;
+        !data.IsTruncated
+          ? resolve(out)
+          : resolve(listAllKeys(Object.assign(params, { ContinuationToken: data.NextContinuationToken }), out));
+      })
+      .catch(reject);
+  });
 
 /**
  * Prints out all the folders and how many objects there are in the S3 Bucket.
@@ -45,13 +83,12 @@ const s3Client = new S3Client();
 async function getBucketObjectDetails() {
   try {
     const s3ClientParams = {
-      Bucket: BUCKET
+      Bucket: BUCKET,
     };
-    const s3ClientCommand = new ListObjectsV2Command(s3ClientParams);
-    const response = await s3Client.send(s3ClientCommand);
+    const response = await listAllKeys(s3ClientParams);
     return [response.Contents, response.KeyCount];
   } catch (err) {
-    console.log(err.message);
+    console.error(err.message);
     process.exit(1);
   }
 } //getBucketObjectDetails()
@@ -62,17 +99,29 @@ async function getBucketObjectDetails() {
  */
 async function getTableDetails() {
   try {
-    const ddbClientParams = {
+    let ddbClientParams = {
       TableName: TABLE,
       FilterExpression: 'attribute_exists(receipt)',
-      ProjectionExpression: 'id, employeeId, receipt'
+      ProjectionExpression: 'id, employeeId, receipt',
     };
     const dynamoDBCommand = new ScanCommand(ddbClientParams);
     const response = await docClient.send(dynamoDBCommand);
-    return [response.Items, response.Count];
+    let items = response.Items;
+    let count = response.Count;
+    //if table is too big, use pagination https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html#Scan.Pagination
+    let LastEvaluatedKey = response.LastEvaluatedKey;
+    while (LastEvaluatedKey) {
+      Object.assign(ddbClientParams, { ExclusiveStartKey: LastEvaluatedKey });
+      const dynamoDBCommand = new ScanCommand(ddbClientParams);
+      const response = await docClient.send(dynamoDBCommand);
+      items = items.concat(response.Items);
+      count += response.Count;
+      LastEvaluatedKey = response.LastEvaluatedKey;
+      console.log(`Scanning in pagination, scanned ${count} items...`);
+    }
+    return [items, count];
   } catch (err) {
-    console.log(err.message);
-    process.exit(1);
+    errorExit(err.message);
   }
 }
 
@@ -85,10 +134,8 @@ function getItemKeys(tableItems) {
   // all keys used in expenses table formatted as S3 keys
   const tableItemKeys = _.map(tableItems, function (item) {
     if (!item.employeeId || !item.id || !item.receipt) {
-      console.log('🛑 ERROR 🛑:');
-      console.log('Item does not have all required properties. Check scan table command');
       console.log(item);
-      process.exit(1);
+      errorExit('Item does not have all required properties. Check scan table command');
     }
     return item.employeeId + '/' + item.id + '/' + item.receipt;
   });
@@ -120,42 +167,85 @@ function validateKeys(itemKeys, bucketContents) {
 /**
  * Find all attachments that are not linked to an expense
  * @param {object[]} bucketContents - array of bucket content with Key property.
+ * @returns {object[]} unusedAttachments - array of S3 objects
  */
-async function getUnusedAttachments(bucketContents, validAttachmentKeys) {
+function getUnusedS3Attachments(bucketContents, validAttachmentKeys) {
   //filter through bucketContent and remove items without current expense keys
   const unusedAttachments = bucketContents.filter(function (content) {
     if (!content.Key) {
-      console.log('🛑 ERROR 🛑:');
-      console.log('Item does not have all required properties. Check list bucket command');
       console.log(content);
-      process.exit(1);
+      errorExit('Item does not have all required properties. Check list bucket command');
     }
-    return !_.includes(validAttachmentKeys, content.Key);
+    const notIncludes = !_.includes(validAttachmentKeys, content.Key);
+    return notIncludes;
   });
-  console.log(unusedAttachments.length);
+  return unusedAttachments;
 }
+
+/**
+ * @param {object[]} unusedS3Attachments - array of S3 objects to delete, must have key property
+ * @returns {object[]} deleted - array of deleted S3 objects
+ */
+async function deleteAllUnusedAttachments(unusedS3Attachments) {
+  try {
+    let deletedS3Objects = [];
+    let length = unusedS3Attachments.length;
+    let start = 0;
+    //deletion only supports up to 1000 objects to delete https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/command/DeleteObjectsCommand/
+    if (length > BUCKET_DELETE_MAX_LENGTH) {
+      console.log(`Deleting in more than ${BUCKET_DELETE_MAX_LENGTH} objects, deletion in batches`);
+    }
+    while (start < length) {
+      const input = {
+        Bucket: BUCKET,
+        Delete: {
+          Objects: unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH)
+        }
+      };
+      new DeleteObjectsCommand(input);
+      // const response = await client.send(command);
+      // deletedS3Objects = deletedS3Objects.concat(response.Deleted);
+      deletedS3Objects = deletedS3Objects.concat(unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH));
+      start += BUCKET_DELETE_MAX_LENGTH;
+    }
+    return deletedS3Objects;
+  } catch (err) {
+    console.log('🛑 ERROR 🛑:');
+    console.log(err);
+    return [];
+  }
+}
+
+/**
+ * =================================================
+ * |                                               |
+ * |                     Main                      |
+ * |                                               |
+ * =================================================
+ */
 
 async function main() {
   console.log('\n---------------------------START--------------------------\n');
 
-  const [bucketContent, bucketCount] = await getBucketObjectDetails();
-  const [tableItems, tableCount] = await getTableDetails();
+  //log details about table and buckets
+  let [bucketContent, bucketCount] = await getBucketObjectDetails();
+  let [tableItems, tableCount] = await getTableDetails();
 
-  const expenseAttachmentKeys = getItemKeys(tableItems); //map items into corresponding S3 keys
-  const [validAttachmentKeys, validAttachmentCount] = validateKeys(expenseAttachmentKeys, bucketContent);
+  let expenseAttachmentKeys = getItemKeys(tableItems); //map items into corresponding S3 keys
+  let [validAttachmentKeys, validAttachmentCount] = validateKeys(expenseAttachmentKeys, bucketContent);
 
-  
-  console.log('\n🧭 Status 🧭:');
+  console.log('\n🧭--------------------------STATUS----------------------🧭\n');
   console.log('Counting Attachments Bucket Objects...');
   console.log(`There are currently ${bucketCount} objects in ${BUCKET}\n`);
-  
+
   console.log('Counting Table Items with Attachments...');
   console.log(`There are currently ${tableCount} expenses in ${TABLE} with attachments\n`);
-  
+
   console.log(
-    `🟡 Warning 🟡 : There are ${
-      tableCount - validAttachmentCount
-    } keys that don't have a corresponding S3 object. \n These items will not be factored into deletion.\n`
+    `\n🟡-------------------------WARNING----------------------🟡
+    There are ${tableCount - validAttachmentCount} expense attachment keys that don't have a corresponding S3 object (dynamo item has receipt property but no bucket object).
+    These items will not be factored into deletion of bucket objects.
+>>> Please try running ReceiptSync.js script to resolve.\n`
   );
 
   if (bucketCount > validAttachmentCount) {
@@ -163,9 +253,7 @@ async function main() {
       `There are currenly ${bucketCount - validAttachmentCount} more attachments than expenses with valid attachments`
     );
   } else {
-    console.log('🛑 ERROR 🛑:');
-    console.log('There are the same number of expenses as attachments');
-    process.exit(1);
+    errorExit('There are the same number of expenses as attachments');
   }
   readlineSync.setDefaultOptions({ limit: ['yes', 'no'] });
   let input = readlineSync.question('Would you like to proceed? [yes/no]: ');
@@ -173,10 +261,53 @@ async function main() {
     console.log('\n---------------------------EXITING------------------------\n');
     process.exit(0);
   }
-
   console.log('\n-------------------------PROCEEDING-----------------------\n');
 
-  await getUnusedAttachments(bucketContent, validAttachmentKeys);
+  //retrived all unusedS3Attachments from the bucket
+  const unusedS3Attachments = getUnusedS3Attachments(bucketContent, validAttachmentKeys);
+  console.log(`Found ${unusedS3Attachments.length} attachments with no valid expense`);
+  if (unusedS3Attachments.length !== bucketCount - validAttachmentCount) {
+    errorExit('Different unused attachments count found');
+  }
+
+  //prompt user to delete objects
+  input = readlineSync.question(`Would you like to delete all ${unusedS3Attachments.length} S3 objects? [yes/no]`);
+  if (input == 'no') {
+    console.log('\n---------------------------EXITING------------------------\n');
+    process.exit(0);
+  }
+
+  console.log('\n❌-------------------------DELETING-----------------------❌\n');
+  //delete all unused S3 objects
+  const deletedS3Objects = await deleteAllUnusedAttachments(unusedS3Attachments);
+  if (deletedS3Objects.length > 0) {
+    deletedS3Objects.forEach((deletedObj) => {
+      console.log(`Sucessfully Deleted ${deletedObj.Key}`);
+    });
+    console.log(`Successfully deleted ${deletedS3Objects.length} S3 objects`);
+  } else {
+    console.log('Deleted 0 Objects...');
+  }
+
+  // console.log('\n✅------------------------VALIDATING----------------------✅\n');
+  // //validating that the counts of the buckets and tables are the same now
+  // [bucketContent, bucketCount] = await getBucketObjectDetails();
+  // [tableItems, tableCount] = await getTableDetails();
+
+  // console.log('\n🧭 Status 🧭:');
+  // console.log('Counting Attachments Bucket Objects...');
+  // console.log(`There are currently ${bucketCount} objects in ${BUCKET}\n`);
+
+  // console.log('Counting Table Items with Attachments...');
+  // console.log(`There are currently ${tableCount} expenses in ${TABLE} with attachments\n`);
+
+  // if (bucketCount === tableCount) {
+  //   console.log('Success! All unused attachments on ${BUCKET} have been deleted');
+  // } else {
+  //   console.log("🛑Bucket and Table count don't match. Something went wrong...🛑");
+  // }
+
+  console.log('\n---------------------------DONE---------------------------\n');
 }
 
 main();
