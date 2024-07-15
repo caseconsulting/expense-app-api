@@ -192,7 +192,7 @@ describe('trainingUrlRoutes', () => {
       });
 
       it('should return the new training url to be updated', (done) => {
-        trainingUrlRoutes._update(newTrainingUrl).then((data) => {
+        trainingUrlRoutes._update({body: newTrainingUrl}).then((data) => {
           expect(data).toEqual(newTrainingUrl);
           done();
         });
@@ -213,7 +213,7 @@ describe('trainingUrlRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         trainingUrlRoutes
-          ._update(newTrainingUrl)
+          ._update({body: newTrainingUrl})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -242,7 +242,7 @@ describe('trainingUrlRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         trainingUrlRoutes
-          ._update(newTrainingUrl)
+          ._update({body: newTrainingUrl})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -271,7 +271,7 @@ describe('trainingUrlRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         trainingUrlRoutes
-          ._update(newTrainingUrl)
+          ._update({body: newTrainingUrl})
           .then(() => {
             fail('expected error to have been thrown');
             done();
