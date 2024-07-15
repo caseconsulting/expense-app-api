@@ -373,7 +373,7 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return the expense type updated', (done) => {
-          expenseTypeRoutes._update(data).then((updatedExpenseType) => {
+          expenseTypeRoutes._update({body: data}).then((updatedExpenseType) => {
             expect(updatedExpenseType).toEqual(newExpenseType);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
@@ -395,7 +395,7 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return the expense type updated', (done) => {
-          expenseTypeRoutes._update(data).then((updatedExpenseType) => {
+          expenseTypeRoutes._update({body: data}).then((updatedExpenseType) => {
             expect(updatedExpenseType).toEqual(newExpenseType);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
@@ -421,7 +421,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update(data)
+          ._update({body: data})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -449,7 +449,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update(data)
+          ._update({body: data})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -479,7 +479,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update(data)
+          ._update({body: data})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -511,7 +511,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update(data)
+          ._update({body: data})
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -545,7 +545,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update(data)
+          ._update({body: data})
           .then(() => {
             fail('expected error to have been thrown');
             done();

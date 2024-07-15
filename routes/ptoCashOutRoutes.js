@@ -78,7 +78,9 @@ class PTOCashOutRoutes extends Crud {
    * @param req - request
    * @return PTOCashOut - PTOCashOut prepared to update
    */
-  async _update(data) {
+  async _update(req) {
+    let data = req.body;
+    
     // log method
     logger.log(2, '_update', `Preparing to update PTOCashOut ${data.id}`);
 
