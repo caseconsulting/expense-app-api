@@ -137,12 +137,12 @@ class ExpenseTypeRoutes extends Crud {
   /**
    * Update expense type and budgets. Returns the expense type updated.
    *
-   * @param data - data of expense type
+   * @param req - request of expense type
    * @return ExpenseType - expense type updated
    */
   async _update(req) {
     let data = req.body;
-
+    
     // log method
     logger.log(2, '_update', `Preparing to update expense type ${data.budgetName} with ID ${data.id}`);
 
