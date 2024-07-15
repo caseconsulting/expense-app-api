@@ -117,10 +117,12 @@ class TrainingUrlRoutes extends Crud {
   /**
    * Prepares a training url to be updated. Returns the training url if it can be successfully updated.
    *
-   * @param data - data of training url
+   * @param req - data of training url
    * @return TrainingUrl - training url prepared to update
    */
-  async _update(data) {
+  async _update(req) {
+    let data = req.body;
+
     // log method
     logger.log(2, '_update', `Preparing to update training url ${data.id} with category ${data.category}`);
 
