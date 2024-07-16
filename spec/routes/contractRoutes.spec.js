@@ -553,7 +553,7 @@ describe('contractRoutes', () => {
 
       it('should return the updated contract', (done) => {
         contractRoutes
-          ._update(newContract)
+          ._update({body: newContract})
           .then((data) => {
             expect(data).toEqual(newContract);
             // not sure why these aren't working
@@ -582,7 +582,7 @@ describe('contractRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         contractRoutes
-          ._update(newContract)
+          ._update({body: newContract})
           .then(() => {
             fail('expected an error to have been thrown');
             done();

@@ -190,8 +190,9 @@ class TagRoutes extends Crud {
    * @param req - request
    * @return Tag - Tag prepared to update
    */
-  async _update(rawData) {
-    let data = rawData.body ?? rawData;
+  async _update(req) {
+    let data = req.body;
+    
     // log method
     logger.log(2, '_update', `Preparing to update Tag ${data.id}`);
 

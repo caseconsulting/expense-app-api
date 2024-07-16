@@ -390,7 +390,7 @@ describe('tagRoutes', () => {
         databaseModify.getAllEntriesInDB.and.returnValue(Promise.resolve([existingTag]));
       });
       it('should return updated tag', (done) => {
-        tagRoutes._update(updatedTag).then((data) => {
+        tagRoutes._update({body: updatedTag}).then((data) => {
           expect(data).toEqual(updatedTag);
           expect(databaseModify.getEntry).toHaveBeenCalledWith(tag.id);
           done();
@@ -416,7 +416,7 @@ describe('tagRoutes', () => {
       });
       it('should return 403 rejected promise', (done) => {
         tagRoutes
-          ._update(updatedTag)
+          ._update({body: updatedTag})
           .then(() => {
             fail('expected error to have been thrown');
             done();
