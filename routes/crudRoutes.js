@@ -932,7 +932,7 @@ class Crud {
     try {
       if (this._checkPermissionToUpdate(req.employee)) {
         // employee has permission to update table
-        let objectUpdated = await this._update(req.body); // update object
+        let objectUpdated = await this._update(req); // update object
         let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
         let dataUpdated;
         // add object to database

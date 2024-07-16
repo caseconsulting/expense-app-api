@@ -7,11 +7,8 @@ const { getExpressJwt, invokeLambda, isAdmin, isManager } = require(process.env.
 const {
   add,
   getTodaysDate,
-  getYear,
-  setYear,
   format,
   isAfter,
-  isBefore,
   isValid,
   isBetween,
   startOf,
@@ -51,6 +48,7 @@ class TimesheetsRoutes {
       let employeeId = req.query.employeeId;
       let startDate = req.query.startDate;
       let endDate = req.query.endDate;
+      let title = req.query.title;
       let code = Number(req.query.code);
       let [tags, employee] = await Promise.all([
         this.tagDynamo.getAllEntriesInDB(),
@@ -80,17 +78,9 @@ class TimesheetsRoutes {
           // current and previous pay period timesheets
           payload.periods = this._getPayPeriods(2, account);
           break;
-        case 3:
-          // calendar year timesheets (start and end date of current year)
-          payload.periods = this._getCalendarYearPeriod();
-          break;
-        case 4:
-          // contract year timesheets (start and end date of employee current contract year)
-          payload.periods = this._getContractYearPeriod(employee);
-          break;
         default:
           // timesheets that fall within the requested start and end dates
-          payload.periods = [{ startDate, endDate }];
+          payload.periods = [{ startDate, endDate, title }];
       }
 
       // lambda invoke parameters
@@ -224,54 +214,6 @@ class TimesheetsRoutes {
     }
     return periods;
   } // _getMonthlyPayPeriods
-
-  /**
-   * Gets the yearly time period.
-   *
-   * @returns Object - The start and end date of the year and a formatted title
-   */
-  _getCalendarYearPeriod() {
-    let today = getTodaysDate();
-    let startDate = format(startOf(today, 'year'), null, DEFAULT_ISOFORMAT);
-    let endDate = format(endOf(today, 'year'), null, DEFAULT_ISOFORMAT);
-    let title = format(startDate, null, 'YYYY');
-    return [{ startDate, endDate, title }];
-  } // _getYearlyPeriod
-
-  /**
-   * Gets the current project that is toggled to show for contract year.
-   *
-   * @param {Object} employee - The employee object
-   * @returns Object - The current project to show
-   */
-  _getCurrentProject(employee) {
-    let currentProject = null;
-    _.forEach(employee.contracts, (c) => {
-      let project = _.find(c.projects, (p) => !p.endDate);
-      if (project) currentProject = _.cloneDeep(project);
-    });
-    return currentProject;
-  } // _getCurrentProject
-
-  /**
-   * Gets the yearly time period.
-   *
-   * @returns Object - The start and end date of the year and a formatted title
-   */
-  _getContractYearPeriod(employee) {
-    let project = this._getCurrentProject(employee);
-    if (!project) return null;
-    let today = getTodaysDate();
-    let currentYear = getYear(today);
-    let startDate = format(project.startDate, null, DEFAULT_ISOFORMAT);
-    startDate = setYear(startDate, currentYear);
-    if (isBefore(today, startDate, 'day')) startDate = setYear(startDate, currentYear - 1);
-    let endDate = format(add(startDate, 1, 'year'), null, DEFAULT_ISOFORMAT);
-    endDate = format(subtract(endDate, 1, 'day'), null, DEFAULT_ISOFORMAT);
-    let startDateTitle = format(startDate, null, 'MMM D, YYYY');
-    let endDateTitle = format(endDate, null, 'MMM D, YYYY');
-    return [{ startDate, endDate, title: `${startDateTitle} - ${endDateTitle}` }];
-  } // _getYearlyPeriod
 
   /**
    * Returns the instace express router.

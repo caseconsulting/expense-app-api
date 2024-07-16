@@ -476,7 +476,7 @@ describe('ptoCashOutRoutes', () => {
 
       it('should return the updated PTO cash out', (done) => {
         ptoCashOutRoutes
-          ._update(newPtoCashOut)
+          ._update({body: newPtoCashOut})
           .then((data) => {
             expect(data).toEqual(newPtoCashOut);
             expect(databaseModify.getEntry).toHaveBeenCalledWith(oldPtoCashOut.id);
@@ -502,7 +502,7 @@ describe('ptoCashOutRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         ptoCashOutRoutes
-          ._update(newPtoCashOut)
+          ._update({body: newPtoCashOut})
           .then(() => {
             fail('expected an error to have been thrown');
             done();

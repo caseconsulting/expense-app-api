@@ -60,6 +60,7 @@ email address and then press the _Allow_ button to explicitly permit the authori
 Close the web browser tab. Return to your command prompt and continue answering questions:
 
 - Use keyboard to select _Case Consulting Dev_ AWS account
+- Use keyboard to select AdministratorAccess role
 - **CLI default client Region**: _us-east-1_
 - **CLI default output format**: _json_
 - **CLI profile name**: _default_
