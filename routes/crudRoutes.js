@@ -27,6 +27,7 @@ class Crud {
     this._router.get('/:id', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.patch('/:attribute', this._checkJwt, this._getUserInfo, this._updateAttributeWrapper.bind(this));
+    this._router.patch('/:id', this._checkJwt, this._getUserInfo, this._updateAttributesWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
     this.employeeDynamo = new DatabaseModify('employees');
@@ -996,6 +997,17 @@ class Crud {
   } // _updateAttribute
 
   /**
+   * Updates an attributes of an object. Returns the object updated.
+   *
+   * @param body - data of object
+   * @return Object - object updated
+   */
+  // eslint-disable-next-line no-unused-vars
+  async _updateAttributes(body) {
+    // This function must be overwritten
+  } // _updateAttribute
+
+  /**
    * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
    *
    * @param req - api request
@@ -1048,6 +1060,63 @@ class Crud {
       return err;
     }
   } // _updateWrapper
+
+  /**
+   * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
+   * Note: updates multiple attributes for an object
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - object updated
+   */
+  async _updateAttributesWrapper(req, res) {
+    // log method
+    logger.log(1, '_updateAttributeWrapper', `Attempting to update an object in ${this._getTableName()}`);
+
+    // compute method
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let { objectUpdated, tables } = await this._updateAttributes(req); // update object
+        let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
+        let dataUpdated;
+        // add object to database
+        if (objectValidated.id == req.body.id) {
+          // no tables returned no updates
+          tables = tables || { [this.databaseModify.tableName]: { table: this.databaseModify, attributes: [] } }; 
+          // update database if the id's are the same
+          
+          dataUpdated = await tables.updateAttributeInDB(objectValidated, req.params.attribute);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = objectValidated;
+        }
+        // updated an attribute expense, expense-type, or employee
+        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+
+        // send successful 200 status
+        res.status(200).send(dataUpdated);
+
+        // return updated data
+        return dataUpdated;
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update attribute in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_updateWrapper', `Failed to update attribute in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _updateAttributesWrapper
 
   /**
    * Validate inputs. Returns the object if all inputs are valid.

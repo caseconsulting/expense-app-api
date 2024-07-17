@@ -495,6 +495,74 @@ class EmployeeRoutes extends Crud {
   } // _updateAttribute
 
   /**
+   * Prepares an employee's attributes to be updated. Returns the employee if it can be successfully updated.
+   *
+   * @param req - request
+   * @return Employee - employee prepared to update
+   */
+  async _updateAttributes(req) {
+    let data = req.body;
+    let tablesToUpdate = { [this.databaseModify.tableName]: { table: this.databaseModify, attributes: [] } };
+    // log method
+    logger.log(2, '_update', `Preparing to update employee ${data.id}`);
+
+    // compute method
+    try {
+      let [employeeBasic, employeeSensitive] = await Promise.all([
+        this.databaseModify.getEntry(data.id),
+        this.employeeSensitiveDynamo.getEntry(data.id)
+      ]);
+      employeeBasic = new Employee(employeeBasic);
+      employeeSensitive = new EmployeeSensitive(employeeSensitive);
+      let newEmployeeBasic = new Employee({ ...employeeBasic, ...data });
+      let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...data });
+      newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
+      let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
+      await Promise.all([
+        this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
+        this._validateUpdate(employeeBasic, newEmployeeBasic),
+        employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
+        employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
+          ? this._updateBudgets(employeeBasic, newEmployeeBasic)
+          : _
+      ]);
+
+      const basicFields = newEmployeeBasic.getFields();
+      const sensitiveFields = newEmployeeSensitive.getFields();
+      //populate table attributes to update
+      for (const key of Object.keys(data)) {
+        if (key == 'id') 
+          continue;
+        if (sensitiveFields?.includes(key)) {
+          if (!tablesToUpdate[this.employeeSensitiveDynamo.tableName]) {
+            tablesToUpdate[this.employeeSensitiveDynamo.tableName] = {
+              table: this.employeeSensitiveDynamo,
+              attributes: [key]
+            };
+          } else {
+            tablesToUpdate[this.employeeSensitiveDynamo.tableName].attributes.push(key);
+          }
+        }
+        else if(basicFields?.includes(key)) {
+          tablesToUpdate[this.databaseModify.tableName].attributes.push(key);
+        }
+      }
+
+      // log success
+      logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
+
+      // return employee to update
+      return { objectUpdated: newEmployee, tables: tablesToUpdate };
+    } catch (err) {
+      // log error
+      logger.log(2, '_update', `Failed to prepare update for employee ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateAttributes
+
+  /**
    * Update employee in database. If successful, sends 200 status request with the
    * object updated and returns the object.
    *

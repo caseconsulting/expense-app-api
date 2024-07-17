@@ -653,6 +653,69 @@ class databaseModify {
   } // updateEntryInDB
 
   /**
+   * Updates multiple attributes for an entry in the dynamodb table.
+   *
+   * @param newDyanmoObj - object to update dynamodb entry to
+   * @param {string[]} attributeList - list of attribute names
+   * @return Object - object updated in dynamodb
+   */
+  async updateAttributesInDB(dynamoObj, attributeList) {
+    const tableName = this.tableName;
+    const numAttributes = attributeList?.length ?? 0;
+    // log method
+    logger.log(
+      4,
+      'updateEntryInDB',
+      `Attempting to update ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
+    );
+
+    try {
+      let params = { TableName: tableName, Key: { id: dynamoObj.id }};
+      if (numAttributes <= 0) {
+        logger.log(
+          4,
+          'updateEntryInDB',
+          `Successfully updated ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
+        );
+        return dynamoObj;
+      }
+      if (dynamoObj[attributeList[0]]) {
+        params['UpdateExpression'] = `SET ${attributeList[0]} = :${attributeList[0]}`;
+        params['ExpressionAttributeValues'] = { [`:${attributeList[0]}`]: dynamoObj[attributeList[0]] };
+      } else {
+        params['UpdateExpression'] = `REMOVE ${attributeList[0]}`;
+      }
+      for (let i = 1; i < numAttributes; i++) {
+        if (dynamoObj[attributeList[i]]) {
+          params['UpdateExpression'] += `, ${attributeList[i]} = :${attributeList[i]}`;
+          params['ExpressionAttributeValues'][`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
+        } else {
+          params['UpdateExpression'] += `, ${attributeList[i]}`;
+        }
+      }
+
+      const updateCommand = new UpdateCommand(params);
+      let dynamoObj = await documentClient.send(updateCommand);
+      logger.log(
+        4,
+        'updateEntryInDB',
+        `Successfully updated ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
+      );
+      return dynamoObj;
+    } catch (err) {
+      // log error
+      logger.log(
+        4,
+        'updateEntryInDB',
+        `Failed to update ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
+      );
+
+      // throw error
+      throw err;
+    }
+  } // updateAttributesInDB
+
+  /**
    * Invokes multiple API requests to DynamoDB. If one request fails, all requests fails.
    *
    * @param paramsList list of request parameters
