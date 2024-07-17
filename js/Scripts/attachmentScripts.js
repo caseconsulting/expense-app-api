@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 /**
- * node ./js/Scripts/deleteUnusedExpenseAttachments.js dev
- * node ./js/Scripts/deleteUnusedExpenseAttachments.js test
- * node ./js/Scripts/deleteUnusedExpenseAttachments.js prod (must set aws credentials for prod as default)
+ * node ./js/Scripts/attachmentScripts.js dev
+ * node ./js/Scripts/attachmentScripts.js test
+ * node ./js/Scripts/attachmentScripts.js prod (must set aws credentials for prod as default)
  */
 
 // handles unhandled rejection errors
@@ -78,7 +78,7 @@ const listAllKeys = (params, out = { Contents: [], KeyCount: 0 }) =>
 
 /**
  * Prints out all the folders and how many objects there are in the S3 Bucket.
- *  @returns {object[], number} [content, count] - array of content and number of objects in bucket
+ *  @returns {[object[], number]} [content, count] - array of content and number of objects in bucket
  */
 async function getBucketObjectDetails() {
   try {
@@ -202,10 +202,10 @@ async function deleteAllUnusedAttachments(unusedS3Attachments) {
           Objects: unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH)
         }
       };
-      new DeleteObjectsCommand(input);
-      // const response = await client.send(command);
-      // deletedS3Objects = deletedS3Objects.concat(response.Deleted);
-      deletedS3Objects = deletedS3Objects.concat(unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH));
+      const command = new DeleteObjectsCommand(input);
+      const response = await s3Client.send(command);
+      deletedS3Objects = deletedS3Objects.concat(response.Deleted);
+      // deletedS3Objects = deletedS3Objects.concat(unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH));
       start += BUCKET_DELETE_MAX_LENGTH;
     }
     return deletedS3Objects;
@@ -244,8 +244,7 @@ async function main() {
   console.log(
     `\n🟡-------------------------WARNING----------------------🟡
     There are ${tableCount - validAttachmentCount} expense attachment keys that don't have a corresponding S3 object (dynamo item has receipt property but no bucket object).
-    These items will not be factored into deletion of bucket objects.
->>> Please try running ReceiptSync.js script to resolve.\n`
+    These items will not be factored into deletion of bucket objects.\n`
   );
 
   if (bucketCount > validAttachmentCount) {
@@ -253,7 +252,7 @@ async function main() {
       `There are currenly ${bucketCount - validAttachmentCount} more attachments than expenses with valid attachments`
     );
   } else {
-    errorExit('There are the same number of expenses as attachments');
+    errorExit('There are the same or less number of expenses as attachments');
   }
   readlineSync.setDefaultOptions({ limit: ['yes', 'no'] });
   let input = readlineSync.question('Would you like to proceed? [yes/no]: ');
@@ -288,25 +287,6 @@ async function main() {
   } else {
     console.log('Deleted 0 Objects...');
   }
-
-  // console.log('\n✅------------------------VALIDATING----------------------✅\n');
-  // //validating that the counts of the buckets and tables are the same now
-  // [bucketContent, bucketCount] = await getBucketObjectDetails();
-  // [tableItems, tableCount] = await getTableDetails();
-
-  // console.log('\n🧭 Status 🧭:');
-  // console.log('Counting Attachments Bucket Objects...');
-  // console.log(`There are currently ${bucketCount} objects in ${BUCKET}\n`);
-
-  // console.log('Counting Table Items with Attachments...');
-  // console.log(`There are currently ${tableCount} expenses in ${TABLE} with attachments\n`);
-
-  // if (bucketCount === tableCount) {
-  //   console.log('Success! All unused attachments on ${BUCKET} have been deleted');
-  // } else {
-  //   console.log("🛑Bucket and Table count don't match. Something went wrong...🛑");
-  // }
-
   console.log('\n---------------------------DONE---------------------------\n');
 }
 
