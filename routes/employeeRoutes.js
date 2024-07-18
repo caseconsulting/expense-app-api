@@ -486,8 +486,8 @@ class EmployeeRoutes extends Crud {
    */
   async _updateAttributes(req) {
     let data = req.body;
-    let databaseTable = { table: this.databaseModify, attributes: [] };
-    let sensitiveTable = { table: this.employeeSensitiveDynamo, attributes: [] };
+    let databaseTable = { table: this.databaseModify.tableName, attributes: [] };
+    let sensitiveTable = { table: this.employeeSensitiveDynamo.tableName, attributes: [] };
     let tablesToUpdate = [databaseTable];
 
     const basicFields = Employee.getFields();

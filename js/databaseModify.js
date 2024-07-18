@@ -655,19 +655,20 @@ class databaseModify {
   /**
    * Updates multiple attributes for an entry in the dynamodb table.
    *
-   * @param newDyanmoObj - object to update dynamodb entry to
-   * @param {[{table: string, attributes: string[]}]} tables -
+   * @param dynamoObj - object to update dynamodb entry to
+   * @param {[{table: string, attributes: string[]}]} table objects containing table name and attributes to update
    * @return Object - object updated in dynamodb
    */
   static async updateAttributesInDB(dynamoObj, tables) {
-    let tableNames = tables.reduce((str, table) => (str += table.table.tableName + ', '), '');
+
     // log method
+    let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
     logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
 
     try {
       let transactItems = [];
       tables.forEach((table) => {
-        let params = { TableName: table.table.tableName, Key: { id: dynamoObj.id } };
+        let params = { TableName: table.table, Key: { id: dynamoObj.id } };
         let attributeList = table.attributes;
         if (dynamoObj[attributeList[0]]) {
           params['UpdateExpression'] = `SET ${attributeList[0]} = :${attributeList[0]}`;
@@ -685,9 +686,7 @@ class databaseModify {
         }
         transactItems.push({ Update: params });
       });
-      logger.log(4, 'updateAttributesInDB', JSON.stringify(transactItems));
-      const response = await databaseModify.TransactItems(transactItems);
-      logger.log(4, 'updateAttributesInDB', JSON.stringify(response));
+      await databaseModify.TransactItems(transactItems);
       logger.log(4, 'updateAttributesInDB', `Successfully updated attributes in ${tableNames} with ID ${dynamoObj.id}`);
       return dynamoObj;
     } catch (err) {

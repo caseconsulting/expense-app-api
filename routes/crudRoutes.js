@@ -1053,11 +1053,11 @@ class Crud {
   /**
    * Updates an attributes of an object. Returns the object updated.
    *
-   * @param body - data of object
+   * @param req - request
    * @return Object - object updated
    */
   // eslint-disable-next-line no-unused-vars
-  async _updateAttributes(body) {
+  async _updateAttributes(req) {
     // This function must be overwritten
   } // _updateAttribute
 
@@ -1072,9 +1072,6 @@ class Crud {
   async _updateAttributesWrapper(req, res) {
     // log method
     logger.log(1, '_updateAttributesWrapper', `Attempting to update an object in ${this._getTableName()}`);
-
-    logger.log(1, '_updateAttributesWrapper', JSON.stringify(req.body));
-
     // compute method
     try {
       if (this._checkPermissionToUpdate(req.employee)) {
@@ -1086,7 +1083,7 @@ class Crud {
         // add object to database
         if (objectValidated.id == req.params.id) {
           // no tables returned no updates
-          tables = tables || [{ table: this.databaseModify, attributes: [] }];
+          tables = tables || [{ table: this.databaseModify.tableName, attributes: [] }];
           // update databases if the id's are the same
           dataUpdated = await DatabaseModify.updateAttributesInDB(objectValidated, tables);
         } else {
