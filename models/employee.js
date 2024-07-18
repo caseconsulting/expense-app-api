@@ -130,7 +130,7 @@ class Employee {
    *
    * @returns Array - The array of fields
    */
-  getFields() {
+  static getFields() {
     return [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
   } // getFields
 

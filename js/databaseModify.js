@@ -656,59 +656,43 @@ class databaseModify {
    * Updates multiple attributes for an entry in the dynamodb table.
    *
    * @param newDyanmoObj - object to update dynamodb entry to
-   * @param {string[]} attributeList - list of attribute names
+   * @param {[{table: string, attributes: string[]}]} tables -
    * @return Object - object updated in dynamodb
    */
-  async updateAttributesInDB(dynamoObj, attributeList) {
-    const tableName = this.tableName;
-    const numAttributes = attributeList?.length ?? 0;
+  static async updateAttributesInDB(dynamoObj, tables) {
+    let tableNames = tables.reduce((str, table) => (str += table.table.tableName + ', '), '');
     // log method
-    logger.log(
-      4,
-      'updateEntryInDB',
-      `Attempting to update ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
-    );
+    logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
 
     try {
-      let params = { TableName: tableName, Key: { id: dynamoObj.id }};
-      if (numAttributes <= 0) {
-        logger.log(
-          4,
-          'updateEntryInDB',
-          `Successfully updated ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
-        );
-        return dynamoObj;
-      }
-      if (dynamoObj[attributeList[0]]) {
-        params['UpdateExpression'] = `SET ${attributeList[0]} = :${attributeList[0]}`;
-        params['ExpressionAttributeValues'] = { [`:${attributeList[0]}`]: dynamoObj[attributeList[0]] };
-      } else {
-        params['UpdateExpression'] = `REMOVE ${attributeList[0]}`;
-      }
-      for (let i = 1; i < numAttributes; i++) {
-        if (dynamoObj[attributeList[i]]) {
-          params['UpdateExpression'] += `, ${attributeList[i]} = :${attributeList[i]}`;
-          params['ExpressionAttributeValues'][`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
+      let transactItems = [];
+      tables.forEach((table) => {
+        let params = { TableName: table.table.tableName, Key: { id: dynamoObj.id } };
+        let attributeList = table.attributes;
+        if (dynamoObj[attributeList[0]]) {
+          params['UpdateExpression'] = `SET ${attributeList[0]} = :${attributeList[0]}`;
+          params['ExpressionAttributeValues'] = { [`:${attributeList[0]}`]: dynamoObj[attributeList[0]] };
         } else {
-          params['UpdateExpression'] += `, ${attributeList[i]}`;
+          params['UpdateExpression'] = `REMOVE ${attributeList[0]}`;
         }
-      }
-
-      const updateCommand = new UpdateCommand(params);
-      let dynamoObj = await documentClient.send(updateCommand);
-      logger.log(
-        4,
-        'updateEntryInDB',
-        `Successfully updated ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
-      );
+        for (let i = 1; i < attributeList.length; i++) {
+          if (dynamoObj[attributeList[i]]) {
+            params['UpdateExpression'] += `, ${attributeList[i]} = :${attributeList[i]}`;
+            params['ExpressionAttributeValues'][`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
+          } else {
+            params['UpdateExpression'] += `, ${attributeList[i]}`;
+          }
+        }
+        transactItems.push({ Update: params });
+      });
+      logger.log(4, 'updateAttributesInDB', JSON.stringify(transactItems));
+      const response = await databaseModify.TransactItems(transactItems);
+      logger.log(4, 'updateAttributesInDB', JSON.stringify(response));
+      logger.log(4, 'updateAttributesInDB', `Successfully updated attributes in ${tableNames} with ID ${dynamoObj.id}`);
       return dynamoObj;
     } catch (err) {
       // log error
-      logger.log(
-        4,
-        'updateEntryInDB',
-        `Failed to update ${numAttributes} attributes in ${tableName} with ID ${dynamoObj.id}`
-      );
+      logger.log(4, 'updateAttributesInDB', `Failed to update attributes in ${tableNames} with ID ${dynamoObj.id}`);
 
       // throw error
       throw err;
