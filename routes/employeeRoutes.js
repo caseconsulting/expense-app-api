@@ -460,8 +460,7 @@ class EmployeeRoutes extends Crud {
     try {
       let newEmployee = await this._validateAttributes(req, data.id);
 
-      if (EmployeeSensitive.getFields()?.includes(req.params.attribute))
-        tableToUpdate = this.employeeSensitiveDynamo;
+      if (EmployeeSensitive.getFields()?.includes(req.params.attribute)) tableToUpdate = this.employeeSensitiveDynamo;
 
       // log success
       logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
@@ -482,7 +481,7 @@ class EmployeeRoutes extends Crud {
    * Returns the employee if it can be successfully updated along with tables to update.
    *
    * @param req - request
-   * @return {{objectUpdated: DatabaseModify, tables: [{ tableName: any, attributes: string[]}]}}
+   * @return {{objectUpdated: object, tables: [{ tableName: any, attributes: string[]}]}}
    */
   async _updateAttributes(req) {
     let data = req.body;
@@ -490,27 +489,31 @@ class EmployeeRoutes extends Crud {
     let sensitiveTable = { table: this.employeeSensitiveDynamo.tableName, attributes: [] };
     let tablesToUpdate = [databaseTable];
 
-    const basicFields = Employee.getFields();
-    const sensitiveFields = EmployeeSensitive.getFields();
-    //populate table attributes to update
-    for (const key of Object.keys(data)) {
-      if (sensitiveFields?.includes(key)) {
-        //add sensitive data table to update
-        if (tablesToUpdate.length == 1) {
-          tablesToUpdate.push(sensitiveTable);
-        }
-        tablesToUpdate[1].attributes.push(key);
-      } else if (basicFields?.includes(key)) {
-        tablesToUpdate[0].attributes.push(key);
-      }
-    }
-
     // log method
     logger.log(2, '_updateAttributes', `Preparing to update employee ${req.params.id}`);
 
     // compute method
     try {
       let newEmployee = await this._validateAttributes(req, req.params.id);
+      const basicFields = Employee.getFields();
+      const sensitiveFields = EmployeeSensitive.getFields();
+      //populate table attributes to update
+      for (const key of Object.keys(data)) {
+        if (sensitiveFields.includes(key)) {
+          //add sensitive data table to update
+          if (tablesToUpdate.length == 1) {
+            tablesToUpdate.push(sensitiveTable);
+          }
+          tablesToUpdate[1].attributes.push(key);
+        } else if (basicFields.includes(key)) {
+          tablesToUpdate[0].attributes.push(key);
+        } else {
+          throw {
+            code: 400,
+            message: `${key} attribute does not exist`
+          };
+        }
+      }
       // log success
       logger.log(2, '_updateAttributes', `Successfully prepared to update employee ${newEmployee.id}`);
 
@@ -685,8 +688,8 @@ class EmployeeRoutes extends Crud {
   } // _updateBudgets
 
   /**
-   * Validates updates to employee attribute updates. 
-   * 
+   * Validates updates to employee attribute updates.
+   *
    * @param req - request object
    * @param id - id of employee
    * @returns newEmployee - validated employee object.

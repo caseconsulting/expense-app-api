@@ -655,37 +655,42 @@ class databaseModify {
   /**
    * Updates multiple attributes for an entry in the dynamodb table.
    *
-   * @param dynamoObj - object to update dynamodb entry to
+   * @param dynamoObj - object with values to update
    * @param {[{table: string, attributes: string[]}]} table objects containing table name and attributes to update
    * @return Object - object updated in dynamodb
    */
   static async updateAttributesInDB(dynamoObj, tables) {
-
     // log method
     let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
     logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
 
     try {
       let transactItems = [];
+      let setExpression = '';
+      let removeExpression = '';
       tables.forEach((table) => {
         let params = { TableName: table.table, Key: { id: dynamoObj.id } };
         let attributeList = table.attributes;
+        //set attributes in updated object, remove attributes not in object
         if (dynamoObj[attributeList[0]]) {
-          params['UpdateExpression'] = `SET ${attributeList[0]} = :${attributeList[0]}`;
+          setExpression = `SET ${attributeList[0]} = :${attributeList[0]}`;
           params['ExpressionAttributeValues'] = { [`:${attributeList[0]}`]: dynamoObj[attributeList[0]] };
         } else {
-          params['UpdateExpression'] = `REMOVE ${attributeList[0]}`;
+          removeExpression = `REMOVE ${attributeList[0]}`;
         }
         for (let i = 1; i < attributeList.length; i++) {
           if (dynamoObj[attributeList[i]]) {
-            params['UpdateExpression'] += `, ${attributeList[i]} = :${attributeList[i]}`;
+            setExpression += `, ${attributeList[i]} = :${attributeList[i]}`;
             params['ExpressionAttributeValues'][`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
           } else {
-            params['UpdateExpression'] += `, ${attributeList[i]}`;
+            removeExpression += `, ${attributeList[i]}`;
           }
         }
+        //combine set expressions and remove expressions into one command
+        params['UpdateExpression'] = setExpression + ' ' + removeExpression;
         transactItems.push({ Update: params });
       });
+
       await databaseModify.TransactItems(transactItems);
       logger.log(4, 'updateAttributesInDB', `Successfully updated attributes in ${tableNames} with ID ${dynamoObj.id}`);
       return dynamoObj;

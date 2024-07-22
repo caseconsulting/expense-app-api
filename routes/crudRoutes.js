@@ -1077,7 +1077,6 @@ class Crud {
       if (this._checkPermissionToUpdate(req.employee)) {
         // employee has permission to update table
         let { objectUpdated, tables } = await this._updateAttributes(req); // update object
-        logger.log(1, '_updateAttributesWrapper', JSON.stringify(objectUpdated), JSON.stringify(tables));
         let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
         let dataUpdated = [];
         // add object to database
