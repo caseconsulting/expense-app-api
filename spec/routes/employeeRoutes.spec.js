@@ -932,11 +932,47 @@ describe('employeeRoutes', () => {
         spyOn(employeeRoutes, '_validateAttributes').and.returnValue(Promise.reject(err));
       });
       it('should throw an error', () => {
-        employeeRoutes._updateAttributes(req).then(()=> {
-          fail('should have thrown err');
-        }).catch((error) => {
-          expect(error).toEqual(err);
-        });
+        employeeRoutes
+          ._updateAttributes(req)
+          .then(() => {
+            fail('should have thrown err');
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+          });
+      });
+    });
+
+    describe('when invalid attribute req', () => {
+      let err;
+      beforeEach(() => {
+        req = {
+          body: {
+            invalidName: 'invalid',
+            firstName: 'tester name',
+            employeeRole: 'user'
+          },
+          params: {
+            id: ID
+          }
+        };
+        err = {
+          code: 400,
+          message: 'invalidName attribute does not exist'
+        };
+        spyOn(employeeRoutes, '_validateAttributes').and.returnValue(
+          Promise.resolve({ ...newEmployeeBasic, ...newEmployeeSensitive })
+        );
+      });
+      it('should throw an 400 error', () => {
+        employeeRoutes
+          ._updateAttributes(req)
+          .then(() => {
+            fail('should have thrown 400 error');
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+          });
       });
     });
   }); //_updateAttributes
