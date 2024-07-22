@@ -2,26 +2,22 @@ const _ = require('lodash');
 
 /**
  * Audit model
- *
- * Fields:
- * - id
- * - dateCreated
- * - type
- * - employeeId
- * - description
- * - timeToLive
- * - tags
  */
 
 class Audit {
   constructor(data) {
-    this.setRequiredAttribute(data, 'id');
-    this.setRequiredAttribute(data, 'dateCreated');
-    this.setRequiredAttribute(data, 'type');
-    this.setRequiredAttribute(data, 'employeeId');
-    this.setOptionalAttribute(data, 'description');
-    this.setOptionalAttribute(data, 'timeToLive');
-    this.setOptionalAttribute(data, 'tags');
+    // required attributes
+    this.setRequiredAttribute(data, 'id'); // generated id of audit
+    this.setRequiredAttribute(data, 'timeToLive'); // audit is auto-deleted after this date
+    this.setRequiredAttribute(data, 'datetime'); // YYYY-MM-DDTHH:mm:ssZ of audit
+    this.setRequiredAttribute(data, 'type'); // type of audit (regular, resume, etc.)
+    this.setRequiredAttribute(data, 'action'); // action taken, must be one of required types in auditRoutes.js
+
+    // optional attributes
+    this.setOptionalAttribute(data, 'employeeId'); // employee who spawned audit
+    this.setOptionalAttribute(data, 'tableName'); // affected table
+    this.setOptionalAttribute(data, 'tableRow'); // id of affected row in table
+    this.setOptionalAttribute(data, 'supplemental'); // more type-specific data (eg list attributes that changed in db)
   } // constructor
 
   /**

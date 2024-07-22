@@ -11,6 +11,104 @@ const logger = new Logger('auditRoutes');
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = getExpressJwt();
 
+// audit types. putting something in requiredFields will require it to be passed in to the createAudit function.
+// fields that are required in audit.js and not supplied to createAudit must be added by the function.
+let AUDIT_TYPES = {
+  // REGULAR audits track basic database CRUD operations
+  REGULAR: {
+    requiredFields: ['id', 'employeeId', 'tableName', 'tableRow', 'action', 'timeToLive']
+  },
+
+  // RESUME audits track resume uploads and deletions
+  RESUME: {
+    requiredFields: ['id', 'employeeId', 'action',  'timeToLive']
+  },
+
+  // LOGIN audits track logins and user data, including:
+  // browser, width and height of display, session logout
+  // vs timout. note that all audits have a time attached automatically
+  LOGIN: {
+    requiredFields: ['id', 'employeeId', 'action', 'supplemental', 'timeToLive']
+  },
+
+  // ERROR audits catch errors so that we can see if there are a lot of repeated errors
+  // which may indicate a bug. include environment (front/back end, dev/test/prod), browser info
+  // if applicable, and any other data that could potentially be useful
+  ERROR: {
+    requiredFields: ['id', 'employeeId', 'supplemental', 'timeToLive']
+  }
+};
+
+// Types of actions
+const ACTIONS = {
+  // database/file actions
+  CREATE: 'CREATE',
+  READ: 'READ', 
+  UPDATE: 'UPDATE', 
+  DELETE: 'DELETE',
+  // login/logout actions
+  LOGIN: 'LOGIN', 
+  LOGOUT: 'LOGOUT', 
+  // if there is no action (eg ERROR audit type)
+  NA: 'NA'
+};
+
+/**
+ * Helper function:
+ * Prepares an audit to be created. Audit must include information required by their
+ * audit type, described in the variable AUDIT_TYPES above.
+ *
+ * @param data the audit data
+ * @return - the new audit object
+ */
+async function createAudit(data) {
+  logger.log(2, 'createAudit', `Preparing to create audit ${data.id}`);
+
+  // ensure that data was passed in
+  if (!data) {
+    throw new Error('Invalid audit data');
+  }
+  // reject requests with invalid or missing type
+  let auditTypeKeys = Object.keys(AUDIT_TYPES);
+  if (!data.type || !auditTypeKeys.includes(data.type)) {
+    throw new TypeError(`Must include 'type' from: '${auditTypeKeys.join("', '")}'`);
+  }
+  // reject requests that do not have sufficient data for their type
+  let missingData = [];
+  for (let field of AUDIT_TYPES[data.type].requiredFields)
+    if (!data[field]) missingData.push(field);
+  if (missingData.length > 0) {
+    throw new TypeError(`Missing ${missingData.join(', ')}`);
+  }
+
+  let now = dateUtils.getTodaysDate('YYYY-MM-DDTHH:mm:ssZ');
+  let unixTimestamp = Number(dateUtils.getTodaysDate('X'));
+
+  // set up new audit
+  let newAudit = {};
+  newAudit.type = data.type;
+  newAudit.timeToLive = unixTimestamp + newAudit.timeToLive * 24 * 60 * 60;
+  newAudit.datetime = now;
+  newAudit.action = ACTIONS.NA; // default, can be overridden
+  // auto-fill whatever fields were provided
+  // note that running `new Audit()` will remove any superfluous fields
+  for (let field of data) newAudit[field] = data[field];
+
+  // attempt to officially create audit
+  let audit;
+  try {
+    audit = new Audit(newAudit);
+  } catch (err) {
+    throw new TypeError('Failed to create audit object');
+  }
+
+  logger.log(2, 'createAudit', `Successfully created audit ${data.id}`);
+
+  // TODO: upload to db this.databaseModify.addToDB(audit);
+
+  return audit;
+} // createAudit
+
 class AuditRoutes {
   constructor() {
     this._router = express.Router();
@@ -25,60 +123,20 @@ class AuditRoutes {
   } //constructor
 
   /**
-   * Prepares an audit to be created.
-   *
-   * The req body must have the following fields:
-   *  - id
-   *  - type
-   *  - employeeId
-   *  - timeToLive (in days)
-   * And optionally:
-   *  - description
+   * Prepares an audit to be created. Audit must include information required by their
+   * audit type, described in the variable AUDIT_TYPES above.
    *
    * @param req the request object
    * @param res the response object
-   * @return - the error message or the new audit object
+   * @return - the new audit object, or error message
    */
   async _create(req, res) {
-    let data = req.body;
-    logger.log(2, '_create', `Preparing to create audit ${data.id}`);
-
     try {
-      // If a valid request (#TODO be more thorough)
-      if (data.id && data.type && data.employeeId && data.timeToLive && req.employee) {
-        let now = dateUtils.getTodaysDate('YYYY-MM-DDTHH:mm:ssZ');
-        // Set up new audit
-        let newAudit = {
-          id: data.id,
-          dateCreated: now,
-          type: data.type,
-          employeeId: data.employeeId,
-          timeToLive: Number(dateUtils.getTodaysDate('X')) + data.timeToLive * 24 * 60 * 60
-        };
-
-        if (data.description) {
-          newAudit['description'] = data.description;
-        }
-
-        if (data.tags) {
-          newAudit['tags'] = data.tags;
-        }
-
-        let audit = new Audit(newAudit);
-        logger.log(2, '_create', `Successfully created audit ${data.id}`);
-
-        this.databaseModify.addToDB(audit);
-        res.status(200).send(audit);
-      } else {
-        throw {
-          code: 400,
-          message: 'Bad request'
-        };
-      }
-    } catch (err) {
-      logger.log(2, '_create', `Failed to create audit ${data.id}`);
-
-      return res.status(err.code).send({ code: err.code, message: err.message });
+      let data = req.body;
+      let audit = await createAudit(data);
+      res.status(200).send(audit);
+    } catch (e) {
+      res.status(400).send(e.message);
     }
   } // _create
 
@@ -137,4 +195,5 @@ class AuditRoutes {
   } // router
 } // AuditRoutes
 
-module.exports = AuditRoutes;
+module.exports = {AuditRoutes, createAudit};
+
