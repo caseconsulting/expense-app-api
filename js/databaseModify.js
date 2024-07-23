@@ -666,28 +666,28 @@ class databaseModify {
 
     try {
       let transactItems = [];
-      let setExpression = '';
-      let removeExpression = '';
       tables.forEach((table) => {
+        let setExpression = [];
+        let expressionAttributeValues = {};
+        let removeExpression = [];
         let params = { TableName: table.table, Key: { id: dynamoObj.id } };
         let attributeList = table.attributes;
         //set attributes in updated object, remove attributes not in object
-        if (dynamoObj[attributeList[0]]) {
-          setExpression = `SET ${attributeList[0]} = :${attributeList[0]}`;
-          params['ExpressionAttributeValues'] = { [`:${attributeList[0]}`]: dynamoObj[attributeList[0]] };
-        } else {
-          removeExpression = `REMOVE ${attributeList[0]}`;
-        }
-        for (let i = 1; i < attributeList.length; i++) {
+        for (let i = 0; i < attributeList.length; i++) {
           if (dynamoObj[attributeList[i]]) {
-            setExpression += `, ${attributeList[i]} = :${attributeList[i]}`;
-            params['ExpressionAttributeValues'][`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
+            setExpression.push(`${attributeList[i]} = :${attributeList[i]}`);
+            expressionAttributeValues[`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
           } else {
-            removeExpression += `, ${attributeList[i]}`;
+            removeExpression.push(`${attributeList[i]}`);
           }
         }
         //combine set expressions and remove expressions into one command
-        params['UpdateExpression'] = setExpression + ' ' + removeExpression;
+        params['UpdateExpression'] =
+          (setExpression.length > 0 ? 'SET ' + setExpression.join() : '') +
+          ' ' +
+          (removeExpression.length > 0 ? 'REMOVE ' + removeExpression.join() : '');
+        if(setExpression.length > 0) 
+          params['ExpressionAttributeValues'] = expressionAttributeValues;
         transactItems.push({ Update: params });
       });
 
