@@ -29,6 +29,7 @@ const _ = require('lodash');
  * - jobRole
  * - jobs
  * - languages
+ * - legacyJobCodes
  * - linkedIn
  * - middleName
  * - nickname
@@ -73,6 +74,7 @@ class Employee {
     this.setOptionalAttribute(data, 'jobs');
     this.setOptionalAttribute(data, 'languages');
     this.setOptionalAttribute(data, 'lastLogin');
+    this.setOptionalAttribute(data, 'legacyJobCodes');
     this.setOptionalAttribute(data, 'linkedIn');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
