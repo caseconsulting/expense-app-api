@@ -7,6 +7,7 @@ const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../m
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { createAudit } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
@@ -85,6 +86,17 @@ class EmployeeRoutes extends Crud {
           '_createWrapper',
           `Successfully created object ${employeeObjectValidated.id} in ${STAGE}-employees-sensitive`
         );
+
+        // audit creation
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'CREATE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: employeeObjectValidated.id,
+          });
+        }
 
         // send successful 200 status
         res.status(200).send(employeeObjectValidated);
@@ -193,6 +205,17 @@ class EmployeeRoutes extends Crud {
           '_deleteWrapper',
           `Successfully deleted object ${objectDeleted.id} in ${STAGE}-employees-sensitive`
         );
+
+        // audit deletion
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'DELETE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: objectDeleted.id,
+          });
+        }
 
         // send successful 200 status
         res.status(200).send(objectDeleted);
@@ -527,8 +550,8 @@ class EmployeeRoutes extends Crud {
         // updated an entry for an employees sensitive data
         logger.log(
           1,
-          '_createWrapper',
-          `Successfully created object ${employeeValidated.id} in ${this.STAGE}-employees-sensitive`
+          '_updateWrapper',
+          `Successfully updated object ${employeeValidated.id} in ${this.STAGE}-employees-sensitive`
         );
         employeeValidated = { ...employeeValidated, ...sensitiveData };
 
@@ -538,6 +561,17 @@ class EmployeeRoutes extends Crud {
           '_updateWrapper',
           `Successfully updated object ${employeeValidated.id} from ${this._getTableName()}`
         );
+
+        // audit update
+        if (this.shouldAudit() && sameIds) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'UPDATE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: basicData.id,
+          });
+        }
 
         // send successful 200 status
         res.status(200).send(employeeValidated);

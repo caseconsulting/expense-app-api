@@ -52,7 +52,7 @@ const emsiRoutes = new EmsiRoutes();
 const GoogleMapRoutes = require('./routes/googleMapsRoutes');
 const googleMapRoutes = new GoogleMapRoutes();
 
-const AuditRoutes = require('./routes/auditRoutes');
+const { AuditRoutes } = require('./routes/auditRoutes');
 const auditRoutes = new AuditRoutes();
 
 const ContractRoutes = require('./routes/contractRoutes');

@@ -7,13 +7,13 @@ const _ = require('lodash');
 class Audit {
   constructor(data) {
     // required attributes
-    this.setRequiredAttribute(data, 'id'); // generated id of audit
     this.setRequiredAttribute(data, 'timeToLive'); // audit is auto-deleted after this date
     this.setRequiredAttribute(data, 'datetime'); // YYYY-MM-DDTHH:mm:ssZ of audit
     this.setRequiredAttribute(data, 'type'); // type of audit (regular, resume, etc.)
     this.setRequiredAttribute(data, 'action'); // action taken, must be one of required types in auditRoutes.js
-
+    
     // optional attributes
+    this.setOptionalAttribute(data, 'id'); // generated id of audit
     this.setOptionalAttribute(data, 'employeeId'); // employee who spawned audit
     this.setOptionalAttribute(data, 'tableName'); // affected table
     this.setOptionalAttribute(data, 'tableRow'); // id of affected row in table

@@ -6,7 +6,7 @@ const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/datab
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
-const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
+const { createAudit, generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
   ? 'utils'
   : '../js/utils');
 
@@ -36,6 +36,13 @@ class Crud {
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
   } // constructor
+
+  // Helper to decide whether or not to generate an audit
+  shouldAudit() {
+    let blockList = [`${STAGE}-audits`];
+  
+    return !blockList.includes(this._getTableName());
+  }
 
   /**
    * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
@@ -518,6 +525,17 @@ class Crud {
         // log success, created an expense, expense type, or employee
         logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
 
+        // audit creation
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'CREATE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: dataCreated.id,
+          });
+        }
+
         // send successful 200 status
         res.status(200).send(dataCreated);
 
@@ -576,6 +594,17 @@ class Crud {
 
         // log success
         logger.log(1, '_deleteWrapper', `Successfully deleted object ${dataDeleted.id} from ${this._getTableName()}`);
+
+        // audit deletion
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'DELETE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: dataDeleted.id,
+          });
+        }
 
         // send successful 200 status
         res.status(200).send(dataDeleted);
@@ -958,6 +987,17 @@ class Crud {
           logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
         }
 
+        // audit update
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'UPDATE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: req.body.id,
+          });
+        }
+
         // send successful 200 status
         res.status(200).send(dataUpdated);
 
@@ -1024,6 +1064,22 @@ class Crud {
         }
         // updated an attribute expense, expense-type, or employee
         logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+
+        // audit update
+        if (this.shouldAudit()) {
+          createAudit({
+            type: 'REGULAR',
+            action: 'UPDATE',
+            employeeId: req.employee.id,
+            tableName: this._getTableName(),
+            tableRow: objectValidated.id,
+            supplemental: {
+              attribute: req.params.attribute,
+              newValue: req.body[req.params.attribute],
+              // TODO: oldValue? might need to be frontend
+            }
+          });
+        }
 
         // send successful 200 status
         res.status(200).send(dataUpdated);
