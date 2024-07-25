@@ -127,30 +127,40 @@ describe('employeeRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    databaseModify = jasmine.createSpyObj('databaseModify', [
-      'addToDB',
-      'getAllEntriesInDB',
-      'getEntry',
-      'getEntryUrl',
-      'querySecondaryIndexInDB',
-      'queryWithTwoIndexesInDB',
-      '_readFromDB',
-      '_readFromDBUrl',
-      'removeFromDB',
-      'updateEntryInDB'
-    ]);
-    employeeSensitiveDynamo = jasmine.createSpyObj('databaseModify', [
-      'addToDB',
-      'getAllEntriesInDB',
-      'getEntry',
-      'getEntryUrl',
-      'querySecondaryIndexInDB',
-      'queryWithTwoIndexesInDB',
-      '_readFromDB',
-      '_readFromDBUrl',
-      'removeFromDB',
-      'updateEntryInDB'
-    ]);
+    databaseModify = jasmine.createSpyObj(
+      'databaseModify',
+      [
+        'addToDB',
+        'getAllEntriesInDB',
+        'getEntry',
+        'getEntryUrl',
+        'querySecondaryIndexInDB',
+        'queryWithTwoIndexesInDB',
+        '_readFromDB',
+        '_readFromDBUrl',
+        'removeFromDB',
+        'updateEntryInDB'
+      ],
+      {
+        tableName: 'dev-employees'
+      }
+    );
+    employeeSensitiveDynamo = jasmine.createSpyObj(
+      'databaseModify',
+      [
+        'addToDB',
+        'getAllEntriesInDB',
+        'getEntry',
+        'getEntryUrl',
+        'querySecondaryIndexInDB',
+        'queryWithTwoIndexesInDB',
+        '_readFromDB',
+        '_readFromDBUrl',
+        'removeFromDB',
+        'updateEntryInDB'
+      ],
+      { tableName: 'dev-employee-sensitive' }
+    );
     expenseDynamo = jasmine.createSpyObj('expenseDynamo', [
       'addToDB',
       'getAllEntriesInDB',
@@ -835,6 +845,139 @@ describe('employeeRoutes', () => {
       }); // and fails to update entry in database
     }); // when work status is changed
   }); // _updateBudgets
+
+  describe('_updateAttributes', () => {
+    let newEmployeeBasic, newEmployeeSensitive;
+    let req, expectedTables;
+    beforeEach(() => {
+      newEmployeeBasic = new Employee(EMPLOYEE_DATA);
+      newEmployeeBasic.fullName = 'tester name';
+      newEmployeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
+      newEmployeeSensitive.employeeRole = 'User';
+
+      spyOn(Employee, 'getFields').and.returnValue(Object.keys(EMPLOYEE_DATA));
+      spyOn(EmployeeSensitive, 'getFields').and.returnValue(Object.keys(EMPLOYEE_SENSITIVE_DATA));
+    });
+
+    describe('when successfully updates employee attributes', () => {
+      beforeEach(() => {
+        req = {
+          body: {
+            firstName: 'tester name',
+            employeeRole: 'User'
+          },
+          params: {
+            id: ID
+          }
+        };
+        expectedTables = [
+          {
+            table: databaseModify.tableName,
+            attributes: ['firstName']
+          },
+          {
+            table: employeeSensitiveDynamo.tableName,
+            attributes: ['employeeRole']
+          }
+        ];
+        spyOn(employeeRoutes, '_validateAttributes').and.returnValue(
+          Promise.resolve({ ...newEmployeeBasic, ...newEmployeeSensitive })
+        );
+      });
+      it('should return successfully with the new employee object', (done) => {
+        employeeRoutes._updateAttributes(req).then((data) => {
+          expect(employeeRoutes._validateAttributes).toHaveBeenCalled();
+          expect(data.objectUpdated).toEqual({ ...newEmployeeBasic, ...newEmployeeSensitive });
+          expect(data.tables).toEqual(expectedTables);
+          done();
+        });
+      });
+    });
+
+    describe('when invalid request data', () => {
+      beforeEach(() => {
+        req = {
+          body: {
+            firstName: 'tester name',
+            employeeRole: 'User'
+          }
+        };
+      });
+      it('should throw an error', (done) => {
+        employeeRoutes
+          ._updateAttributes(req)
+          .then(() => {
+            fail('should have thrown an error');
+            done();
+          })
+          .catch(() => {
+            done();
+          });
+      });
+    });
+
+    describe('when validation fails', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          message: 'could not validate updates'
+        };
+        req = {
+          body: {
+            firstName: 'tester name',
+            employeeRole: 'User'
+          },
+          params: {
+            id: ID
+          }
+        };
+        spyOn(employeeRoutes, '_validateAttributes').and.returnValue(Promise.reject(err));
+      });
+      it('should throw an error', () => {
+        employeeRoutes
+          ._updateAttributes(req)
+          .then(() => {
+            fail('should have thrown err');
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+          });
+      });
+    });
+
+    describe('when invalid attribute req', () => {
+      let err;
+      beforeEach(() => {
+        req = {
+          body: {
+            invalidName: 'invalid',
+            firstName: 'tester name',
+            employeeRole: 'user'
+          },
+          params: {
+            id: ID
+          }
+        };
+        err = {
+          code: 400,
+          message: 'invalidName attribute does not exist'
+        };
+        spyOn(employeeRoutes, '_validateAttributes').and.returnValue(
+          Promise.resolve({ ...newEmployeeBasic, ...newEmployeeSensitive })
+        );
+      });
+      it('should throw an 400 error', () => {
+        employeeRoutes
+          ._updateAttributes(req)
+          .then(() => {
+            fail('should have thrown 400 error');
+          })
+          .catch((error) => {
+            expect(error).toEqual(err);
+          });
+      });
+    });
+  }); //_updateAttributes
 
   describe('_validateCreate', () => {
     let employee, employee1, employees;

@@ -4,7 +4,8 @@ const {
   PutCommand,
   DeleteCommand,
   ScanCommand,
-  QueryCommand
+  QueryCommand,
+  TransactWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
 const DatabaseModify = require('../../js/databaseModify');
 const Expense = require('../../models/expense');
@@ -738,4 +739,82 @@ describe('databaseModify', () => {
       }); // should return 404 rejected promise
     }); // when fails to update training url in database
   }); // updateEntryInDB
+
+  describe('updateAttributesInDB', () => {
+    let oldDynamoObj;
+    let newDynamoObj;
+    let tables = [
+      {
+        table: `${STAGE}-expenses`,
+        attributes: ['cost']
+      }
+    ];
+    beforeEach(() => {
+      oldDynamoObj = new Expense(EXPENSE_DATA);
+      newDynamoObj = new Expense(EXPENSE_DATA);
+      newDynamoObj.COST = 10;
+    });
+
+    describe('when successfully updates attributes', () => {
+      beforeEach(() => {
+        let response = {
+          $metadata: {
+            httpStatusCode: 200,
+            requestId: '',
+            attempts: 1,
+            totalRetryDelay: 0
+          }
+        };
+        spyOn(DatabaseModify, 'TransactItems').and.returnValue(Promise.resolve(response));
+        ddbMock.on(TransactWriteCommand).resolves(response);
+      });
+      it('should return the updated object', (done) => {
+        DatabaseModify.updateAttributesInDB(newDynamoObj, tables)
+          .then((data) => {
+            expect(DatabaseModify.TransactItems).toHaveBeenCalled();
+            expect(data).toEqual(newDynamoObj);
+            expect(data).not.toEqual(oldDynamoObj);
+            done();
+          })
+          .catch((error) => {
+            fail('should have returned updated object' + error.message);
+            done();
+          });
+      });
+      it('should return the same object', (done) => {
+        DatabaseModify.updateAttributesInDB(oldDynamoObj, tables)
+          .then((data) => {
+            expect(DatabaseModify.TransactItems).toHaveBeenCalled();
+            expect(data).toEqual(oldDynamoObj);
+            done();
+          })
+          .catch((error) => {
+            fail('should have returned updated object' + error.message);
+            done();
+          });
+      });
+    });
+
+    describe('when unsuccessful updates to attributes', () => {
+      let err;
+      beforeEach(() => {
+        err = {
+          code: 404,
+          message: 'Failed to update attributes in database.'
+        };
+        spyOn(DatabaseModify, 'TransactItems').and.returnValue(Promise.reject(err));
+        ddbMock.on(TransactWriteCommand).rejects(err);
+      });
+      it('should throw an error', (done) => {
+        DatabaseModify.updateAttributesInDB(newDynamoObj, tables).then(() => {
+          fail('should have thrown an err ' + err.message);
+          done();
+        }).catch((error) => {
+          expect(DatabaseModify.TransactItems).toHaveBeenCalled();
+          expect(error).toEqual(err);
+          done();
+        }); 
+      });
+    });
+  }); // updateAttributesInDVB
 }); // databaseModify
