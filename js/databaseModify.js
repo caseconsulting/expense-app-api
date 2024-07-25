@@ -653,6 +653,57 @@ class databaseModify {
   } // updateEntryInDB
 
   /**
+   * Updates multiple attributes for an entry in the dynamodb table.
+   *
+   * @param dynamoObj - object with values to update
+   * @param {[{table: string, attributes: string[]}]} table objects containing table name and attributes to update
+   * @return Object - object updated in dynamodb
+   */
+  static async updateAttributesInDB(dynamoObj, tables) {
+    // log method
+    let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
+    logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
+
+    try {
+      let transactItems = [];
+      tables.forEach((table) => {
+        let setExpression = [];
+        let expressionAttributeValues = {};
+        let removeExpression = [];
+        let params = { TableName: table.table, Key: { id: dynamoObj.id } };
+        let attributeList = table.attributes;
+        //set attributes in updated object, remove attributes not in object
+        for (let i = 0; i < attributeList.length; i++) {
+          if (dynamoObj[attributeList[i]]) {
+            setExpression.push(`${attributeList[i]} = :${attributeList[i]}`);
+            expressionAttributeValues[`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
+          } else {
+            removeExpression.push(`${attributeList[i]}`);
+          }
+        }
+        //combine set expressions and remove expressions into one command
+        params['UpdateExpression'] =
+          (setExpression.length > 0 ? 'SET ' + setExpression.join() : '') +
+          ' ' +
+          (removeExpression.length > 0 ? 'REMOVE ' + removeExpression.join() : '');
+        if(setExpression.length > 0) 
+          params['ExpressionAttributeValues'] = expressionAttributeValues;
+        transactItems.push({ Update: params });
+      });
+
+      await databaseModify.TransactItems(transactItems);
+      logger.log(4, 'updateAttributesInDB', `Successfully updated attributes in ${tableNames} with ID ${dynamoObj.id}`);
+      return dynamoObj;
+    } catch (err) {
+      // log error
+      logger.log(4, 'updateAttributesInDB', `Failed to update attributes in ${tableNames} with ID ${dynamoObj.id}`);
+
+      // throw error
+      throw err;
+    }
+  } // updateAttributesInDB
+
+  /**
    * Invokes multiple API requests to DynamoDB. If one request fails, all requests fails.
    *
    * @param paramsList list of request parameters
