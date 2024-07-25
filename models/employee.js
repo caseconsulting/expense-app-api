@@ -1,5 +1,42 @@
 const _ = require('lodash');
 
+const REQUIRED_FIELDS = ['id', 'email', 'employeeNumber', 'firstName', 'hireDate', 'lastName', 'workStatus'];
+
+const OPTIONAL_FIELDS = [
+  'agencyIdentificationNumber',
+  'awards',
+  'birthdayFeed',
+  'certifications',
+  'clearances',
+  'companies',
+  'contract',
+  'contracts',
+  'customerOrgExp',
+  'cykAoid',
+  'degrees',
+  'deptDate',
+  'education',
+  'github',
+  'icTimeFrames',
+  'jobRole',
+  'jobs',
+  'languages',
+  'lastLogin',
+  'linkedIn',
+  'middleName',
+  'nickname',
+  'noMiddleName',
+  'personalEmail',
+  'prime',
+  'publicPhoneNumbers',
+  'schools',
+  'technologies',
+  'twitter',
+  'mifiStatus',
+  'resumeUpdated',
+  'plannedPto'
+];
+
 /**
  * Employee model
  *
@@ -87,6 +124,15 @@ class Employee {
     this.setOptionalAttribute(data, 'resumeUpdated');
     this.setOptionalAttribute(data, 'plannedPto');
   } // constructor
+
+  /**
+   * Gets all field keys.
+   *
+   * @returns Array - The array of fields
+   */
+  static getFields() {
+    return [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
+  } // getFields
 
   /**
    * Returns the employee's full name (first name and last name).
