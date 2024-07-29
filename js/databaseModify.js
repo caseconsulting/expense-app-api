@@ -663,7 +663,7 @@ class databaseModify {
     // log method
     let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
     logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
-
+    
     try {
       let transactItems = [];
       tables.forEach((table) => {
@@ -672,6 +672,7 @@ class databaseModify {
         let removeExpression = [];
         let params = { TableName: table.table, Key: { id: dynamoObj.id } };
         let attributeList = table.attributes;
+        if (_.isEmpty(attributeList)) return;
         //set attributes in updated object, remove attributes not in object
         for (let i = 0; i < attributeList.length; i++) {
           if (dynamoObj[attributeList[i]]) {
@@ -686,11 +687,17 @@ class databaseModify {
           (setExpression.length > 0 ? 'SET ' + setExpression.join() : '') +
           ' ' +
           (removeExpression.length > 0 ? 'REMOVE ' + removeExpression.join() : '');
-        if(setExpression.length > 0) 
-          params['ExpressionAttributeValues'] = expressionAttributeValues;
+        if (setExpression.length > 0) params['ExpressionAttributeValues'] = expressionAttributeValues;
         transactItems.push({ Update: params });
       });
-
+      if (_.isEmpty(transactItems)) {
+        logger.log(
+          4,
+          'updateAttributesInDB',
+          `No attributes to update with ID ${dynamoObj.id}`
+        );
+        return dynamoObj;
+      }
       await databaseModify.TransactItems(transactItems);
       logger.log(4, 'updateAttributesInDB', `Successfully updated attributes in ${tableNames} with ID ${dynamoObj.id}`);
       return dynamoObj;
