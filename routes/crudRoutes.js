@@ -94,6 +94,32 @@ class Crud {
   } // calcAdjustedAmount
 
   /**
+   * Calculates the carry over amount to the next anniversary budget. If a user spent
+   * $3500 on a Training expense, then the budget was lowered to $3000, the user gets
+   * $500 in legacy carry over so they are not incorrectly affected by overdraft.
+   *
+   * @param {Object} budget - The old budget object
+   * @param {Number} adjustedAmount - The new budget amount
+   * @returns Number - The carry over amount for a user's next anniversary budget
+   */
+  calcLegacyCarryover(budget, adjustedAmount) {
+    // only add carryover if new budget amount is being decreased
+    if (adjustedAmount > budget.amount) return 0;
+
+    let spent = budget.reimbursedAmount + budget.pendingAmount;
+    let maxCarryover = budget.amount - adjustedAmount;
+    // only add carryover if user spent more than the new budget amount
+    if (spent > adjustedAmount) {
+      if (spent - adjustedAmount > maxCarryover) {
+        return maxCarryover;
+      } else {
+        return spent - adjustedAmount;
+      }
+    }
+    return 0;
+  } // calcLegacyCarryover
+
+  /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
    * admin has permissions to create an expense, expense type, employee, or training url. Returns true if the employee
    * has permissions, otherwise returns false.

@@ -14,6 +14,7 @@ const ISOFORMAT = 'YYYY-MM-DD';
  * - fiscalStartDate
  * - fiscalEndDate
  * - amount
+ * - legacyCarryover
  */
 
 class Budget {
@@ -27,6 +28,8 @@ class Budget {
     this.setRequiredAttribute(data, 'fiscalStartDate');
     this.setRequiredAttribute(data, 'fiscalEndDate');
     this.setRequiredNumberAttribute(data, 'amount', undefined, 2);
+    // optional attributes
+    this.setOptionalNumberAttribute(data, 'legacyCarryover', undefined, 2);
   } // constructor
 
   /**

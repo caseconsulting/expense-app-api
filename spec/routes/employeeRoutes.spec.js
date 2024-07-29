@@ -26,6 +26,7 @@ describe('employeeRoutes', () => {
   const FISCAL_START_DATE = '{fiscalStartDate}';
   const FISCAL_END_DATE = '{fiscalEndDate}';
   const AMOUNT = 0;
+  const LEGACY_CARRYOVER = 0;
 
   const PURCHASE_DATE = '{purchaseDate}';
   const REIMBURSED_DATE = '{reimbursedDate}';
@@ -71,7 +72,8 @@ describe('employeeRoutes', () => {
     pendingAmount: PENDING_AMOUNT,
     fiscalStartDate: FISCAL_START_DATE,
     fiscalEndDate: FISCAL_END_DATE,
-    amount: AMOUNT
+    amount: AMOUNT,
+    legacyCarryover: LEGACY_CARRYOVER
   };
 
   const EXPENSE_DATA = {

@@ -25,6 +25,7 @@ describe('expenseTypeRoutes', () => {
   const FISCAL_START_DATE = '{fiscalStartDate}';
   const FISCAL_END_DATE = '{fiscalEndDate}';
   const AMOUNT = 0;
+  const LEGACY_CARRYOVER = 0;
 
   const PURCHASE_DATE = '{purchaseDate}';
   const REIMBURSED_DATE = '{reimbursedDate}';
@@ -66,7 +67,8 @@ describe('expenseTypeRoutes', () => {
     pendingAmount: PENDING_AMOUNT,
     fiscalStartDate: FISCAL_START_DATE,
     fiscalEndDate: FISCAL_END_DATE,
-    amount: AMOUNT
+    amount: AMOUNT,
+    legacyCarryover: LEGACY_CARRYOVER
   };
 
   const EXPENSE_DATA = {
@@ -373,7 +375,7 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return the expense type updated', (done) => {
-          expenseTypeRoutes._update({body: data}).then((updatedExpenseType) => {
+          expenseTypeRoutes._update({ body: data }).then((updatedExpenseType) => {
             expect(updatedExpenseType).toEqual(newExpenseType);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
@@ -395,7 +397,7 @@ describe('expenseTypeRoutes', () => {
         });
 
         it('should return the expense type updated', (done) => {
-          expenseTypeRoutes._update({body: data}).then((updatedExpenseType) => {
+          expenseTypeRoutes._update({ body: data }).then((updatedExpenseType) => {
             expect(updatedExpenseType).toEqual(newExpenseType);
             expect(expenseTypeRoutes._validateExpenseType).toHaveBeenCalledWith(newExpenseType);
             expect(expenseTypeRoutes._validateUpdate).toHaveBeenCalledWith(oldExpenseType, newExpenseType);
@@ -421,7 +423,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 404 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update({body: data})
+          ._update({ body: data })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -449,7 +451,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update({body: data})
+          ._update({ body: data })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -479,7 +481,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update({body: data})
+          ._update({ body: data })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -511,7 +513,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update({body: data})
+          ._update({ body: data })
           .then(() => {
             fail('expected error to have been thrown');
             done();
@@ -545,7 +547,7 @@ describe('expenseTypeRoutes', () => {
 
       it('should return a 403 rejected promise', (done) => {
         expenseTypeRoutes
-          ._update({body: data})
+          ._update({ body: data })
           .then(() => {
             fail('expected error to have been thrown');
             done();
