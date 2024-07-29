@@ -795,6 +795,37 @@ describe('databaseModify', () => {
       });
     });
 
+    describe('when no attributes to update', () => {
+      let tables = [
+        {
+          table: `${STAGE}-expenses`,
+          attributes: []
+        }
+      ];
+      beforeEach(() => {
+        let response = {
+          $metadata: {
+            httpStatusCode: 200,
+            requestId: '',
+            attempts: 1,
+            totalRetryDelay: 0
+          }
+        };
+        spyOn(DatabaseModify, 'TransactItems').and.returnValue(Promise.resolve(response));
+      });
+      it('should successfully return old object', (done) => {
+        DatabaseModify.updateAttributesInDB(oldDynamoObj, tables)
+          .then((data) => {
+            expect(DatabaseModify.TransactItems).not.toHaveBeenCalled();
+            expect(data).toEqual(oldDynamoObj);
+            done();
+          })
+          .catch((error) => {
+            fail('should have returned old object ' + error.message);
+          });
+      });
+    });
+
     describe('when unsuccessful updates to attributes', () => {
       let err;
       beforeEach(() => {
@@ -806,14 +837,16 @@ describe('databaseModify', () => {
         ddbMock.on(TransactWriteCommand).rejects(err);
       });
       it('should throw an error', (done) => {
-        DatabaseModify.updateAttributesInDB(newDynamoObj, tables).then(() => {
-          fail('should have thrown an err ' + err.message);
-          done();
-        }).catch((error) => {
-          expect(DatabaseModify.TransactItems).toHaveBeenCalled();
-          expect(error).toEqual(err);
-          done();
-        }); 
+        DatabaseModify.updateAttributesInDB(newDynamoObj, tables)
+          .then(() => {
+            fail('should have thrown an err ' + err.message);
+            done();
+          })
+          .catch((error) => {
+            expect(DatabaseModify.TransactItems).toHaveBeenCalled();
+            expect(error).toEqual(err);
+            done();
+          });
       });
     });
   }); // updateAttributesInDVB
