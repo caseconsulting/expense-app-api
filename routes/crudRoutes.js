@@ -103,17 +103,21 @@ class Crud {
    * @returns Number - The carry over amount for a user's next anniversary budget
    */
   calcLegacyCarryover(budget, adjustedAmount) {
+    let carryover = budget.legacyCarryover || 0;
     // only add carryover if new budget amount is being decreased
-    if (adjustedAmount > budget.amount) return 0;
-
+    if (adjustedAmount > budget.amount) {
+      // if legacy carryover already exists, update the amount
+      carryover -= adjustedAmount - budget.amount;
+      return Math.max(carryover, 0);
+    }
+    // only add carryover if user spent more than the new budget amount
     let spent = budget.reimbursedAmount + budget.pendingAmount;
     let maxCarryover = budget.amount - adjustedAmount;
-    // only add carryover if user spent more than the new budget amount
     if (spent > adjustedAmount) {
       if (spent - adjustedAmount > maxCarryover) {
-        return maxCarryover;
+        carryover += maxCarryover;
       } else {
-        return spent - adjustedAmount;
+        carryover += spent - adjustedAmount;
       }
     }
     return 0;
