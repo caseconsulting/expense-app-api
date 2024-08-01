@@ -27,6 +27,8 @@ const OPTIONAL_FIELDS = [
   'nickname',
   'noMiddleName',
   'personalEmail',
+  'personalEmailHidden',
+  'plannedPto',
   'prime',
   'publicPhoneNumbers',
   'schools',
@@ -34,7 +36,6 @@ const OPTIONAL_FIELDS = [
   'twitter',
   'mifiStatus',
   'resumeUpdated',
-  'plannedPto'
 ];
 
 /**
@@ -73,12 +74,13 @@ const OPTIONAL_FIELDS = [
  * - noMiddleName
  * - prime
  * - personalEmail
+ * - personalEmailHidden
+ * - plannedPto
  * - publicPhoneNumbers
  * - schools
  * - technologies
  * - twitter
  * - mifiStatus
- * - plannedPto
  */
 class Employee {
   constructor(data) {
@@ -117,6 +119,8 @@ class Employee {
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
     this.setOptionalAttribute(data, 'personalEmail');
+    this.setOptionalAttribute(data, 'personalEmailHidden');
+    this.setOptionalAttribute(data, 'plannedPto');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
@@ -124,7 +128,6 @@ class Employee {
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
-    this.setOptionalAttribute(data, 'plannedPto');
   } // constructor
 
   /**
