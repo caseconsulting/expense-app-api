@@ -1026,6 +1026,18 @@ class EmployeeRoutes extends Crud {
         }
       }
 
+      // fail safe to prevent any users from updating their employee role without permission on prod
+      if (oldEmployee.employeeRole != newEmployee.employeeRole && STAGE == 'prod'){
+        
+        // log error
+        logger.log(3, '_validateUpdate',
+          `Cannot update your employee role, ${oldEmployee.id} does not have permissions to do so`);
+
+        // throw error
+        err.message = 'Only admins can change your employee role.';
+        throw err;
+      }
+
       // log success
       logger.log(3, '_validateUpdate', `Successfully validated update for employee ${oldEmployee.id}`);
 
