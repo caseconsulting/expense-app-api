@@ -423,7 +423,7 @@ class EmployeeRoutes extends Crud {
       let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
       await Promise.all([
         this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
-        this._validateUpdate(oldEmployeeBasic, newEmployeeBasic),
+        this._validateUpdate(oldEmployeeBasic, newEmployeeBasic, req.employee),
         oldEmployeeBasic.workStatus !== newEmployeeBasic.workStatus ||
         oldEmployeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
           ? this._updateBudgets(oldEmployeeBasic, newEmployeeBasic)
@@ -710,7 +710,7 @@ class EmployeeRoutes extends Crud {
     let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
     await Promise.all([
       this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
-      this._validateUpdate(employeeBasic, newEmployeeBasic),
+      this._validateUpdate(employeeBasic, newEmployeeBasic, req.employee),
       employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
       employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
         ? this._updateBudgets(employeeBasic, newEmployeeBasic)
@@ -945,9 +945,10 @@ class EmployeeRoutes extends Crud {
    *
    * @param oldEmployee - Employee being updated from
    * @param newEmployee - Employee being updated to
+   * @param currentEmployee - Employee thats sending the update request
    * @return Employee - validated employee
    */
-  async _validateUpdate(oldEmployee, newEmployee) {
+  async _validateUpdate(oldEmployee, newEmployee, currentEmployee) {
     // log method
     logger.log(3, '_validateUpdate', `Validating update for employee ${oldEmployee.id}`);
 
@@ -1027,7 +1028,8 @@ class EmployeeRoutes extends Crud {
       }
 
       // fail safe to prevent any users from updating their employee role without permission on prod
-      if (oldEmployee.employeeRole != newEmployee.employeeRole && STAGE == 'prod'){
+      if (oldEmployee.employeeRole != newEmployee.employeeRole && STAGE == 'prod'
+        && currentEmployee.employeeRole != 'admin'){
         
         // log error
         logger.log(3, '_validateUpdate',
