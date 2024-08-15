@@ -152,7 +152,9 @@ class TagRoutes extends Crud {
             _.find(expenseType.tagBudgets, (tb) => _.find(tb.tags, (t) => t === newTag.id))
           ) {
             // update budget amount if expense type includes tag being changed
-            budgets[i].amount = this.calcAdjustedAmount(employee, expenseType, tags);
+            let adjustedAmount = this.calcAdjustedAmount(employee, expenseType, tags);
+            budgets[i].legacyCarryover = this.calcLegacyCarryover(budgets[i], adjustedAmount);
+            budgets[i].amount = adjustedAmount;
             logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
             // update budget in database
             try {
@@ -192,7 +194,7 @@ class TagRoutes extends Crud {
    */
   async _update(req) {
     let data = req.body;
-    
+
     // log method
     logger.log(2, '_update', `Preparing to update Tag ${data.id}`);
 

@@ -656,7 +656,9 @@ class EmployeeRoutes extends Crud {
         if (dateUtils.isBetween(dateUtils.getTodaysDate(), start, end, 'day', '[]')) {
           // only update active budgets
           let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType, tags);
+          let adjustedAmount = this.calcAdjustedAmount(newEmployee, expenseType, tags);
+          budgets[i].legacyCarryover = this.calcLegacyCarryover(budgets[i], adjustedAmount);
+          budgets[i].amount = adjustedAmount;
           logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
           // update budget in database
           try {

@@ -142,7 +142,7 @@ class ExpenseTypeRoutes extends Crud {
    */
   async _update(req) {
     let data = req.body;
-    
+
     // log method
     logger.log(2, '_update', `Preparing to update expense type ${data.budgetName} with ID ${data.id}`);
 
@@ -236,7 +236,9 @@ class ExpenseTypeRoutes extends Crud {
             if (!newExpenseType.recurringFlag || budgets[i].isDateInRange(dateUtils.getTodaysDate())) {
               let employee = _.find(employees, ['id', budgets[i].employeeId]);
               if (employee) {
-                budgets[i].amount = this.calcAdjustedAmount(employee, newExpenseType, tags);
+                let adjustedAmount = this.calcAdjustedAmount(employee, newExpenseType, tags);
+                budgets[i].legacyCarryover = this.calcLegacyCarryover(budgets[i], adjustedAmount);
+                budgets[i].amount = adjustedAmount;
               }
             }
           }

@@ -48,7 +48,7 @@ class ExpenseRoutes extends Crud {
       } else {
         let updatedBudget = _.cloneDeep(budget);
         if (expense.isReimbursed()) {
-          // if expense is remibursed, update the budgets reimbursed amount
+          // if expense is reimbursed, update the budgets reimbursed amount
           logger.log(2, '_addToBudget', `Adding $${expense.cost} to reimbursed amount ($${budget.reimbursedAmount})`);
 
           updatedBudget.reimbursedAmount += expense.cost;
@@ -408,6 +408,7 @@ class ExpenseRoutes extends Crud {
 
     // compute method
     let oldCost = oldExpense ? oldExpense.cost : 0;
+    let legacyCarryover = budget.legacyCarryover || 0;
     // set the max amount that can be added to budget
     // overdraft x2 allowed if expense type allows overdraft and employee is full time
     let maxAmount;
@@ -418,10 +419,10 @@ class ExpenseRoutes extends Crud {
     }
     if (budgetAmountCorrect && expenseType.odFlag) {
       // budget is full time and od allowed
-      maxAmount = budget.amount * 2;
+      maxAmount = budget.amount * 2 + legacyCarryover;
     } else {
       // budget is not full time or od is not allowed
-      maxAmount = budget.amount;
+      maxAmount = budget.amount + legacyCarryover;
     }
     let total = budget.pendingAmount + budget.reimbursedAmount - oldCost + newExpense.cost;
 
