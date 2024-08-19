@@ -1,6 +1,6 @@
 {
   "name": "expense-app-api",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "private": true,
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
