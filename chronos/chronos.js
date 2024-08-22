@@ -131,7 +131,7 @@ async function _handleNewBudgetsWithOverdraft() {
 
   if (budgets.length != 0) {
     await lib._asyncForEach(budgets, async (oldBudget) => {
-      if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount) {
+      if (oldBudget.reimbursedAmount + oldBudget.pendingAmount > oldBudget.amount + (oldBudget.legacyCarryover || 0)) {
         // old budget has overdraft
         let expenseType = lib._getExpenseType(expenseTypes, oldBudget.expenseTypeId);
         // ensure budget amount is correct
@@ -176,16 +176,23 @@ async function _makeNewBudget(oldBudget) {
     amount: oldBudget.amount
   };
   let newBudget = new Budget(newBudgetData); // convert to budget object
-  if (oldBudget.reimbursedAmount > oldBudget.amount) {
+  let legacyCarryover = oldBudget.legacyCarryover || 0;
+  if (oldBudget.reimbursedAmount > oldBudget.amount + legacyCarryover) {
     // reimburse amount is greater than budget
-    newBudget.reimbursedAmount = oldBudget.reimbursedAmount - oldBudget.amount; // set new reimburse amount
+    // set new reimburse amount
+    newBudget.reimbursedAmount = oldBudget.reimbursedAmount - oldBudget.amount - legacyCarryover;
     newBudget.pendingAmount = oldBudget.pendingAmount; // set new pending amount
-    updatedBudget.reimbursedAmount = oldBudget.amount; // update old reimbursed amount
+    // update old reimbursed amount
+    updatedBudget.reimbursedAmount = oldBudget.amount;
     updatedBudget.pendingAmount = 0; // update old pending amount
+    if (newBudget.reimbursedAmount + newBudget.pendingAmount > newBudget.amount) {
+      newBudget.legacyCarryover = newBudget.reimbursedAmount + newBudget.pendingAmount - newBudget.amount;
+    }
   } else {
     // set new pending amount
-    newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - oldBudget.amount;
-    updatedBudget.pendingAmount = oldBudget.amount - oldBudget.reimbursedAmount; // update old pending amount
+    newBudget.pendingAmount = oldBudget.pendingAmount + oldBudget.reimbursedAmount - oldBudget.amount - legacyCarryover;
+    // update old pending amount
+    updatedBudget.pendingAmount = oldBudget.amount - oldBudget.reimbursedAmount;
   }
   return lib
     ._budgetDynamo()

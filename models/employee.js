@@ -1,5 +1,43 @@
 const _ = require('lodash');
 
+const REQUIRED_FIELDS = ['id', 'email', 'employeeNumber', 'firstName', 'hireDate', 'lastName', 'workStatus'];
+
+const OPTIONAL_FIELDS = [
+  'agencyIdentificationNumber',
+  'awards',
+  'birthdayFeed',
+  'certifications',
+  'clearances',
+  'companies',
+  'contract',
+  'contracts',
+  'customerOrgExp',
+  'cykAoid',
+  'degrees',
+  'deptDate',
+  'education',
+  'github',
+  'icTimeFrames',
+  'jobRole',
+  'jobs',
+  'languages',
+  'lastLogin',
+  'linkedIn',
+  'middleName',
+  'nickname',
+  'noMiddleName',
+  'personalEmail',
+  'personalEmailHidden',
+  'plannedPto',
+  'prime',
+  'publicPhoneNumbers',
+  'schools',
+  'technologies',
+  'twitter',
+  'mifiStatus',
+  'resumeUpdated',
+];
+
 /**
  * Employee model
  *
@@ -36,12 +74,13 @@ const _ = require('lodash');
  * - noMiddleName
  * - prime
  * - personalEmail
+ * - personalEmailHidden
+ * - plannedPto
  * - publicPhoneNumbers
  * - schools
  * - technologies
  * - twitter
  * - mifiStatus
- * - plannedPto
  */
 class Employee {
   constructor(data) {
@@ -80,6 +119,8 @@ class Employee {
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
     this.setOptionalAttribute(data, 'personalEmail');
+    this.setOptionalAttribute(data, 'personalEmailHidden');
+    this.setOptionalAttribute(data, 'plannedPto');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
@@ -87,8 +128,16 @@ class Employee {
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
-    this.setOptionalAttribute(data, 'plannedPto');
   } // constructor
+
+  /**
+   * Gets all field keys.
+   *
+   * @returns Array - The array of fields
+   */
+  static getFields() {
+    return [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
+  } // getFields
 
   /**
    * Returns the employee's full name (first name and last name).

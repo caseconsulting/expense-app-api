@@ -458,27 +458,9 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
-      let [employeeBasic, employeeSensitive] = await Promise.all([
-        this.databaseModify.getEntry(data.id),
-        this.employeeSensitiveDynamo.getEntry(data.id)
-      ]);
-      employeeBasic = new Employee(employeeBasic);
-      employeeSensitive = new EmployeeSensitive(employeeSensitive);
-      let newEmployeeBasic = new Employee({ ...employeeBasic, ...data });
-      let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...data });
-      newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
-      let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
-      await Promise.all([
-        this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
-        this._validateUpdate(employeeBasic, newEmployeeBasic),
-        employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
-        employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
-          ? this._updateBudgets(employeeBasic, newEmployeeBasic)
-          : _
-      ]);
+      let newEmployee = await this._validateAttributes(req, data.id);
 
-      if (newEmployeeSensitive.getFields()?.includes(req.params.attribute))
-        tableToUpdate = this.employeeSensitiveDynamo;
+      if (EmployeeSensitive.getFields()?.includes(req.params.attribute)) tableToUpdate = this.employeeSensitiveDynamo;
 
       // log success
       logger.log(2, '_update', `Successfully prepared to update employee ${data.id}`);
@@ -493,6 +475,58 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _updateAttribute
+
+  /**
+   * Prepares an employee's attributes to be updated.
+   * Returns the employee if it can be successfully updated along with tables to update.
+   *
+   * @param req - request
+   * @return {{objectUpdated: object, tables: [{ tableName: any, attributes: string[]}]}}
+   */
+  async _updateAttributes(req) {
+    let data = req.body;
+    let databaseTable = { table: this.databaseModify.tableName, attributes: [] };
+    let sensitiveTable = { table: this.employeeSensitiveDynamo.tableName, attributes: [] };
+    let tablesToUpdate = [databaseTable];
+
+    // log method
+    logger.log(2, '_updateAttributes', `Preparing to update employee ${req.params.id}`);
+
+    // compute method
+    try {
+      let newEmployee = await this._validateAttributes(req, req.params.id);
+      const basicFields = Employee.getFields();
+      const sensitiveFields = EmployeeSensitive.getFields();
+      //populate table attributes to update
+      for (const key of Object.keys(data)) {
+        if (sensitiveFields.includes(key)) {
+          //add sensitive data table to update
+          if (tablesToUpdate.length == 1) {
+            tablesToUpdate.push(sensitiveTable);
+          }
+          tablesToUpdate[1].attributes.push(key);
+        } else if (basicFields.includes(key)) {
+          tablesToUpdate[0].attributes.push(key);
+        } else {
+          throw {
+            code: 400,
+            message: `${key} attribute does not exist`
+          };
+        }
+      }
+      // log success
+      logger.log(2, '_updateAttributes', `Successfully prepared to update employee ${newEmployee.id}`);
+
+      // return employee to update
+      return { objectUpdated: newEmployee, tables: tablesToUpdate };
+    } catch (err) {
+      // log error
+      logger.log(2, '_updateAttributes', `Failed to prepare update for employee ${req.params.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateAttributes
 
   /**
    * Update employee in database. If successful, sends 200 status request with the
@@ -622,7 +656,9 @@ class EmployeeRoutes extends Crud {
         if (dateUtils.isBetween(dateUtils.getTodaysDate(), start, end, 'day', '[]')) {
           // only update active budgets
           let expenseType = _.find(expenseTypes, ['id', budgets[i].expenseTypeId]);
-          budgets[i].amount = this.calcAdjustedAmount(newEmployee, expenseType, tags);
+          let adjustedAmount = this.calcAdjustedAmount(newEmployee, expenseType, tags);
+          budgets[i].legacyCarryover = this.calcLegacyCarryover(budgets[i], adjustedAmount);
+          budgets[i].amount = adjustedAmount;
           logger.log(2, '_updateBudgets', `Budget: ${expenseType}, Amount: ${budgets[i].amount}`);
           // update budget in database
           try {
@@ -652,6 +688,37 @@ class EmployeeRoutes extends Crud {
       return Promise.reject(err);
     }
   } // _updateBudgets
+
+  /**
+   * Validates updates to employee attribute updates.
+   *
+   * @param req - request object
+   * @param id - id of employee
+   * @returns newEmployee - validated employee object.
+   */
+  async _validateAttributes(req, id) {
+    let data = req.body;
+    let [employeeBasic, employeeSensitive] = await Promise.all([
+      this.databaseModify.getEntry(id),
+      this.employeeSensitiveDynamo.getEntry(id)
+    ]);
+    employeeBasic = new Employee(employeeBasic);
+    employeeSensitive = new EmployeeSensitive(employeeSensitive);
+    let newEmployeeBasic = new Employee({ ...employeeBasic, ...data });
+    let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...data });
+    newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
+    let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
+    await Promise.all([
+      this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
+      this._validateUpdate(employeeBasic, newEmployeeBasic),
+      employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
+      employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
+        ? this._updateBudgets(employeeBasic, newEmployeeBasic)
+        : _
+    ]);
+
+    return newEmployee;
+  }
 
   /**
    * Validate that an employee can be created. Returns the employee if the employee can be created.

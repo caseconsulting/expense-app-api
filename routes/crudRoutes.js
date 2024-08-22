@@ -27,6 +27,7 @@ class Crud {
     this._router.get('/:id', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.get('/:id/:category', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
     this._router.patch('/:attribute', this._checkJwt, this._getUserInfo, this._updateAttributeWrapper.bind(this));
+    this._router.patch('/attributes/:id', this._checkJwt, this._getUserInfo, this._updateAttributesWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
     this.employeeDynamo = new DatabaseModify('employees');
@@ -92,6 +93,36 @@ class Crud {
     // return result
     return result;
   } // calcAdjustedAmount
+
+  /**
+   * Calculates the carry over amount to the next anniversary budget. If a user spent
+   * $3500 on a Training expense, then the budget was lowered to $3000, the user gets
+   * $500 in legacy carry over so they are not incorrectly affected by overdraft.
+   *
+   * @param {Object} budget - The old budget object
+   * @param {Number} adjustedAmount - The new budget amount
+   * @returns Number - The carry over amount for a user's next anniversary budget
+   */
+  calcLegacyCarryover(budget, adjustedAmount) {
+    let carryover = budget.legacyCarryover || 0;
+    // only add carryover if new budget amount is being decreased
+    if (adjustedAmount > budget.amount) {
+      // if legacy carryover already exists, update the amount
+      carryover -= adjustedAmount - budget.amount;
+      return Math.max(carryover, 0);
+    }
+    // only add carryover if user spent more than the new budget amount
+    let spent = budget.reimbursedAmount + budget.pendingAmount;
+    let maxCarryover = budget.amount - adjustedAmount;
+    if (spent > adjustedAmount) {
+      if (spent - adjustedAmount > maxCarryover) {
+        carryover += maxCarryover;
+      } else {
+        carryover += spent - adjustedAmount;
+      }
+    }
+    return 0;
+  } // calcLegacyCarryover
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
@@ -1048,6 +1079,76 @@ class Crud {
       return err;
     }
   } // _updateWrapper
+
+  /**
+   * Updates an attributes of an object. Returns the object updated.
+   *
+   * @param req - request
+   * @return Object - object updated
+   */
+  // eslint-disable-next-line no-unused-vars
+  async _updateAttributes(req) {
+    // This function must be overwritten
+  } // _updateAttribute
+
+  /**
+   * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
+   * Note: updates multiple attributes for an object
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - object updated
+   */
+  async _updateAttributesWrapper(req, res) {
+    // log method
+    logger.log(1, '_updateAttributesWrapper', `Attempting to update an object in ${this._getTableName()}`);
+    // compute method
+    try {
+      if (this._checkPermissionToUpdate(req.employee)) {
+        // employee has permission to update table
+        let { objectUpdated, tables } = await this._updateAttributes(req); // update object
+        let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
+        let dataUpdated = [];
+        // add object to database
+        if (objectValidated.id == req.params.id) {
+          // no tables returned no updates
+          tables = tables || [{ table: this.databaseModify.tableName, attributes: [] }];
+          // update databases if the id's are the same
+          dataUpdated = await DatabaseModify.updateAttributesInDB(objectValidated, tables);
+        } else {
+          // id's are different (database updated when changing expense types in expenseRoutes)
+          dataUpdated = objectValidated;
+        }
+        // updated an attribute expense, expense-type, or employee
+        logger.log(
+          1,
+          '_updateAttributesWrapper',
+          `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`
+        );
+
+        // send successful 200 status
+        res.status(200).send(dataUpdated);
+
+        // return updated data
+        return dataUpdated;
+      } else {
+        // employee does not have permissions to update table
+        throw {
+          code: 403,
+          message: 'Unable to update attributes in database due to insufficient employee permissions.'
+        };
+      }
+    } catch (err) {
+      // log error
+      logger.log(1, '_updateAttributesWrapper', `Failed to update attributes in ${this._getTableName()}`);
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _updateAttributesWrapper
 
   /**
    * Validate inputs. Returns the object if all inputs are valid.
