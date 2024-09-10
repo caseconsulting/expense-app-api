@@ -74,9 +74,8 @@ class HighFiveRoutes {
     let expense, giftCard, emailSent;
     // 1: reimburse high five expense
     try {
-      let data = req.body;
       // sometimes throws a CORS error if _update fails on non localhost env
-      let expenseUpdated = await expenseRoutes._update(data);
+      let expenseUpdated = await expenseRoutes._update(req);
       expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
     } catch (err) {
       let error = {
