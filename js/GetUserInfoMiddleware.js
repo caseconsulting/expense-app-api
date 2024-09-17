@@ -15,6 +15,7 @@ const getUserInfo = async (req, res, next) => {
     let data = await db.querySecondaryIndexInDB('email-index', 'email', userEmail);
     let sensitiveData = await sensitiveDB.getEntry(data[0].id);
     req.employee = { ...data[0], ...sensitiveData };
+    if (req.employee.employeeRole !== 'admin') delete req.employee.notes;
     next();
   } catch (err) {
     console.error(err);
