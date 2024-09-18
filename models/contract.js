@@ -29,7 +29,10 @@ class Contract {
     this.setOptionalAttribute(data, 'popEndDate');
     this.setOptionalAttribute(data, 'status');
     this.setOptionalAttribute(data, 'description');
+    this.setOptionalAttribute(data, 'customerOrg');
     this.setOptionalAttribute(data, 'directorate');
+    this.setOptionalAttribute(data, 'org2');
+    this.setOptionalAttribute(data, 'org3');
     this.setOptionalAttribute(data, 'settings');
   } // constructor
 
