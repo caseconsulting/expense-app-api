@@ -18,6 +18,7 @@ const OPTIONAL_FIELDS = [
   'currentStreet',
   'currentStreet2',
   'currentZIP',
+  'notes',
   'privatePhoneNumbers'
 ];
 
@@ -42,6 +43,7 @@ const OPTIONAL_FIELDS = [
  * - EEO fields
  * - deptDate
  * - lastLogin
+ * - notes
  * - privatePhoneNumbers
  */
 class EmployeeSensitive {
