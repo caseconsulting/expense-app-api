@@ -51,7 +51,7 @@ aws configure sso
 When prompted, enter the following information:
 
 - **SSO session name**: _dev_
-- **SSO start URL**: _https://consultwithcase.awsapps.com/start_
+- **SSO start URL**: _https://d-90676ba57e.awsapps.com/start_
 - **SSO region**: _us-east-1_
 - **SSO registration scopes**: _leave blank to accept default value of sso:account:access_
 
