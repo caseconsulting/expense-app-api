@@ -40,7 +40,7 @@ const storage = multerS3({
 
 // file limits
 const limits = {
-  files: 1, // allow only 1 file per request
+  
   fileSize: 6 * 1024 * 1024 // 6 MB (max file size)
 };
 
@@ -81,7 +81,7 @@ const upload = multer({
   storage: storage,
   limits: limits,
   fileFilter: fileFilter
-}).single('receipt');
+}).array('receipt');
 
 class Attachment {
   constructor() {
@@ -231,7 +231,7 @@ class Attachment {
       storage: textractStorage,
       limits: limits,
       fileFilter: fileFilter
-    }).single('receipt');
+    }).array('receipt');
 
     // compute method
     try {
@@ -463,36 +463,37 @@ class Attachment {
 
     // compute method
     let expense = await this.expenseDynamo.getEntry(req.params.expenseId);
-    let fileExt = expense.receipt;
-    let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
-    let params = { Bucket: BUCKET, Key: filePath };
-    let command = new GetObjectCommand(params);
-    await getSignedUrl(s3Client, command, { expiresIn: 60 })
-      .then((data) => {
-        // log success
-        logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
-
-        // send successful 200 status
-        res.status(200).send(data);
-
-        // return file read
-        return data;
-      })
-      .catch((err) => {
+    let urls = [];
+    let length = Array.isArray(expense.receipt) ? expense.receipt.length : 1; //checks for single or multiple files
+    for (let i = 0; i < length; i++) {
+      let fileExt = length == 1 ? expense.receipt : expense.receipt[i];
+      let filePath = `${req.params.employeeId}/${req.params.expenseId}/${fileExt}`;
+      let params = { Bucket: BUCKET, Key: filePath };
+      let command = new GetObjectCommand(params);
+      urls[i] = await getSignedUrl(s3Client, command, { expiresIn: 60 })
+        .catch((err) => {
         // log error
-        logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
+          logger.log(1, 'getAttachmentFromS3', 'Failed to read attachment');
 
-        let error = {
-          code: 403,
-          message: `${err.message}`
-        };
+          let error = {
+            code: 403,
+            message: `${err.message}`
+          };
 
-        // send error status
-        res.status(error.code).send(error);
+          // send error status
+          res.status(error.code).send(error);
 
-        // return error
-        return error;
-      });
+          // return error
+          return error;
+        });  
+      // log success
+      logger.log(1, 'getAttachmentFromS3', `Successfully read attachment from s3 ${filePath}`);
+    }
+
+    // send successful 200 status
+    res.status(200).send(urls);
+
+    return urls;
   } // getAttachmentFromS3
 
   /**
@@ -520,8 +521,8 @@ class Attachment {
     // compute method
     upload(req, res, async (err) => {
       if (err) {
-        // log error
-        logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file');
+        // log error  
+        logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file(s)');
 
         let error = {
           code: 403,
@@ -534,20 +535,21 @@ class Attachment {
         // return error
         return error;
       } else {
-        req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-        // log success
-        logger.log(
-          1,
-          'uploadAttachmentToS3',
-          `Successfully uploaded attachment ${req.file.originalname} with file key ${req.file.key}`,
-          `to S3 bucket ${req.file.bucket}`
-        );
-
+        for(let i = 0; i < req.files.length; i++) {
+          req.files[i].originalname = Buffer.from(req.files[i].originalname, 'latin1').toString('utf8');
+          // log success
+          logger.log(
+            1,
+            'uploadAttachmentToS3',
+            `Successfully uploaded attachment ${req.files[i].originalname} with file key ${req.files[i].key}`,
+            `to S3 bucket ${req.files[i].bucket}`
+          );
+        }
         // set a successful 200 response with uploaded file
-        res.status(200).send(req.file);
+        res.status(200).send(req.files);
 
         // return file uploaded
-        return req.file;
+        return req.files;
       }
     });
   } // uploadAttachmentToS3
