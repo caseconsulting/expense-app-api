@@ -479,7 +479,8 @@ describe('employeeRoutes', () => {
       newEmployee = new Employee(EMPLOYEE_DATA);
       newEmployeeSensitive = new EmployeeSensitive(EMPLOYEE_SENSITIVE_DATA);
       param = {
-        body: data
+        body: data,
+        employee: data
       };
     });
 
@@ -497,7 +498,7 @@ describe('employeeRoutes', () => {
           expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
           expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
           expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
-          expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+          expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee, data);
           done();
         });
       }); // should return the prepared employee
@@ -588,7 +589,7 @@ describe('employeeRoutes', () => {
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
-            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee, data);
             done();
           });
       }); // should return a 403 rejected promise
@@ -624,7 +625,7 @@ describe('employeeRoutes', () => {
             expect(databaseModify.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeSensitiveDynamo.getEntry).toHaveBeenCalledWith(ID);
             expect(employeeRoutes._validateEmployee).toHaveBeenCalledWith(newEmployee, newEmployeeSensitive);
-            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee);
+            expect(employeeRoutes._validateUpdate).toHaveBeenCalledWith(oldEmployee, newEmployee, data);
             expect(employeeRoutes._updateBudgets).toHaveBeenCalledWith(oldEmployee, newEmployee);
             done();
           });
