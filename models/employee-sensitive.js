@@ -1,5 +1,8 @@
 const _ = require('lodash');
-const REQUIRED_FIELDS = ['id', 'employeeRole'];
+const REQUIRED_FIELDS = [
+  'id',
+  'employeeRole'
+];
 const OPTIONAL_FIELDS = [
   'eeoGender',
   'eeoHispanicOrLatino',
@@ -9,6 +12,7 @@ const OPTIONAL_FIELDS = [
   'eeoIsProtectedVeteran',
   'eeoDeclineSelfIdentify',
   'eeoAdminHasFilledOutEeoForm',
+  'emergencyContacts',
   'birthday',
   'city',
   'country',
@@ -18,32 +22,10 @@ const OPTIONAL_FIELDS = [
   'currentStreet',
   'currentStreet2',
   'currentZIP',
+  'notes',
   'privatePhoneNumbers'
 ];
 
-/**
- * Employee sensitive model
- *
- * Required Fields:
- * - id
- * - employeeRole
- *
- * Optional Fields:
- * - birthday
- * - birthdayFeed
- * - city
- * - country
- * - st
- * - currentCity
- * - currentState
- * - currentStreet
- * - currentStreet2
- * - currentZIP
- * - EEO fields
- * - deptDate
- * - lastLogin
- * - privatePhoneNumbers
- */
 class EmployeeSensitive {
   constructor(data) {
     // required attributes

@@ -1,6 +1,14 @@
 const _ = require('lodash');
 
-const REQUIRED_FIELDS = ['id', 'email', 'employeeNumber', 'firstName', 'hireDate', 'lastName', 'workStatus'];
+const REQUIRED_FIELDS = [
+  'id',
+  'email',
+  'employeeNumber',
+  'firstName',
+  'hireDate',
+  'lastName',
+  'workStatus'
+];
 
 const OPTIONAL_FIELDS = [
   'agencyIdentificationNumber',
@@ -27,6 +35,8 @@ const OPTIONAL_FIELDS = [
   'nickname',
   'noMiddleName',
   'personalEmail',
+  'personalEmailHidden',
+  'plannedPto',
   'prime',
   'publicPhoneNumbers',
   'schools',
@@ -34,52 +44,8 @@ const OPTIONAL_FIELDS = [
   'twitter',
   'mifiStatus',
   'resumeUpdated',
-  'plannedPto'
 ];
 
-/**
- * Employee model
- *
- * Required Fields:
- * - id
- * - email
- * - employeeNumber
- * - firstName
- * - hireDate
- * - lastName
- * - workStatus
- *
- * Optional Fields:
- * - agencyIdentificationNumber
- * - awards
- * - certifications
- * - clearances
- * - companies
- * - contract
- * - contracts
- * - customerOrgExp
- * - cykAoid
- * - degrees
- * - education
- * - github
- * - icTimeFrames
- * - jobRole
- * - jobs
- * - languages
- * - legacyJobCodes
- * - linkedIn
- * - middleName
- * - nickname
- * - noMiddleName
- * - prime
- * - personalEmail
- * - publicPhoneNumbers
- * - schools
- * - technologies
- * - twitter
- * - mifiStatus
- * - plannedPto
- */
 class Employee {
   constructor(data) {
     // required attributes
@@ -117,6 +83,8 @@ class Employee {
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
     this.setOptionalAttribute(data, 'personalEmail');
+    this.setOptionalAttribute(data, 'personalEmailHidden');
+    this.setOptionalAttribute(data, 'plannedPto');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
@@ -124,7 +92,6 @@ class Employee {
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
-    this.setOptionalAttribute(data, 'plannedPto');
   } // constructor
 
   /**

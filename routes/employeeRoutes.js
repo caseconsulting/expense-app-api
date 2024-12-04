@@ -7,6 +7,9 @@ const EmployeeSensitive = require(process.env.AWS ? 'employee-sensitive' : '../m
 const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expenseType');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { SNSClient, OptInPhoneNumberCommand } = require('@aws-sdk/client-sns');
+
+const snsClient = new SNSClient({});
 
 const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
@@ -707,15 +710,28 @@ class EmployeeRoutes extends Crud {
     let newEmployeeBasic = new Employee({ ...employeeBasic, ...data });
     let newEmployeeSensitive = new EmployeeSensitive({ ...employeeSensitive, ...data });
     newEmployeeSensitive.handleEEOData(employeeSensitive, req.employee);
+    let oldEmployee = { ...employeeBasic, ...employeeSensitive };
     let newEmployee = { ...newEmployeeBasic, ...newEmployeeSensitive };
     await Promise.all([
       this._validateEmployee(newEmployeeBasic, newEmployeeSensitive),
-      this._validateUpdate(employeeBasic, newEmployeeBasic, req.employee),
+      this._validateUpdate(employeeBasic, newEmployeeBasic),
       employeeBasic.workStatus !== newEmployeeBasic.workStatus ||
       employeeSensitive.employeeRole !== newEmployeeSensitive.employeeRole
         ? this._updateBudgets(employeeBasic, newEmployeeBasic)
         : _
     ]);
+
+    let oldPhoneNumbers = [...(oldEmployee.publicPhoneNumbers || []), ...(oldEmployee.privatePhoneNumbers || [])];
+    let newPhoneNumbers = [...(newEmployee.publicPhoneNumbers || []), ...(newEmployee.privatePhoneNumbers || [])];
+    let command = null;
+    _.forEach(oldPhoneNumbers, (oldPhoneNumber) => {
+      let newNum = _.find(newPhoneNumbers, (newPhoneNumber) => newPhoneNumber.number === oldPhoneNumber.number);
+      if (newNum && oldPhoneNumber.smsOptedOut && !newNum.smsOptedOut) {
+        const input = { phoneNumber: `+1${newNum.number?.replace(/-/g, '')}` };
+        command = new OptInPhoneNumberCommand(input);
+      }
+    });
+    if (command) await snsClient.send(command);
 
     return newEmployee;
   }

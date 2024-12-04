@@ -270,6 +270,7 @@ Resources:
         - - !Ref Stage
           - employees
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -303,6 +304,7 @@ Resources:
         - - !Ref Stage
           - employees-sensitive
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -331,6 +333,7 @@ Resources:
         - - !Ref Stage
           - pto-cashouts
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -368,6 +371,7 @@ Resources:
         - - !Ref Stage
           - audits
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -406,6 +410,7 @@ Resources:
         - - !Ref Stage
           - expense-types
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -428,6 +433,7 @@ Resources:
         - - !Ref Stage
           - training-urls
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -454,6 +460,7 @@ Resources:
         - - !Ref Stage
           - expenses
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -517,6 +524,7 @@ Resources:
         - - !Ref Stage
           - budgets
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -566,6 +574,7 @@ Resources:
         - - !Ref Stage
           - contracts
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -613,6 +622,7 @@ Resources:
         - - !Ref Stage
           - tags
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -644,6 +654,7 @@ Resources:
         - - !Ref Stage
           - gift-cards
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:

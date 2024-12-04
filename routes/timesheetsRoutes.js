@@ -87,7 +87,7 @@ class TimesheetsRoutes {
       let params = {
         FunctionName: `mysterio-get-timesheet-data-${STAGE}`,
         Payload: JSON.stringify(payload),
-        Qualifier: '$LATEST'
+        Qualifier: STAGE
       };
 
       // invoke mysterio monthly hours lambda function
