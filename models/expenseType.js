@@ -2,31 +2,6 @@ const _ = require('lodash');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const ISOFORMAT = 'YYYY-MM-DD';
 
-/**
- * ExpenseType model
- *
- * Required Fields:
- * - accessibleBy
- * - alwaysOnFeed
- * - budget
- * - budgetName
- * - categories
- * - description
- * - hasRecipient
- * - id
- * - isInactive
- * - odFlag
- * - recurringFlag
- * - requiredFlag
- * - requireURL
- * - proRated
- *
- * Optional Fields:
- * - campfire
- * - endDate
- * - startDate
- */
-
 class ExpenseType {
   constructor(data) {
     this.setRequiredAttribute(data, 'accessibleBy', ['FullTime']); // default: accessible by all employees
@@ -48,6 +23,7 @@ class ExpenseType {
     this.setOptionalAttribute(data, 'campfire');
     this.setOptionalAttribute(data, 'endDate');
     this.setOptionalAttribute(data, 'startDate');
+    this.setOptionalAttribute(data, 'monthlyLimit');
   } // constructor
 
   /**
