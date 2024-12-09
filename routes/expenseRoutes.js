@@ -25,6 +25,34 @@ class ExpenseRoutes extends Crud {
     this.s3Client = s3Client;
   } // constructor
 
+  
+  /**
+   * Helper to validate expenses with a monthlyLimit, eg used in _validateAdd and _validateUpdate.
+   * 
+   * @param oldExpense old version of expense (optional, set to undefined if this is not an update)
+   * @param expense expense to validate
+   * @param employee employee attached to expense
+   * @param expenseType type of expense
+   * 
+   * @return true if expense if valid concerning monthlyLimit, else false
+   */
+  async _monthlyLimitValidate(oldExpense, expense, employee, expenseType) {
+    // exit early if no monthlyLimit
+    if (!expenseType.monthlyLimit) return { monthlyLimitValid: true, leftoverBudget: undefined };
+    // get all expenses and add up ones from expense's createdAt month
+    let expenses = await this.databaseModify.queryWithTwoIndexesInDB(employee.id, expenseType.id);
+    let sum = 0;
+    for (let e of expenses) {
+      let [start, end] = [dateUtils.startOf(e.createdAt, 'month'), dateUtils.endOf(e.createdAt, 'month')];
+      if (dateUtils.isBetween(e.createdAt, start, end, '[]')) sum += e.cost;
+    }
+    // return whether or not the monthly limit is valid, and the leftover budget
+    let leftoverBudget = Number(expenseType.monthlyLimit) - sum - (oldExpense?.cost ?? 0);
+    let round = (n) => Math.round(n * 100) / 100;
+    let monthlyLimitValid = round(expense.cost) <= round(leftoverBudget);
+    return { monthlyLimitValid, leftoverBudget };
+  } // _monthlyLimitvalidate
+
   /**
    * Adds expense cost to budget. Returns the budget if successfully added the expense cost, otherwise returns error.
    *
@@ -203,8 +231,8 @@ class ExpenseRoutes extends Crud {
       expenseType = new ExpenseType(expenseType);
 
       await Promise.all([
-        this._validateExpense(expense, employee, expenseType),
-        this._validateAdd(expense, employee, expenseType)
+        await this._validateExpense(expense, employee, expenseType),
+        await this._validateAdd(expense, employee, expenseType)
       ]);
 
       let budget;
@@ -215,7 +243,7 @@ class ExpenseRoutes extends Crud {
         budget = await this.createNewBudget(employee, expenseType, null, tags); // create budget
       }
 
-      await this._addToBudget(expense, employee, expenseType, budget); // add expense to budget
+      await this._addToBudget(expense, null, expenseType, budget); // add expense to budget
 
       if (expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours') {
         this._emailPayroll(employee, expense);
@@ -954,7 +982,7 @@ class ExpenseRoutes extends Crud {
    * @param expenseType - Expense Type of expense
    * @return Expense - validated expense
    */
-  _validateAdd(expense, employee, expenseType) {
+  async _validateAdd(expense, employee, expenseType) {
     // log method
     logger.log(3, '_validateAdd', `Validating add for expense ${expense.id}`);
 
@@ -988,6 +1016,22 @@ class ExpenseRoutes extends Crud {
             )}.`;
           throw err;
         }
+      }
+
+      // validate that the expense is within a monthlyLimit, if set
+      let {
+        monthlyLimitValid,
+        leftoverBudget
+      } = await this._monthlyLimitValidate(undefined, expense, employee, expenseType);
+      if (!monthlyLimitValid) {
+        console.log('F');
+        err.message = 'Expense cost of $'
+          + expense.cost
+          + ' exceeds monthly limit. Monthly limit remaining is $'
+          + leftoverBudget.toFixed(2)
+          + '.';
+        logger.log(3, '_validateAdd', err.message);
+        throw err;
       }
 
       // log success
@@ -1291,6 +1335,21 @@ class ExpenseRoutes extends Crud {
         err.message =
           'Cannot change cost of expenses outside of current annual budget from' +
           ` ${oldBudget.fiscalStartDate} to ${oldBudget.fiscalEndDate}.`;
+        throw err;
+      }
+      
+      // validate that the expense is within a monthlyLimit, if set
+      let {
+        monthlyLimitValid,
+        leftoverBudget
+      } = await this._monthlyLimitValidate(oldExpense, newExpense, employee, expenseType);
+      if (!monthlyLimitValid) {
+        err.message = 'Expense cost of $'
+          + newExpense.cost
+          + ' exceeds monthly limit. Monthly limit remaining is $'
+          + leftoverBudget.toFixed(2)
+          + '.';
+        logger.log(3, '_validateAdd', err.message);
         throw err;
       }
 
