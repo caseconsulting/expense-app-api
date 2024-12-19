@@ -1,6 +1,14 @@
 const _ = require('lodash');
 
-const REQUIRED_FIELDS = ['id', 'email', 'employeeNumber', 'firstName', 'hireDate', 'lastName', 'workStatus'];
+const REQUIRED_FIELDS = [
+  'id',
+  'email',
+  'employeeNumber',
+  'firstName',
+  'hireDate',
+  'lastName',
+  'workStatus'
+];
 
 const OPTIONAL_FIELDS = [
   'agencyIdentificationNumber',
@@ -38,50 +46,6 @@ const OPTIONAL_FIELDS = [
   'resumeUpdated',
 ];
 
-/**
- * Employee model
- *
- * Required Fields:
- * - id
- * - email
- * - employeeNumber
- * - firstName
- * - hireDate
- * - lastName
- * - workStatus
- *
- * Optional Fields:
- * - agencyIdentificationNumber
- * - awards
- * - certifications
- * - clearances
- * - companies
- * - contract
- * - contracts
- * - customerOrgExp
- * - cykAoid
- * - degrees
- * - education
- * - github
- * - icTimeFrames
- * - jobRole
- * - jobs
- * - languages
- * - legacyJobCodes
- * - linkedIn
- * - middleName
- * - nickname
- * - noMiddleName
- * - prime
- * - personalEmail
- * - personalEmailHidden
- * - plannedPto
- * - publicPhoneNumbers
- * - schools
- * - technologies
- * - twitter
- * - mifiStatus
- */
 class Employee {
   constructor(data) {
     // required attributes
