@@ -662,7 +662,7 @@ class databaseModify {
   static async updateAttributesInDB(dynamoObj, tables) {
     // log method
     let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
-    logger.log(4, 'updateAttributesInDB', `Attempting to updateattributes in ${tableNames} with ID ${dynamoObj.id}`);
+    logger.log(4, 'updateAttributesInDB', `Attempting to update attributes in ${tableNames} with ID ${dynamoObj.id}`);
     
     try {
       let transactItems = [];
@@ -675,7 +675,7 @@ class databaseModify {
         if (_.isEmpty(attributeList)) return;
         //set attributes in updated object, remove attributes not in object
         for (let i = 0; i < attributeList.length; i++) {
-          if (dynamoObj[attributeList[i]]) {
+          if (dynamoObj[attributeList[i]] || dynamoObj[attributeList[i]] === 0) {
             setExpression.push(`${attributeList[i]} = :${attributeList[i]}`);
             expressionAttributeValues[`:${attributeList[i]}`] = dynamoObj[attributeList[i]];
           } else {
