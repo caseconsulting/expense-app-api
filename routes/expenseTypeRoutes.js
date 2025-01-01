@@ -186,6 +186,40 @@ class ExpenseTypeRoutes extends Crud {
   } // _update
 
   /**
+   * Prepares an employee's attribute to be updated. Returns the employee if it can be successfully updated.
+   *
+   * @param req - request
+   * @return Employee - employee prepared to update
+   */
+  async _updateAttribute(req) {
+    let data = req.body;
+    let tableToUpdate = this.databaseModify;
+    // log method
+    logger.log(2, '_updateAttribute', `Preparing to update expense type ${data.id}`);
+
+    // compute method
+    try {
+      // get the old expense type and replace the old data with the new data
+      let oldET = await this.databaseModify.getEntry(data.id);
+      let newET = { ...oldET, ...data };
+      logger.log(2, '_updateAttribute', `QUAMP: ${JSON.stringify(newET)}`);
+      let newExpenseType = await this._validateExpenseType(newET);
+
+      // log success
+      logger.log(2, '_updateAttribute', `Successfully prepared to update expense type ${data.id}`);
+
+      // return expense type to update
+      return { objectUpdated: newExpenseType, table: tableToUpdate };
+    } catch (err) {
+      // log error
+      logger.log(2, '_updateAttribute', `Failed to prepare update for expense type ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
+    }
+  } // _updateAttribute
+
+  /**
    * Updates budgets when changing an expense type.
    *
    * @param oldExpenseType - ExpenseType to be updated from
