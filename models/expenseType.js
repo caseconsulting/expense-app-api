@@ -24,6 +24,7 @@ class ExpenseType {
     this.setOptionalAttribute(data, 'endDate');
     this.setOptionalAttribute(data, 'startDate');
     this.setOptionalAttribute(data, 'monthlyLimit');
+    this.setOptionalAttribute(data, 'disabledEmployees');
   } // constructor
 
   /**
