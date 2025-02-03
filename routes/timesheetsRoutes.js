@@ -105,8 +105,6 @@ class TimesheetsRoutes {
         // }
             
         // send successful 200 status
-        logger.log(1, '_getTimesheetsData', JSON.stringify(payload));
-        logger.log(1, '_getTimesheetsData', JSON.stringify(resultPayload));
         res.status(200).send(timeSheets);
 
         // return employee pto balances
