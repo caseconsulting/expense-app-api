@@ -46,28 +46,25 @@ class TimesheetsRoutes {
     try {
       let employeeNumber = req.params.employeeNumber;
       let employeeId = req.query.employeeId;
-      let startDate = req.query.startDate;
-      let endDate = req.query.endDate;
-      let title = req.query.title;
+      let periods = req.query.periods;
       let code = Number(req.query.code);
       let [tags, employee] = await Promise.all([
         this.tagDynamo.getAllEntriesInDB(),
         this._employeeDynamo.getEntry(employeeId)
       ]);
-      let cykTag = _.find(tags, (t) => t.tagName === 'CYK');
+      let cykTag = _.find(tags, (t) => t.tagName === 'Legacy CYK');
       let isCyk = _.some(cykTag?.employees, (e) => e === employeeId);
       let cykAoidKey = 'cykAoid';
-      let account = isCyk ? this._ACCOUNTS.CYK : this._ACCOUNTS.CASE;
 
       // log method
       logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
 
       // validations
       this._validateUser(req.employee, employeeNumber);
-      code || this._validateDates(startDate, endDate);
+      code || this._validateDates(periods);
 
       // mysterio function parameters
-      let payload = { employeeNumber, account, ...(isCyk && { aoid: employee[cykAoidKey] }) };
+      let payload = { employeeNumber, ...(isCyk && { legacyADP: true, aoid: employee[cykAoidKey] }) };
 
       switch (code) {
         case 1:
@@ -76,11 +73,11 @@ class TimesheetsRoutes {
           break;
         case 2:
           // current and previous pay period timesheets
-          payload.periods = this._getPayPeriods(2, account);
+          payload.periods = this._getMonthlyPayPeriods(2);
           break;
         default:
           // timesheets that fall within the requested start and end dates
-          payload.periods = [{ startDate, endDate, title }];
+          payload.periods = periods;
       }
 
       // lambda invoke parameters
@@ -98,15 +95,18 @@ class TimesheetsRoutes {
 
         let timeSheets = resultPayload.body;
 
-        if (account === this._ACCOUNTS.CYK) {
-          if (!(cykAoidKey in employee)) {
-            // add CYK aoid to employee record for optimization
-            employee[cykAoidKey] = timeSheets.aoid;
-            await this._employeeDynamo.updateAttributeInDB(employee, cykAoidKey);
-          }
-        }
-
+        // LEGACY: keeping as record of how to set ADP AOID
+        // if (account === this._ACCOUNTS.CYK) {
+        //   if (!(cykAoidKey in employee)) {
+        //     // add CYK aoid to employee record for optimization
+        //     employee[cykAoidKey] = timeSheets.aoid;
+        //     await this._employeeDynamo.updateAttributeInDB(employee, cykAoidKey);
+        //   }
+        // }
+            
         // send successful 200 status
+        logger.log(1, '_getTimesheetsData', JSON.stringify(payload));
+        logger.log(1, '_getTimesheetsData', JSON.stringify(resultPayload));
         res.status(200).send(timeSheets);
 
         // return employee pto balances
@@ -132,29 +132,6 @@ class TimesheetsRoutes {
       return err;
     }
   } // _getTimesheetsData
-
-  /**
-   * Gets the array of pay periods to recieve timesheet data for.
-   *
-   * @param {Number} employeeNumber - The user's employee number
-   * @param {Number} amount - The amount of pay periods to get
-   * @param {String} account - The account to get pay periods for
-   * @returns Array - An array of pay periods
-   */
-  _getPayPeriods(amount, account) {
-    if (account === this._ACCOUNTS.CASE) {
-      // CASE pay period
-      return this._getMonthlyPayPeriods(amount);
-    } else if (account === this._ACCOUNTS.CYK) {
-      // CYK bi-weekly integration
-      const CYK_ORIG_START_DATE = '2024-04-15';
-      const CYK_ORIG_END_DATE = '2024-04-28';
-      let currentPeriod = this._getCykCurrentPeriod(CYK_ORIG_START_DATE, CYK_ORIG_END_DATE);
-      return this._getBiWeeklyPayPeriods(currentPeriod, amount);
-    } else {
-      return null;
-    }
-  } // _getPayPeriods
 
   /**
    * Gets the current bi-weekly pay period for CYK employees.
@@ -245,20 +222,21 @@ class TimesheetsRoutes {
   /**
    * Validates the start and end date.
    *
-   * @param {String} startDate - The start date
-   * @param {String} endDate - The end date
+   * @param {String} periods array of period objects to check, each must have a `startDate` and `endDate`
    */
-  _validateDates(startDate, endDate) {
-    if (!isValid(startDate, 'YYYY-MM-DD') || !isValid(endDate, 'YYYY-MM-DD')) {
-      throw {
-        code: 400,
-        message: 'Invalid start or end date, must use YYYY-MM-DD format'
-      };
-    } else if (isAfter(startDate, endDate, 'day', 'YYYY-MM-DD')) {
-      throw {
-        code: 400,
-        message: 'Invalid start or end date, start date must be before end date'
-      };
+  _validateDates(periods) {
+    for (let period of periods) {
+      if (!isValid(period.startDate, 'YYYY-MM-DD') || !isValid(period.endDate, 'YYYY-MM-DD')) {
+        throw {
+          code: 400,
+          message: 'Invalid start or end date, must use YYYY-MM-DD format'
+        };
+      } else if (isAfter(period.startDate, period.endDate, 'day', 'YYYY-MM-DD')) {
+        throw {
+          code: 400,
+          message: 'Invalid start or end date, start date must be before end date'
+        };
+      }
     }
   } // _validateDates
 
