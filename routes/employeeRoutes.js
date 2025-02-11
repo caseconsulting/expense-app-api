@@ -942,6 +942,16 @@ class EmployeeRoutes extends Crud {
         throw err;
       }
 
+      // validateEmail
+      if (employee.email !== employee.email.toLowerCase()) {
+        // log error
+        logger.log(3, '_validateEmployee', 'Employee email must be lower case');
+
+        // throw error
+        err.message = 'Invalid employee email.';
+        throw err;
+      }
+
       // log success
       logger.log(3, '_validateEmployee', `Successfully validated employee ${employee.id}`);
 

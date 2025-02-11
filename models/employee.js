@@ -48,6 +48,9 @@ const OPTIONAL_FIELDS = [
 
 class Employee {
   constructor(data) {
+    // update data to the proper format
+    this.formatData(data);
+
     // required attributes
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'email');
@@ -205,6 +208,13 @@ class Employee {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
+
+  formatData(data) {
+    // due to syncing from external source we need to enforce lowercase emails
+    if (data.email) {
+      data.email = data.email.toLowerCase();
+    }
+  }
 } // Employee
 
 module.exports = Employee;
