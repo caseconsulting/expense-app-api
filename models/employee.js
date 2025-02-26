@@ -41,6 +41,7 @@ const OPTIONAL_FIELDS = [
   'publicPhoneNumbers',
   'schools',
   'technologies',
+  'timesheetReminders',
   'twitter',
   'mifiStatus',
   'resumeUpdated',
@@ -92,6 +93,7 @@ class Employee {
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
     this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'technologies');
+    this.setOptionalAttribute(data, 'timesheetReminders');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
