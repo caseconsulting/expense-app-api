@@ -304,7 +304,7 @@ class Crud {
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
-    let userPermissions = isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
       this._checkTableName([

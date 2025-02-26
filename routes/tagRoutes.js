@@ -5,6 +5,7 @@ const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
+const { isAdmin, isManager } = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const logger = new Logger('tagRoutes');
 const IsoFormat = 'YYYY-MM-DD';
@@ -456,6 +457,36 @@ class TagRoutes extends Crud {
     let modifiedExpenseTypes = await Promise.all(promises);
     return modifiedExpenseTypes;
   } // _removeTagFromExpenseTypes
+
+  /**
+   * gets all entries in the DB
+   *
+   * @return all entries
+   */
+  async _readAll(employee) {
+    // get all tags
+    let tags = await this.databaseModify.getAllEntriesInDB();
+
+    // return all tags if admin or manager
+    if (isAdmin(employee) || isManager(employee)) return tags;
+
+    // get only user's benefits plan information and return just that
+    let plans = ['red', 'gray', 'white'];
+    for (let tag of tags) {
+      if (
+        plans.includes(tag.tagName.toLowerCase()) &&
+        tag.employees.includes(employee.id)
+      ) {
+        return [
+          {
+            ...tag,
+            employees: [employee.id]
+          }
+        ];
+      }
+    }
+  } // _readAll
+
 } // TagRoutes
 
 module.exports = TagRoutes;
