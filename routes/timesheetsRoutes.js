@@ -47,6 +47,7 @@ class TimesheetsRoutes {
       let employeeNumber = req.params.employeeNumber;
       let employeeId = req.query.employeeId;
       let periods = req.query.periods;
+      if (!Array.isArray(periods)) periods = [periods];
       let code = Number(req.query.code);
       let [tags, employee] = await Promise.all([
         this.tagDynamo.getAllEntriesInDB(),
