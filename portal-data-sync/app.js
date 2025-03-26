@@ -91,7 +91,7 @@ async function syncPortalAndBamboo() {
             // converted to Case format since there could be data loss) If needed, write generic and custom equality
             // methods attached to the field objects
             let apps = { first: APPLICATIONS.BAMBOO, second: APPLICATIONS.CASE };
-            let isEqual = f.equalityCheck?.(bambooHRVal, caseValConverted, apps) ?? bambooHRVal != caseValConverted;
+            let isEqual = f.equalityCheck?.(bambooHRVal, caseValConverted, apps) ?? bambooHRVal == caseValConverted;
             if (!isEqual) {
               // Field values do NOT match (update BambooHR field value with Case field value since Case values take
               // precedence over BambooHR values)
