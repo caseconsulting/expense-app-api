@@ -9,6 +9,7 @@ const {
 const Getters = require('./getters');
 const Modifiers = require('./modifiers');
 const Empty = require('./empty');
+const Equalities = require('./equalities');
 
 const EMPLOYEE_NUMBER = {
   name: 'Employee Number',
@@ -260,6 +261,7 @@ const WORK_STATUS = {
   getter: Getters.getWorkStatus,
   isEmpty: Empty.isWorkStatusEmpty,
   updateValue: Modifiers.updateValue,
+  equalityCheck: Equalities.checkWorkStatus,
   extra: 'deptDate' // departure date for the Portal
 };
 
