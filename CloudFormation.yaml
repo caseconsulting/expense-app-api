@@ -202,14 +202,21 @@ Resources:
         CorsRules:
           - AllowedHeaders:
               - '*'
-          - AllowedMethods:
+            AllowedMethods:
               - GET
-          - AllowedOrigins:
-              - https://app.consultwithcase.com
-              - https://test-app.consultwithcase.com
-              - https://dev-app.consultwithcase.com
-              - http://localhost:8080
-          - ExposedHeaders: []
+            AllowedOrigins: !If
+              - ProdDeployment
+              -
+                - https://app.consultwithcase.com
+              -
+                - !Join
+                  - ''
+                  - 
+                    - https://
+                    - !Ref Stage
+                    - -app.consultwithcase.com
+                - http://localhost:8080
+            ExposedHeaders: []
       LifecycleConfiguration:
         Rules:
           - Id: Remove Deleted Expense Attachments
