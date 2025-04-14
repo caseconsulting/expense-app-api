@@ -41,6 +41,7 @@ const OPTIONAL_FIELDS = [
   'publicPhoneNumbers',
   'schools',
   'technologies',
+  'unanetPersonKey',
   'twitter',
   'mifiStatus',
   'resumeUpdated',
