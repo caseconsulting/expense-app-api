@@ -67,6 +67,10 @@ class TimesheetsRoutes {
       // mysterio function parameters
       let payload = { employeeNumber, ...(isCyk && { legacyADP: true, aoid: employee[cykAoidKey] }) };
 
+      
+      let  currentDate = new Date();
+      let numMonths = currentDate.getMonth();
+
       switch (code) {
         case 1:
           // only PTO data requested
@@ -74,7 +78,12 @@ class TimesheetsRoutes {
           break;
         case 2:
           // current and previous pay period timesheets
-          payload.periods = this._getMonthlyPayPeriods(2);
+          if(numMonths < 1) {
+            numMonths += 2;
+          } else {
+            numMonths++;
+          }
+          payload.periods = this._getMonthlyPayPeriods(numMonths);
           break;
         default:
           // timesheets that fall within the requested start and end dates
