@@ -32,9 +32,8 @@ class TimesheetsRoutes {
     this._employeeDynamo = new DatabaseModify('employees');
     this.tagDynamo = new DatabaseModify('tags');
 
-    this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
-
     this._router.get('/leaderboard', this._checkJwt, this._getUserInfo, this._getLeaderboardData.bind(this));
+    this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
   } // constructor
 
   /**
@@ -46,63 +45,27 @@ class TimesheetsRoutes {
    */
   async _getTimesheetsData(req, res) {
     try {
+      // log method
+      logger.log(
+        1,
+        '_getTimesheetsData',
+        `Attempting to get timesheet data for employee number ${req.params.employeeNumber}`
+      );
       let employeeNumber = req.params.employeeNumber;
       let employeeId = req.query.employeeId;
       let periods = req.query.periods;
-      if (!Array.isArray(periods)) periods = [periods];
       let code = Number(req.query.code);
       let [tags, employee] = await this._getEmployeeAndTags(employeeId);
-      let cykTag = _.find(tags, (t) => t.tagName === 'Legacy CYK');
-      let isCyk = _.some(cykTag?.employees, (e) => e === employeeId);
-      let cykAoidKey = 'cykAoid';
 
-      // validations
+      // validate user
       this._validateUser(req.employee, employeeNumber);
-      code || this._validateDates(periods);
 
-      // mysterio function parameters
-      let payload = { employeeNumber, ...(isCyk && { legacyADP: true, aoid: employee[cykAoidKey] }) };
+      let timeSheets = this._getTimesheetsDataForEmployee(employee, tags, { code, periods });
 
-      switch (code) {
-        case 1:
-          // only PTO data requested
-          payload.onlyPto = true;
-          break;
-        case 2:
-          // current and previous pay period timesheets
-          payload.periods = this._getMonthlyPayPeriods(2);
-          break;
-        default:
-          // timesheets that fall within the requested start and end dates
-          payload.periods = periods;
-      }
+      // send successful 200 status
+      res.status(200).send(timeSheets);
 
-      // lambda invoke parameters
-      let params = {
-        FunctionName: `mysterio-get-timesheet-data-${STAGE}`,
-        Payload: JSON.stringify(payload),
-        Qualifier: STAGE
-      };
-
-      // invoke mysterio monthly hours lambda function
-      let resultPayload = await invokeLambda(params);
-      if (resultPayload.body) {
-        // log success
-        logger.log(1, '_getTimesheetsData', `Successfully got timesheet data for employee number ${employeeNumber}`);
-
-        let timeSheets = resultPayload.body;
-
-        // send successful 200 status
-        res.status(200).send(timeSheets);
-
-        // return employee pto balances
-        return timeSheets;
-      } else {
-        throw {
-          code: 400,
-          message: resultPayload?.message || resultPayload
-        };
-      }
+      return timeSheets;
     } catch (err) {
       // log error
       logger.log(
@@ -121,6 +84,9 @@ class TimesheetsRoutes {
 
   async _getLeaderboardData(req, res) {
     try {
+      // log method
+      logger.log(1, '_getLeaderboardData', 'Attempting to get leaderboard data');
+
       // get employees and tags
       let [tags, employees] = await this._getEmployeesAndTags();
 
@@ -130,9 +96,10 @@ class TimesheetsRoutes {
       let billableEmployees = employees.filter((employee) => !nonBillableEmployeeIds.includes(employee.id));
 
       // get timesheet data for billable employees
-      let timesheetsByEmployeeNumber = await this._getTimesheetsDataForEmployees(
-        billableEmployees.map((employee) => employee.employeeNumber)
-      );
+      let timesheetsByEmployeeNumber = await this._getTimesheetsDataForEmployees(billableEmployees, tags);
+
+      // send successful 200 status
+      res.status(200).send(timesheetsByEmployeeNumber);
 
       return timesheetsByEmployeeNumber;
 
@@ -149,13 +116,68 @@ class TimesheetsRoutes {
     }
   } // _getLeaderboardData
 
-  async _getTimesheetsDataForEmployee(employeeNumber) {
+  async _getTimesheetsDataForEmployee(employee, tags, options = {}) {
     // log method
     logger.log(
       1,
       '_getTimesheetsDataForEmployee',
-      `Attempting to get timesheet data for employee number ${employeeNumber}`
+      `Attempting to get timesheet data for employee number ${employee.employeeNumber}`
     );
+
+    let code = options.code;
+
+    let periods = options.periods;
+    if (!Array.isArray(periods)) periods = [periods];
+    let employeeNumber = employee.employeeNumber;
+    let cykTag = _.find(tags, (t) => t.tagName === 'Legacy CYK');
+    let isCyk = _.some(cykTag?.employees, (e) => e === employee.id);
+    let cykAoidKey = 'cykAoid';
+
+    // validate dates
+    code || this._validateDates(periods);
+    let payload = { employeeNumber, ...(isCyk && { legacyADP: true, aoid: employee[cykAoidKey] }) };
+
+    switch (code) {
+      case 1:
+        // only PTO data requested
+        payload.onlyPto = true;
+        break;
+      case 2:
+        // current and previous pay period timesheets
+        payload.periods = this._getMonthlyPayPeriods(2);
+        break;
+      default:
+        // timesheets that fall within the requested start and end dates
+        payload.periods = periods;
+    }
+
+    // lambda invoke parameters
+    let params = {
+      FunctionName: `mysterio-get-timesheet-data-${STAGE}`,
+      Payload: JSON.stringify(payload),
+      Qualifier: STAGE
+    };
+
+    // invoke mysterio monthly hours lambda function
+    let resultPayload = await invokeLambda(params);
+    if (resultPayload.body) {
+      // log success
+      logger.log(
+        1,
+        '_getTimesheetsDataForEmployee',
+        `Successfully got timesheet data for employee number ${employeeNumber}`
+      );
+
+      let timeSheets = resultPayload.body;
+
+      // return employee pto balances
+      return timeSheets;
+    } else {
+      throw {
+        code: 400,
+        message: resultPayload?.message || resultPayload
+      };
+    }
   } // _getTimesheetsData
 
   /**
@@ -163,10 +185,23 @@ class TimesheetsRoutes {
    * @param {*} employeeNumbers employee numbers to get timesheets data for
    * @returns timesheets data for employees
    */
-  async _getTimesheetsDataForEmployees(employeeNumbers) {
+  async _getTimesheetsDataForEmployees(employees, tags) {
+    let periods = this._getYearToDatePeriods();
+    logger.log(1, '_getTimesheetsDataForEmployees', 'Attempting to get timesheet data for employees');
     let timesheetsByEmployeeNumber = {};
-    await this.asyncForEach(employeeNumbers, async (employeeNumber) => {
-      timesheetsByEmployeeNumber[employeeNumber] = await this._getTimesheetsDataForEmployee(employeeNumber);
+    await this.asyncForEach(employees, async (employee) => {
+      try {
+        timesheetsByEmployeeNumber[employee.employeeNumber] = await this._getTimesheetsDataForEmployee(employee, tags, {
+          periods
+        });
+      } catch (err) {
+        // log error
+        logger.log(
+          1,
+          '_getTimesheetsDataForEmployees',
+          `Failed to get timesheet data for employee number ${employee.employeeNumber}`
+        );
+      }
     });
     return timesheetsByEmployeeNumber;
   } // _getTimesheetsData
@@ -229,6 +264,15 @@ class TimesheetsRoutes {
     }
     return periods;
   } // _getMonthlyPayPeriods
+
+  _getYearToDatePeriods() {
+    logger.log(1, '_getYearToDatePeriods', 'Getting year-to-date time periods');
+    let today = getTodaysDate();
+    let startDate = format(startOf(today, 'year'), null, DEFAULT_ISOFORMAT);
+    let endDate = format(today, null, DEFAULT_ISOFORMAT);
+
+    return [{ startDate, endDate }];
+  } //_getYearToDatePeriods;
 
   /**
    * Returns the instace express router.
