@@ -33,6 +33,8 @@ class TimesheetsRoutes {
     this.tagDynamo = new DatabaseModify('tags');
 
     this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
+
+    this._router.get('/leaderboard', this._checkJwt, this._getUserInfo, this._getLeaderboardData.bind(this));
   } // constructor
 
   /**
@@ -49,16 +51,10 @@ class TimesheetsRoutes {
       let periods = req.query.periods;
       if (!Array.isArray(periods)) periods = [periods];
       let code = Number(req.query.code);
-      let [tags, employee] = await Promise.all([
-        this.tagDynamo.getAllEntriesInDB(),
-        this._employeeDynamo.getEntry(employeeId)
-      ]);
+      let [tags, employee] = await this._getEmployeeAndTags(employeeId);
       let cykTag = _.find(tags, (t) => t.tagName === 'Legacy CYK');
       let isCyk = _.some(cykTag?.employees, (e) => e === employeeId);
       let cykAoidKey = 'cykAoid';
-
-      // log method
-      logger.log(1, '_getTimesheetsData', `Attempting to get timesheet data for employee number ${employeeNumber}`);
 
       // validations
       this._validateUser(req.employee, employeeNumber);
@@ -96,15 +92,6 @@ class TimesheetsRoutes {
 
         let timeSheets = resultPayload.body;
 
-        // LEGACY: keeping as record of how to set ADP AOID
-        // if (account === this._ACCOUNTS.CYK) {
-        //   if (!(cykAoidKey in employee)) {
-        //     // add CYK aoid to employee record for optimization
-        //     employee[cykAoidKey] = timeSheets.aoid;
-        //     await this._employeeDynamo.updateAttributeInDB(employee, cykAoidKey);
-        //   }
-        // }
-            
         // send successful 200 status
         res.status(200).send(timeSheets);
 
@@ -130,6 +117,58 @@ class TimesheetsRoutes {
       // return error
       return err;
     }
+  } // _getTimesheetsData
+
+  async _getLeaderboardData(req, res) {
+    try {
+      // get employees and tags
+      let [tags, employees] = await this._getEmployeesAndTags();
+
+      // filter employees with non-billable tags
+      let nonBillableTags = tags.filter((tag) => ['Overhead', 'LWOP', 'Bench', 'Intern'].includes(tag.tagName));
+      let nonBillableEmployeeIds = nonBillableTags.flatMap((tag) => tag.employees);
+      let billableEmployees = employees.filter((employee) => !nonBillableEmployeeIds.includes(employee.id));
+
+      // get timesheet data for billable employees
+      let timesheetsByEmployeeNumber = await this._getTimesheetsDataForEmployees(
+        billableEmployees.map((employee) => employee.employeeNumber)
+      );
+
+      return timesheetsByEmployeeNumber;
+
+      // calculate billable time
+    } catch (err) {
+      // log error
+      logger.log(1, '_getLeaderboardData', 'Failed to get leaderboard data');
+
+      // send error status
+      this._sendError(res, err);
+
+      // return error
+      return err;
+    }
+  } // _getLeaderboardData
+
+  async _getTimesheetsDataForEmployee(employeeNumber) {
+    // log method
+    logger.log(
+      1,
+      '_getTimesheetsDataForEmployee',
+      `Attempting to get timesheet data for employee number ${employeeNumber}`
+    );
+  } // _getTimesheetsData
+
+  /**
+   * gets timesheets data for employees
+   * @param {*} employeeNumbers employee numbers to get timesheets data for
+   * @returns timesheets data for employees
+   */
+  async _getTimesheetsDataForEmployees(employeeNumbers) {
+    let timesheetsByEmployeeNumber = {};
+    await this.asyncForEach(employeeNumbers, async (employeeNumber) => {
+      timesheetsByEmployeeNumber[employeeNumber] = await this._getTimesheetsDataForEmployee(employeeNumber);
+    });
+    return timesheetsByEmployeeNumber;
   } // _getTimesheetsData
 
   /**
@@ -252,6 +291,35 @@ class TimesheetsRoutes {
       };
     }
   } // _validateUser
+
+  /**
+   * get employee with id and tags
+   * @param {*} employeeId - employee id
+   * @returns employee and tags
+   */
+  async _getEmployeeAndTags(employeeId) {
+    return await Promise.all([this.tagDynamo.getAllEntriesInDB(), this._employeeDynamo.getEntry(employeeId)]);
+  }
+
+  /**
+   * get employees and tags
+   * @returns employees and tags
+   */
+  async _getEmployeesAndTags() {
+    return await Promise.all([this.tagDynamo.getAllEntriesInDB(), this._employeeDynamo.getAllEntriesInDB()]);
+  }
+
+  /**
+   * Async function to loop an array.
+   *
+   * @param array - Array of elements to iterate over
+   * @param callback - callback function
+   */
+  async asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
+  } // asyncForEach
 } // TSheetsRoutes
 
 module.exports = TimesheetsRoutes;
