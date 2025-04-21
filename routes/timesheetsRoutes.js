@@ -60,7 +60,7 @@ class TimesheetsRoutes {
       // validate user
       this._validateUser(req.employee, employeeNumber);
 
-      let timeSheets = this._getTimesheetsDataForEmployee(employee, tags, { code, periods });
+      let timeSheets = await this._getTimesheetsDataForEmployee(employee, tags, { code, periods });
 
       // send successful 200 status
       res.status(200).send(timeSheets);
@@ -123,7 +123,6 @@ class TimesheetsRoutes {
     );
 
     let code = options.code;
-
     let periods = options.periods;
     if (!Array.isArray(periods)) periods = [periods];
     let employeeNumber = employee.employeeNumber;
