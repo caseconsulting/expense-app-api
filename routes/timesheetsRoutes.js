@@ -96,14 +96,12 @@ class TimesheetsRoutes {
       let billableEmployees = employees.filter((employee) => !nonBillableEmployeeIds.includes(employee.id));
 
       // get timesheet data for billable employees
-      let timesheetsByEmployeeNumber = await this._getTimesheetsDataForEmployees(billableEmployees, tags);
+      let hoursByEmployeeNumber = await this._getTimesheetsDataForEmployees(billableEmployees, tags);
 
       // send successful 200 status
-      res.status(200).send(timesheetsByEmployeeNumber);
+      res.status(200).send(hoursByEmployeeNumber);
 
-      return timesheetsByEmployeeNumber;
-
-      // calculate billable time
+      return hoursByEmployeeNumber;
     } catch (err) {
       // log error
       logger.log(1, '_getLeaderboardData', 'Failed to get leaderboard data');
@@ -170,7 +168,7 @@ class TimesheetsRoutes {
 
       let timeSheets = resultPayload.body;
 
-      // return employee pto balances
+      // return employee timesheets
       return timeSheets;
     } else {
       throw {
@@ -178,7 +176,7 @@ class TimesheetsRoutes {
         message: resultPayload?.message || resultPayload
       };
     }
-  } // _getTimesheetsData
+  } // _getTimesheetsDataForEmployee
 
   /**
    * gets timesheets data for employees
@@ -188,11 +186,15 @@ class TimesheetsRoutes {
   async _getTimesheetsDataForEmployees(employees, tags) {
     let periods = this._getYearToDatePeriods();
     logger.log(1, '_getTimesheetsDataForEmployees', 'Attempting to get timesheet data for employees');
-    let timesheetsByEmployeeNumber = {};
+    let leaderboardData = [];
     await this.asyncForEach(employees, async (employee) => {
       try {
-        timesheetsByEmployeeNumber[employee.employeeNumber] = await this._getTimesheetsDataForEmployee(employee, tags, {
+        let timesheet = await this._getTimesheetsDataForEmployee(employee, tags, {
           periods
+        });
+        leaderboardData.push({
+          employeeNumber: employee.employeeNumber,
+          billableHours: this._getBillableHours(timesheet)
         });
       } catch (err) {
         // log error
@@ -203,8 +205,22 @@ class TimesheetsRoutes {
         );
       }
     });
-    return timesheetsByEmployeeNumber;
+    return leaderboardData;
   } // _getTimesheetsData
+
+  _getBillableHours(timesheet) {
+    logger.log(1, '_getTimesheetsDataForEmployee', 'Getting billable hours');
+    let nonBillables = timesheet.supplementalData.nonBillables;
+    logger.log(1, '_getTimesheetsDataForEmployee', `Nonbillable codes: ${nonBillables}`);
+    let total = 0;
+    let timesheets = timesheet.timesheets?.[0]?.timesheets;
+    for (let jobcode in timesheets) {
+      if (!nonBillables.includes(jobcode)) {
+        total += timesheets[jobcode] / 3600; // seconds to hours
+      }
+    }
+    return total;
+  } // _getBillableHours
 
   /**
    * Gets the current bi-weekly pay period for CYK employees.
