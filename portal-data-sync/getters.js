@@ -150,7 +150,7 @@ function getWorkStatus(field, applicationFormat, toApplicationFormat) {
     } else if (workStatus < 100 && workStatus > 0) {
       return 'Part-Time';
     } else {
-      return 'Full-Time';
+      return 'Full-Time (Billable)';
     }
   } else if (applicationFormat === APPLICATIONS.BAMBOO && toApplicationFormat === APPLICATIONS.CASE) {
     // convert BambooHR value to Case format -> return the converted value

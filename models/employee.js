@@ -42,6 +42,7 @@ const OPTIONAL_FIELDS = [
   'schools',
   'technologies',
   'timesheetReminders',
+  'unanetPersonKey',
   'twitter',
   'mifiStatus',
   'resumeUpdated',
