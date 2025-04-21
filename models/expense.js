@@ -33,8 +33,10 @@ class Expense {
     this.setRequiredAttribute(data, 'description');
     this.setRequiredAttribute(data, 'purchaseDate');
     this.setRequiredAttribute(data, 'showOnFeed', false);
+    this.setRequiredAttribute(data, 'state', 'CREATED');
     this.setRequiredNumberAttribute(data, 'cost', undefined, 2);
 
+    this.setOptionalAttribute(data, 'approvedBy');
     this.setOptionalAttribute(data, 'category');
     this.setOptionalAttribute(data, 'recipient');
     this.setOptionalAttribute(data, 'reimbursedDate');
