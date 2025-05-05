@@ -362,6 +362,36 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  leaderboardTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - leaderboard
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      AttributeDefinitions:
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: billableHours
+          AttributeType: S
+      KeySchema:
+        - AttributeName: employeeId
+          KeyType: HASH
+        - AttributeName: billableHours
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: timeToLive
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   auditTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
