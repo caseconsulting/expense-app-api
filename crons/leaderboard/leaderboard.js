@@ -1,4 +1,4 @@
-const { getEmployeesAndTags } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { getEmployeesAndTags, asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = require(process.env.AWS
   ? 'timesheetUtils'
   : '../js/utils/timesheet');
@@ -33,7 +33,7 @@ async function getLeaderboardData() {
 async function getLeaderboardDataForEmployees(billableEmployees, tags) {
   logger.log(1, 'getLeaderboardDataForEmployees', 'Attempting to get timesheet data for employees');
   let periods = yearToDatePeriods();
-  await this.asyncForEach(billableEmployees, async (employee) => {
+  await asyncForEach(billableEmployees, async (employee) => {
     try {
       let timesheet = await getTimesheetsDataForEmployee(employee, tags, {
         periods
@@ -56,7 +56,8 @@ async function setLeaderboardData(employeeId, billableHours) {
     // log method
     logger.log(1, 'setLeaderboardData', 'Attempting to set leaderboard data');
     let leaderboardDynamo = new DatabaseModify('leaderboard');
-    leaderboardDynamo.updateEntryInDB({
+    leaderboardDynamo.addToDB({
+      id: employeeId,
       employeeId,
       billableHours
     });

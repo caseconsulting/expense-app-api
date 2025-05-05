@@ -378,15 +378,12 @@ Resources:
         - AttributeName: employeeId
           AttributeType: S
         - AttributeName: billableHours
-          AttributeType: S
+          AttributeType: N
       KeySchema:
         - AttributeName: employeeId
           KeyType: HASH
         - AttributeName: billableHours
           KeyType: RANGE
-      TimeToLiveSpecification:
-        AttributeName: timeToLive
-        Enabled: true
       Tags:
         - Key: Application
           Value: expense-app
