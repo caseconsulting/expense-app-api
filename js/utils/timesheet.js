@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const { getTodaysDate, format, isAfter, isValid, startOf, endOf, subtract } = require(process.env.AWS
   ? 'dateUtils'
-  : '../js/dateUtils');
+  : '../../js/dateUtils');
 
-const { invokeLambda } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { invokeLambda } = require(process.env.AWS ? 'utils' : '../../js/utils');
 
 const STAGE = process.env.STAGE;
 
