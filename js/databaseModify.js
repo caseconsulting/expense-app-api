@@ -112,7 +112,7 @@ class databaseModify {
    *
    * @return Array - All entries in the dynamodb table.
    */
-  async getAllEntriesInDB() {
+  async getAllEntriesInDB(limit = null) {
     // log method
     let tableName = this.tableName;
     logger.log(4, 'getAllEntriesInDB', `Getting all entries from ${tableName}`);
@@ -121,6 +121,10 @@ class databaseModify {
     let params = {
       TableName: tableName
     };
+
+    if (limit) {
+      params.PageSize = limit;
+    }
 
     return scanDB(params, documentClient)
       .then(function (items) {
@@ -663,7 +667,7 @@ class databaseModify {
     // log method
     let tableNames = tables.reduce((str, table) => (str += table.table + ', '), '');
     logger.log(4, 'updateAttributesInDB', `Attempting to update attributes in ${tableNames} with ID ${dynamoObj.id}`);
-    
+
     try {
       let transactItems = [];
       tables.forEach((table) => {
@@ -691,11 +695,7 @@ class databaseModify {
         transactItems.push({ Update: params });
       });
       if (_.isEmpty(transactItems)) {
-        logger.log(
-          4,
-          'updateAttributesInDB',
-          `No attributes to update with ID ${dynamoObj.id}`
-        );
+        logger.log(4, 'updateAttributesInDB', `No attributes to update with ID ${dynamoObj.id}`);
         return dynamoObj;
       }
       await databaseModify.TransactItems(transactItems);

@@ -981,6 +981,29 @@ Resources:
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
+  LeaderboardFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Provides the nightly update to leaderboard data.
+      Handler: leaderboard.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref SharedLayer
+      Timeout: 900
+      MemorySize: 512
+      CodeUri: crons/leaderboard/
+      Events:
+        LeaderboardSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          AWS: lambda
+      Role: !GetAtt
+        - PortalDataSyncLambdaRole
+        - Arn
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
