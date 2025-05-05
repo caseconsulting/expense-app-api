@@ -75,7 +75,11 @@ class TimesheetsRoutes {
     try {
       // log method
       logger.log(1, '_getLeaderboardData', 'Attempting to get leaderboard data');
-      return await this.leaderboardDynamo.getAllEntriesInDB(23);
+      let leaderboardData = await this.leaderboardDynamo.getAllEntriesInDB(23);
+
+      logger.log(1, '_getLeaderboardData', 'Successfully retrieved leaderboard data');
+
+      res.status(200).send(leaderboardData);
     } catch (err) {
       // log error
       logger.log(1, '_getLeaderboardData', 'Failed to get leaderboard data');
