@@ -4,7 +4,7 @@ const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/datab
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const { getExpressJwt, isAdmin, isManager, getEmployeeAndTags } = require(process.env.AWS ? 'utils' : '../js/utils');
 
-const { getTimesheetsDataForEmployee } = require(process.env.AWS ? 'utils/timesheet' : '../js/utils/timesheet');
+const { getTimesheetsDataForEmployee } = require(process.env.AWS ? 'timesheetUtils' : '../js/utils/timesheet');
 
 const logger = new Logger('tSheetsRoutes');
 

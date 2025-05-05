@@ -1,6 +1,6 @@
 const { getEmployeesAndTags } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = require(process.env.AWS
-  ? 'utils/timesheet'
+  ? 'timesheetUtils'
   : '../js/utils/timesheet');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
