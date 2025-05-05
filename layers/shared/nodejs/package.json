@@ -17,6 +17,6 @@
     "crudRoutes": "file:../../../routes/crudRoutes.js",
     "expenseRoutes": "file:../../../routes/expenseRoutes.js",
     "employeeRoutes": "file:../../../routes/employeeRoutes.js",
-    "timesheetUtils": "file:../../../js/utils/timesheets.js"
+    "timesheetUtils": "file:../../../js/utils/timesheet.js"
   }
 }
