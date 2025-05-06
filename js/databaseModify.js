@@ -112,7 +112,7 @@ class databaseModify {
    *
    * @return Array - All entries in the dynamodb table.
    */
-  async getAllEntriesInDB(limit = null) {
+  async getAllEntriesInDB() {
     // log method
     let tableName = this.tableName;
     logger.log(4, 'getAllEntriesInDB', `Getting all entries from ${tableName}`);
@@ -121,10 +121,6 @@ class databaseModify {
     let params = {
       TableName: tableName
     };
-
-    if (limit) {
-      params.PageSize = limit;
-    }
 
     return scanDB(params, documentClient)
       .then(function (items) {

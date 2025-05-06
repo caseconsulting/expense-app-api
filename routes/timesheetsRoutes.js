@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
@@ -75,7 +76,11 @@ class TimesheetsRoutes {
     try {
       // log method
       logger.log(1, '_getLeaderboardData', 'Attempting to get leaderboard data');
-      let leaderboardData = await this.leaderboardDynamo.getAllEntriesInDB(23);
+      let leaderboardData = await this.leaderboardDynamo.getAllEntriesInDB();
+
+      leaderboardData = _.reverse(_.sortBy(leaderboardData, 'billableHours'));
+
+      leaderboardData = leaderboardData.slice(0, 23);
 
       logger.log(1, '_getLeaderboardData', 'Successfully retrieved leaderboard data');
 
