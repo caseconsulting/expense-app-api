@@ -57,7 +57,6 @@ async function setLeaderboardData(employeeId, billableHours) {
     logger.log(1, 'setLeaderboardData', 'Attempting to set leaderboard data');
     let leaderboardDynamo = new DatabaseModify('leaderboard');
     leaderboardDynamo.addToDB({
-      id: employeeId,
       employeeId,
       billableHours
     });

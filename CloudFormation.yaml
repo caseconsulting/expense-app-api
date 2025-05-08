@@ -382,8 +382,6 @@ Resources:
       KeySchema:
         - AttributeName: employeeId
           KeyType: HASH
-        - AttributeName: billableHours
-          KeyType: RANGE
       Tags:
         - Key: Application
           Value: expense-app

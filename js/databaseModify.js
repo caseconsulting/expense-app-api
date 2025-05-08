@@ -63,7 +63,7 @@ class databaseModify {
    * @param newDyanmoObj - object to add as a new dynamodb entry
    * @return Object - objected add to dynamodb
    */
-  async addToDB(newDyanmoObj) {
+  async addToDB(newDyanmoObj, key = 'id') {
     // log method
     let tableName = this.tableName;
     logger.log(4, 'addToDB', `Attempting to add new entry to ${tableName}`);
@@ -81,13 +81,13 @@ class databaseModify {
         .send(putCommand)
         .then(() => {
           // log success
-          logger.log(4, 'addToDB', `Successfully added ${newDyanmoObj.id} to ${tableName}`);
+          logger.log(4, 'addToDB', `Successfully added ${newDyanmoObj[key]} to ${tableName}`);
 
           return newDyanmoObj;
         })
         .catch(function (err) {
           // log error
-          logger.log(4, 'addToDB', `Failed to add ${newDyanmoObj.id} to ${tableName}`);
+          logger.log(4, 'addToDB', `Failed to add ${newDyanmoObj[key]} to ${tableName}`);
 
           // throw error
           throw err;
@@ -528,7 +528,7 @@ class databaseModify {
    * @param passedID - ID of entry to delete
    * @return Object - entries deleted
    */
-  async removeFromDB(passedID) {
+  async removeFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
     logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
@@ -537,7 +537,7 @@ class databaseModify {
     const params = {
       TableName: tableName,
       Key: {
-        id: passedID
+        [key]: passedID
       },
       ReturnValues: 'ALL_OLD'
     };
