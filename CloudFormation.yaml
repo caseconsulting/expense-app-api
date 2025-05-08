@@ -377,8 +377,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: employeeId
           AttributeType: S
-        - AttributeName: billableHours
-          AttributeType: N
       KeySchema:
         - AttributeName: employeeId
           KeyType: HASH
