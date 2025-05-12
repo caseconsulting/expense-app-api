@@ -167,12 +167,8 @@ function getIsoWeekday(date) {
  * @param {String} format - The format output (https://day.js.org/docs/en/display/format)
  * @returns String - Today's date
  */
-function getTodaysDate(format) {
-  if (format) {
-    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(format);
-  } else {
-    return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(DEFAULT_ISOFORMAT);
-  }
+function getTodaysDate(format = DEFAULT_ISOFORMAT) {
+  return dayjs.utc().tz(DEFAULT_TIME_ZONE).format(format);
 } // getTodaysDate
 
 /**
@@ -387,7 +383,7 @@ function setYear(date, year) {
  * @returns String - Start of date at given unit time
  */
 function startOf(date, granularity) {
-  return dayjs(date).startOf(granularity).format();
+  return dayjs(date).startOf(granularity).format(DEFAULT_ISOFORMAT);
 } // startOf
 
 /**
@@ -398,7 +394,7 @@ function startOf(date, granularity) {
  * @returns String - End of date at the given unit time
  */
 function endOf(date, granularity) {
-  return dayjs(date).endOf(granularity).format();
+  return dayjs(date).endOf(granularity).format(DEFAULT_ISOFORMAT);
 } // endOf
 
 module.exports = {
