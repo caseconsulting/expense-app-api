@@ -1,4 +1,5 @@
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const logger = new Logger('tSheetsRoutes');
 const lambdaClient = new LambdaClient();
@@ -158,6 +159,27 @@ function isManager(employee) {
 } // isManager
 
 /**
+ * get employee with id and tags
+ * @param {*} employeeId - employee id
+ * @returns employee and tags
+ */
+async function getEmployeeAndTags(employeeId) {
+  let tagDynamo = new DatabaseModify('tags');
+  let employeeDynamo = new DatabaseModify('employees');
+  return await Promise.all([tagDynamo.getAllEntriesInDB(), employeeDynamo.getEntry(employeeId)]);
+}
+
+/**
+ * get employees and tags
+ * @returns employees and tags
+ */
+async function getEmployeesAndTags() {
+  let tagDynamo = new DatabaseModify('tags');
+  let employeeDynamo = new DatabaseModify('employees');
+  return await Promise.all([tagDynamo.getAllEntriesInDB(), employeeDynamo.getAllEntriesInDB()]);
+}
+
+/**
  * Sends an email using AWS SES.
  *
  * @param {String} source - The source email address
@@ -204,5 +226,7 @@ module.exports = {
   isIntern,
   isUser,
   isManager,
-  sendEmail
+  sendEmail,
+  getEmployeeAndTags,
+  getEmployeesAndTags
 };

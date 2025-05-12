@@ -246,7 +246,7 @@ class ExpenseRoutes extends Crud {
       await this._addToBudget(expense, null, expenseType, budget); // add expense to budget
 
       // TODO: don't hardcode this, but make it part of the expense type
-      if (expense.category === 'Exchange for training hours') {
+      if (expense.category?.toLowerCase() === 'exchange for training hours') {
         this._emailPayroll(employee, expense);
       }
 
