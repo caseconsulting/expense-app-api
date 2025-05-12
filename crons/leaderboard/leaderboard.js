@@ -52,7 +52,7 @@ async function getLeaderboardDataForEmployees(employees, tags) {
       );
     }
   });
-} // getTimesheetsDataForEmployees
+} // getLeaderboardDataForEmployees
 
 async function removeLeaderboardDataForEmployees(employees) {
   logger.log(1, 'removeLeaderboardDataForEmployees', 'Attempting to remove timesheet data for employees');
