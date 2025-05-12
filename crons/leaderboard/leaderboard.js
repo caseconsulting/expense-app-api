@@ -17,7 +17,9 @@ async function getLeaderboardData() {
     // filter employees with non-billable tags
     let nonBillableTags = tags.filter((tag) => ['Overhead', 'LWOP', 'Bench', 'Intern'].includes(tag.tagName));
     let nonBillableEmployeeIds = nonBillableTags.flatMap((tag) => tag.employees);
-    let billableEmployees = employees.filter((employee) => !nonBillableEmployeeIds.includes(employee.id));
+    let billableEmployees = employees.filter(
+      (employee) => employee.workStatus > 0 && !nonBillableEmployeeIds.includes(employee.id)
+    );
 
     // get leaderboard data for billable employees
     await getLeaderboardDataForEmployees(billableEmployees, tags);
