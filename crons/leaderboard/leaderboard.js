@@ -28,6 +28,7 @@ async function getLeaderboardData() {
     // get leaderboard data for billable employees
     await getLeaderboardDataForEmployees(activeBillableEmployees, tags);
     await removeLeaderboardDataForEmployees(otherEmployees);
+    logger.log(1, 'getLeaderboardData', 'Successfully got leaderboard data');
   } catch (err) {
     // log error
     logger.log(1, 'getLeaderboardData', 'Failed to get leaderboard data');
@@ -35,7 +36,7 @@ async function getLeaderboardData() {
 } // getLeaderboardData
 
 async function getLeaderboardDataForEmployees(employees, tags) {
-  logger.log(1, 'getLeaderboardDataForEmployees', 'Attempting to get leaderboard data for employees');
+  logger.log(1, 'getLeaderboardDataForEmployees', 'Getting leaderboard data for employees');
   let periods = yearToDatePeriods();
   await asyncForEach(employees, async (employee) => {
     try {
@@ -43,7 +44,14 @@ async function getLeaderboardDataForEmployees(employees, tags) {
       let timesheet = await getTimesheetsDataForEmployee(employee, tags, {
         periods
       });
-      setLeaderboardData(employee.id, getBillableHours(timesheet));
+      logger.log(1, 'getLeaderboardDataForEmployees', `Successfully got leaderboard data for employee ${employee.id}`);
+      leaderboardDynamo.addToDB(
+        {
+          employeeId: employee.id,
+          billableHours: getBillableHours(timesheet)
+        },
+        'employeeId'
+      );
     } catch (err) {
       // log error
       logger.log(1, 'getLeaderboardDataForEmployees', `Failed to get leaderboard data for employee ${employee.id}`);
@@ -52,38 +60,11 @@ async function getLeaderboardDataForEmployees(employees, tags) {
 } // getLeaderboardDataForEmployees
 
 async function removeLeaderboardDataForEmployees(employees) {
-  logger.log(1, 'removeLeaderboardDataForEmployees', 'Attempting to remove timesheet data for employees');
+  logger.log(1, 'removeLeaderboardDataForEmployees', 'Removing leaderboard data for employees');
   await asyncForEach(employees, async (employee) => {
-    try {
-      logger.log(
-        1,
-        'removeLeaderboardDataForEmployees',
-        `Attempting to remove leaderboard data for employee ${employee.id}`
-      );
-      leaderboardDynamo.removeFromDB(employee.id, 'employeeId');
-    } catch {
-      // log error
-      logger.log(1, 'removeLeaderboardDataForEmployees', `Failed to remove timesheet data for employee ${employee.id}`);
-    }
+    leaderboardDynamo.removeFromDB(employee.id, 'employeeId');
   });
 } // removeLeaderboardDataForEmployees
-
-async function setLeaderboardData(employeeId, billableHours) {
-  try {
-    // log method
-    logger.log(1, 'setLeaderboardData', `Attempting to set leaderboard data for employee ${employeeId}`);
-    leaderboardDynamo.addToDB(
-      {
-        employeeId,
-        billableHours
-      },
-      'employeeId'
-    );
-  } catch (err) {
-    // log error
-    logger.log(1, 'setLeaderboardData', `Failed to set leaderboard data for employee ${employeeId}`);
-  }
-} // setLeaderboardData
 
 /**
  * Handler to execute lamba function.
