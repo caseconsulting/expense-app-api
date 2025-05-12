@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { getEmployeesAndTags, asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
 const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = require(process.env.AWS
   ? 'timesheetUtils'
@@ -5,6 +6,8 @@ const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = re
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const logger = new Logger('LeaderboardCron');
+
+const leaderboardDynamo = new DatabaseModify('leaderboard');
 
 async function getLeaderboardData() {
   try {
@@ -17,25 +20,24 @@ async function getLeaderboardData() {
     // filter employees with non-billable tags
     let nonBillableTags = tags.filter((tag) => ['Overhead', 'LWOP', 'Bench', 'Intern'].includes(tag.tagName));
     let nonBillableEmployeeIds = nonBillableTags.flatMap((tag) => tag.employees);
-    let billableEmployees = employees.filter(
+    let [activeBillableEmployees, otherEmployees] = _.partition(
+      employees,
       (employee) => employee.workStatus > 0 && !nonBillableEmployeeIds.includes(employee.id)
     );
 
     // get leaderboard data for billable employees
-    await getLeaderboardDataForEmployees(billableEmployees, tags);
+    await getLeaderboardDataForEmployees(activeBillableEmployees, tags);
+    await removeLeaderboardDataForEmployees(otherEmployees);
   } catch (err) {
     // log error
     logger.log(1, 'getLeaderboardData', 'Failed to get leaderboard data');
-
-    // return error
-    return err;
   }
 } // getLeaderboardData
 
-async function getLeaderboardDataForEmployees(billableEmployees, tags) {
+async function getLeaderboardDataForEmployees(employees, tags) {
   logger.log(1, 'getLeaderboardDataForEmployees', 'Attempting to get timesheet data for employees');
   let periods = yearToDatePeriods();
-  await asyncForEach(billableEmployees, async (employee) => {
+  await asyncForEach(employees, async (employee) => {
     try {
       let timesheet = await getTimesheetsDataForEmployee(employee, tags, {
         periods
@@ -50,24 +52,38 @@ async function getLeaderboardDataForEmployees(billableEmployees, tags) {
       );
     }
   });
-  return getLeaderboardDataForEmployees;
 } // getTimesheetsDataForEmployees
+
+async function removeLeaderboardDataForEmployees(employees) {
+  logger.log(1, 'removeLeaderboardDataForEmployees', 'Attempting to remove timesheet data for employees');
+  await asyncForEach(employees, async (employee) => {
+    try {
+      leaderboardDynamo.removeFromDB(employee.employeeNumber, 'employeeId');
+    } catch {
+      // log error
+      logger.log(
+        1,
+        'removeLeaderboardDataForEmployees',
+        `Failed to remove timesheet data for employee number ${employee.employeeNumber}`
+      );
+    }
+  });
+} // removeLeaderboardDataForEmployees
 
 async function setLeaderboardData(employeeId, billableHours) {
   try {
     // log method
     logger.log(1, 'setLeaderboardData', 'Attempting to set leaderboard data');
-    let leaderboardDynamo = new DatabaseModify('leaderboard');
-    leaderboardDynamo.addToDB({
-      employeeId,
-      billableHours
-    });
+    leaderboardDynamo.addToDB(
+      {
+        employeeId,
+        billableHours
+      },
+      'employeeId'
+    );
   } catch (err) {
     // log error
     logger.log(1, 'setLeaderboardData', 'Failed to set leaderboard data');
-
-    // return error
-    return err;
   }
 } // setLeaderboardData
 
