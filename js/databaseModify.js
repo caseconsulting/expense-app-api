@@ -66,7 +66,7 @@ class databaseModify {
   async addToDB(newDyanmoObj, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'addToDB', `Attempting to add new entry to ${tableName}`);
+    logger.log(4, 'addToDB', `Attempting to add entry to ${tableName}`);
 
     // compute method
     if (newDyanmoObj) {
