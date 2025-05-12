@@ -198,6 +198,25 @@ Resources:
           - ''
           - - case-expense-app-attachments-
             - !Ref Stage
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+            AllowedOrigins: !If
+              - ProdDeployment
+              -
+                - https://app.consultwithcase.com
+              -
+                - !Join
+                  - ''
+                  - 
+                    - https://
+                    - !Ref Stage
+                    - -app.consultwithcase.com
+                - http://localhost:8080
+            ExposedHeaders: []
       LifecycleConfiguration:
         Rules:
           - Id: Remove Deleted Expense Attachments
