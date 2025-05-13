@@ -362,6 +362,29 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+  leaderboardTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - '-'
+        - - !Ref Stage
+          - leaderboard
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      AttributeDefinitions:
+        - AttributeName: employeeId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: employeeId
+          KeyType: HASH
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
   auditTable:
     Type: 'AWS::DynamoDB::Table'
     DeletionPolicy: Retain
@@ -950,6 +973,29 @@ Resources:
           AWS: lambda
       Role: !GetAtt
         - ChironLambdaRole
+        - Arn
+  LeaderboardFunction:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Provides the nightly update to leaderboard data.
+      Handler: leaderboard.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref SharedLayer
+      Timeout: 900
+      MemorySize: 512
+      CodeUri: crons/leaderboard/
+      Events:
+        LeaderboardSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(1 5 * * ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          AWS: lambda
+      Role: !GetAtt
+        - PortalDataSyncLambdaRole
         - Arn
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion

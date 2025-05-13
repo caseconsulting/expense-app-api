@@ -270,6 +270,59 @@ class EmployeeRoutes extends Crud {
   } // getAllExpenseTypes
 
   /**
+   * Helper function to filter Employee object and remove any attributes
+   * that the user does not have access to. This acts as a blacklist, so
+   * attributes must be added in the role that must be blocked
+   * 
+   * @param employee employee object to filter
+   * @param user user making the request
+   * 
+   */
+  filterByPermissions(employee, user) {
+    // blacklist items that each role should NOT be able to see
+    const BLACKLIST = {
+      admin: [],
+      manager: [],
+      user: ['timesheetReminders'],
+      intern: ['timesheetReminders']
+    };
+
+    // use existing functions to verify their role
+    let verifiedRole;
+    switch (user.employeeRole) {
+      case 'admin':
+        verifiedRole = this.isAdmin() ? 'admin' : undefined;
+        break;
+      case 'manager':
+        verifiedRole = this.isManager() ? 'manager' : undefined;
+        break;
+      case 'user':
+        verifiedRole = this.isUser() ? 'user' : undefined;
+        break;
+      case 'intern':
+        verifiedRole = this.isIntern() ? 'intern' : undefined;
+        break;
+      default:
+        break;
+    }
+    if (!verifiedRole) {
+      throw {
+        code: 403,
+        message: 'Could not determine employee permissions to read data.'
+      };
+    }
+
+    // remove items that the user does not have access to
+    let employeeCopy = { ...employee };
+    for (let item of BLACKLIST[verifiedRole]) {
+      if (employeeCopy[item]) delete employeeCopy[item];
+    }
+
+    // return new object
+    return new Employee(employeeCopy);
+  } // filterByPermissions
+
+  /**
    * Reads an employee from the database. Returns the employee read.
    *
    * @param data - parameters of employee
@@ -281,7 +334,8 @@ class EmployeeRoutes extends Crud {
 
     // compute method
     try {
-      let employee = new Employee(await this.databaseModify.getEntry(data.id)); // read from database
+      let employee = await this.databaseModify.getEntry(data.id); // read from database
+      employee = new Employee(employee);
 
       // log success
       logger.log(2, '_read', `Successfully read employee ${data.id}`);
@@ -319,6 +373,7 @@ class EmployeeRoutes extends Crud {
       if (this._checkPermissionToRead(req.employee)) {
         // employee has permission to read from table
         let dataRead = await this._read(req.params); // read object
+        dataRead = this.filterByPermissions(dataRead, req.employee); // filter object by user permissions
 
         // validate user permission to the read expense
         if ((this.isUser(req.employee) || this.isManager(req.employee)) && this._checkTableName(['expenses'])) {
