@@ -18,16 +18,18 @@ async function getLeaderboardData() {
     let [tags, employees] = await getEmployeesAndTags();
 
     // filter employees with non-billable tags
-    let nonBillableTags = tags.filter((tag) => ['Overhead', 'LWOP', 'Bench', 'Intern'].includes(tag.tagName));
-    let nonBillableEmployeeIds = nonBillableTags.flatMap((tag) => tag.employees);
-    let [activeBillableEmployees, otherEmployees] = _.partition(
+    let excludedTags = tags.filter((tag) =>
+      ['Overhead', 'LWOP', 'Bench', 'Intern', 'Leadership'].includes(tag.tagName)
+    );
+    let excludedEmployeeIds = excludedTags.flatMap((tag) => tag.employees);
+    let [includedEmployees, excludedEmployees] = _.partition(
       employees,
-      (employee) => employee.workStatus > 0 && !nonBillableEmployeeIds.includes(employee.id)
+      (employee) => employee.workStatus > 0 && !excludedEmployeeIds.includes(employee.id)
     );
 
     // get leaderboard data for billable employees
-    await getLeaderboardDataForEmployees(activeBillableEmployees, tags);
-    await removeLeaderboardDataForEmployees(otherEmployees);
+    await getLeaderboardDataForEmployees(includedEmployees, tags);
+    await removeLeaderboardDataForEmployees(excludedEmployees);
     logger.log(1, 'getLeaderboardData', 'Successfully got leaderboard data');
   } catch (err) {
     // log error

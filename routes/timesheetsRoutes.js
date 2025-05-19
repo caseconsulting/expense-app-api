@@ -76,11 +76,25 @@ class TimesheetsRoutes {
     try {
       // log method
       logger.log(1, '_getLeaderboardData', 'Attempting to get leaderboard data');
-      let leaderboardData = await this.leaderboardDynamo.getAllEntriesInDB();
+      let allLeaderboardData = await this.leaderboardDynamo.getAllEntriesInDB();
 
-      leaderboardData = _.reverse(_.sortBy(leaderboardData, 'billableHours'));
+      allLeaderboardData = _.reverse(_.sortBy(allLeaderboardData, 'billableHours'));
 
-      leaderboardData = leaderboardData.slice(0, 23);
+      allLeaderboardData.forEach((leader, index) => {
+        leader.rank = index + 1;
+      });
+
+      let leaderboardData = allLeaderboardData.slice(0, 23);
+
+      let currentUserIsLeader = leaderboardData.map((leader) => leader.employeeId).includes(req.employee.id);
+      logger.log(1, '_getLeaderboardData', `TESTING: ${currentUserIsLeader}`);
+      if (!currentUserIsLeader) {
+        leaderboardData.pop();
+        logger.log(1, '_getLeaderboardData', `TESTING: ${req.employee.id}`);
+        let currentUserLeaderData = allLeaderboardData.find((leader) => leader.employeeId == req.employee.id);
+        logger.log(1, '_getLeaderboardData', `TESTING: ${currentUserLeaderData.rank}`);
+        leaderboardData.push(currentUserLeaderData);
+      }
 
       logger.log(1, '_getLeaderboardData', 'Successfully retrieved leaderboard data');
 
