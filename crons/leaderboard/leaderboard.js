@@ -64,7 +64,7 @@ async function getLeaderboardDataForEmployees(employees, tags) {
 async function removeLeaderboardDataForEmployees(employees) {
   logger.log(1, 'removeLeaderboardDataForEmployees', 'Removing leaderboard data for employees');
   await asyncForEach(employees, async (employee) => {
-    leaderboardDynamo.removeFromDB(employee.id, 'employeeId');
+    await leaderboardDynamo.removeFromDB(employee.id, 'employeeId');
   });
 } // removeLeaderboardDataForEmployees
 
