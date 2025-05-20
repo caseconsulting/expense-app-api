@@ -531,7 +531,7 @@ class databaseModify {
   async removeFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
+    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ${key} ${passedID}`);
 
     // compute method
     const params = {
