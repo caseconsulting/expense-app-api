@@ -546,13 +546,13 @@ class databaseModify {
       .send(deleteCommand)
       .then((data) => {
         // log success
-        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ${key} ${passedID}`);
 
         return data.Attributes;
       })
       .catch(function (err) {
         // log error
-        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ${key} ${passedID}`);
 
         // throw error
         throw err;
