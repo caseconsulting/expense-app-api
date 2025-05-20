@@ -87,13 +87,12 @@ class TimesheetsRoutes {
       let leaderboardData = allLeaderboardData.slice(0, 23);
 
       let currentUserIsLeader = leaderboardData.map((leader) => leader.employeeId).includes(req.employee.id);
-      logger.log(1, '_getLeaderboardData', `TESTING: ${currentUserIsLeader}`);
       if (!currentUserIsLeader) {
-        leaderboardData.pop();
-        logger.log(1, '_getLeaderboardData', `TESTING: ${req.employee.id}`);
         let currentUserLeaderData = allLeaderboardData.find((leader) => leader.employeeId == req.employee.id);
-        logger.log(1, '_getLeaderboardData', `TESTING: ${currentUserLeaderData.rank}`);
-        leaderboardData.push(currentUserLeaderData);
+        if (currentUserLeaderData) {
+          leaderboardData.pop();
+          leaderboardData.push(currentUserLeaderData);
+        }
       }
 
       logger.log(1, '_getLeaderboardData', 'Successfully retrieved leaderboard data');
