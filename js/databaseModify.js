@@ -66,7 +66,7 @@ class databaseModify {
   async addToDB(newDyanmoObj, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'addToDB', `Attempting to add new entry to ${tableName}`);
+    logger.log(4, 'addToDB', `Attempting to add entry to ${tableName}`);
 
     // compute method
     if (newDyanmoObj) {
@@ -531,7 +531,7 @@ class databaseModify {
   async removeFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ID ${passedID}`);
+    logger.log(4, 'removeFromDB', `Attempting to delete entires from ${tableName} with ${key} ${passedID}`);
 
     // compute method
     const params = {
@@ -546,13 +546,13 @@ class databaseModify {
       .send(deleteCommand)
       .then((data) => {
         // log success
-        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Successfully deleted entires from ${tableName} with ${key} ${passedID}`);
 
         return data.Attributes;
       })
       .catch(function (err) {
         // log error
-        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ID ${passedID}`);
+        logger.log(4, 'removeFromDB', `Failed to delete entires from ${tableName} with ${key} ${passedID}`);
 
         // throw error
         throw err;
