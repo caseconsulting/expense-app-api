@@ -211,7 +211,7 @@ Resources:
               -
                 - !Join
                   - ''
-                  - 
+                  -
                     - https://
                     - !Ref Stage
                     - -app.consultwithcase.com
@@ -738,6 +738,27 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+  auditsDatabase:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DatabaseName: !Join
+        - '_'
+        - - !Ref Stage
+          - audits
+      DeletionProtection: true
+      Engine: 'aurora-postgresql'
+      EngineMode: 'provisioned'
+      MasterUsername: "consultwithcase"
+      # TODO: change this (use ManageMasterUserPassword)
+      MasterUserPassword: "consultwithcase"
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: 1
       Tags:
         - Key: Application
           Value: expense-app
