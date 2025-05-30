@@ -96,6 +96,7 @@ class Employee {
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'timesheetReminders');
     this.setOptionalAttribute(data, 'twitter');
+    this.setOptionalAttribute(data, 'unanetPersonKey');
     this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'resumeUpdated');
   } // constructor
