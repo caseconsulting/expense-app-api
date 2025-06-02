@@ -148,7 +148,7 @@ function getWorkStatus(field, applicationFormat, toApplicationFormat) {
     } else if (workStatus === 0) {
       return 'Terminated';
     } else if (workStatus < 100 && workStatus > 0) {
-      return 'Part-Time';
+      return 'Part-Time (Billable)';
     } else {
       return 'Full-Time (Billable)';
     }
