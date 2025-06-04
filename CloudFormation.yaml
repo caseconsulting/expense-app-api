@@ -748,6 +748,8 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
       Tags:
         - Key: Application
           Value: expense-app
@@ -879,19 +881,16 @@ Resources:
         - '_'
         - - !Ref Stage
           - 'expense_app_db'
-      DBClusterIdentifier: !Join
-        - '-'
-        - - !Ref Stage
-          - 'expense-app-db-cluster'
       DeletionProtection: true
+      EnableHttpEndpoint: true
       Engine: 'aurora-postgresql'
       EngineMode: 'provisioned'
       MasterUsername: 'consultwithcase'
-      # TODO: consider using amazon secret manager instead
-      MasterUserPassword: 'consultwithcase'
+      ManageMasterUserPassword: true
       ServerlessV2ScalingConfiguration:
         MinCapacity: 0
         MaxCapacity: 1
+        # SecondsUntilAutoPause: 600
       VpcSecurityGroupIds:
         - !Ref AuroraSecurityGroup
       Tags:
@@ -907,10 +906,6 @@ Resources:
     Properties:
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: 'db.serverless'
-      DBInstanceIdentifier: !Join
-        - '-'
-        - - !Ref Stage
-          - 'expense-app-db'
       Engine: 'aurora-postgresql'
       Tags:
         - Key: Application
