@@ -1,8 +1,4 @@
-const {
-  RDSDataClient,
-  ExecuteStatementCommand,
-  DatabaseResumingException,
-} = require('@aws-sdk/client-rds-data');
+const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -14,7 +10,7 @@ const dbName = process.env.AURORA_DB_NAME;
 const inputs = {
   resourceArn: clusterArn,
   secretArn: secretArn,
-  database: dbName,
+  database: dbName
 };
 
 /**
@@ -51,7 +47,7 @@ async function query(client, query, transactionId) {
         // wait 5 seconds
         console.log('Database is resuming, trying again in 5 seconds');
         retry = true;
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       } else throw err;
     }
   } while (retry);
@@ -89,7 +85,6 @@ async function main() {
     const result = await query(client, 'select now()');
     console.log('Success! Response:');
     console.log(result.records);
-
   } finally {
     client.destroy();
   }
