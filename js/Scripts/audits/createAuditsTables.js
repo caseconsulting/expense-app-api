@@ -1,6 +1,5 @@
 const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
 const dotenv = require('dotenv');
-const fs = require('fs/promises');
 dotenv.config();
 
 const secretArn = process.env.AURORA_SECRET_ARN;
@@ -81,11 +80,6 @@ async function query(client, query, transactionId) {
 
 async function main() {
   const client = connect();
-  const buffer = await fs.readFile(process.cwd() + '/js/Scripts/audits/create_audits_tables.sql');
-  const sql = buffer.toString();
-
-  const result = await query(sql);
-  console.log(result);
 
   try {
     const result = await query(client, 'select now()');
