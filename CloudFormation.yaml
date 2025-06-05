@@ -743,27 +743,176 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
-  auditsDatabase:
-    Type: 'AWS::RDS::DBCluster'
+
+  AppVpc:
+    Type: AWS::EC2::VPC
     Properties:
-      DatabaseName: !Join
-        - '_'
-        - - !Ref Stage
-          - audits
-      DeletionProtection: true
-      Engine: 'aurora-postgresql'
-      EngineMode: 'provisioned'
-      MasterUsername: "consultwithcase"
-      # TODO: change this (use ManageMasterUserPassword)
-      MasterUserPassword: "consultwithcase"
-      ServerlessV2ScalingConfiguration:
-        MinCapacity: 0
-        MaxCapacity: 1
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
+  # getway for accessing the vpc
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # attaches the gateway to the vpc
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref AppVpc
+
+  # route table for the vpc
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref AppVpc
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # main route in the route table
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+
+  # main subnet for aurora db
+  # at current pricing, a public ip costs around 3 dollars a month
+  # we have 1 per subnet, with 2 subnets
+  AuroraPrimarySubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: '10.0.0.0/24'
+      AvailabilityZone: 'us-east-1a'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # associate subnet with route table
+  AuroraPrimarySrtAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref AuroraPrimarySubnet
+
+  # aurora rds requires 2 subnets
+  AuroraSecondarySubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: '10.0.1.0/24'
+      AvailabilityZone: 'us-east-1b'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # associate subnet with route table
+  AuroraSecondarySrtAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref AuroraSecondarySubnet
+
+  # associate the subnets with the database
+  AuroraSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: 'Subnet group for expense app database'
+      DBSubnetGroupName: !Join
+        - '-'
+        - - !Ref Stage
+          - 'expense-app-db-subnet-group'
+      SubnetIds:
+        - !Ref AuroraPrimarySubnet
+        - !Ref AuroraSecondarySubnet
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  AuroraSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security group for expense app aurora database'
+      VpcId: !Ref AppVpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # the cluster manages most of the permissions and authentication for its instances
+  # get db address with: !GetAtt auditsDatabase.Endpoint.Address
+  AuroraCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DBSubnetGroupName: !Ref AuroraSubnetGroup
+      DatabaseName: !Join
+        - '_'
+        - - !Ref Stage
+          - 'expense_app_db'
+      DeletionProtection: true
+      EnableHttpEndpoint: true
+      Engine: 'aurora-postgresql'
+      EngineMode: 'provisioned'
+      MasterUsername: 'consultwithcase'
+      ManageMasterUserPassword: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: 1
+        # SecondsUntilAutoPause: 600
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # this is the actual database
+  # port: !GetAtt auroraDbInstance.Endpoint.Port
+  AuroraInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: 'db.serverless'
+      Engine: 'aurora-postgresql'
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   ExpenseAppApiLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
