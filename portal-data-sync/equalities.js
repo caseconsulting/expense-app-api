@@ -10,7 +10,7 @@
  */
 function checkWorkStatus(status1, status2) {
   // possible values for abstraction
-  let options = { 0: 'terminated', 1: 'parttime', 2: 'fulltime' };
+  let options = { 0: 'terminated', 1: 'parttime', 2: 'fulltime', 3: 'intern' };
 
   // convert to a common value
   let convert = (value) => {
@@ -18,6 +18,7 @@ function checkWorkStatus(status1, status2) {
     if (alpha.includes('terminated')) return options[0];
     if (alpha.includes('parttime')) return options[1];
     if (alpha.includes('fulltime')) return options[2];
+    if (alpha.includes('intern')) return options[3];
     return undefined;
   };
 
