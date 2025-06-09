@@ -47,4 +47,13 @@ class Notification {
      */
     this.reason = reason;
   }
+
+  toDataApiParams(){
+    return [{ name: 'createdAt', value: { stringValue: this.createdAt } },
+      { name: 'receiverId', value: { stringValue: this.receiverId } },
+      { name: 'sentTo', value: { stringValue: this.sentTo } },
+      { name: 'reason', value: { stringValue: this.reason } }];
+  }
 }
+
+module.exports = Notification;
