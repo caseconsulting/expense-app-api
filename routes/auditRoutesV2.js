@@ -1,8 +1,4 @@
-const {
-  RDSDataClient,
-  ExecuteStatementCommand,
-  DatabaseResumingException
-} = require('@aws-sdk/client-rds-data');
+const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -13,8 +9,7 @@ const secretArn = process.env.AURORA_SECRET_ARN;
 const clusterArn = process.env.AURORA_CLUSTER_ARN;
 const dbName = process.env.AURORA_DB_NAME;
 
-
-async function insertNotificationAudit (data) {
+async function insertNotificationAudit(data) {
   const audit = new Notification(null, data.createdAt, data.receiverId, data.sentTo, data.reason);
 
   const inputs = {
@@ -26,24 +21,26 @@ async function insertNotificationAudit (data) {
     database: dbName,
     parameters: audit.toDataApiParams()
   };
-  
-  let retry = false;
-  do{
+
+  let retry;
+  do {
+    retry = false;
     try {
       const command = new ExecuteStatementCommand(inputs);
-      await rdsClient.send(command);
+      const res = await rdsClient.send(command);
 
-      console.log('Inserted Notification Audit Results:', inputs.parameters || 'N/A');
+      console.log('Inserted Notification Audit Results:', res ?? 'N/A');
     } catch (err) {
       if (err instanceof DatabaseResumingException) {
         console.log('Database is resuming, trying again in 5 seconds');
         retry = true;
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
         console.error('Insertion failed', err);
+        return;
       }
     }
-  } while(retry);
+  } while (retry);
 }
 
 insertNotificationAudit({
