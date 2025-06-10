@@ -55,6 +55,9 @@ const googleMapRoutes = new GoogleMapRoutes();
 const AuditRoutes = require('./routes/auditRoutes');
 const auditRoutes = new AuditRoutes();
 
+const AuditRoutesV2 = require('./routes/auditRoutesV2');
+//const auditRoutesV2 = new AuditRoutesV2();
+
 const ContractRoutes = require('./routes/contractRoutes');
 const contractRoutes = new ContractRoutes();
 
@@ -106,6 +109,7 @@ app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
+app.use('/auditsV2', AuditRoutesV2);
 app.use('/contracts', contractRoutes.router);
 app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);

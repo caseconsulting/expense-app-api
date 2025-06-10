@@ -1,3 +1,5 @@
+const express = require('express');
+const router = express.Router();
 const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -49,3 +51,75 @@ insertNotificationAudit({
   sentTo: 'mdanh@consultwithcase.com',
   reason: 'weekly_timesheet_reminder'
 });
+
+async function queryNotifications({ startDate, endDate, reason }) {
+  let sql = `SELECT id, created_at, receiver_id, sent_to, reason
+    FROM notifications
+    WHERE created_at BETWEEN :startDate::timestamp AND :endDate::timestamp`;
+
+  const parameters = [
+    {
+      name: 'startDate',
+      value: { stringValue: new Date(startDate).toISOString()}
+    },
+    {
+      name: 'endDate',
+      value: { stringValue: new Date(endDate).toISOString()}
+    },
+  ];
+
+  if (reason) {
+    sql += ' AND reason = :reason';
+    parameters.push({
+      name: 'reason',
+      value: { stringValue: reason },
+    });
+  }
+
+  sql += ' ORDER BY created_at DESC';
+
+  console.log('SQL:', sql);
+  console.log('Parameters:', parameters);
+
+  const command = new ExecuteStatementCommand({
+    resourceArn: clusterArn,
+    secretArn: secretArn,
+    sql,
+    database: dbName,
+    parameters,
+  });
+
+  const result = await rdsClient.send(command);
+
+  return result.records.map(row => ({
+    id: row[0]?.stringValue,
+    createdAt: row[1]?.stringValue,
+    receiverId: row[2]?.stringValue,
+    sentTo: row[3]?.stringValue,
+    reason: row[4]?.stringValue,
+  }));
+}
+
+router.get('/', async (req, res) => {
+  console.log('Received query:', req.query);
+  
+  const { startDate, endDate, reason } = req.query;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({
+      error: 'startDate and endDate are required in YYYY-MM-DD format.',
+    });
+  }
+
+  try {
+    const results = await queryNotifications({ startDate, endDate, reason });
+    console.log('Successfully queried notification.');
+    res.status(200).json(results);
+  } catch (err) {
+    console.error('Error querying notifications:', err);
+    res.status(500).json({ error: err.message || 'Database query failed.' });
+  }
+});
+
+
+module.exports = router;
