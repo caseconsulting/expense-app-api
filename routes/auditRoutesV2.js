@@ -11,6 +11,7 @@ const secretArn = process.env.AURORA_SECRET_ARN;
 const clusterArn = process.env.AURORA_CLUSTER_ARN;
 const dbName = process.env.AURORA_DB_NAME;
 
+// eslint-disable-next-line no-unused-vars
 async function insertNotificationAudit(data) {
   const audit = new Notification(null, data.createdAt, data.receiverId, data.sentTo, data.reason);
 
@@ -45,38 +46,48 @@ async function insertNotificationAudit(data) {
   } while (retry);
 }
 
-insertNotificationAudit({
-  createdAt: new Date(),
-  receiverId: 'afdaf4cd-3ba5-40ca-b09c-e7a178ec2848',
-  sentTo: 'mdanh@consultwithcase.com',
-  reason: 'weekly_timesheet_reminder'
-});
+// insertNotificationAudit({
+//   createdAt: new Date(),
+//   receiverId: 'afdaf4cd-3ba5-40ca-b09c-e7a178ec2848',
+//   sentTo: 'mdanh@consultwithcase.com',
+//   reason: 'high_five'
+// });
 
 async function queryNotifications({ startDate, endDate, reason }) {
   let sql = `SELECT id, created_at, receiver_id, sent_to, reason
-    FROM notifications
-    WHERE created_at BETWEEN :startDate::timestamp AND :endDate::timestamp`;
+    FROM notifications`;
+  let parameters = [];
 
-  const parameters = [
-    {
-      name: 'startDate',
-      value: { stringValue: new Date(startDate).toISOString()}
-    },
-    {
-      name: 'endDate',
-      value: { stringValue: new Date(endDate).toISOString()}
-    },
-  ];
+  if (startDate && endDate) {
+    sql += '\nWHERE created_at BETWEEN :startDate::timestamp AND :endDate::timestamp';
+  } else if (startDate) {
+    sql += '\nWHERE created_at >= :startDate::timestamp';
+  } else if (endDate) {
+    sql += '\nWHERE created_at <= :endDate::timestamp';
+  }
 
-  if (reason) {
-    sql += ' AND reason = :reason';
+  if (startDate) {
     parameters.push({
-      name: 'reason',
-      value: { stringValue: reason },
+      name: 'startDate',
+      value: { stringValue: new Date(startDate).toISOString() }
+    });
+  }
+  if (endDate) {
+    parameters.push({
+      name: 'endDate',
+      value: { stringValue: new Date(endDate).toISOString() }
     });
   }
 
-  sql += ' ORDER BY created_at DESC';
+  if (reason) {
+    sql += ' AND reason = :reason::notification_reason';
+    parameters.push({
+      name: 'reason',
+      value: { stringValue: reason }
+    });
+  }
+
+  sql += '\nORDER BY created_at DESC LIMIT 50';
 
   console.log('SQL:', sql);
   console.log('Parameters:', parameters);
@@ -86,30 +97,24 @@ async function queryNotifications({ startDate, endDate, reason }) {
     secretArn: secretArn,
     sql,
     database: dbName,
-    parameters,
+    parameters
   });
 
   const result = await rdsClient.send(command);
 
-  return result.records.map(row => ({
+  return result.records.map((row) => ({
     id: row[0]?.stringValue,
     createdAt: row[1]?.stringValue,
     receiverId: row[2]?.stringValue,
     sentTo: row[3]?.stringValue,
-    reason: row[4]?.stringValue,
+    reason: row[4]?.stringValue
   }));
 }
 
 router.get('/', async (req, res) => {
   console.log('Received query:', req.query);
-  
-  const { startDate, endDate, reason } = req.query;
 
-  if (!startDate || !endDate) {
-    return res.status(400).json({
-      error: 'startDate and endDate are required in YYYY-MM-DD format.',
-    });
-  }
+  const { startDate, endDate, reason } = req.body;
 
   try {
     const results = await queryNotifications({ startDate, endDate, reason });
@@ -120,6 +125,5 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message || 'Database query failed.' });
   }
 });
-
 
 module.exports = router;
