@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
+const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -10,38 +11,61 @@ const rdsClient = new RDSDataClient({ region: 'us-east-1' });
 const secretArn = process.env.AURORA_SECRET_ARN;
 const clusterArn = process.env.AURORA_CLUSTER_ARN;
 const dbName = process.env.AURORA_DB_NAME;
+const logger = new Logger('auditRoutesV2');
+
+/**
+ * @typedef {import('@aws-sdk/client-rds-data').ExecuteStatementCommandOutput} ExecuteStatementCommandOutput
+ */
+
+/**
+ * Sends a command to the database, and retries if the database is waking up
+ * @param {string} sql The sql command
+ * @param {import('@aws-sdk/client-rds-data').SqlParameter | undefined} parameters Rds Data Api parameters
+ * @returns {Promise<ExecuteStatementCommandOutput> | undefined} The output of the command if any
+ */
+async function sendCommand(sql, parameters) {
+  let retry;
+  do {
+    retry = false;
+    try {
+      const command = new ExecuteStatementCommand({
+        resourceArn: clusterArn,
+        secretArn: secretArn,
+        database: dbName,
+        sql: sql
+      });
+      if (parameters) command.parameters = parameters;
+
+      return await rdsClient.send(command);
+    } catch (err) {
+      // if database is resuming, retry
+      if (err instanceof DatabaseResumingException) {
+        logger.log(1, 'sendCommand', 'Database is resuming, trying again in 5 seconds');
+        retry = true;
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } else throw err; // else propagate the error
+    }
+  } while (retry);
+}
 
 // eslint-disable-next-line no-unused-vars
 async function insertNotificationAudit(data) {
   const audit = new Notification(null, data.createdAt, data.receiverId, data.sentTo, data.reason);
 
-  const inputs = {
-    resourceArn: clusterArn,
-    secretArn: secretArn,
-    sql: `INSERT INTO notifications (created_at, receiver_id, sent_to, reason)
+  const sql = `INSERT INTO notifications (created_at, receiver_id, sent_to, reason)
     VALUES (:createdAt::timestamp, :receiverId::uuid, :sentTo, :reason::notification_reason)
-    RETURNING id`,
-    database: dbName,
-    parameters: audit.toDataApiParams()
-  };
+    RETURNING id`;
 
   let retry;
   do {
     retry = false;
     try {
-      const command = new ExecuteStatementCommand(inputs);
-      const res = await rdsClient.send(command);
+      const res = await sendCommand(sql, audit.toDataApiParams());
 
-      console.log('Inserted Notification Audit Results:', res ?? 'N/A');
+      logger.log(1, 'insertNotificationAudit', `Inserted Notification Audit Results: ${res ?? 'N/A'}`);
     } catch (err) {
-      if (err instanceof DatabaseResumingException) {
-        console.log('Database is resuming, trying again in 5 seconds');
-        retry = true;
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      } else {
-        console.error('Insertion failed', err);
-        return;
-      }
+      logger.error(1, 'insertNotificationAudit', `Insertion failed: ${err}`);
+      return;
     }
   } while (retry);
 }
@@ -89,20 +113,12 @@ async function queryNotifications({ startDate, endDate, reason }) {
 
   sql += '\nORDER BY created_at DESC LIMIT 50';
 
-  console.log('SQL:', sql);
-  console.log('Parameters:', parameters);
+  logger.log(1, 'queryNotifications', `SQL: ${sql}`);
+  logger.log(1, 'queryNotifications', `Parameters: ${parameters}`);
 
-  const command = new ExecuteStatementCommand({
-    resourceArn: clusterArn,
-    secretArn: secretArn,
-    sql,
-    database: dbName,
-    parameters
-  });
+  const res = await sendCommand(sql, parameters);
 
-  const result = await rdsClient.send(command);
-
-  return result.records.map((row) => ({
+  return res.records.map((row) => ({
     id: row[0]?.stringValue,
     createdAt: row[1]?.stringValue,
     receiverId: row[2]?.stringValue,
@@ -111,19 +127,21 @@ async function queryNotifications({ startDate, endDate, reason }) {
   }));
 }
 
-router.get('/', async (req, res) => {
-  console.log('Received query:', req.query);
+async function getAudits(req, res) {
+  logger.log(1, 'getAudits', `Received query: ${req.query}`);
 
   const { startDate, endDate, reason } = req.body;
 
   try {
     const results = await queryNotifications({ startDate, endDate, reason });
-    console.log('Successfully queried notification.');
+    logger.log(1, 'getAudits', `Successfully queried notifications: ${JSON.stringify(results)}`);
     res.status(200).json(results);
   } catch (err) {
-    console.error('Error querying notifications:', err);
+    logger.log(1, 'getAudits', `Error querying notifications: ${err}`);
     res.status(500).json({ error: err.message || 'Database query failed.' });
   }
-});
+}
+
+router.get('/', getAudits);
 
 module.exports = router;
