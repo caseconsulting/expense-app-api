@@ -1,7 +1,8 @@
 /**
  * Model for the notification_reason type in the audits database
+ * @readonly
+ * @enum {string}
  */
-// eslint-disable-next-line no-unused-vars
 const NotificationReason = Object.freeze({
   EXPENSE_REVISAL_REQUEST: 'expense_revisal_request',
   EXPENSE_REJECTION: 'expense_rejection',
@@ -14,7 +15,6 @@ const NotificationReason = Object.freeze({
 /**
  * Model for a notification in the audits database
  */
-// eslint-disable-next-line no-unused-vars
 class Notification {
   constructor(id, createdAt, receiverId, sentTo, reason) {
     /**
@@ -48,12 +48,18 @@ class Notification {
     this.reason = reason;
   }
 
-  toDataApiParams(){
-    return [{ name: 'createdAt', value: { stringValue: this.createdAt } },
+  /**
+   * Creates parameters for rds data api requests. Ignores id, since this is meant to be used with database insertions
+   * @returns {import("@aws-sdk/client-rds-data").SqlParameter[]} Valid data api parameters
+   */
+  toDataApiParams() {
+    return [
+      { name: 'createdAt', value: { stringValue: this.createdAt } },
       { name: 'receiverId', value: { stringValue: this.receiverId } },
       { name: 'sentTo', value: { stringValue: this.sentTo } },
-      { name: 'reason', value: { stringValue: this.reason } }];
+      { name: 'reason', value: { stringValue: this.reason } }
+    ];
   }
 }
 
-module.exports = Notification;
+module.exports = { Notification, NotificationReason };
