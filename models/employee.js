@@ -1,14 +1,6 @@
 const _ = require('lodash');
 
-const REQUIRED_FIELDS = [
-  'id',
-  'email',
-  'employeeNumber',
-  'firstName',
-  'hireDate',
-  'lastName',
-  'workStatus'
-];
+const REQUIRED_FIELDS = ['id', 'email', 'employeeNumber', 'firstName', 'hireDate', 'lastName', 'workStatus'];
 
 const OPTIONAL_FIELDS = [
   'agencyIdentificationNumber',
@@ -45,7 +37,7 @@ const OPTIONAL_FIELDS = [
   'unanetPersonKey',
   'twitter',
   'mifiStatus',
-  'resumeUpdated',
+  'resumeUpdated'
 ];
 
 class Employee {
