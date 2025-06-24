@@ -800,84 +800,31 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  # # getway for accessing the vpc
-  # InternetGateway:
-  #   Type: AWS::EC2::InternetGateway
-  #   Properties:
-  #     Tags:
-  #       - Key: Application
-  #         Value: expense-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
-
-  # # attaches the gateway to the vpc
-  # AttachGateway:
-  #   Type: AWS::EC2::VPCGatewayAttachment
-  #   Properties:
-  #     InternetGatewayId: !Ref InternetGateway
-  #     VpcId: !Ref AppVpc
-
-  # # route table for the vpc
-  # RouteTable:
-  #   Type: AWS::EC2::RouteTable
-  #   Properties:
-  #     VpcId: !Ref AppVpc
-  #     Tags:
-  #       - Key: Application
-  #         Value: expense-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
-
-  # # main route in the route table
-  # PublicRoute:
-  #   Type: "AWS::EC2::Route"
-  #   DependsOn: AttachGateway
-  #   Properties:
-  #     DestinationCidrBlock: "0.0.0.0/0"
-  #     GatewayId: !Ref InternetGateway
-  #     RouteTableId: !Ref RouteTable
-
-  # main subnet for aurora db
+  # first subnet for aurora db (aurora requires 2 subnets)
   AuroraPrimarySubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
       VpcId: !Ref AppVpc
       CidrBlock: "10.0.0.0/24"
       AvailabilityZone: "us-east-1a"
-      # MapPublicIpOnLaunch: true
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
 
-  # associate subnet with route table
-  # AuroraPrimarySrtAssociation:
-  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
-  #   Properties:
-  #     RouteTableId: !Ref RouteTable
-  #     SubnetId: !Ref AuroraPrimarySubnet
-
-  # aurora rds requires 2 subnets
+  # second subnet
   AuroraSecondarySubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
       VpcId: !Ref AppVpc
       CidrBlock: "10.0.1.0/24"
       AvailabilityZone: "us-east-1b"
-      # MapPublicIpOnLaunch: true
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
-
-  # associate subnet with route table
-  # AuroraSecondarySrtAssociation:
-  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
-  #   Properties:
-  #     RouteTableId: !Ref RouteTable
-  #     SubnetId: !Ref AuroraSecondarySubnet
 
   # associate the subnets with the database
   AuroraSubnetGroup:
@@ -914,48 +861,48 @@ Resources:
           Value: !Ref Stage
 
   # the cluster manages most of the permissions and authentication for its instances
-  # AuroraCluster:
-  #   Type: "AWS::RDS::DBCluster"
-  #   UpdateReplacePolicy: Retain
-  #   DeletionPolicy: Retain
-  #   Properties:
-  #     DBSubnetGroupName: !Ref AuroraSubnetGroup
-  #     DatabaseName: !Join
-  #       - "_"
-  #       - - !Ref Stage
-  #         - "expense_app_db"
-  #     DeletionProtection: true
-  #     EnableHttpEndpoint: true
-  #     Engine: "aurora-postgresql"
-  #     EngineMode: "provisioned"
-  #     MasterUsername: "consultwithcase"
-  #     ManageMasterUserPassword: true
-  #     ServerlessV2ScalingConfiguration:
-  #       MinCapacity: 0
-  #       MaxCapacity: 1
-  #       SecondsUntilAutoPause: 1800
-  #     VpcSecurityGroupIds:
-  #       - !Ref AuroraSecurityGroup
-  #     Tags:
-  #       - Key: Application
-  #         Value: expense-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
+  AuroraCluster:
+    Type: "AWS::RDS::DBCluster"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DBSubnetGroupName: !Ref AuroraSubnetGroup
+      DatabaseName: !Join
+        - "_"
+        - - !Ref Stage
+          - "expense_app_db"
+      DeletionProtection: true
+      EnableHttpEndpoint: true
+      Engine: "aurora-postgresql"
+      EngineMode: "provisioned"
+      MasterUsername: "consultwithcase"
+      ManageMasterUserPassword: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: 1
+        SecondsUntilAutoPause: 1800
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
 
-  # # this is the actual database
-  # AuroraInstance:
-  #   Type: "AWS::RDS::DBInstance"
-  #   UpdateReplacePolicy: Retain
-  #   DeletionPolicy: Retain
-  #   Properties:
-  #     DBClusterIdentifier: !Ref AuroraCluster
-  #     DBInstanceClass: "db.serverless"
-  #     Engine: "aurora-postgresql"
-  #     Tags:
-  #       - Key: Application
-  #         Value: expense-app
-  #       - Key: Stage
-  #         Value: !Ref Stage
+  # this is the actual database
+  AuroraInstance:
+    Type: "AWS::RDS::DBInstance"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: "db.serverless"
+      Engine: "aurora-postgresql"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
 
   ExpenseAppApiLambdaRole:
     Type: "AWS::IAM::Role"
