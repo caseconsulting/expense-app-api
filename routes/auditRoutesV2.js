@@ -1,18 +1,15 @@
+/** @typedef {import('../models/audits/audits.js').AuditRequestFilters} AuditRequestFilters */
+/** @typedef {import('../models/audits/notification.js').NotificationAudit} NotificationAudit */
+/** @typedef {import('@aws-sdk/client-rds-data').ExecuteStatementCommandOutput} ExecuteStatementCommandOutput */
+/** @typedef {import('@aws-sdk/client-rds-data').SqlParameter} SqlParameter */
+
 const express = require('express');
-const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils.js');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const dotenv = require('dotenv');
+const { AuroraClient } = require('../js/aurora/auroraClient.js');
+const { NotificationAudit } = require('../models/audits/notification.js');
 
-/** @typedef {import('../models/audits/audits.js').AuditRequestFilters} AuditRequestFilters */
-/** @typedef {import('../models/audits/notification.js').Notification} Notification */
-/** @typedef {import('@aws-sdk/client-rds-data').ExecuteStatementCommandOutput} ExecuteStatementCommandOutput */
-
-dotenv.config();
-const rdsClient = new RDSDataClient({ region: 'us-east-1' });
-const secretArn = process.env.AURORA_SECRET_ARN;
-const clusterArn = process.env.AURORA_CLUSTER_ARN;
-const dbName = process.env.AURORA_DB_NAME;
+const client = new AuroraClient();
 const logger = new Logger('auditRoutesV2');
 
 class AuditRoutesV2 {
@@ -29,133 +26,67 @@ class AuditRoutesV2 {
 
   /**
    * Gets a list of audits based on the request filters
-   * @private
-   * @param {express.Request} req
+   *
+   * @param {express.Request} req The request body should be a json representation of an AuditRequestFilters object
    * @param {express.Response} res
+   *
+   * @private
    */
   async getAudits(req, res) {
-    logger.log(1, 'getAudits', `Received query: ${req.query}`);
+    logger.log(5, 'getAudits', `Received query: ${req.query}`);
 
-    const { startDate, endDate, reason } = req.body;
+    const { limit, startDate, endDate, reason } = req.body;
 
     try {
-      const results = await this.readNotifications({ startDate, endDate, reason });
-      logger.log(1, 'getAudits', `Successfully queried notifications: ${JSON.stringify(results)}`);
+      const results = await this.readNotifications({ limit, startDate, endDate, reason });
+      logger.log(5, 'getAudits', `Successfully queried notifications: ${JSON.stringify(results)}`);
       res.status(200).json(results);
     } catch (err) {
-      logger.log(1, 'getAudits', `Error querying notifications: ${err}`);
-      res.status(500).json({ error: err.message || 'Database query failed.' });
+      logger.log(5, 'getAudits', `Error querying notifications: ${err}`);
+      res.status(500).json({ error: err.message ?? 'Database query failed.' });
     }
   }
 
   // HELPER FUNCTIONS
 
   /**
-   * Sends a command to the database, and retries if the database is waking up
-   * @private
-   * @param {string} sql The sql command
-   * @param {import('@aws-sdk/client-rds-data').SqlParameter | undefined} parameters Rds Data Api parameters
-   * @returns {Promise<ExecuteStatementCommandOutput> | undefined} The output of the command if any
-   */
-  async sendCommand(sql, parameters) {
-    let retry;
-    do {
-      retry = false;
-      try {
-        const command = new ExecuteStatementCommand({
-          resourceArn: clusterArn,
-          secretArn: secretArn,
-          database: dbName,
-          sql: sql
-        });
-        if (parameters) command.parameters = parameters;
-
-        return await rdsClient.send(command);
-      } catch (err) {
-        // if database is resuming, retry
-        if (err instanceof DatabaseResumingException) {
-          logger.log(1, 'sendCommand', 'Database is resuming, trying again in 5 seconds');
-          retry = true;
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        } else throw err; // else propagate the error
-      }
-    } while (retry);
-  }
-
-  /**
    * Queries the database for notifications
-   * @private
+   *
    * @param {AuditRequestFilters} filters The request filters
-   * @returns {Promise<Notification[]>} The notifications queried
+   * @returns {Promise<NotificationAudit[]>} The notifications queried
+   * @throws Errors that occur when sending the request
+   *
+   * @private
    */
   async readNotifications(filters) {
-    const { startDate, endDate, notifReason } = filters;
-    let sql = `SELECT id, created_at, receiver_id, sent_to, reason
-    FROM notifications`;
-    let parameters = [];
+    const command = NotificationAudit.buildQuery(filters);
 
-    if (startDate && endDate) {
-      sql += '\nWHERE created_at BETWEEN :startDate::timestamp AND :endDate::timestamp';
-    } else if (startDate) {
-      sql += '\nWHERE created_at >= :startDate::timestamp';
-    } else if (endDate) {
-      sql += '\nWHERE created_at <= :endDate::timestamp';
+    try {
+      const response = await client.sendCommand(command);
+
+      if (!response.records) throw new Error('Could not parse database response');
+      logger.log(5, 'readNotifications', `The database responded with ${response.records.length} records`);
+
+      return NotificationAudit.fromResponse(response);
+    } catch (err) {
+      logger.log(5, 'readNotifications', err?.message ?? err);
     }
-
-    if (startDate) {
-      parameters.push({
-        name: 'startDate',
-        value: { stringValue: new Date(startDate).toISOString() }
-      });
-    }
-    if (endDate) {
-      parameters.push({
-        name: 'endDate',
-        value: { stringValue: new Date(endDate).toISOString() }
-      });
-    }
-
-    if (notifReason) {
-      sql += ' AND reason = :reason::notification_reason';
-      parameters.push({
-        name: 'reason',
-        value: { stringValue: notifReason }
-      });
-    }
-
-    sql += '\nORDER BY created_at DESC LIMIT 50';
-
-    logger.log(1, 'queryNotifications', `SQL: ${sql}`);
-    logger.log(1, 'queryNotifications', `Parameters: ${parameters}`);
-
-    const res = await this.sendCommand(sql, parameters);
-
-    return res.records.map((row) => ({
-      id: row[0]?.stringValue,
-      createdAt: row[1]?.stringValue,
-      receiverId: row[2]?.stringValue,
-      sentTo: row[3]?.stringValue,
-      reason: row[4]?.stringValue
-    }));
   }
 
   /**
    * Inserts a notification into the database
+   *
+   * @param {NotificationAudit} notification The notification to insert (note: id will be ignored)
+   *
    * @private
-   * @param {import('../models/audits/notification.js').Notification} notification
-   *        The notification to insert (note: id will be ignored)
    */
   async writeNotification(notification) {
-    const sql = `INSERT INTO notifications (created_at, receiver_id, sent_to, reason)
-    VALUES (:createdAt::timestamp, :receiverId::uuid, :sentTo, :reason::notification_reason)
-    RETURNING id`;
-
     try {
-      const res = await this.sendCommand(sql, notification.toDataApiParams());
+      const res = await client.sendCommand(notification.buildCreateCommand());
 
-      logger.log(1, 'writeNotification', `Inserted Notification Audit Results: ${res ?? 'N/A'}`);
+      logger.log(5, 'writeNotification', `Inserted Notification Audit Results: ${res ?? 'N/A'}`);
     } catch (err) {
-      logger.error(1, 'writeNotification', `Insertion failed: ${err}`);
+      logger.log(5, 'writeNotification', `Insertion failed: ${err}`);
       return;
     }
   }
@@ -163,8 +94,8 @@ class AuditRoutesV2 {
   // GETTERS
 
   /**
-   * Gets this instnces router
-   * @public
+   * Gets this instances router
+   *
    * @returns {express.Router} The router
    */
   get router() {

@@ -1,4 +1,11 @@
-export class AuditRequestFilters {
+/**
+ * A set of filters for a request to the audits database
+ */
+class AuditRequestFilters {
+  /**
+   * Constructs a new set of request filters
+   * @param {AuditRequestFilters | undefined} properties An object containing the filters
+   */
   constructor(properties) {
     if (!properties) return;
 
@@ -7,6 +14,12 @@ export class AuditRequestFilters {
      * @type AuditType[]
      */
     this.types = properties?.types;
+
+    /**
+     * The maximum number of items in the response
+     * @type number
+     */
+    this.limit = properties?.limit;
 
     /**
      * The uuid of the employee who caused the audit
@@ -22,6 +35,7 @@ export class AuditRequestFilters {
 
     /** @type Date */
     this.startDate = properties?.startDate;
+
     /** @type Date */
     this.endDate = properties?.endDate;
 
@@ -29,3 +43,5 @@ export class AuditRequestFilters {
     this.notifReason = properties?.notifReason;
   }
 }
+
+module.exports = { AuditRequestFilters };

@@ -1,93 +1,69 @@
-const { RDSDataClient, ExecuteStatementCommand, DatabaseResumingException } = require('@aws-sdk/client-rds-data');
-const dotenv = require('dotenv');
-dotenv.config();
+require('dotenv').config(); // load env variables used by AuroraClient
+const { AuroraClient, AuroraCommand } = require('../../aurora/auroraClient');
 
-const secretArn = process.env.AURORA_SECRET_ARN;
-const clusterArn = process.env.AURORA_CLUSTER_ARN;
-const dbName = process.env.AURORA_DB_NAME;
+const client = new AuroraClient();
 
-// common inputs for commands
-const inputs = {
-  resourceArn: clusterArn,
-  secretArn: secretArn,
-  database: dbName
-};
+const commands = [
+  // create notification type enum
+  new AuroraCommand({
+    sql: `CREATE TYPE notification_reason AS ENUM(
+      'expense_revisal_request',
+      'expense_rejection',
+      'weekly_timesheet_reminder',
+      'monthly_timesheet_reminder',
+      'training_hour_exchange',
+      'high_five'
+    );`
+  }),
 
-/**
- * Create a new RDS data client. When done with the client, call `client.destroy()`
- * @returns {RDSDataClient} A new client
- */
-function connect() {
-  return new RDSDataClient({ region: 'us-east-1' });
-}
+  // create the table
+  new AuroraCommand({
+    sql: `CREATE TABLE IF NOT EXISTS notifications(
+      id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      receiver_id UUID NOT NULL,
+      sent_to TEXT NOT NULL,
+      reason notification_reason NOT NULL
+    );`
+  }),
 
-/**
- * Sends a query to the database and returns its response
- *
- * @param {RDSDataClient} client The client to send the request to
- * @param {string} query The PostgreSQL query
- * @param {string | undefined} transactionId If this query is part of a transaction, specify here
- *
- * @throws The error received by the client, unless it's a DatabaseResumingException
- * @returns {Promise<import('@aws-sdk/client-rds-data').ExecuteStatementCommandOutput>} The client's response
- */
-async function query(client, query, transactionId) {
-  const command = new ExecuteStatementCommand({ ...inputs, sql: query });
-  if (transactionId) command.input.transactionId = transactionId;
+  // index by uuid of employee who received it
+  new AuroraCommand({
+    sql: 'CREATE INDEX IF NOT EXISTS index_notifications_receiver ON notifications(receiver_id);'
+  }),
 
-  let retry = false;
-  do {
-    try {
-      const result = await client.send(command);
-      return result;
-    } catch (err) {
-      // Aurora db pauses after inactivity. When it receives a request and is
-      // paused, it will start resuming and throw this error
-      if (err instanceof DatabaseResumingException) {
-        // wait 5 seconds
-        console.log('Database is resuming, trying again in 5 seconds');
-        retry = true;
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      } else throw err;
-    }
-  } while (retry);
-}
+  // index by notification type
+  new AuroraCommand({
+    sql: 'CREATE INDEX IF NOT EXISTS index_notifications_reason ON notifications(reason);'
+  }),
 
-// async function transact(client, commands) {
-//   const begin = new BeginTransactionCommand(inputs);
-//   const tid = begin['transactionId'];
-//   const responses = {};
-//   client.send(begin);
-//
-//   let ok = true;
-//
-//   for (let sql of commands) try {
-//     const res = await query(client, sql, tid);
-//     responses[sql] = res;
-//   } catch (err) {
-//     ok = false;
-//     break;
-//   }
-//
-//   if (ok) {
-//     const commit = new CommitTransactionCommand({ ...inputs, transactionId: tid });
-//     client.send(commit);
-//   }
-//
-//   responses.ok = true;
-//   return responses;
-// }
+  // index by date created/sent
+  new AuroraCommand({
+    sql: 'CREATE INDEX IF NOT EXISTS index_notifications_created ON notifications(created_at);'
+  })
+];
 
 async function main() {
-  const client = connect();
-
+  let transaction;
   try {
-    const result = await query(client, 'select now()');
-    console.log('Success! Response:');
-    console.log(result.records);
-  } finally {
-    client.destroy();
+    transaction = await client.beginTransaction();
+  } catch (err) {
+    console.log(`Transaction could not be created. Error: ${err}`);
+    return;
   }
+
+  for (let command of commands) {
+    try {
+      command.transaction = transaction;
+      await client.send(command);
+    } catch (err) {
+      await client.rollbackTransaction(transaction);
+      console.log(`Rolling back due to error: ${err?.message ?? err}`);
+      return;
+    }
+  }
+
+  await client.commitTransaction(transaction);
 }
 
 main();
