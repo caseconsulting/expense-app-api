@@ -308,11 +308,10 @@ Resources:
       OwnershipControls:
         Rules:
           - ObjectOwnership: ObjectWriter
-      BucketName:
-        - !Join
-          - "-"
-          - - case-expense-app-unanet-data
-            - !Ref Stage
+      BucketName: !Join
+        - "-"
+        - - case-expense-app-unanet-data
+          - !Ref Stage
       Tags:
         - Key: Application
           Value: expense-app
