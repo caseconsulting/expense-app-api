@@ -1,7 +1,7 @@
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
-const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : './databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const logger = new Logger('tSheetsRoutes');
+const logger = new Logger('utils');
 const lambdaClient = new LambdaClient();
 
 /**

@@ -1182,6 +1182,105 @@ Resources:
         - PortalDataSyncLambdaRole
         - Arn
 
+  TimesheetSubmissionReminderFunction:
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: !Join
+        - ""
+        - - expense-app-timesheet-submission-reminder-
+          - !Ref Stage
+      Description: Sends text messages to employees who have not submitted their hours on the last workday of the month
+      Handler: app.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref SharedLayer
+      Timeout: 900
+      CodeUri: timesheet-submission-reminder/
+      Events:
+        ReminderSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 1 * * ? *) # 8pm US (for last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-1-day-1
+        ReminderSchedule2:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 12 * * ? *) # 7am US (for day after last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-1-day-2
+        ReminderSchedule3:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 21 * * ? *) # 4pm US (for day after last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-2-day-2
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          AWS: lambda
+      Runtime: nodejs20.x
+      Policies:
+        - Statement:
+            - Action:
+                - dynamodb:Scan
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-contracts
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-employees
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-employees-sensitive
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-tags/*
+        - Statement:
+            - Action:
+                - ssm:GetParameter*
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/TSheets/accessToken
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ADP/*
+        - Statement:
+            - Action:
+                - sns:Publish
+                - sns:ListPhoneNumbersOptedOut
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - lambda:InvokeFunction
+                - lambda:InvokeAsync
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - kms:Decrypt
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Effect: Allow
+              Resource: "*"
+
+  TimesheetSubmissionReminderFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn:
+      - TimesheetSubmissionReminderFunction
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${TimesheetSubmissionReminderFunction}
+      RetentionInDays: 30
+
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
