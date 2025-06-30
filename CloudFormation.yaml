@@ -299,7 +299,7 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  s3Logs:
+  s3UnanetData:
     Type: "AWS::S3::Bucket"
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
@@ -308,10 +308,10 @@ Resources:
       OwnershipControls:
         Rules:
           - ObjectOwnership: ObjectWriter
-      BucketName: !If
+      BucketName:
         - !Join
           - "-"
-          - - case-expense-app-unanet-pto-balances
+          - - case-expense-app-unanet-data
             - !Ref Stage
       Tags:
         - Key: Application
