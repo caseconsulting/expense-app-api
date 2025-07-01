@@ -55,7 +55,7 @@ function _isCaseReminderDay(day) {
   // return object
   return {
     monthly: isMonthlyReminderDay,
-    weekly: true, // isWeeklyReminderDay,
+    weekly: isWeeklyReminderDay,
     any: isMonthlyReminderDay || isWeeklyReminderDay
   };
 } // _isCaseReminderDay
