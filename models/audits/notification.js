@@ -15,7 +15,7 @@ const NotificationReason = Object.freeze({
 /**
  * Model for a notification in the audits database
  */
-class Notification {
+class NotificationAudit {
   constructor(id, createdAt, receiverId, sentTo, reason) {
     /**
      * The database id for this notification
@@ -62,4 +62,7 @@ class Notification {
   }
 }
 
-module.exports = { Notification, NotificationReason };
+module.exports = {
+  NotificationAudit,
+  NotificationReason
+};

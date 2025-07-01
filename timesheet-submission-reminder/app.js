@@ -13,10 +13,15 @@ const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk
 const { _isCaseReminderDay, _shouldSendCaseEmployeeReminder } = require('./case-helpers.js');
 const { asyncForEach } = require('utils');
 const { getTodaysDate } = require('dateUtils');
+const { AuroraClient } = require('auroraClient');
+/** @type import('../models/audits/notification.js') */
+const { NotificationAudit, NotificationReason } = require('notificationAudit');
 
 const dbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dbClient);
 const snsClient = new SNSClient({});
+/** @type import('../js/aurora/auroraClient.js').AuroraClient */
+const auroraClient = new AuroraClient();
 const STAGE = process.env.STAGE;
 
 // only use your own employee number or people you know (don't send messages to random people/employees)
@@ -139,7 +144,7 @@ async function _getPortalContracts() {
  * @param {*} employee The entire employee object to whom the message was sent
  * @param {'month' | 'week'} type The type of reminder that was sent
  */
-async function _logMessageReminder(employee) {
+async function _logMessageReminder(employee, type) {
   // fetch old timesheetReminders array from employee (or make new empty one)
   let newTimesheetReminders = employee.timesheetReminders ?? [];
 
@@ -159,6 +164,17 @@ async function _logMessageReminder(employee) {
   let attribute = 'timesheetReminders';
   let tableName = `${STAGE}-employees`;
   await _updateAttributeInDB(newEmployeeObject, attribute, tableName);
+
+  // audit in aurora database
+  const reason = type == 'month' ? NotificationReason.MONTHLY_TIME_REMINDER : NotificationReason.WEEKLY_TIME_REMINDER;
+  const notifAudit = NotificationAudit.toCreate(new Date(), employee.id, employee.phoneNumber, reason);
+
+  try {
+    const response = await auroraClient.send(notifAudit.buildCreateCommand());
+    console.log('Logged audit to aurora. Response:', JSON.stringify(response));
+  } catch (err) {
+    console.log('Error logging audit to aurora:', err);
+  }
 } // _logMessageReminder
 
 /**
@@ -242,7 +258,7 @@ async function _sendReminder(employee, isCaseReminderDay) {
       console.log(`Successfully sent text message to employee number ${employee.employeeNumber}`);
 
       console.log(`Logging that message was sent to employee number ${employee.employeeNumber}`);
-      await _logMessageReminder(employee);
+      await _logMessageReminder(employee, type);
       console.log(`Successfully logged that message was sent to employee number ${employee.employeeNumber}`);
       return resp;
     }
