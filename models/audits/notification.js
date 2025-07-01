@@ -1,6 +1,6 @@
 /** @typedef {import('./audits').AuditRequestFilters} AuditRequestFilters */
 
-const { AuroraCommand } = require('../../js/aurora/auroraClient');
+const { AuroraCommand } = require(process.env.AWS ? 'auroraClient' : '../../js/aurora/auroraClient');
 
 /**
  * Model for the notification_reason type in the audits database
