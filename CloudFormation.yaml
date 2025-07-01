@@ -631,8 +631,6 @@ Resources:
           AttributeType: S
         - AttributeName: date
           AttributeType: S
-        - AttributeName: timeslips
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
