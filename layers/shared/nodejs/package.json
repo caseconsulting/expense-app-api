@@ -17,6 +17,9 @@
     "crudRoutes": "file:../../../routes/crudRoutes.js",
     "expenseRoutes": "file:../../../routes/expenseRoutes.js",
     "employeeRoutes": "file:../../../routes/employeeRoutes.js",
-    "timesheetUtils": "file:../../../js/utils/timesheet.js"
+    "timesheetUtils": "file:../../../js/utils/timesheet.js",
+    "notificationAudit": "file:../../../models/audits/notification.js",
+    "audits": "file:../../../models/audits/audits.js",
+    "auroraClient": "file:../../../js/aurora/auroraClient.js"
   }
 }

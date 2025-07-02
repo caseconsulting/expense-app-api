@@ -26,15 +26,18 @@ function _isCaseReminderDay(day) {
   // check for monthly reminder day
   let todaySubtracted = false;
   let today = getTodaysDate(DEFAULT_ISOFORMAT);
+
   if (isSame(today, startOf(today, 'month'), 'day')) {
     today = subtract(today, 1, 'day', DEFAULT_ISOFORMAT);
     todaySubtracted = true;
   }
+
   let lastDay = endOf(today, 'month');
   let isoWeekDay = getIsoWeekday(lastDay);
   let daysToSubtract = Math.max(isoWeekDay - 5, 0);
   let lastWorkDay = subtract(lastDay, daysToSubtract, 'day', DEFAULT_ISOFORMAT);
   let lastWorkDayPlusOne = add(lastWorkDay, 1, 'day', DEFAULT_ISOFORMAT);
+
   let isMonthlyReminderDay =
     (isSame(today, lastWorkDay, 'day') && !todaySubtracted && day === 1) ||
     (isSame(today, lastWorkDayPlusOne, 'day') && !todaySubtracted && day === 2) ||
@@ -55,7 +58,7 @@ function _isCaseReminderDay(day) {
   // return object
   return {
     monthly: isMonthlyReminderDay,
-    weekly: true, // isWeeklyReminderDay,
+    weekly: isWeeklyReminderDay,
     any: isMonthlyReminderDay || isWeeklyReminderDay
   };
 } // _isCaseReminderDay
@@ -161,7 +164,7 @@ async function _getUser(employeeNumber) {
  * @param {string} endDate The period end date
  * @param {number} userId The QuickBooks user ID
  * @param {number} allowSaved Include timesheets that are just 'saved', as opposed to requiring them to be 'submitted'
- * @returns {any[]} All user timesheets within the given time period
+ * @returns {Promise<any[]>} All user timesheets within the given time period
  */
 async function _getHoursSubmitted(userId, startDate, endDate, options = {}) {
   // get options or set to defaults
