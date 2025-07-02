@@ -1183,7 +1183,7 @@ Resources:
         - Arn
 
   TimesheetSubmissionReminderFunction:
-    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function"
     Properties:
       FunctionName: !Join
         - ""
@@ -1272,6 +1272,16 @@ Resources:
                 - logs:PutLogEvents
               Effect: Allow
               Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - rds-data:*
+              Resource: !GetAtt AuroraCluster.DBClusterArn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !GetAtt AuroraCluster.MasterUserSecret.SecretArn
 
   TimesheetSubmissionReminderFunctionLogGroup:
     Type: AWS::Logs::LogGroup
