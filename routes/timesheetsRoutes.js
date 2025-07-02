@@ -5,12 +5,52 @@ const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/datab
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const { getExpressJwt, isAdmin, isManager, getEmployeeAndTags } = require(process.env.AWS ? 'utils' : '../js/utils');
 
+// S3
+const { S3Client } = require('@aws-sdk/client-s3');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const s3Client = new S3Client({ apiVersion: '2006-03-01' });
+const BUCKET = `case-expense-app-unanet-data-${process.env.STAGE}`;
+const s3Limits = {
+  files: 1, // allow only 1 file per request
+  fileSize: 6 * 1024 * 1024 // 6 MB (max file size)
+};
+const s3Storage = multerS3({
+  s3: s3Client,
+  bucket: BUCKET,
+  acl: 'bucket-owner-full-control',
+  serverSideEncryption: 'AES256',
+  key: (req, file, cb) => cb(null, 'accruals.csv')
+});
+
 const { getTimesheetsDataForEmployee } = require(process.env.AWS ? 'timesheetUtils' : '../js/utils/timesheet');
 
 const logger = new Logger('tSheetsRoutes');
 
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = getExpressJwt();
+
+// filter valid mimetypes
+const fileFilter = function (_, file, cb) {
+  // log method
+  logger.log(2, 'fileFilter', `Attempting to validate type of CSV ${file.originalname}`);
+
+  // compute method
+  // Content types that are allowed to be uploaded
+  const ALLOWED_CONTENT_TYPES = [ 'text/csv' ];
+
+  if (ALLOWED_CONTENT_TYPES.includes(file.mimetype)) {
+    // valid file type
+    logger.log(2, 'fileFilter', `Successfully validated Mimetype ${file.mimetype} of resume ${file.originalname}`);
+
+    cb(null, true);
+  } else {
+    // invalid file type
+    logger.log(2, 'fileFilter', `Failed to validate Mimetype ${file.mimetype} of resume ${file.originalname}`);
+
+    cb(new Error(`Invalid file type ${file.mimetype}. View help menu for a list of valid file types.`));
+  }
+};
 
 class TimesheetsRoutes {
   constructor() {
@@ -24,6 +64,7 @@ class TimesheetsRoutes {
 
     this._router.get('/leaderboard', this._checkJwt, this._getUserInfo, this._getLeaderboardData.bind(this));
     this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
+    this._router.post('/uploadAccruals', this._checkJwt, this._getUserInfo, this._uploadDataToS3.bind(this));
   } // constructor
 
   /**
@@ -130,6 +171,52 @@ class TimesheetsRoutes {
   } // _getTimesheetsDataForEmployee
 
   /**
+   * Upload the Unanet CSV file for PTO accruals to S3
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - file uploaded
+   */
+  _uploadDataToS3(req, res) {
+    // log method
+    logger.log(1, '_uploadDataToS3', `Attempting to upload Unanet accruals to S3 bucket ${BUCKET}`);
+
+    // build upload method
+    const upload = multer({
+      storage: s3Storage,
+      limits: s3Limits,
+      fileFilter: fileFilter
+    }).single('accruals');
+
+    // compute method
+    upload(req, res, async (err) => {
+      if (err) {
+        // log error  
+        logger.log(1, '_uploadDataToS3', 'Failed to upload file(s)');
+
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
+
+        // send error status
+        res.status(error.code).send(error);
+        return error;
+      } else {
+        logger.log(
+          1,
+          '_uploadDataToS3',
+          `Successfully uploaded Unanet accruals ${req.file.key}`,
+          `(from file ${ req.file.originalname }) to S3 bucket ${req.file.bucket}`
+        );
+        // set a successful 200 response with uploaded file
+        res.status(200).send(req.file);
+        return req.file;
+      }
+    });
+  } // _uploadDataToS3
+
+  /**
    * Returns the instace express router.
    *
    * @return Router Object - express router
@@ -181,6 +268,6 @@ class TimesheetsRoutes {
       await callback(array[index], index, array);
     }
   } // asyncForEach
-} // TSheetsRoutes
+} // TimesheetsRoutes
 
 module.exports = TimesheetsRoutes;
