@@ -262,6 +262,52 @@ class TimesheetsRoutes {
   } // _getTimesheetsDataForEmployee
 
   /**
+   * Upload the Unanet CSV file for PTO accruals to S3
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - file uploaded
+   */
+  _uploadDataToS3(req, res) {
+    // log method
+    logger.log(1, '_uploadDataToS3', `Attempting to upload Unanet accruals to S3 bucket ${BUCKET}`);
+
+    // build upload method
+    const upload = multer({
+      storage: s3Storage,
+      limits: s3Limits,
+      fileFilter: fileFilter
+    }).single('accruals');
+
+    // compute method
+    upload(req, res, async (err) => {
+      if (err) {
+        // log error
+        logger.log(1, '_uploadDataToS3', 'Failed to upload file(s)');
+
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
+
+        // send error status
+        res.status(error.code).send(error);
+        return error;
+      } else {
+        logger.log(
+          1,
+          '_uploadDataToS3',
+          `Successfully uploaded Unanet accruals ${req.file.key}`,
+          `(from file ${req.file.originalname}) to S3 bucket ${req.file.bucket}`
+        );
+        // set a successful 200 response with uploaded file
+        res.status(200).send(req.file);
+        return req.file;
+      }
+    });
+  } // _uploadDataToS3
+
+  /**
    * Returns the instace express router.
    *
    * @return Router Object - express router
