@@ -125,20 +125,13 @@ class TimesheetsRoutes {
         leader.rank = index + 1;
       });
 
-      let leaderboardData = allLeaderboardData.slice(0, 23);
+      let leaderboard = allLeaderboardData.slice(0, 23);
 
-      let currentUserIsLeader = leaderboardData.map((leader) => leader.employeeId).includes(req.employee.id);
-      if (!currentUserIsLeader) {
-        let currentUserLeaderData = allLeaderboardData.find((leader) => leader.employeeId == req.employee.id);
-        if (currentUserLeaderData) {
-          leaderboardData.pop();
-          leaderboardData.push(currentUserLeaderData);
-        }
-      }
+      let currentUserData = allLeaderboardData.find((leader) => leader.employeeId == req.employee.id);
 
       logger.log(1, '_getLeaderboardData', 'Successfully retrieved leaderboard data');
 
-      res.status(200).send(leaderboardData);
+      res.status(200).send({ leaderboard, currentUserData });
     } catch (err) {
       // log error
       logger.log(1, '_getLeaderboardData', 'Failed to get leaderboard data');
