@@ -312,6 +312,8 @@ Resources:
         - "-"
         - - case-expense-app-unanet-data
           - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
       Tags:
         - Key: Application
           Value: expense-app
