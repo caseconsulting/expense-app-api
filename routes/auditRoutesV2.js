@@ -12,7 +12,7 @@ class AuditRoutesV2 {
 
     /** @private @type express.Router */
     this._router = express.Router();
-    this._router.get('/notif', this.jwtMiddleware, this.getNotifAudits.bind(this));
+    this._router.get('/notification', this.jwtMiddleware, this.getNotifAudits.bind(this));
     this._router.get('/crud', this.jwtMiddleware, this.getCrudAudits.bind(this));
   }
 
