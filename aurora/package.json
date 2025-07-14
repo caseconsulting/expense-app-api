@@ -25,8 +25,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --build",
-    "prepare": "npm run clean && npm run build",
+    "build": "tsc --build && npm pack",
     "clean": "rm -rf dist tsconfig.tsbuildinfo expense-app-db-*.tgz"
   },
   "dependencies": {

@@ -9,7 +9,7 @@
     "axios": "1.7.7",
     "dayjs": "1.11.13",
     "dotenv": "16.4.5",
-    "expense-app-db": "file:../../../aurora",
+    "expense-app-db": "file:../../../aurora/expense-app-db-1.0.0.tgz",
     "express": "4.21.0",
     "express-jwt": "8.4.1",
     "express-jwt-authz": "2.4.1",
