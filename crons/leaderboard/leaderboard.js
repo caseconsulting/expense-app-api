@@ -6,6 +6,7 @@ const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = re
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const logger = new Logger('LeaderboardCron');
+const STAGE = process.env.STAGE;
 
 const leaderboardDynamo = new DatabaseModify('leaderboard');
 
@@ -75,8 +76,9 @@ async function removeLeaderboardDataForEmployees(employees) {
  */
 async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
-
-  await getLeaderboardData();
+  if (['prod', 'test'].includes(STAGE)) {
+    await getLeaderboardData();
+  }
 } // handler
 
 module.exports = { handler };
