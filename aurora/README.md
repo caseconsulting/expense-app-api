@@ -10,11 +10,15 @@ Tests! Write tests in this module, not in the parent folder.
 
 ### Installation
 
-This module is a local npm package. It's in package.json for the entire project as well as in the shared lambda layer. You should use this package like:
+This module is a local npm package. It's in package.json for the entire project as well as in the shared lambda layer. The script `install-aurora.sh` packages this module and installs it without using a symlink (which caused issues with running lambda layers locally). It's already in `npm run reinstall`, so you shoudln't need to run the script directly.
+
+You should use this package like:
 
 ```js
 const { db } = require('expense-app-db');
 ```
+
+> Note that the above code isn't very useful, as you'll see in the later sections
 
 This module depends on the following environment variables:
 
@@ -22,40 +26,32 @@ This module depends on the following environment variables:
 - `AURORA_SECRET_ARN`
 - `AURORA_DB_NAME`
 
-If using a package like `dotenv` (which we use) you must import all environment variables (e.g. via `require('dotenv').config()`) _before_ importing anything from this package. In general, it's a good idea to setup environment variables before anything else.
+These must exist before importing/requiring this module.
 
 ### Querying
 
-Using the pre-built queries:
-
 ```js
 const { CrudAuditQueries, NotifAuditQueries } = require('expense-app-db/queries');
-// other code...
-const results = await CrudAuditQueries.select(...);
 
-// Note: this is more clear than importing functions like select directly. e.g. don't do this:
-const { select } = require('expense-app-db/queries/crudAuditQueries');
+const results = await CrudAuditQueries.select(...);
 ```
 
 ### Types
 
-To get type completion, you can import all the types using a JSDoc import:
+To access the types to type-annotate functions and variables, you can import the types using a JSDoc import:
 
 ```js
-// Note that this is a jsdoc comment! It follows similar syntax to an es module import. I find it nice to include these at the top of your file, near your other imports
-/** @import AuroraTypes from './aurora/types' */
-
-// or unwrap what you want:
-/** @import { Database, CrudAudit } from './aurora/types' */
+/** @import { CrudAuditQueryFilters } from 'expense-app-db/types' */
 ```
 
 The models folder contains the real class definitions and some 'enums'
 
 ```js
-const { DynamoTable } = require('expense-app-db/models');
+const { DynamoTable, CrudAudit } = require('expense-app-db/models');
+const audit = new CrudAudit(...);
 ```
 
-Note: when creating models for enums, they keys should exactly match the values (which should be a string) and should come directly from the enum values in the database. Reference the other enum types, copy the jsdoc tags. When creating a function that takes an enum value as a parameter, use `keyof typeof <enum object>` as the type annotation (I know it's weird). Since the keys and values are the same, you can supply `<enum object>.<key>` in as an argument so as not to hardcode any values.
+When writing code, vscode will give you suggestions for types that use these enums. It will suggest the literal string values. Instead of using those, you should still use the enum object and access the corresponding key.
 
 ## Examples
 
@@ -72,15 +68,39 @@ If you want to add (or modify) a table or type, a useful place to do that is the
 
 ## Contributing
 
-After making changes to this package, run `npm run build` in this folder. Then, in the `expense-app-api` root directory, run `npm run reinstall`.
+After making changes to this package, run `npm run reinstall` in the project root (not this directory).
 
-When adding files, make sure they are included in the `index.ts` in the same folder as the file added. Some of them have different structures intentionally, make sure to follow that consistently.
+When adding files, make sure to expose them as exports in the `index.ts` file found _in the same folder_. Some of them have different structures intentionally, make sure to follow that consistently.
+
+New tables added to the database need:
+
+1. To be added to the `Database` type in `types.ts`
+2. Their own type defined similarly to the existing tables
+3. A class in the `models/` folder, and enums if applicable
+4. Queries for the backend to use (refer to the [examples](#examples))
+
+Creating enum models:
+
+- keys should exactly match the values (which should be a string) and should come directly from the enum values in the database
+- copy the jsdoc tags from other enums for consistency
+- define a type below it of the same name: `keyof typeof <enum name>`
 
 ## Dependencies and Documentation
 
 - [Aurora Serverless](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html) - the compute and storage resources for the database
 - [RDS Data API](https://docs.aws.amazon.com/rdsdataservice/latest/APIReference/Welcome.html) - interact with aurora through an http endpoint
 - [PostgreSQL](https://www.postgresql.org/docs/current/index.html) - the database engine
+- [TypeScript](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
 - [Kysely](https://kysely.dev/docs/intro) - builds queries and interacts with the database
 - [Kysely Data API Adapter](https://www.npmjs.com/package/kysely-data-api) - provides support for using kysely via the rds data api
   - Note: this depends on Kysely version `0.27.x`. The latest version of Kysely cannot be used unless this is updated or a fork is made
+
+## Other Notes
+
+### Why TypeScript?
+
+To integrate better with kysely's type system. While it's possible to use kysely with js and jsdoc, it gets very messy and convoluted. Using typescript simplified the code when compared to writing in in js, and is possible since this is an entirely separate module.
+
+### Why a Separate Module?
+
+The file in this module are very interdependent on each other. While this is fine for the backend as a whole, it was very messy when trying to install it into the lambda layers.
