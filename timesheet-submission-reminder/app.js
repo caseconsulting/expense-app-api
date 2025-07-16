@@ -2,6 +2,8 @@
 // READ NOTE ABOVE TEST_EMPLOYEE_NUMBERS BEFORE DEVELOPING //
 /////////////////////////////////////////////////////////////
 
+/** @import { NotificationAudit } from 'expense-app-db/types' */
+
 const _filter = require('lodash/filter');
 const _find = require('lodash/find');
 const _map = require('lodash/map');
@@ -13,15 +15,12 @@ const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk
 const { _isCaseReminderDay, _shouldSendCaseEmployeeReminder } = require('./case-helpers.js');
 const { asyncForEach } = require('utils');
 const { getTodaysDate } = require('dateUtils');
-const { AuroraClient } = require('auroraClient');
-/** @type import('../models/audits/notification.js') */
-const { NotificationAudit, NotificationReason } = require('notificationAudit');
+const { NotifAuditQueries } = require('expense-app-db/queries');
+const { NotificationReason, NotificationAudit } = require('expense-app-db/models');
 
 const dbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dbClient);
 const snsClient = new SNSClient({});
-/** @type import('../js/aurora/auroraClient.js').AuroraClient */
-const auroraClient = new AuroraClient();
 const STAGE = process.env.STAGE;
 
 // only use your own employee number or people you know (don't send messages to random people/employees)
@@ -167,12 +166,15 @@ async function _logMessageReminder(employee, type) {
   await _updateAttributeInDB(newEmployeeObject, attribute, tableName);
 
   // audit in aurora database
-  const reason = type == 'month' ? NotificationReason.MONTHLY_TIME_REMINDER : NotificationReason.WEEKLY_TIME_REMINDER;
-  const notifAudit = NotificationAudit.toCreate(new Date(), employee.id, employee.phoneNumber, reason);
-
   try {
-    const response = await auroraClient.send(notifAudit.buildCreateCommand());
-    console.log('Logged audit to aurora. Response:', JSON.stringify(response));
+    const reason =
+      type == 'month' ? NotificationReason.monthly_timesheet_reminder : NotificationReason.weekly_timesheet_reminder;
+
+    const newId = await NotifAuditQueries.insert(
+      new NotificationAudit(undefined, new Date(), employee.id, employee.phoneNumber, reason)
+    );
+
+    console.log('Logged audit to aurora. New audit id:', newId);
   } catch (err) {
     console.log('Error logging audit to aurora:', err);
   }
