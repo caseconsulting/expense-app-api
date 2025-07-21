@@ -78,6 +78,8 @@ async function handler(event) {
   console.info(JSON.stringify(event)); // eslint-disable-line no-console
   if (['prod', 'test'].includes(STAGE)) {
     await getLeaderboardData();
+  } else {
+    logger.log(1, 'handler', 'Environment skipped.');
   }
 } // handler
 
