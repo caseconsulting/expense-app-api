@@ -299,6 +299,27 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
+  s3UnanetData:
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      BucketName: !Join
+        - "-"
+        - - case-expense-app-unanet-data
+          - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   employeeTable:
     Type: "AWS::DynamoDB::Table"
     UpdateReplacePolicy: Retain
@@ -583,6 +604,44 @@ Resources:
             - AttributeName: expenseTypeId
               KeyType: HASH
             - AttributeName: reimbursedDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  timesheetsTable:
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - "-"
+        - - !Ref Stage
+          - timesheets
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: employeeId-date-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: date
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
