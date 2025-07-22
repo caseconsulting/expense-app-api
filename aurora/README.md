@@ -72,18 +72,21 @@ After making changes to this package, run `npm run reinstall` in the project roo
 
 When adding files, make sure to expose them as exports in the `index.ts` file found _in the same folder_. Some of them have different structures intentionally, make sure to follow that consistently.
 
-New tables added to the database need:
+### Creating tables in the database
 
 1. To be added to the `Database` type in `types.ts`
 2. Their own type defined similarly to the existing tables
 3. A class in the `models/` folder, and enums if applicable
 4. Queries for the backend to use (refer to the [examples](#examples))
 
-Creating enum models:
+### Creating enums
 
-- keys should exactly match the values (which should be a string) and should come directly from the enum values in the database
-- copy the jsdoc tags from other enums for consistency
-- define a type below it of the same name: `keyof typeof <enum name>`
+- keys and their corresponding values should be the same, and they should exactly match the enum value from the database
+- define a corresponding type in types.js based on the other examples
+
+### Installing into lambda functions
+
+Lambda functions don't install dependencies of symlinked packages. To run a lambda function that depends on this module, you need to install without linking. Reference `timesheet-submission-reminder/invoke-local.sh` to see how this is done. You can copy and modify this script for any new lambda function that uses this module (and add it to .npmignore).
 
 ## Dependencies and Documentation
 
