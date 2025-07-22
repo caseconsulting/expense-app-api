@@ -42,18 +42,21 @@ Conditions:
 
 Resources:
   cloudFrontOriginAccessIdentity:
-    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Join
-          - ''
+          - ""
           - - expense-app-oai-
             - !Ref Stage
+
   cloudFrontDistribution:
     DependsOn:
       - s3FrontEndBucketPolicy
       - s3Logs
-    Type: 'AWS::CloudFront::Distribution'
+    Type: AWS::CloudFront::Distribution
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
       DistributionConfig:
         Origins:
@@ -64,19 +67,19 @@ Resources:
               - ProdDeployment
               - S3-case-consulting-expense-app-prod
               - !Join
-                - ''
+                - ""
                 - - S3-case-expense-app-
                   - !Ref Stage
             S3OriginConfig:
               OriginAccessIdentity: !Join
-                - ''
+                - ""
                 - - origin-access-identity/cloudfront/
                   - !Ref cloudFrontOriginAccessIdentity
-        Enabled: 'true'
+        Enabled: "true"
         Comment: Expense App
         DefaultRootObject: index.html
         Logging:
-          IncludeCookies: 'false'
+          IncludeCookies: "false"
           Bucket: !GetAtt
             - s3Logs
             - DomainName
@@ -90,25 +93,25 @@ Resources:
             - ProdDeployment
             - S3-case-consulting-expense-app-prod
             - !Join
-              - ''
+              - ""
               - - S3-case-expense-app-
                 - !Ref Stage
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: "false"
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         HttpVersion: http2
         CustomErrorResponses:
-          - ErrorCode: '404'
-            ResponsePagePath: '/index.html'
-            ResponseCode: '200'
-            ErrorCachingMinTTL: '300'
-          - ErrorCode: '403'
-            ResponsePagePath: '/index.html'
-            ResponseCode: '200'
-            ErrorCachingMinTTL: '300'
+          - ErrorCode: "404"
+            ResponsePagePath: "/index.html"
+            ResponseCode: "200"
+            ErrorCachingMinTTL: "300"
+          - ErrorCode: "403"
+            ResponsePagePath: "/index.html"
+            ResponseCode: "200"
+            ErrorCachingMinTTL: "300"
         ViewerCertificate:
           AcmCertificateArn: !Ref AppCertificate
           MinimumProtocolVersion: TLSv1.2_2021
@@ -120,16 +123,17 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   s3FrontEnd:
     DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
     Properties:
       AccessControl: Private
       BucketName: !If
         - ProdDeployment
         - case-consulting-expense-app-prod
         - !Join
-          - ''
+          - ""
           - - case-expense-app-
             - !Ref Stage
       LoggingConfiguration:
@@ -140,11 +144,13 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   s3FrontEndBucketPolicy:
     DependsOn:
       - s3FrontEnd
       - cloudFrontOriginAccessIdentity
-    Type: 'AWS::S3::BucketPolicy'
+    Type: "AWS::S3::BucketPolicy"
+    UpdateReplacePolicy: Retain
     Properties:
       Bucket: !Ref s3FrontEnd
       PolicyDocument:
@@ -153,27 +159,30 @@ Resources:
               Grant a CloudFront Origin Identity access to support private
               content
             Action:
-              - 's3:GetObject'
+              - "s3:GetObject"
             Effect: Allow
             Resource: !Join
-              - ''
-              - - 'arn:aws:s3:::'
+              - ""
+              - - "arn:aws:s3:::"
                 - !Ref s3FrontEnd
                 - /*
             Principal:
               CanonicalUser: !GetAtt
                 - cloudFrontOriginAccessIdentity
                 - S3CanonicalUserId
+
   s3Resources:
     DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
       AccessControl: Private
       BucketName: !If
         - ProdDeployment
         - case-consulting-expense-app-resources-prod
         - !Join
-          - ''
+          - ""
           - - case-expense-app-resources-
             - !Ref Stage
       VersioningConfiguration:
@@ -186,33 +195,33 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   s3Attachments:
     DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
       AccessControl: Private
       BucketName: !If
         - ProdDeployment
         - case-consulting-expense-app-attachments-prod
         - !Join
-          - ''
+          - ""
           - - case-expense-app-attachments-
             - !Ref Stage
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
-              - '*'
+              - "*"
             AllowedMethods:
               - GET
             AllowedOrigins: !If
               - ProdDeployment
-              -
-                - https://app.consultwithcase.com
-              -
-                - !Join
-                  - ''
-                  - 
-                    - https://
+              - - https://app.consultwithcase.com
+              - - !Join
+                  - ""
+                  - - https://
                     - !Ref Stage
                     - -app.consultwithcase.com
                 - http://localhost:8080
@@ -232,16 +241,19 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   s3Resumes:
     DependsOn: s3Logs
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
       AccessControl: Private
       BucketName: !If
         - ProdDeployment
         - case-consulting-expense-app-resumes-prod
         - !Join
-          - ''
+          - ""
           - - case-expense-app-resumes-
             - !Ref Stage
       LifecycleConfiguration:
@@ -259,15 +271,21 @@ Resources:
           Value: portal
         - Key: Stage
           Value: !Ref Stage
+
   s3Logs:
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
       AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
       BucketName: !If
         - ProdDeployment
         - case-consulting-expense-app-logs-prod
         - !Join
-          - ''
+          - ""
           - - case-expense-app-logs-
             - !Ref Stage
       LifecycleConfiguration:
@@ -280,12 +298,35 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
+  s3UnanetData:
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      BucketName: !Join
+        - "-"
+        - - case-expense-app-unanet-data
+          - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   employeeTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - employees
       BillingMode: PAY_PER_REQUEST
@@ -308,18 +349,20 @@ Resources:
           Projection:
             ProjectionType: ALL
       StreamSpecification:
-        StreamViewType: 'NEW_AND_OLD_IMAGES'
+        StreamViewType: "NEW_AND_OLD_IMAGES"
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   employeeSensitiveTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - employees-sensitive
       BillingMode: PAY_PER_REQUEST
@@ -333,7 +376,7 @@ Resources:
         - AttributeName: id
           KeyType: HASH
       StreamSpecification:
-        StreamViewType: 'NEW_AND_OLD_IMAGES'
+        StreamViewType: "NEW_AND_OLD_IMAGES"
       SSESpecification:
         KMSMasterKeyId: alias/employees-sensitive-key
         SSEEnabled: true
@@ -343,12 +386,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   ptoCashOutTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - pto-cashouts
       BillingMode: PAY_PER_REQUEST
@@ -375,18 +420,20 @@ Resources:
           Projection:
             ProjectionType: ALL
       StreamSpecification:
-        StreamViewType: 'NEW_AND_OLD_IMAGES'
+        StreamViewType: "NEW_AND_OLD_IMAGES"
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   leaderboardTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - leaderboard
       BillingMode: PAY_PER_REQUEST
@@ -404,12 +451,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   auditTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - audits
       BillingMode: PAY_PER_REQUEST
@@ -443,12 +492,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   expenseTypeTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - expense-types
       BillingMode: PAY_PER_REQUEST
@@ -466,12 +517,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   trainingURLTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - training-urls
       BillingMode: PAY_PER_REQUEST
@@ -493,12 +546,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   expenseTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - expenses
       BillingMode: PAY_PER_REQUEST
@@ -557,12 +612,52 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
-  budgetsTable:
-    Type: 'AWS::DynamoDB::Table'
+
+  timesheetsTable:
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
+        - - !Ref Stage
+          - timesheets
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: employeeId
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: employeeId-date-index
+          KeySchema:
+            - AttributeName: employeeId
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  budgetsTable:
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - "-"
         - - !Ref Stage
           - budgets
       BillingMode: PAY_PER_REQUEST
@@ -607,12 +702,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   contractTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - contracts
       BillingMode: PAY_PER_REQUEST
@@ -655,12 +752,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   tagTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - tags
       BillingMode: PAY_PER_REQUEST
@@ -687,12 +786,14 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   giftCardTable:
-    Type: 'AWS::DynamoDB::Table'
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
       TableName: !Join
-        - '-'
+        - "-"
         - - !Ref Stage
           - gift-cards
       BillingMode: PAY_PER_REQUEST
@@ -743,11 +844,130 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
+  AppVpc:
+    Type: AWS::EC2::VPC
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # first subnet for aurora db (aurora requires 2 subnets)
+  AuroraPrimarySubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: "10.0.0.0/24"
+      AvailabilityZone: "us-east-1a"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # second subnet
+  AuroraSecondarySubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: "10.0.1.0/24"
+      AvailabilityZone: "us-east-1b"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # associate the subnets with the database
+  AuroraSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "Subnet group for expense app database"
+      DBSubnetGroupName: !Join
+        - "-"
+        - - !Ref Stage
+          - "expense-app-db-subnet-group"
+      SubnetIds:
+        - !Ref AuroraPrimarySubnet
+        - !Ref AuroraSecondarySubnet
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  AuroraSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security group for expense app aurora database"
+      VpcId: !Ref AppVpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # the cluster manages most of the permissions and authentication for its instances
+  AuroraCluster:
+    Type: "AWS::RDS::DBCluster"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DBSubnetGroupName: !Ref AuroraSubnetGroup
+      DatabaseName: !Join
+        - "_"
+        - - !Ref Stage
+          - "expense_app_db"
+      DeletionProtection: true
+      EnableHttpEndpoint: true
+      Engine: "aurora-postgresql"
+      EngineMode: "provisioned"
+      MasterUsername: "consultwithcase"
+      ManageMasterUserPassword: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: 1
+        SecondsUntilAutoPause: 1800
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # this is the actual database
+  AuroraInstance:
+    Type: "AWS::RDS::DBInstance"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: "db.serverless"
+      Engine: "aurora-postgresql"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   ExpenseAppApiLambdaRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Join
-        - ''
+        - ""
         - - expense-api-lambda-
           - !Ref Stage
       AssumeRolePolicyDocument:
@@ -758,7 +978,7 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Path: /
       Policies:
         - PolicyName: TextExtract
@@ -766,57 +986,58 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'textract:*'
-                Resource: '*'
+                Action: "textract:*"
+                Resource: "*"
         - PolicyName: Comprehend
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'comprehend:*'
-                Resource: '*'
+                Action: "comprehend:*"
+                Resource: "*"
         - PolicyName: DynamoDB
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'dynamodb:*'
-                Resource: '*'
+                Action: "dynamodb:*"
+                Resource: "*"
         - PolicyName: S3
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 's3:*'
-                Resource: '*'
+                Action: "s3:*"
+                Resource: "*"
         - PolicyName: CloudWatchLogs
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'logs:*'
-                Resource: '*'
+                Action: "logs:*"
+                Resource: "*"
         - PolicyName: LambdaInvoke
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'lambda:Invoke*'
-                Resource: '*'
+                Action: "lambda:Invoke*"
+                Resource: "*"
         - PolicyName: AmazonRekognition
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'rekognition:*'
-                Resource: '*'
+                Action: "rekognition:*"
+                Resource: "*"
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   ChronosFunction:
-    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Provides the nightly update to employee budgets.
       Handler: chronos.handler
@@ -837,8 +1058,9 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
+
   ThanosFunction:
-    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Updates employee data that is listed as 'current' (supports technology only atm)
       Handler: thanos.handler
@@ -859,11 +1081,12 @@ Resources:
       Role: !GetAtt
         - ExpenseAppApiLambdaRole
         - Arn
+
   PortalDataSyncLambdaRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Join
-        - ''
+        - ""
         - - expense-api-lambda-portal-data-sync-
           - !Ref Stage
       AssumeRolePolicyDocument:
@@ -874,7 +1097,7 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Path: /
       Policies:
         - PolicyName: DynamoDB
@@ -882,37 +1105,35 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'dynamodb:*'
-                Resource: '*'
+                Action: "dynamodb:*"
+                Resource: "*"
         - PolicyName: CloudWatchLogs
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'logs:*'
-                Resource: '*'
+                Action: "logs:*"
+                Resource: "*"
         - PolicyName: LambdaInvoke
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'lambda:Invoke*'
-                Resource: '*'
+                Action: "lambda:Invoke*"
+                Resource: "*"
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   PortalDataSyncFunction:
-    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Employee data synchronization between BambooHR and the Portal.
-      Role: !GetAtt
-        - ExpenseAppApiLambdaRole
-        - Arn
       Handler: app.handler
       FunctionName: !Join
-        - '-'
+        - "-"
         - - expense-app
           - !Ref Stage
           - PortalDataSyncFunction
@@ -933,11 +1154,12 @@ Resources:
         Variables:
           STAGE: !Ref Stage
           AWS: lambda
+
   ChironLambdaRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Join
-        - ''
+        - ""
         - - expense-api-lambda-chiron-
           - !Ref Stage
       AssumeRolePolicyDocument:
@@ -948,7 +1170,7 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Path: /
       Policies:
         - PolicyName: DynamoDB
@@ -956,22 +1178,23 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'dynamodb:*'
-                Resource: '*'
+                Action: "dynamodb:*"
+                Resource: "*"
         - PolicyName: CloudWatchLogs
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 'logs:*'
-                Resource: '*'
+                Action: "logs:*"
+                Resource: "*"
       Tags:
         - Key: Application
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
   ChironFunction:
-    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Provides the nightly update to training section with extracted expense data.
       Handler: chiron.handler
@@ -993,8 +1216,9 @@ Resources:
       Role: !GetAtt
         - ChironLambdaRole
         - Arn
+
   LeaderboardFunction:
-    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Description: Provides the nightly update to leaderboard data.
       Handler: leaderboard.handler
@@ -1016,11 +1240,111 @@ Resources:
       Role: !GetAtt
         - PortalDataSyncLambdaRole
         - Arn
+
+  TimesheetSubmissionReminderFunction:
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: !Join
+        - ""
+        - - expense-app-timesheet-submission-reminder-
+          - !Ref Stage
+      Description: Sends text messages to employees who have not submitted their hours on the last workday of the month
+      Handler: app.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref SharedLayer
+      Timeout: 900
+      CodeUri: timesheet-submission-reminder/
+      Events:
+        ReminderSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 1 * * ? *) # 8pm US (for last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-1-day-1
+        ReminderSchedule2:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 12 * * ? *) # 7am US (for day after last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-1-day-2
+        ReminderSchedule3:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 21 * * ? *) # 4pm US (for day after last workday)
+            Name: !Join
+              - ""
+              - - expense-app-
+                - !Ref Stage
+                - -timesheet-submission-reminder-message-2-day-2
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          AWS: lambda
+      Runtime: nodejs20.x
+      Policies:
+        - Statement:
+            - Action:
+                - dynamodb:Scan
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-contracts
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-employees
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-employees-sensitive
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Stage}-tags/*
+        - Statement:
+            - Action:
+                - ssm:GetParameter*
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/TSheets/accessToken
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ADP/*
+        - Statement:
+            - Action:
+                - sns:Publish
+                - sns:ListPhoneNumbersOptedOut
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - lambda:InvokeFunction
+                - lambda:InvokeAsync
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - kms:Decrypt
+              Effect: Allow
+              Resource: "*"
+        - Statement:
+            - Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Effect: Allow
+              Resource: "*"
+
+  TimesheetSubmissionReminderFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn:
+      - TimesheetSubmissionReminderFunction
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${TimesheetSubmissionReminderFunction}
+      RetentionInDays: 30
+
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Join
-        - ''
+        - ""
         - - expense-api-dependencies-
           - !Ref Stage
       Description: Packages for lambda functions.
@@ -1028,11 +1352,12 @@ Resources:
       CompatibleRuntimes:
         - nodejs20.x
       RetentionPolicy: Retain
+
   SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Join
-        - ''
+        - ""
         - - expense-api-shared-
           - !Ref Stage
       Description: Shared code for lambda functions.

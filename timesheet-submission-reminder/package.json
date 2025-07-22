@@ -1,0 +1,8 @@
+{
+  "name": "timesheet-submission-reminder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sends text messages to employees who have not submitted their hours on the last workday of the month",
+  "author": "Case Consulting",
+  "main": "app.js"
+}
