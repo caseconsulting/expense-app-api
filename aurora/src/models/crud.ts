@@ -7,11 +7,9 @@ export const PortalRole = {
   manager: 'manager',
   admin: 'admin'
 } as const;
-export type PortalRole = keyof typeof PortalRole;
 
 /**
  * Model for the dynamo_table type
- * @readonly @enum {string}
  */
 export const DynamoTable = {
   budgets: 'budgets',
@@ -24,8 +22,7 @@ export const DynamoTable = {
   pto_cashouts: 'pto_cashouts',
   tags: 'tags',
   timesheets: 'timesheets'
-};
-export type DynamoTable = keyof typeof DynamoTable;
+} as const;
 
 /**
  * Model for a row in the crud_audits table

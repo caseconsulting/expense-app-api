@@ -8,7 +8,7 @@ import { execute, selectAudits } from './utils';
  * @param audit The audit to insert
  * @returns The id of the new audit
  */
-async function insert(audit: NotificationAudit): Promise<number> {
+export async function insert(audit: NotificationAudit): Promise<number> {
   const query = db.insertInto('notifications').values(audit).returning('id');
   return await execute(query, true);
 }
@@ -19,7 +19,7 @@ async function insert(audit: NotificationAudit): Promise<number> {
  * @param filters
  * @returns Records matching the query
  */
-async function select(filters: NotifAuditQueryFilters): Promise<NotificationAudit[]> {
+export async function select(filters: NotifAuditQueryFilters): Promise<NotificationAudit[]> {
   const { receiver } = filters;
 
   let query = db.selectFrom('notifications').selectAll();
@@ -27,8 +27,3 @@ async function select(filters: NotifAuditQueryFilters): Promise<NotificationAudi
   if (receiver) query = query.where('receiverId', '=', receiver);
   return await execute(query);
 }
-
-module.exports = {
-  insert,
-  select
-};
