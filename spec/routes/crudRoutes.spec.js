@@ -1171,6 +1171,7 @@ describe('crudRoutes', () => {
           code: 403,
           message: 'Error creating object.'
         };
+        spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
         spyOn(crudRoutes, '_create').and.returnValue(Promise.reject(err));
       });
 
@@ -1194,6 +1195,7 @@ describe('crudRoutes', () => {
           code: 403,
           message: 'Error validating inputs.'
         };
+        spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
         spyOn(crudRoutes, '_create').and.returnValue(Promise.resolve(BODY_DATA));
         spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.reject(err));
       });
@@ -1219,6 +1221,7 @@ describe('crudRoutes', () => {
           code: 403,
           message: 'Error adding object to database.'
         };
+        spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
         spyOn(crudRoutes, '_create').and.returnValue(Promise.resolve(BODY_DATA));
         spyOn(crudRoutes, '_validateInputs').and.returnValue(Promise.resolve(BODY_DATA));
         databaseModify.addToDB.and.returnValue(Promise.reject(err));
