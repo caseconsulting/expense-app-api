@@ -1173,7 +1173,7 @@ Resources:
         LeaderboardSchedule:
           Type: Schedule
           Properties:
-            Schedule: cron(1 5 * * ? *)
+            Schedule: cron(1 10 * * ? *)
       Environment:
         Variables:
           STAGE: !Ref Stage
