@@ -40,7 +40,6 @@ const storage = multerS3({
 
 // file limits
 const limits = {
-  
   fileSize: 6 * 1024 * 1024 // 6 MB (max file size)
 };
 
@@ -88,6 +87,8 @@ class Attachment {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+    this.expenseDynamo = expenseDynamo;
+
     this._router.delete(
       '/:employeeId/:expenseId/:receipt',
       this._checkJwt,
@@ -102,7 +103,6 @@ class Attachment {
       this.uploadAttachmentToS3.bind(this)
     );
     this._router.put('/:employeeId/:fileName', this._checkJwt, this._getUserInfo, this.extractText.bind(this));
-    this.expenseDynamo = expenseDynamo;
   } // constructor
 
   /**
