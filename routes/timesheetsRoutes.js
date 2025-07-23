@@ -1,4 +1,10 @@
-/** @import Logger from '../js/Logger' */
+/**
+ * @import Logger from '../js/Logger'
+ * @typedef {keyof typeof fieldToName} CsvField
+ * @typedef {'PTO' | 'CASE_CARES' | 'CASE_CONNECTIONS' | 'HOLIDAY' | 'TRAINING_TUITION'} PtoCode
+ * @typedef {Record<PtoCode, { actuals: number, balance: number }} PtoData Maps a pto code to categorized hours
+ * @typedef {Record<number, PtoData>} PtoMap Maps employee number to PtoData
+ */
 
 const _ = require('lodash');
 const express = require('express');
@@ -29,19 +35,81 @@ const checkJwt = getExpressJwt();
 const storeFile = multer({ storage: multer.memoryStorage() }).single('accruals');
 
 /**
- * @typedef {{ 'Name': string, 'Employee Number': number, 'Period Hours Available': number }} CsvRow
- * @typedef {keyof CsvRow} CsvCol
+ * Maps csv fields to a logical name to store as json
  */
+const fieldToName = /** @type {const} */ ({
+  'Person Code': 'employeeNumber', // employee number,
+  Project: 'code', // job code (type of pto)
+  Actuals: 'actuals',
+  Balance: 'balance'
+});
 
 /**
- * The expected csv column names
- * @readonly @enum {CsvCol}
+ * Parses the csv file into a json object
+ *
+ * @param {Express.Multer.File} file
+ * @returns {{ data: PtoMap, fields: CsvField[] }}
  */
-const COLUMNS = {
-  name: 'Name',
-  number: 'Employee Number',
-  pto: 'Period Hours Available'
-};
+function parseCsv(file) {
+  // parse without headers (fields) so we can account for different scenarios and weird formatting (i.e. when the
+  // header isn't the first line)
+  const parsed = Papa.parse(file.buffer.toString(), { dynamicTyping: true });
+
+  /** @type {any[][]} */
+  const rows = parsed.data;
+
+  /**
+   * Maps csv fields to index within row
+   * @type {Record<CsvField, number>}
+   */
+  const fieldToIndex = {};
+
+  /**
+   * Consolidate separate records into a single object per employee that contains all pto data. Maps employee numbers
+   * to pto data. Pto data maps pay codes to an object containing actuals and balance (measured in hours).
+   * @type {PtoMap}
+   */
+  const consolidated = {};
+
+  const states = /** @type {const} */ ({
+    start: 0,
+    rows: 1
+  });
+  let state = states.start;
+
+  for (const row of rows) {
+    let employeeNumber, ptoCode, balance;
+
+    switch (state) {
+      case states.start:
+        // skip until we find the header line
+        if (!row.includes('Person')) break;
+
+        // map headers to indices
+        for (const field in fieldToName) {
+          for (const i in row) {
+            if (row[i] == field) fieldToIndex[field] = i;
+          }
+        }
+        logger.log(3, 'parseCsv', `Found csv headers: [${Object.keys(fieldToIndex).join(', ')}]`);
+
+        // enter row-parsing state
+        state = states.rows;
+        break;
+
+      case states.rows:
+        employeeNumber = row[fieldToIndex['Person Code']];
+        ptoCode = row[fieldToIndex.Project];
+        balance = row[fieldToIndex.Balance] * 60 * 60; // hours -> seconds
+
+        if (!consolidated[employeeNumber]) consolidated[employeeNumber] = {};
+        consolidated[employeeNumber][ptoCode] = balance;
+        break;
+    }
+  }
+
+  return { data: consolidated, fields: Object.keys(fieldToIndex) };
+}
 
 /**
  * Middleware to validate:
@@ -49,7 +117,7 @@ const COLUMNS = {
  * 2. Mime type is csv
  * 3. Correct rows/cols exist in the file
  *
- * @param {express.Request & { employee: { employeeRole: string } } } req
+ * @param {express.Request & { employee: { employeeRole: string } }} req
  * @param {express.Response} res
  * @param {express.NextFunction} next
  */
@@ -57,7 +125,7 @@ async function validateFile(req, res, next) {
   const STATUS_CODES = {
     forbidden: 403, // not admin or manager
     unsupportedMediaType: 415, // not text/csv
-    unprocessableEntity: 422 // valid csv, but couldn't be parsed or is missing rows/cols
+    unprocessableEntity: 422 // valid csv, but couldn't be parsed or is missing expected data
   };
 
   const role = req.employee.employeeRole; // from getUserInfo middleware
@@ -81,38 +149,33 @@ async function validateFile(req, res, next) {
 
   // parse csv to check that it has the right columns
   try {
-    const parsed = Papa.parse(file.buffer.toString(), {
-      header: true,
-      dynamicTyping: true
-    });
+    const { data, fields } = parseCsv(req.file);
 
-    /** @type {[CsvRow[], CsvCol[]]} */
-    const [rows, cols] = [parsed.data, parsed.meta.fields];
-
-    if (!rows || !cols) {
-      logger.log(4, 'validateFile', 'Error parsing CSV', 'Rows:', rows, 'Cols:', cols);
+    if (!fields) {
+      logger.log(4, 'validateFile', 'Error getting CSV fields.', 'Parsed fields:', fields);
       res.status(STATUS_CODES.unprocessableEntity).json({ error: 'parse failed', message: 'Could not parse CSV file' });
       return;
     }
 
-    /** @type {CsvCol[]} */
-    const missingCols = Object.values(COLUMNS).filter((value) => !cols.includes(value));
-    if (missingCols.length !== 0) {
-      logger.log(4, 'validateFile', `CSV file is missing required columns: ${missingCols}`);
+    /** @type {CsvField[]} */
+    const missingFields = Object.keys(fieldToName).filter((value) => !fields.includes(value));
+    if (missingFields.length !== 0) {
+      logger.log(4, 'validateFile', `CSV file is missing required headers: ${missingFields}`);
       res.status(STATUS_CODES.unprocessableEntity).json({
         error: 'missing columns',
-        message: 'CSV file is missing required columns',
-        meta: missingCols
+        message: 'CSV file is missing required headers',
+        meta: missingFields
       });
       return;
     }
 
     // file is valid
     logger.log(4, 'validateFile', 'Successfully validated CSV file');
+    req['csvAsJson'] = data; // put data in req for later use
     next();
   } catch (err) {
     logger.log(4, 'validateFile', 'Error while parsing CSV:', err);
-    res.status(STATUS_CODES.unprocessableEntity).json({ name: 'parse failed', message: 'Error parsing CSV' });
+    res.status(STATUS_CODES.unprocessableEntity).json({ error: 'parse failed', message: 'Error parsing CSV' });
   }
 }
 
@@ -120,16 +183,16 @@ async function validateFile(req, res, next) {
  * Middleware to upload the file to S3. We don't use multer directly because we had to validate the file contents, and
  * at this point the file was parsed out of the request body so multer won't work.
  *
- * @param {express.Request} req
+ * @param {express.Request & { csvAsJson: PtoMap }} req
  * @param {express.Response} res
  */
 async function uploadAccruals(req, res) {
-  const file = req.file; // from `memoryStore` middleware
+  const file = Buffer.from(JSON.stringify(req.csvAsJson));
   const command = new PutObjectCommand({
     Bucket: BUCKET,
-    Key: 'accruals.csv',
-    Body: file.buffer,
-    ContentType: 'text/csv',
+    Key: 'accruals.json',
+    Body: file,
+    ContentType: 'application/json',
     ACL: 'bucket-owner-full-control',
     ServerSideEncryption: 'AES256'
   });
@@ -260,6 +323,52 @@ class TimesheetsRoutes {
 
     return timeSheets;
   } // _getTimesheetsDataForEmployee
+
+  /**
+   * Upload the Unanet CSV file for PTO accruals to S3
+   *
+   * @param req - api request
+   * @param res - api response
+   * @return Object - file uploaded
+   */
+  _uploadDataToS3(req, res) {
+    // log method
+    logger.log(1, '_uploadDataToS3', `Attempting to upload Unanet accruals to S3 bucket ${BUCKET}`);
+
+    // build upload method
+    const upload = multer({
+      storage: s3Storage,
+      limits: s3Limits,
+      fileFilter: fileFilter
+    }).single('accruals');
+
+    // compute method
+    upload(req, res, async (err) => {
+      if (err) {
+        // log error
+        logger.log(1, '_uploadDataToS3', 'Failed to upload file(s)');
+
+        let error = {
+          code: 403,
+          message: `${err.message}`
+        };
+
+        // send error status
+        res.status(error.code).send(error);
+        return error;
+      } else {
+        logger.log(
+          1,
+          '_uploadDataToS3',
+          `Successfully uploaded Unanet accruals ${req.file.key}`,
+          `(from file ${req.file.originalname}) to S3 bucket ${req.file.bucket}`
+        );
+        // set a successful 200 response with uploaded file
+        res.status(200).send(req.file);
+        return req.file;
+      }
+    });
+  } // _uploadDataToS3
 
   /**
    * Returns the instace express router.
