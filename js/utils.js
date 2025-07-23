@@ -1,4 +1,6 @@
+/** @import DatabaseModify from './databaseModify' */
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
+/** @type DatabaseModify */
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : './databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const logger = new Logger('utils');
@@ -180,6 +182,17 @@ async function getEmployeesAndTags() {
 }
 
 /**
+ * Gets a list of all employees, without sensitive data or tags
+ *
+ * @returns {Promise<any[]>} The list of employees
+ */
+async function getEmployees() {
+  /** @type DatabaseModify */
+  const dynamo = new DatabaseModify('employees');
+  return await dynamo.getAllEntriesInDB();
+}
+
+/**
  * Sends an email using AWS SES.
  *
  * @param {String} source - The source email address
@@ -228,5 +241,6 @@ module.exports = {
   isManager,
   sendEmail,
   getEmployeeAndTags,
-  getEmployeesAndTags
+  getEmployeesAndTags,
+  getEmployees
 };
