@@ -1,15 +1,8 @@
-/** @typedef {import('../models/audits/audits.js').AuditRequestFilters} AuditRequestFilters */
-/** @typedef {import('../models/audits/notification.js').NotificationAudit} NotificationAudit */
-/** @typedef {import('@aws-sdk/client-rds-data').ExecuteStatementCommandOutput} ExecuteStatementCommandOutput */
-/** @typedef {import('@aws-sdk/client-rds-data').SqlParameter} SqlParameter */
-
 const express = require('express');
 const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils.js');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const { AuroraClient } = require('../js/aurora/auroraClient.js');
-const { NotificationAudit } = require('../models/audits/notification.js');
+const { CrudAuditQueries, NotifAuditQueries } = require('expense-app-db/queries');
 
-const client = new AuroraClient();
 const logger = new Logger('auditRoutesV2');
 
 class AuditRoutesV2 {
@@ -19,10 +12,15 @@ class AuditRoutesV2 {
 
     /** @private @type express.Router */
     this._router = express.Router();
-    this._router.get('/', this.jwtMiddleware, this.getAudits.bind(this));
+    this._router.get('/notification', this.jwtMiddleware, this.getNotifAudits.bind(this));
+    this._router.get('/crud', this.jwtMiddleware, this.getCrudAudits.bind(this));
   }
 
-  // MIDDLEWARE
+  // *✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫*
+  // ❃                                                  ❃
+  // ❇                    MIDDLEWARE                    ❇
+  // ❉                                                  ❉
+  // *✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫*
 
   /**
    * Gets a list of audits based on the request filters
@@ -32,66 +30,47 @@ class AuditRoutesV2 {
    *
    * @private
    */
-  async getAudits(req, res) {
-    logger.log(5, 'getAudits', `Received query: ${req.query}`);
-
-    const { limit, startDate, endDate, reason } = req.body;
+  async getNotifAudits(req, res) {
+    logger.log(5, 'getNotifAudits', `Received query: ${req.query}`);
 
     try {
-      const results = await this.readNotifications({ limit, startDate, endDate, reason });
-      logger.log(5, 'getAudits', `Successfully queried notifications: ${JSON.stringify(results)}`);
+      const results = await NotifAuditQueries.select(req.body);
+
+      logger.log(5, 'getNotifAudits', `The database responded with ${results.length} records`);
       res.status(200).json(results);
     } catch (err) {
-      logger.log(5, 'getAudits', `Error querying notifications: ${err}`);
-      res.status(500).json({ error: err.message ?? 'Database query failed.' });
-    }
-  }
-
-  // HELPER FUNCTIONS
-
-  /**
-   * Queries the database for notifications
-   *
-   * @param {AuditRequestFilters} filters The request filters
-   * @returns {Promise<NotificationAudit[]>} The notifications queried
-   * @throws Errors that occur when sending the request
-   *
-   * @private
-   */
-  async readNotifications(filters) {
-    const command = NotificationAudit.buildQuery(filters);
-
-    try {
-      const response = await client.sendCommand(command);
-
-      if (!response.records) throw new Error('Could not parse database response');
-      logger.log(5, 'readNotifications', `The database responded with ${response.records.length} records`);
-
-      return NotificationAudit.fromResponse(response);
-    } catch (err) {
-      logger.log(5, 'readNotifications', err?.message ?? err);
+      logger.log(5, 'getNotifAudits', `Error querying notification audits: ${JSON.stringify(err)}`);
+      res.status(500).json({ error: 'Could not fetch records' });
     }
   }
 
   /**
-   * Inserts a notification into the database
+   * Gets a list of crud audits based on the request filters
    *
-   * @param {NotificationAudit} notification The notification to insert (note: id will be ignored)
+   * @param {express.Request} req The request body should be a json representation of an AuditRequestFilters object
+   * @param {express.Response} res
    *
    * @private
    */
-  async writeNotification(notification) {
-    try {
-      const res = await client.sendCommand(notification.buildCreateCommand());
+  async getCrudAudits(req, res) {
+    logger.log(5, 'getCrudAudits', `Received query: ${req.query}`);
 
-      logger.log(5, 'writeNotification', `Inserted Notification Audit Results: ${res ?? 'N/A'}`);
+    try {
+      const results = await CrudAuditQueries.select(req.body);
+
+      logger.log(5, 'getCrudAudits', `The database responded with ${results.length} records`);
+      res.status(200).json(results);
     } catch (err) {
-      logger.log(5, 'writeNotification', `Insertion failed: ${err}`);
-      return;
+      logger.log(5, 'getCrudAudits', `Error querying crud audits: ${err.message ?? err}`);
+      res.status(500).json({ error: 'Could not fetch records' });
     }
   }
 
-  // GETTERS
+  // *✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫*
+  // ❃                                                  ❃
+  // ❇                     GETTERS                      ❇
+  // ❉                                                  ❉
+  // *✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫✮❆✦✯✿✧✩❄✬✭❀✫*
 
   /**
    * Gets this instances router
