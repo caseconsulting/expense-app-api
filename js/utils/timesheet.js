@@ -51,16 +51,24 @@ async function getTimesheetsDataForEmployee(employee, tags, options = {}) {
 
   // invoke mysterio monthly hours lambda function
   let resultPayload = await invokeLambda(params);
-  if (resultPayload.body) {
-    let timeSheets = resultPayload.body;
 
-    // return employee timesheets
-    return timeSheets;
-  } else {
-    throw {
-      code: 400,
-      message: resultPayload?.message || resultPayload
-    };
+  switch (resultPayload.status) {
+    case 200:
+      return resultPayload.body;
+    case 500:
+      if (resultPayload.code == 'ERR_S3_NOT_FOUND')
+        throw {
+          status: resultPayload.status,
+          code: resultPayload.code,
+          message: 'Failed to load timesheet data'
+        };
+
+    // else fall through
+    default:
+      throw {
+        code: 400,
+        message: resultPayload?.message ?? resultPayload
+      };
   }
 } // getTimesheetsDataForEmployee
 

@@ -20,6 +20,7 @@ const multer = require('multer');
 const s3Client = new S3Client({ apiVersion: '2006-03-01' });
 const BUCKET = `case-expense-app-unanet-data-${process.env.STAGE}`;
 
+/** @type {import('../js/utils/timesheet')} */
 const { getTimesheetsDataForEmployee } = require(process.env.AWS ? 'timesheetUtils' : '../js/utils/timesheet');
 
 /** @type {Logger} */
@@ -231,8 +232,8 @@ class TimesheetsRoutes {
   /**
    * Gets an employee's monthly hours charged, given an employee number.
    *
-   * @param req - api request
-   * @param res - api response
+   * @param {express.Request} req - api request
+   * @param {express.Response} res - api response
    * @return Object - monthly hours
    */
   async _getTimesheetsData(req, res) {
@@ -263,8 +264,14 @@ class TimesheetsRoutes {
       logger.log(
         1,
         '_getTimesheetsData',
-        `Failed to get timesheet data for employee number ${req.params.employeeNumber}`
+        `Failed to get timesheet data for employee number ${req.params.employeeNumber}. Error: ${JSON.stringify(err)}`
       );
+
+      // mysterio tried to pull an object from s3 that doesn't exist
+      if (err.status == 500 && err.code == 'ERR_S3_NOT_FOUND') {
+        res.status(err.status).send(err.message ?? 'Failed to load timesheet data');
+        return err;
+      }
 
       // send error status
       this._sendError(res, err);
@@ -313,7 +320,8 @@ class TimesheetsRoutes {
       `Attempting to get timesheet data for employee number ${employee.employeeNumber}`
     );
 
-    let timeSheets = getTimesheetsDataForEmployee(employee, tags, options);
+    let timeSheets = await getTimesheetsDataForEmployee(employee, tags, options);
+
     // log success
     logger.log(
       1,
