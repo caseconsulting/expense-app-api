@@ -131,16 +131,12 @@ describe('utilityRoutes', () => {
     createdAt: CREATED_AT
   };
 
-  // const TRAINING_URL_DATA = {
-  //   id: URL,
-  //   category: CATEGORY,
-  //   hits: HITS,
-  //   title: TITLE,
-  //   description: DESCRIPTION,
-  //   image: IMAGE,
-  //   logo: LOGO,
-  //   publisher: PUBLISHER
-  // };
+  const EMPLOYEE_SENSITIVE_DATA = [
+    {
+      id: ID,
+      employeeRole: EMPLOYEE_ROLE
+    }
+  ];
 
   const BODY_DATA = {
     id: ID
@@ -165,7 +161,6 @@ describe('utilityRoutes', () => {
     employeeSensitiveDynamo,
     expenseTypeDynamo,
     res,
-    trainingDynamo,
     tagDynamo,
     utilityRoutes;
 
@@ -231,18 +226,6 @@ describe('utilityRoutes', () => {
       'removeFromDB',
       'updateEntryInDB'
     ]);
-    trainingDynamo = jasmine.createSpyObj('trainingDynamo', [
-      'addToDB',
-      'getAllEntriesInDB',
-      'getEntry',
-      'getEntryUrl',
-      'querySecondaryIndexInDB',
-      'queryWithTwoIndexesInDB',
-      '_readFromDB',
-      '_readFromDBUrl',
-      'removeFromDB',
-      'updateEntryInDB'
-    ]);
     tagDynamo = jasmine.createSpyObj('tagDynamo', [
       'addToDB',
       'getAllEntriesInDB',
@@ -269,7 +252,6 @@ describe('utilityRoutes', () => {
     utilityRoutes.employeeDynamo = employeeDynamo;
     utilityRoutes.employeeSensitiveDynamo = employeeSensitiveDynamo;
     utilityRoutes.expenseTypeDynamo = expenseTypeDynamo;
-    utilityRoutes.trainingDynamo = trainingDynamo;
     utilityRoutes.tagDynamo = tagDynamo;
     utilityRoutes._router = _ROUTER;
   });
@@ -876,7 +858,8 @@ describe('utilityRoutes', () => {
         employees: [expectedEmployee],
         expenses: [aggregateExpense],
         schedules: [basecampEvent],
-        announcements: [announcement]
+        announcements: [announcement],
+        kudos: []
       };
     });
 
@@ -884,6 +867,7 @@ describe('utilityRoutes', () => {
       beforeEach(() => {
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+        employeeSensitiveDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(EMPLOYEE_SENSITIVE_DATA));
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
@@ -897,6 +881,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(payload);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+          expect(employeeSensitiveDynamo.getAllEntriesInDB).toHaveBeenCalled();
           expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
@@ -971,6 +956,7 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+        employeeSensitiveDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(EMPLOYEE_SENSITIVE_DATA));
         expenseDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expense]));
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
@@ -984,6 +970,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+          expect(employeeSensitiveDynamo.getAllEntriesInDB).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(res.status).toHaveBeenCalledWith(404);
           expect(res.send).toHaveBeenCalledWith(err);
@@ -1004,6 +991,7 @@ describe('utilityRoutes', () => {
         // expenseTypeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([expenseType]));
         spyOn(utilityRoutes, 'getAllExpenseTypes').and.returnValue([expenseType]);
         employeeDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve([employee]));
+        employeeSensitiveDynamo.getAllEntriesInDB.and.returnValue(Promise.resolve(EMPLOYEE_SENSITIVE_DATA));
         spyOn(utilityRoutes, '_scanExpenses').and.returnValue(Promise.resolve([aggregateExpense]));
         spyOn(utilityRoutes, 'getBasecampToken').and.returnValue(basecampToken);
         spyOn(utilityRoutes, 'getBasecampInfo').and.returnValue(basecampInfo);
@@ -1017,6 +1005,7 @@ describe('utilityRoutes', () => {
           expect(data).toEqual(err);
           expect(utilityRoutes.getAllExpenseTypes).toHaveBeenCalled();
           expect(employeeDynamo.getAllEntriesInDB).toHaveBeenCalled();
+          expect(employeeSensitiveDynamo.getAllEntriesInDB).toHaveBeenCalled();
           expect(utilityRoutes._scanExpenses).toHaveBeenCalled();
           expect(utilityRoutes.getBasecampToken).toHaveBeenCalled();
           expect(utilityRoutes.getScheduleEntries).toHaveBeenCalled();
