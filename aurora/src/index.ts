@@ -1,4 +1,4 @@
-import { Kysely } from 'kysely';
+import { CamelCasePlugin, Kysely } from 'kysely';
 import { DataApiDialect } from 'kysely-data-api';
 import { RDSData } from '@aws-sdk/client-rds-data';
 import { Database } from './types';
@@ -12,5 +12,6 @@ export const db = new Kysely<Database>({
       resourceArn: process.env.AURORA_CLUSTER_ARN,
       secretArn: process.env.AURORA_SECRET_ARN
     }
-  })
+  }),
+  plugins: [new CamelCasePlugin()]
 });

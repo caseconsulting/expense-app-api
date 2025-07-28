@@ -54,11 +54,11 @@ export function selectAudits<TABLE extends keyof Database, RETURN>(
   const { ref } = db.dynamic;
   const { limit, startDate, endDate } = filters;
 
-  if (startDate && endDate) query = query.where(sql<boolean>`${ref('created_at')} between ${startDate} and ${endDate}`);
-  else if (startDate) query = query.where(ref('created_at'), '>=', startDate);
-  else if (endDate) query = query.where(ref('created_at'), '<=', endDate);
+  if (startDate && endDate) query = query.where(sql<boolean>`${ref('createdAt')} between ${startDate} and ${endDate}`);
+  else if (startDate) query = query.where(ref('createdAt'), '>=', startDate);
+  else if (endDate) query = query.where(ref('createdAt'), '<=', endDate);
 
   if (limit) query = query.limit(limit);
 
-  return query.orderBy(sql.ref('created_at'), 'desc');
+  return query.orderBy(sql.ref('createdAt'), 'desc');
 }

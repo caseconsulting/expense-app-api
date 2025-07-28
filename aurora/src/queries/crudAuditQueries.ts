@@ -1,5 +1,6 @@
 import { db } from '../index';
-import { CrudAudit, CrudAuditQueryFilters } from '../types';
+import { CrudAuditQueryFilters } from '../types';
+import { CrudAudit } from '../models';
 import { execute, selectAudits } from './utils';
 
 /**
@@ -9,8 +10,8 @@ import { execute, selectAudits } from './utils';
  * @returns The id of the new audit
  */
 export async function insert(audit: CrudAudit): Promise<number> {
-  const query = db.insertInto('crud_audits').values(audit).returning('id');
-  return await execute(query, true);
+  const query = db.insertInto('crudAudits').values(audit.asInsertable).returning('id');
+  return execute(query, true);
 }
 
 /**
@@ -23,7 +24,7 @@ export async function insert(audit: CrudAudit): Promise<number> {
 export async function select(filters: CrudAuditQueryFilters): Promise<CrudAudit[]> {
   const { actor, table, tableItem } = filters;
 
-  let query = db.selectFrom('crud_audits').selectAll();
+  let query = db.selectFrom('crudAudits').selectAll();
   query = selectAudits(query, filters);
 
   if (actor) query = query.where('actorId', '=', actor);

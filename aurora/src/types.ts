@@ -1,3 +1,4 @@
+import { ColumnType, Generated, GeneratedAlways } from 'kysely';
 import {
   DynamoTable as DynamoTableModel,
   PortalRole as PortalRoleModel,
@@ -8,8 +9,8 @@ import {
  * A row in the crud_audit table
  */
 export interface CrudAudit {
-  id: number;
-  createdAt: Date;
+  id: GeneratedAlways<number>;
+  createdAt: Generated<Date>;
   actorId: string;
   actorRole: PortalRole;
   originTable: DynamoTable;
@@ -26,7 +27,7 @@ export type DynamoTable = (typeof DynamoTableModel)[keyof typeof DynamoTableMode
  */
 export interface NotificationAudit {
   id: number;
-  createdAt: Date;
+  createdAt: Generated<Date>;
   receiverId: string;
   sentTo: string;
   reason: NotificationReason;
@@ -58,5 +59,5 @@ export interface NotifAuditQueryFilters extends AuditQueryFilters {
  */
 export interface Database {
   notifications: NotificationAudit;
-  crud_audits: CrudAudit;
+  crudAudits: CrudAudit;
 }
