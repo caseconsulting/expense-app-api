@@ -1,8 +1,5 @@
 const _ = require('lodash');
-const REQUIRED_FIELDS = [
-  'id',
-  'employeeRole'
-];
+const REQUIRED_FIELDS = ['id', 'employeeRole'];
 const OPTIONAL_FIELDS = [
   'eeoGender',
   'eeoHispanicOrLatino',
@@ -160,6 +157,26 @@ class EmployeeSensitive {
       this[attribute] = defaultValue;
     }
   } // setRequiredNumberAttribute
+
+  getCustomKudos(startDate = null, endDate = null) {
+    let customKudos = this.notes?.pages?.kudos?.custom || [];
+    if (startDate || endDate) {
+      customKudos = customKudos.filter((kudo) => {
+        let kudoInRange = true;
+        if (startDate) {
+          kudoInRange = kudoInRange && kudo.date >= startDate;
+        }
+
+        if (endDate) {
+          kudoInRange = kudoInRange && kudo.date <= endDate;
+        }
+
+        return kudoInRange;
+      });
+    }
+
+    return customKudos;
+  }
 } // Employee
 
 module.exports = EmployeeSensitive;

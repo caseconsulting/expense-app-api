@@ -37,7 +37,6 @@ class BasecampRoutes {
     this._invokeLambda = invokeLambda;
 
     this._router.get('/getBasecampToken', this._checkJwt, this._getUserInfo, this._getBasecampToken.bind(this));
-    this._router.get('/getFeedEvents', this._checkJwt, this._getUserInfo, this._getFeedEvents.bind(this));
     this._router.get('/getBasecampAvatars', this._checkJwt, this._getUserInfo, this._getBasecampAvatars.bind(this));
     this._router.get('/getBasecampCampfires', this._checkJwt, this._getUserInfo, this._getBasecampCampfires.bind(this));
   } // constructor
@@ -332,30 +331,6 @@ class BasecampRoutes {
       throw error;
     }
   } // _getScheduleEntries
-
-  /**
-   * Get basecamp schedule entries for all the selected projects for the info@consultwithcase.com basecamp account.
-   * @param req - api request
-   * @param res - api respone
-   * @return object - Employee Basecamp Campfires
-   */
-  async _getFeedEvents(req, res) {
-    logger.log(1, '_getFeedEvents', 'Attempting to get Basecamp Events');
-    try {
-      let entries = [];
-      let accessToken = await this._getBasecampToken();
-      for (let proj in BASECAMP_PROJECTS) {
-        entries.push(await this._getScheduleEntries(accessToken, BASECAMP_PROJECTS[proj]));
-      }
-
-      res.status(200).send(entries);
-
-      return entries;
-    } catch (err) {
-      logger.log(1, '_getFeedEvents', `${err.code}: ${err.message}`);
-      return err;
-    }
-  } // _getFeedEvents
 
   /**
    * returns the current basecamp projects - used for testing

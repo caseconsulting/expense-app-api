@@ -93,7 +93,6 @@ class Utility {
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.budgetDynamo = new DatabaseModify('budgets');
-    this.trainingDynamo = new DatabaseModify('training-urls');
     this.ptoCashOutDynamo = new DatabaseModify('pto-cashouts');
     this.tagDynamo = new DatabaseModify('tags');
   } // constructor
@@ -532,12 +531,21 @@ class Utility {
       let employees = _.map(employeesData, (employeeData) => {
         return new Employee(employeeData);
       });
-      // add sensitive birthday field only if the employee has given permission through the birthdayFeed field
+
+      let kudos = [];
+
       _.forEach(employees, (e) => {
+        let empSensitive = new EmployeeSensitive(employeesSensitiveData.find((em) => em.id == e.id));
+
         if (e.birthdayFeed) {
-          let empSensitive = new EmployeeSensitive(employeesSensitiveData.find((em) => em.id == e.id));
+          // add sensitive birthday field only if the employee has given permission through the birthdayFeed field
           // only show month and day so employees cannot not see age of employee in network tab
           e['birthday'] = dateUtils.format(empSensitive.birthday, null, 'MM-DD');
+        }
+
+        let empKudos = empSensitive.getCustomKudos(cutOff, now);
+        if (empKudos.length > 0) {
+          kudos.push({ employee: e, kudos: empKudos });
         }
       });
 
@@ -555,10 +563,11 @@ class Utility {
 
       let resolvedPromises = await Promise.all(promises);
       let payload = {
-        employees: employees,
+        employees,
         expenses: aggregateExpenses,
         schedules: resolvedPromises.splice(1),
-        announcements: resolvedPromises[0]
+        announcements: resolvedPromises[0],
+        kudos
       };
       // log success
       logger.log(1, '_getAllEvents', 'Successfully got all event data');
