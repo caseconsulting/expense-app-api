@@ -572,7 +572,7 @@ class Crud {
             image
           );
           try {
-            const auditId = await CrudAuditQueries.insert(audit);
+            const { id: auditId } = await CrudAuditQueries.insert(audit);
 
             logger.log(
               1,
