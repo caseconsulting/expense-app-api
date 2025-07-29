@@ -9,6 +9,8 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
   ? 'utils'
   : '../js/utils');
+const { CrudAuditQueries } = require('expense-app-db/queries');
+const { CrudAudit, DynamoTable } = require('expense-app-db/models');
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -537,20 +539,55 @@ class Crud {
   async _createWrapper(req, res) {
     // log method
     logger.log(1, '_createWrapper', `Attempting to create an object in ${this._getTableName()}`);
+    /** @type {string} */
+    const table = this._getTableName();
+    const emp = req.employee;
+    const image = req.body;
 
     // compute method
     try {
-      if (this._checkPermissionToCreate(req.employee)) {
+      if (this._checkPermissionToCreate(emp)) {
         // employee has permissions to create to table
-        let objectCreated = await this._create(req.body); // create object
+        let objectCreated = await this._create(image); // create object
         let objectValidated = await this._validateInputs(objectCreated); // validate inputs
         let dataCreated = await this.databaseModify.addToDB(objectValidated); // add object to database
 
         // log success, created an expense, expense type, or employee
-        logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${this._getTableName()}`);
+        logger.log(1, '_createWrapper', `Successfully created object ${dataCreated.id} in ${table}`);
 
         // send successful 200 status
         res.status(200).send(dataCreated);
+
+        const auroraTable = table.slice(table.indexOf('-') + 1); // remove env prefix
+        // only audit certain tables
+        if (Object.values(DynamoTable).includes(auroraTable)) {
+          const audit = new CrudAudit(
+            undefined, // set automatically by the database
+            undefined, // defaults to postgres now() function
+            emp.id,
+            /** @type {string} */ (emp.employeeRole).toLowerCase(),
+            auroraTable,
+            dataCreated.id, // new id from dynamodb
+            null, // there is no old image
+            image
+          );
+          try {
+            const auditId = await CrudAuditQueries.insert(audit);
+
+            logger.log(
+              1,
+              '_createWrapper',
+              `Successfully audited object creation. Audit id: ${auditId}. Table: ${auroraTable}`
+            );
+          } catch (err) {
+            // catch the failure and log it, but don't return error to the user
+            logger.log(
+              5,
+              '_createWrapper',
+              `Failed to audit object creation: ${JSON.stringify(err)}\nAudit: ${JSON.stringify(audit)}`
+            );
+          }
+        }
 
         // return created data
         return dataCreated;

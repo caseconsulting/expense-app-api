@@ -1,5 +1,6 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
 import { NotificationReason as NotifReasonType } from '../types';
+import { sql } from 'kysely';
 
 /**
  * Model for the notification_reason type
@@ -48,7 +49,7 @@ export class NotificationAudit {
       ...(this.createdAt && { createdAt: this.createdAt }),
       receiverId: { value: { stringValue: this.receiverId }, typeHint: 'UUID' } as SqlParameter,
       sentTo: { value: { stringValue: this.sentTo } } as SqlParameter,
-      reason: this.reason
+      reason: sql`${this.reason}::notification_reason`
     };
   }
 }

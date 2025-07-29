@@ -1,10 +1,17 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '../.env', quiet: true });
+
 import { expect, test } from '@jest/globals';
 import { SqlParameter } from '@aws-sdk/client-rds-data';
 
 import { db } from '../src';
-import { CrudAudit, DynamoTable, PortalRole, NotificationAudit, NotificationReason } from '../src/models';
+import { CrudAudit, DynamoTable, PortalRole } from '../src/models';
 import { selectAudits } from '../src/queries/utils';
 import { fixTimeString } from './utils';
+
+test('Parse env file', () => {
+  expect(process.env.STAGE).toEqual('dev');
+});
 
 // largely to ensure that basic package setup is working, and that camelCase plugin is enabled
 test('Generic select all on a crud audit without filters', () => {
@@ -54,7 +61,7 @@ test('CrudAudit.asInsertable without date', () => {
   const query = db.insertInto('crudAudits').values(audit.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "crud_audits" ("actor_id", "actor_role", "origin_table", "table_item_id", "old_image", "new_image") values (:0, :1, :2, :3, :4, :5) returning "id"'
+    'insert into "crud_audits" ("actor_id", "actor_role", "origin_table", "table_item_id", "old_image", "new_image") values (:0, :1::portal_role, :2::dynamo_table, :3, :4, :5) returning "id"'
   );
 
   expect(query.parameters).toEqual([
@@ -87,7 +94,7 @@ test('CrudAudit.asInsertable without date', () => {
   const query = db.insertInto('crudAudits').values(audit.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "crud_audits" ("actor_id", "created_at", "actor_role", "origin_table", "table_item_id", "old_image", "new_image") values (:0, :1, :2, :3, :4, :5, :6) returning "id"'
+    'insert into "crud_audits" ("actor_id", "created_at", "actor_role", "origin_table", "table_item_id", "old_image", "new_image") values (:0, :1, :2::portal_role, :3::dynamo_table, :4, :5, :6) returning "id"'
   );
 
   expect(query.parameters).toEqual([

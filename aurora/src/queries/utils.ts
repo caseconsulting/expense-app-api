@@ -30,8 +30,6 @@ export async function execute<TABLE extends keyof Database, RETURN>(
     } catch (err) {
       // if database is resuming, retry
       if (err instanceof DatabaseResumingException) {
-        console.log(`Database is resuming, trying again in ${waitFor} seconds...`);
-
         retry = true;
         await new Promise((resolve) => setTimeout(resolve, waitFor * 1000));
       } else throw err; // else propagate the error

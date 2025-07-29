@@ -3,7 +3,7 @@
   "version": "4.15.0",
   "private": true,
   "scripts": {
-    "build:aurora": "cd aurora && npm run clean && npm i && npm run build",
+    "build:aurora": "cd aurora && npm i && npm test && npm run build",
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "claudia": "claudia",
     "clean:dev": "export AWS_PROFILE=dev && node versionCleanup.js",
@@ -76,7 +76,7 @@
     "receiptSync:dev": "node ./js/Scripts/ReceiptSync.js dev",
     "receiptSync:prod": "node ./js/Scripts/ReceiptSync.js prod",
     "receiptSync:test": "node ./js/Scripts/ReceiptSync.js test",
-    "reinstall": "npm install && npm ci && npm run reinstall:chiron && npm run reinstall:chronos && npm run reinstall:leaderboard && npm run reinstall:portal-data-sync && npm run reinstall:thanos && npm run reinstall:layers",
+    "reinstall": "npm run build:aurora && npm install && npm ci && npm run reinstall:chiron && npm run reinstall:chronos && npm run reinstall:leaderboard && npm run reinstall:portal-data-sync && npm run reinstall:thanos && npm run reinstall:layers",
     "reinstall:chiron": "cd chiron && npm install && npm ci",
     "reinstall:chronos": "cd chronos && npm install && npm ci",
     "reinstall:layers": "(cd layers/dependencies/nodejs && npm install && npm ci) && (cd layers/shared/nodejs && npm install && npm ci)",

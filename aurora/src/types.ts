@@ -1,4 +1,4 @@
-import { ColumnType, Generated, GeneratedAlways } from 'kysely';
+import { Generated, GeneratedAlways } from 'kysely';
 import {
   DynamoTable as DynamoTableModel,
   PortalRole as PortalRoleModel,

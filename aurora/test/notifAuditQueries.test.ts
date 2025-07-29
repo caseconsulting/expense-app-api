@@ -18,7 +18,7 @@ test('NotificationAudit.asInsertable without date', () => {
   const query = db.insertInto('notifications').values(notif.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "notifications" ("receiver_id", "sent_to", "reason") values (:0, :1, :2) returning "id"'
+    'insert into "notifications" ("receiver_id", "sent_to", "reason") values (:0, :1, :2::notification_reason) returning "id"'
   );
 
   expect(query.parameters).toEqual([
@@ -41,7 +41,7 @@ test('NotificationAudit.asInsertable with date', () => {
   const query = db.insertInto('notifications').values(notif.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "notifications" ("created_at", "receiver_id", "sent_to", "reason") values (:0, :1, :2, :3) returning "id"'
+    'insert into "notifications" ("created_at", "receiver_id", "sent_to", "reason") values (:0, :1, :2, :3::notification_reason) returning "id"'
   );
 
   expect(query.parameters).toEqual([

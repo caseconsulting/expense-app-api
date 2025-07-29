@@ -4,7 +4,12 @@ Contains code for interacting with the [Aurora Serverless](https://docs.aws.amaz
 
 ## Todo List
 
-Tests! Write tests in this module, not in the parent folder.
+- Tests! The testing framework is already set up with some examples
+  - Might be good to use some kind of local dummy database (using docker?), so we can test actual postgres queries and have known database data for specific tests
+- (long term) Connect directly to the database instead of using data api. The direct connection would return clearer error messages and is generally more portable
+  - Requires knowledge of how to set up secure access into the vpc
+  - Migrating kysely requires using the pg driver instead of kysely-data-api, and some of the querying functionality (like `CrudAudit.asInsertable`) would need to be modified or ideally removed
+  - This could make it easier to use a better type-adapting system
 
 ## Usage
 

@@ -1,5 +1,6 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
 import { DynamoTable as DynamoTableType, PortalRole as PortalRoleType } from '../types';
+import { sql } from 'kysely';
 
 /**
  * Model for the portal_role type
@@ -79,8 +80,8 @@ export class CrudAudit {
     return {
       actorId: { value: { stringValue: this.actorId }, typeHint: 'UUID' } as SqlParameter,
       ...(this.createdAt && { createdAt: this.createdAt }), // only apply createdAt if it's defined on this instance. otherwise the database will assign a value
-      actorRole: this.actorRole,
-      originTable: this.originTable,
+      actorRole: sql`${this.actorRole}::portal_role`, // sql treats strings as text, we need to cast to our enum type
+      originTable: sql`${this.originTable}::dynamo_table`,
       tableItemId: { value: { stringValue: this.tableItemId }, typeHint: 'UUID' } as SqlParameter,
       oldImage:
         this.oldImage === null
