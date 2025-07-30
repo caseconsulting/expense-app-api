@@ -1,6 +1,6 @@
 import { db } from '../index';
-import { NotifAuditQueryFilters } from '../types';
 import { NotificationAudit } from '../models';
+import { NotifAuditQueryFilters } from '../types';
 import { execute, selectAudits } from './utils';
 
 /**

@@ -1,6 +1,7 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-import { DynamoTable as DynamoTableType, PortalRole as PortalRoleType } from '../types';
 import { sql } from 'kysely';
+
+import { DynamoTable as DynamoTableType, PortalRole as PortalRoleType } from '../types';
 
 /**
  * Model for the portal_role type

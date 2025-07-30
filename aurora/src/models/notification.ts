@@ -1,6 +1,7 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-import { NotificationReason as NotifReasonType } from '../types';
 import { sql } from 'kysely';
+
+import { NotificationReason as NotifReasonType } from '../types';
 
 /**
  * Model for the notification_reason type

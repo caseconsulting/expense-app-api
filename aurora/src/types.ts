@@ -1,9 +1,18 @@
 import { Generated, GeneratedAlways } from 'kysely';
+
 import {
   DynamoTable as DynamoTableModel,
-  PortalRole as PortalRoleModel,
-  NotificationReason as NotifReasonModel
+  NotificationReason as NotifReasonModel,
+  PortalRole as PortalRoleModel
 } from './models';
+
+/**
+ * Database type for Kysely. Specifies all the tables we use and associates them with a type.
+ */
+export interface Database {
+  notifications: NotificationAudit;
+  crudAudits: CrudAudit;
+}
 
 /**
  * A row in the crud_audit table
@@ -18,6 +27,16 @@ export interface CrudAudit {
   oldImage: any;
   newImage: any;
 }
+
+/**
+ * A type with the minimum information to create a new crud audit (for insert queries)
+ */
+export type CrudAuditLike = {
+  employee: { id: string; employeeRole: string };
+  table: DynamoTable;
+  oldImage: { id: string };
+  newImage: { id: string };
+};
 
 export type PortalRole = (typeof PortalRoleModel)[keyof typeof PortalRoleModel]; // i.e. the values of PortalRoleModel
 export type DynamoTable = (typeof DynamoTableModel)[keyof typeof DynamoTableModel];
@@ -52,12 +71,4 @@ export interface CrudAuditQueryFilters extends AuditQueryFilters {
 
 export interface NotifAuditQueryFilters extends AuditQueryFilters {
   receiver: string;
-}
-
-/**
- * Database type for Kysely. Specifies all the tables we use and associates them with a type.
- */
-export interface Database {
-  notifications: NotificationAudit;
-  crudAudits: CrudAudit;
 }

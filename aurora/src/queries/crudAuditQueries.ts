@@ -1,6 +1,6 @@
-import { db } from '../index';
+import { db, log } from '..';
 import { CrudAudit } from '../models';
-import { CrudAuditQueryFilters } from '../types';
+import { CrudAuditLike, CrudAuditQueryFilters, PortalRole as PortalRoleType } from '../types';
 import { execute, selectAudits } from './utils';
 
 /**
@@ -35,4 +35,37 @@ export async function select(filters: CrudAuditQueryFilters): Promise<CrudAudit[
   }
 
   return await execute(query);
+}
+
+function fromAuditLike(auditLike: CrudAuditLike) {
+  const { employee, table, oldImage, newImage } = auditLike;
+  const objectId = (newImage ?? oldImage).id;
+  return new CrudAudit(
+    undefined,
+    undefined,
+    employee.id,
+    employee.employeeRole as PortalRoleType,
+    table,
+    objectId,
+    oldImage,
+    newImage
+  );
+}
+
+/**
+ * Records a change
+ *
+ * @param audit Object containing required data to record
+ * @returns The id of the newly added audit
+ */
+export async function record(audit: CrudAuditLike) {
+  try {
+    const { id }: { id: number } = await execute(
+      db.insertInto('crudAudits').values(fromAuditLike(audit).asInsertable).returning('id'),
+      true
+    );
+    return id;
+  } catch (err) {
+    log(5, 'crudAuditQueries.record', 'Error executing query:', err);
+  }
 }
