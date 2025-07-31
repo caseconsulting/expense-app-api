@@ -67,5 +67,6 @@ export async function record(audit: CrudAuditLike) {
     return id;
   } catch (err) {
     log(5, 'crudAuditQueries.record', 'Error executing query:', err);
+    throw err;
   }
 }

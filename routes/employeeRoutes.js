@@ -8,7 +8,7 @@ const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expense
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { SNSClient, OptInPhoneNumberCommand } = require('@aws-sdk/client-sns');
-/** @import { CrudAuditLike } from 'expense-app-db/models' */
+/** @import DatabaseModify from '../js/databaseModify' */
 
 const snsClient = new SNSClient({});
 
@@ -21,7 +21,9 @@ const EMPLOYEES_SENSITIVE_TABLE = 'employees-sensitive';
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
+    /** @type {DatabaseModify} */
     this.databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+    /** @type {DatabaseModify} */
     this.employeeSensitiveDynamo = new DatabaseModify(EMPLOYEES_SENSITIVE_TABLE);
   } // constructor
 
@@ -199,24 +201,43 @@ class EmployeeRoutes extends Crud {
     try {
       if (this._checkPermissionToDelete(req.employee)) {
         // employee has permission to delete from table
-        let objectDeleted = await this._delete(req.params.id); // delete object
-        await this.deleteEmployeeFromDB(objectDeleted.id);
+        let toDelete = await this._delete(req.params.id); // the object to be deleted
+        const {
+          employee: [deletedEmployee],
+          employeeSensitive: [deletedSensitive]
+        } = await this.deleteEmployeeFromDB(toDelete.id);
+        logger.log(5, '_deleteWrapper', `Deleted employee: ${JSON.stringify(deletedEmployee)}`);
+        logger.log(5, '_deleteWrapper', `Deleted employee-sensitive: ${JSON.stringify(deletedSensitive)}`);
 
         // log success
-        logger.log(1, '_deleteWrapper', `Successfully deleted object ${objectDeleted.id} from ${this._getTableName()}`);
+        logger.log(1, '_deleteWrapper', `Successfully deleted object ${toDelete.id} from ${this._getTableName()}`);
 
         // deleted an entry of an employees sensitive data
         logger.log(
           1,
           '_deleteWrapper',
-          `Successfully deleted object ${objectDeleted.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
+          `Successfully deleted object ${toDelete.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
         );
 
         // send successful 200 status
-        res.status(200).send(objectDeleted);
+        res.status(200).send(toDelete);
+
+        await this.recordChange({
+          employee: req.employee,
+          table: EMPLOYEES_TABLE,
+          oldImage: deletedEmployee,
+          newImage: null
+        });
+
+        await this.recordChange({
+          employee: req.employee,
+          table: EMPLOYEES_SENSITIVE_TABLE,
+          oldImage: deletedSensitive,
+          newImage: null
+        });
 
         // return object removed
-        return objectDeleted;
+        return toDelete;
       } else {
         // employee does not have permissions to delete from table
         throw {
@@ -241,9 +262,14 @@ class EmployeeRoutes extends Crud {
    * request fails.
    *
    * @param employeeId employee ID to delete
-   * @returns employee object
+   * @returns {Promise<{ employee: any[], employeeSensitive: any[] }>}
+   *          The values of the table entries before they were deleted
    */
   async deleteEmployeeFromDB(employeeId) {
+    // get the original values
+    const oldEmployee = await this.databaseModify._readFromDB(employeeId);
+    const oldSensitive = await this.employeeSensitiveDynamo._readFromDB(employeeId);
+
     let items = [
       {
         Delete: {
@@ -264,7 +290,11 @@ class EmployeeRoutes extends Crud {
         }
       }
     ];
-    return await DatabaseModify.TransactItems(items);
+    // delete
+    await DatabaseModify.TransactItems(items);
+
+    // return original values
+    return { employee: oldEmployee, employeeSensitive: oldSensitive };
   } // deleteEmployeeFromDB
 
   /**

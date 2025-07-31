@@ -36,7 +36,7 @@ export async function execute<Table extends keyof Database, Return>(
         await new Promise((resolve) => setTimeout(resolve, waitFor * 1000));
       } else {
         // log so we can know where the error originated
-        log(5, 'utils.execute', 'Error executing query: ', err);
+        log(5, 'utils.execute', 'Error executing query:', err);
         throw err; // propagate the error because we don't know how to handle it here
       }
     }
