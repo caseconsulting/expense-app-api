@@ -3,8 +3,9 @@
 
 import { DatabaseResumingException } from '@aws-sdk/client-rds-data';
 import { InsertQueryBuilder, SelectQueryBuilder, sql } from 'kysely';
+
+import { db, log } from '..';
 import { AuditQueryFilters, Database } from '../types';
-import { db } from '..';
 
 /**
  * Sends a query and automatically retries if the database is resuming
@@ -15,9 +16,9 @@ import { db } from '..';
  * @returns The command response
  * @throws Any error thrown other than a DatabaseResumingException
  */
-export async function execute<TABLE extends keyof Database, RETURN>(
-  query: InsertQueryBuilder<Database, TABLE, RETURN> | SelectQueryBuilder<Database, TABLE, RETURN>,
-  takeFirst: boolean = false,
+export async function execute<Table extends keyof Database, Return>(
+  query: InsertQueryBuilder<Database, Table, Return> | SelectQueryBuilder<Database, Table, Return>,
+  takeFirst = false,
   waitFor: number = 5
 ): Promise<any> {
   let retry: boolean;
@@ -30,11 +31,14 @@ export async function execute<TABLE extends keyof Database, RETURN>(
     } catch (err) {
       // if database is resuming, retry
       if (err instanceof DatabaseResumingException) {
-        console.log(`Database is resuming, trying again in ${waitFor} seconds...`);
-
+        log(1, 'utils.execute', `Database is resuming. Trying again in ${waitFor} seconds...`);
         retry = true;
         await new Promise((resolve) => setTimeout(resolve, waitFor * 1000));
-      } else throw err; // else propagate the error
+      } else {
+        // log so we can know where the error originated
+        log(5, 'utils.execute', 'Error executing query:', err);
+        throw err; // propagate the error because we don't know how to handle it here
+      }
     }
   } while (retry);
 }
@@ -54,11 +58,11 @@ export function selectAudits<TABLE extends keyof Database, RETURN>(
   const { ref } = db.dynamic;
   const { limit, startDate, endDate } = filters;
 
-  if (startDate && endDate) query = query.where(sql<boolean>`${ref('created_at')} between ${startDate} and ${endDate}`);
-  else if (startDate) query = query.where(ref('created_at'), '>=', startDate);
-  else if (endDate) query = query.where(ref('created_at'), '<=', endDate);
+  if (startDate && endDate) query = query.where(sql<boolean>`${ref('createdAt')} between ${startDate} and ${endDate}`);
+  else if (startDate) query = query.where(ref('createdAt'), '>=', startDate);
+  else if (endDate) query = query.where(ref('createdAt'), '<=', endDate);
 
   if (limit) query = query.limit(limit);
 
-  return query.orderBy(sql.ref('created_at'), 'desc');
+  return query.orderBy(sql.ref('createdAt'), 'desc');
 }

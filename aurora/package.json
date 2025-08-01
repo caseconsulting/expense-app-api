@@ -26,7 +26,8 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "clean": "rm -rf dist tsconfig.tsbuildinfo expense-app-db-*.tgz"
+    "clean": "rm -rf dist tsconfig.tsbuildinfo expense-app-db-*.tgz",
+    "test": "jest"
   },
   "dependencies": {
     "@aws-sdk/client-rds-data": "3.823.0",
@@ -34,6 +35,10 @@
     "kysely-data-api": "2.0.0"
   },
   "devDependencies": {
+    "dotenv": "^17.2.1",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }

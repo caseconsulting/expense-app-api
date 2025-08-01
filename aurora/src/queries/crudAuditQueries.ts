@@ -1,5 +1,6 @@
-import { db } from '../index';
-import { CrudAudit, CrudAuditQueryFilters } from '../types';
+import { db, log } from '..';
+import { CrudAudit } from '../models';
+import { CrudAuditLike, CrudAuditQueryFilters, PortalRole as PortalRoleType } from '../types';
 import { execute, selectAudits } from './utils';
 
 /**
@@ -8,13 +9,13 @@ import { execute, selectAudits } from './utils';
  * @param audit The audit to insert
  * @returns The id of the new audit
  */
-export async function insert(audit: CrudAudit): Promise<number> {
-  const query = db.insertInto('crud_audits').values(audit).returning('id');
-  return await execute(query, true);
+export async function insert(audit: CrudAudit): Promise<{ id: number }> {
+  const query = db.insertInto('crudAudits').values(audit.asInsertable).returning('id');
+  return execute(query, true);
 }
 
 /**
- * Selects crud audits based on the given filters. Note that the `tableItem` filters is not applied if a table isn't
+ * Selects crud audits based on the given filters. Note that the `tableItem` filter is not applied if a table isn't
  * specified.
  *
  * @param filters
@@ -23,7 +24,7 @@ export async function insert(audit: CrudAudit): Promise<number> {
 export async function select(filters: CrudAuditQueryFilters): Promise<CrudAudit[]> {
   const { actor, table, tableItem } = filters;
 
-  let query = db.selectFrom('crud_audits').selectAll();
+  let query = db.selectFrom('crudAudits').selectAll();
   query = selectAudits(query, filters);
 
   if (actor) query = query.where('actorId', '=', actor);
@@ -34,4 +35,38 @@ export async function select(filters: CrudAuditQueryFilters): Promise<CrudAudit[
   }
 
   return await execute(query);
+}
+
+function fromAuditLike(auditLike: CrudAuditLike) {
+  const { employee, table, oldImage, newImage } = auditLike;
+  const objectId = (newImage ?? oldImage).id;
+  return new CrudAudit(
+    undefined,
+    undefined,
+    employee.id,
+    employee.employeeRole as PortalRoleType,
+    table,
+    objectId,
+    oldImage,
+    newImage
+  );
+}
+
+/**
+ * Records a change
+ *
+ * @param audit Object containing required data to record
+ * @returns The id of the newly added audit
+ */
+export async function record(audit: CrudAuditLike) {
+  try {
+    const { id }: { id: number } = await execute(
+      db.insertInto('crudAudits').values(fromAuditLike(audit).asInsertable).returning('id'),
+      true
+    );
+    return id;
+  } catch (err) {
+    log(5, 'crudAuditQueries.record', 'Error executing query:', err);
+    throw err;
+  }
 }

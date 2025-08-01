@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var dateUtils = require('./js/dateUtils');
+const Logger = require('./js/Logger');
 
 require('dotenv').config({
   silent: true
@@ -83,6 +84,10 @@ let corsConfig = {
 morganLogger.token('timestamp', () => {
   return `[${dateUtils.getTodaysDate('YYYY-MM-DDTHH:mm:ssZ')}]`;
 });
+
+// setup logger used by expense-app-db module
+const auroraLogger = new Logger('expense-app-db');
+require('expense-app-db').log = auroraLogger.log.bind(auroraLogger);
 
 app.use(morganLogger(':timestamp \\__ :method request made to :url with status :status took :response-time ms'));
 app.use(cors(corsConfig));

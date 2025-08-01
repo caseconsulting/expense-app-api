@@ -1,3 +1,6 @@
+import { SqlParameter } from '@aws-sdk/client-rds-data';
+import { sql } from 'kysely';
+
 import { NotificationReason as NotifReasonType } from '../types';
 
 /**
@@ -29,11 +32,25 @@ export class NotificationAudit {
    * @param sentTo Where the notification was sent (e.g. phone number, email)
    * @param reason The reason the notification was sent (i.e. the type of notification)
    */
-  constructor(id: number, createdAt: Date, receiverId: string, sentTo: string, reason: NotifReasonType) {
+  constructor(id: number, createdAt: Date | undefined, receiverId: string, sentTo: string, reason: NotifReasonType) {
     this.id = id;
     this.createdAt = createdAt;
     this.receiverId = receiverId;
     this.sentTo = sentTo;
     this.reason = reason;
+  }
+
+  /**
+   * Serializes a notification audit to be inserted into the database.
+   *
+   * @returns An insertable notification audit. It's cast to any to bypass type checking, but kysely-data-api can safely parse this
+   */
+  get asInsertable(): any {
+    return {
+      ...(this.createdAt && { createdAt: this.createdAt }),
+      receiverId: { value: { stringValue: this.receiverId }, typeHint: 'UUID' } as SqlParameter,
+      sentTo: { value: { stringValue: this.sentTo } } as SqlParameter,
+      reason: sql`${this.reason}::notification_reason`
+    };
   }
 }

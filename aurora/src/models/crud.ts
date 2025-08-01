@@ -1,3 +1,8 @@
+import { SqlParameter } from '@aws-sdk/client-rds-data';
+import { sql } from 'kysely';
+
+import { DynamoTable as DynamoTableType, PortalRole as PortalRoleType } from '../types';
+
 /**
  * Model for the portal_role type
  */
@@ -48,11 +53,11 @@ export class CrudAudit {
    * @param newImage The new value of the changed object/field
    */
   constructor(
-    id: number,
-    createdAt: Date,
+    id: number | undefined,
+    createdAt: Date | undefined,
     actorId: string,
-    actorRole: keyof typeof PortalRole,
-    originTable: keyof typeof DynamoTable,
+    actorRole: PortalRoleType,
+    originTable: DynamoTableType,
     tableItemId: string,
     oldImage: any,
     newImage: any
@@ -65,5 +70,28 @@ export class CrudAudit {
     this.tableItemId = tableItemId;
     this.oldImage = oldImage;
     this.newImage = newImage;
+  }
+
+  /**
+   * Serializes a crud audit to be inserted into the database.
+   *
+   * @returns An insertable crud audit. It's cast to any to bypass type checking, but kysely-data-api can safely parse this
+   */
+  get asInsertable(): any {
+    return {
+      actorId: { value: { stringValue: this.actorId }, typeHint: 'UUID' } as SqlParameter,
+      ...(this.createdAt && { createdAt: this.createdAt }), // only apply createdAt if it's defined on this instance. otherwise the database will assign a value
+      actorRole: sql`${this.actorRole}::portal_role`, // sql treats strings as text, we need to cast to our enum type
+      originTable: sql`${this.originTable}::dynamo_table`,
+      tableItemId: { value: { stringValue: this.tableItemId }, typeHint: 'UUID' } as SqlParameter,
+      oldImage:
+        this.oldImage === null
+          ? null
+          : ({ value: { stringValue: JSON.stringify(this.oldImage) }, typeHint: 'JSON' } as SqlParameter),
+      newImage:
+        this.newImage === null
+          ? null
+          : ({ value: { stringValue: JSON.stringify(this.newImage) }, typeHint: 'JSON' } as SqlParameter)
+    };
   }
 }
