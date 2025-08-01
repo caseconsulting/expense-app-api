@@ -12,16 +12,23 @@ const { SNSClient, ListPhoneNumbersOptedOutCommand, PublishCommand } = require('
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 
+const ExpenseAppDb = require('expense-app-db');
+const { NotifAuditQueries } = require('expense-app-db/queries');
+const { NotificationReason, NotificationAudit } = require('expense-app-db/models');
+
 const { _isCaseReminderDay, _shouldSendCaseEmployeeReminder } = require('./case-helpers.js');
 const { asyncForEach } = require('utils');
 const { getTodaysDate } = require('dateUtils');
-const { NotifAuditQueries } = require('expense-app-db/queries');
-const { NotificationReason, NotificationAudit } = require('expense-app-db/models');
+/** @type {import('../js/Logger.js')} */
+const Logger = require('Logger');
 
 const dbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dbClient);
 const snsClient = new SNSClient({});
 const STAGE = process.env.STAGE;
+
+const auroraLogger = new Logger('expense-app-db');
+ExpenseAppDb.log = auroraLogger.log.bind(auroraLogger);
 
 // only use your own employee number or people you know (don't send messages to random people/employees)
 // make sure the phone number attached to the employee number is your own number

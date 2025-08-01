@@ -51,10 +51,10 @@ export async function execute<Table extends keyof Database, Return>(
  * @param filters
  * @returns The query builder
  */
-export function selectAudits<TABLE extends keyof Database, RETURN>(
-  query: SelectQueryBuilder<Database, TABLE, RETURN>,
+export function selectAudits<Table extends keyof Database, Return>(
+  query: SelectQueryBuilder<Database, Table, Return>,
   filters: AuditQueryFilters
-): SelectQueryBuilder<Database, TABLE, RETURN> {
+): SelectQueryBuilder<Database, Table, Return> {
   const { ref } = db.dynamic;
   const { limit, startDate, endDate } = filters;
 
