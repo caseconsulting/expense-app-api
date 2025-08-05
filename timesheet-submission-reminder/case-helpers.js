@@ -20,6 +20,9 @@ const STAGE = process.env.STAGE;
  * @returns Boolean - True if employees should be notified today
  */
 function _isCaseReminderDay(day) {
+  // return true for testing
+  if (STAGE === 'dev') return { monthly: true, weekly: false, any: true };
+
   // check for monthly reminder day
   let todaySubtracted = false;
   let today = getTodaysDate(DEFAULT_ISOFORMAT);
@@ -141,8 +144,11 @@ async function _getHoursSubmitted(employee, startDate, endDate, options = {}) {
     let resultPayload = await invokeLambda(params);
 
     // extract results, error if needed
-    let { status, code, body: { timesheets }, message = 'Failed to load timesheet data' } = resultPayload;
+    let { status, code, body, message = 'Failed to load timesheet data' } = resultPayload;
     if (resultPayload.status !== 200) throw { status, code, message };
+    let timesheets = body.timesheets[0].timesheets; // extract actual timesheets
+
+    if (employee.employeeNumber === 10079) console.log('timesheets', timesheets);
 
     // return timesheets or duration based on option
     let returnValue;
