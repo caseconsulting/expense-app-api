@@ -570,7 +570,7 @@ class databaseModify {
     logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDynamoObj.id}`);
 
     try {
-      await this._readFromDB(newDynamoObj.id).catch();
+      await this._readFromDB(newDynamoObj.id);
     } catch (err) {
       logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDynamoObj.id}`);
       throw err;

@@ -11,7 +11,7 @@ const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = re
   : '../js/utils');
 const { CrudAuditQueries } = require('expense-app-db/queries');
 const { DynamoTable } = require('expense-app-db/models');
-/** @import databaseModify from '../js/databaseModify*/
+/** @import databaseModify from '../js/databaseModify' */
 /** @import { DynamoTableType } from 'expense-app-db/types' */
 
 const ISOFORMAT = 'YYYY-MM-DD';
