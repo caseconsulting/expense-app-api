@@ -59,14 +59,13 @@ function fromAuditLike(auditLike: CrudAuditLike) {
  * @returns The id of the newly added audit
  */
 export async function record(audit: CrudAuditLike) {
+  const insertable = fromAuditLike(audit).asInsertable;
   try {
-    const { id }: { id: number } = await execute(
-      db.insertInto('crudAudits').values(fromAuditLike(audit).asInsertable).returning('id'),
-      true
-    );
+    const query = db.insertInto('crudAudits').values(insertable).returning('id');
+    const { id }: { id: number } = await execute(query, true);
     return id;
   } catch (err) {
-    log(5, 'crudAuditQueries.record', 'Error executing query:', err);
+    log(5, 'crudAuditQueries.record', 'Error executing query. Audit:', JSON.stringify(insertable), 'Error:', err);
     throw err;
   }
 }

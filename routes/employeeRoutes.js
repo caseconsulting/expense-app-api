@@ -8,6 +8,7 @@ const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expense
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { SNSClient, OptInPhoneNumberCommand } = require('@aws-sdk/client-sns');
+const { DynamoTable } = require('expense-app-db/models');
 /** @import DatabaseModify from '../js/databaseModify' */
 
 const snsClient = new SNSClient({});
@@ -224,14 +225,14 @@ class EmployeeRoutes extends Crud {
 
         await this.recordChange({
           employee: req.employee,
-          table: EMPLOYEES_TABLE,
+          table: DynamoTable.employees,
           oldImage: deletedEmployee,
           newImage: null
         });
 
         await this.recordChange({
           employee: req.employee,
-          table: EMPLOYEES_SENSITIVE_TABLE,
+          table: DynamoTable.employees_sensitive,
           oldImage: deletedSensitive,
           newImage: null
         });
@@ -765,6 +766,7 @@ class EmployeeRoutes extends Crud {
           // update budget in database
           try {
             promises.push(this.budgetDynamo.updateEntryInDB(budgets[i]));
+            // TODO: audit here
 
             // log budget update success
             logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
