@@ -24,6 +24,6 @@ export const db = new Kysely<Database>({
  * @param func Name of the function in which this was called
  * @param args Messages to print
  */
-export let log = (priority: number, func: string, ...args: string[]) => {
+export let log = (priority: number, func: string, ...args: any[]) => {
   console.log(`(${priority}) ${func}:`, ...args);
 };

@@ -11,6 +11,7 @@ const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = re
   : '../js/utils');
 const { CrudAuditQueries } = require('expense-app-db/queries');
 const { DynamoTable } = require('expense-app-db/models');
+/** @import databaseModify from '../js/databaseModify' */
 /** @import { DynamoTableType } from 'expense-app-db/types' */
 
 const ISOFORMAT = 'YYYY-MM-DD';
@@ -42,6 +43,7 @@ class Crud {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+
     this._router.post('/', this._checkJwt, this._getUserInfo, this._createWrapper.bind(this));
     this._router.get('/', this._checkJwt, this._getUserInfo, this._readAllWrapper.bind(this));
     this._router.get('/:id', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
@@ -50,12 +52,16 @@ class Crud {
     this._router.patch('/attributes/:id', this._checkJwt, this._getUserInfo, this._updateAttributesWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
+
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
     this.budgetDynamo = new DatabaseModify('budgets');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
+
+    /** @type {databaseModify} */
+    this.databaseModify;
   } // constructor
 
   /**
@@ -1019,35 +1025,47 @@ class Crud {
         // employee has permission to update table
         let objectUpdated = await this._update(req); // update object
         let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
-        let dataUpdated;
+
         // add object to database
+        let oldImage;
+        let newImage = {};
+
         if (objectValidated.id == req.body.id) {
           // update database if the id's are the same
-          dataUpdated = await this.databaseModify.updateEntryInDB(objectValidated);
+          try {
+            oldImage = await this.databaseModify.updateReturningOld(objectValidated);
+
+            // pick out keys that exist on the old object (which only contains the changed fields)
+            Object.keys(oldImage).forEach((key) => {
+              newImage[key] = objectValidated?.[key] ?? null;
+            });
+
+            // add back the id property
+            oldImage.id = objectValidated.id;
+            newImage.id = objectValidated.id;
+          } catch (err) {
+            logger.log(5, '_udpateWrapper', 'Error with update command:', err);
+            throw err;
+          }
         } else {
           // id's are different (database updated when changing expense types in expenseRoutes)
-          dataUpdated = objectValidated;
-        }
-
-        // log success
-        if (dataUpdated instanceof TrainingUrl) {
-          // updated a training url
-          logger.log(
-            1,
-            '_updateWrapper',
-            `Successfully updated object ${dataUpdated.id} with category ${dataUpdated.category} from`,
-            `${this._getTableName()}`
-          );
-        } else {
-          // updated an expense, expense-type, or employee
-          logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+          newImage = objectValidated;
+          oldImage = null;
         }
 
         // send successful 200 status
-        res.status(200).send(dataUpdated);
+        res.status(200).send(newImage);
+        logger.log(1, '_updateWrapper', `Successfully updated object ${newImage.id} from ${this._getTableName()}`);
+
+        // audit the change
+        this.recordChange({
+          employee: req.employee,
+          oldImage,
+          newImage
+        });
 
         // return updated data
-        return dataUpdated;
+        return newImage;
       } else {
         // employee does not have permissions to update table
         throw {
@@ -1057,7 +1075,7 @@ class Crud {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}:`, err);
 
       // send error status
       this._sendError(res, err);
