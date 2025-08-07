@@ -9,7 +9,6 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 const DatabaseModify = require('../../js/databaseModify');
 const Expense = require('../../models/expense');
-const TrainingUrl = require('../../models/trainingUrls');
 
 describe('databaseModify', () => {
   const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -28,8 +27,6 @@ describe('databaseModify', () => {
   const CATEGORY = '{category}';
   const SHOWONFEED = '{showOnFeed}';
 
-  const HITS = 0;
-
   const EXPENSE_DATA = {
     id: ID,
     purchaseDate: PURCHASE_DATE,
@@ -44,12 +41,6 @@ describe('databaseModify', () => {
     expenseTypeId: ID,
     category: CATEGORY,
     showOnFeed: SHOWONFEED
-  };
-
-  const TRAINING_URL_DATA = {
-    id: URL,
-    category: CATEGORY,
-    hits: HITS
   };
 
   let databaseModify;
@@ -615,24 +606,6 @@ describe('databaseModify', () => {
       });
     }); // when successfully updates an expense in database
 
-    describe('when successfully updates a training url in database', () => {
-      beforeEach(() => {
-        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
-      });
-
-      beforeEach(() => {
-        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        ddbMock.on(PutCommand).resolves({ Data: newDyanmoObj });
-      });
-
-      it('should return the updated object', (done) => {
-        databaseModify.updateEntryInDB(newDyanmoObj).then((data) => {
-          expect(data).toEqual(newDyanmoObj);
-          done();
-        });
-      });
-    }); // when successfully updates a training url in database
-
     describe('when fails to find expense to update in database', () => {
       let err;
 
@@ -658,32 +631,6 @@ describe('databaseModify', () => {
           });
       }); // should return 404 rejected promise
     }); // when fails to find expense to update in database
-
-    describe('when fails to find training url to update in database', () => {
-      let err;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          messge: 'Failed to find entry to update in database.'
-        };
-        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
-        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.reject(err));
-      });
-
-      it('should return a 404 rejected promise', (done) => {
-        databaseModify
-          .updateEntryInDB(newDyanmoObj)
-          .then(() => {
-            fail('expected error to have been thrown');
-            done();
-          })
-          .catch((error) => {
-            expect(error).toEqual(err);
-            done();
-          });
-      }); // should return 404 rejected promise
-    }); // when fails to find training url to update in database
 
     describe('when fails to update expense in database', () => {
       let err;
@@ -711,33 +658,6 @@ describe('databaseModify', () => {
           });
       }); // should return 404 rejected promise
     }); // when fails to update expense in database
-
-    describe('when fails to update training url in database', () => {
-      let err;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          message: 'Failed to update entry in database.'
-        };
-        newDyanmoObj = new TrainingUrl(TRAINING_URL_DATA);
-        spyOn(databaseModify, '_readFromDBUrl').and.returnValue(Promise.resolve('{{ oldExpense }}'));
-        ddbMock.on(PutCommand).rejects(err);
-      });
-
-      it('should return a 404 rejected promise', (done) => {
-        databaseModify
-          .updateEntryInDB(newDyanmoObj)
-          .then(() => {
-            fail('expected error to have been thrown');
-            done();
-          })
-          .catch((error) => {
-            expect(error).toEqual(new Error(err.message));
-            done();
-          });
-      }); // should return 404 rejected promise
-    }); // when fails to update training url in database
   }); // updateEntryInDB
 
   describe('updateAttributesInDB', () => {

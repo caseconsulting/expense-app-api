@@ -1,5 +1,4 @@
 const CrudRoutes = require('../../routes/crudRoutes');
-const TrainingUrls = require('../../models/trainingUrls');
 const _ = require('lodash');
 const dateUtils = require('../../js/dateUtils');
 
@@ -1103,27 +1102,7 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
       });
 
-      describe('creating a Training URL', () => {
-        let trainingUrl;
-
-        beforeEach(() => {
-          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
-          databaseModify.addToDB.and.returnValue(Promise.resolve(trainingUrl));
-        });
-
-        it('should respond with a 200 and data', (done) => {
-          crudRoutes._createWrapper(req, res).then((data) => {
-            expect(data).toEqual(trainingUrl);
-            expect(crudRoutes._create).toHaveBeenCalledWith(BODY_DATA);
-            expect(databaseModify.addToDB).toHaveBeenCalledWith(BODY_DATA);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(trainingUrl);
-            done();
-          });
-        }); // should respond with a 200 and data
-      }); // creating a Training URL
-
-      describe('creating something other than a Training URL', () => {
+      describe('creating something in the database', () => {
         beforeEach(() => {
           databaseModify.addToDB.and.returnValue(Promise.resolve(BODY_DATA));
         });
@@ -1138,7 +1117,7 @@ describe('crudRoutes', () => {
             done();
           });
         }); // should respond with a 200 and data
-      }); // creating something other than a Training URL
+      }); // creating something in the database
     }); // when called without error
 
     describe('when employee does not have permission to create', () => {
@@ -1587,27 +1566,7 @@ describe('crudRoutes', () => {
         }); // should respond with a 403 and error
       }); // when user and object read does not belong to user
 
-      describe('reading a Training URL', () => {
-        let trainingUrl;
-
-        beforeEach(() => {
-          spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
-          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
-          spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(trainingUrl));
-        });
-
-        it('should respond with a 200 and data', (done) => {
-          crudRoutes._readWrapper(req, res).then((data) => {
-            expect(data).toEqual(trainingUrl);
-            expect(crudRoutes._read).toHaveBeenCalledWith(PARAMS_DATA);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(trainingUrl);
-            done();
-          });
-        }); // should respond with a 200 and data
-      }); // reading a Training URL
-
-      describe('reading something other than a Training URL', () => {
+      describe('reading something from the database', () => {
         beforeEach(() => {
           spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(BODY_DATA));
@@ -1622,7 +1581,7 @@ describe('crudRoutes', () => {
             done();
           });
         }); // should respond with a 200 and data
-      }); // reading something other than a Training URL
+      }); // reading something from the database
     }); //when called without error
 
     describe('when employee does not have permission to read', () => {
@@ -1803,28 +1762,6 @@ describe('crudRoutes', () => {
       beforeEach(() => {
         spyOn(crudRoutes, '_checkPermissionToUpdate').and.returnValue(true);
       });
-
-      describe('and updating a Training URL', () => {
-        let trainingUrl;
-
-        beforeEach(() => {
-          trainingUrl = new TrainingUrls({ id: 'id', category: 'category' });
-          req.body = trainingUrl;
-          spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(trainingUrl));
-          databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(trainingUrl));
-        });
-
-        it('should respond with a 200 and data', (done) => {
-          crudRoutes._updateWrapper(req, res).then((data) => {
-            expect(data).toEqual(trainingUrl);
-            expect(crudRoutes._update).toHaveBeenCalledWith(req);
-            expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(trainingUrl);
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.send).toHaveBeenCalledWith(trainingUrl);
-            done();
-          });
-        }); // should respond with a 200 and data
-      }); // and updating a training url
 
       describe('and updated object has the same id', () => {
         beforeEach(() => {

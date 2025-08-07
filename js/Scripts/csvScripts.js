@@ -3,10 +3,10 @@
  * to do this on the fly for whatever data you need, just adding a function to build
  * the specific csv file you want.
  * Try to reuse existing functions, but when you need to make your own, try to make it
- * as modular/generic as possible for future use. This is the "quick and dirty" way to 
+ * as modular/generic as possible for future use. This is the "quick and dirty" way to
  * get a CSV without building the functionality into the Portal, but there's no reason
  * that devs can't have a nice way to do this :)
- * 
+ *
  * node ./js/Scripts/csvSripts.js dev
  * node ./js/Scripts/csvSripts.js test
  * node ./js/Scripts/csvSripts.js prod (must set aws credentials for prod as default)
@@ -44,8 +44,7 @@ const TABLENAMES = {
   GIFTCARDS: `${STAGE}-gift-cards`, // NOT  tested
   JOBAPPLICATIONS: `${STAGE}-job-applications`, // NOT  tested
   PTOCASHOUTS: `${STAGE}-pto-cashouts`, // NOT  tested
-  TAGS: `${STAGE}-tags`, // NOT  tested
-  TRAININGURLS: `${STAGE}-training-urls` // NOT  tested
+  TAGS: `${STAGE}-tags` // NOT  tested
 };
 const TN = TABLENAMES; // shortcut for TABLENAMES
 
@@ -86,7 +85,7 @@ const colors = {
 
 /**
  * Helper to check if account is a real user or something like the Info account
- * 
+ *
  * @param e - employee account object to check
  * @return if account is a real user
  */
@@ -97,7 +96,7 @@ function isRealUser(e) {
 
 /**
  * Helper to check if account is a real user or something like the Info account
- * 
+ *
  * @param e - employee account object to check
  * @return if account is a real user
  */
@@ -110,7 +109,7 @@ function isIntern(e) {
  *  - Real (not Info account or similar)
  *  - Not an intern
  *  - Active full-time or part-time employee
- * 
+ *
  * @param e - employee account object to check
  * @return if account is a real user
  */
@@ -183,7 +182,7 @@ function download(data, filename = null) {
  *  - Contract name
  *  - Prime name of contract employee is on
  *  - Customer org
- * 
+ *
  * @return employee org information as CSV-able object
  */
 async function downloadCustomerOrgInfo() {
@@ -202,12 +201,12 @@ async function downloadCustomerOrgInfo() {
     info = {
       'Employee Number': '',
       'Employee Name': '',
-      'Contracts': '',
-      'Primes': '',
+      Contracts: '',
+      Primes: '',
       'Customer Orgs': ''
     };
     let me = e.employeeNumber == '10079';
-    
+
     // get employee number
     info['Employee Number'] = e.employeeNumber;
 
@@ -215,7 +214,7 @@ async function downloadCustomerOrgInfo() {
     info['Employee Name'] = `${e.lastName}, ${e.firstName}`;
     if (e.middleName) info['Employee Name'] += ` ${e.middleName}`;
     if (e.nickname) info['Employee Name'] += ` (${e.nickname})`;
-    
+
     // get current org(s)
     orgs = []; // orgs
     if (e.customerOrgExp) {
@@ -339,7 +338,7 @@ function confirmAction(scriptNum, scriptDesc) {
 async function main() {
   // array of scripts the user can run
   const actions = [
-    { desc: 'Cancel', action: () => { } },
+    { desc: 'Cancel', action: () => {} },
     {
       desc: 'Download Customer Org Info',
       action: async () => {

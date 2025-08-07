@@ -12,7 +12,7 @@
   - [One Time Deployment for New Environment](#one-time-deployment-for-new-environment)
   - [Error Deploying](#error-deploying)
 - [Lambda Functions](#lambda-functions)
-  - [Chiron](#chiron)
+  - [Chiron](#chiron) (removed)
   - [Chronos](#chronos)
   - [Thanos](#thanos)
   - [Portal Data Sync](#portal-data-sync)
@@ -375,6 +375,8 @@ npm run reinstall
 ## Lambda Functions
 
 ### Chiron
+
+> This function was removed. If any references to it (or other training url scraping functionality) are found, they should be removed.
 
 A nightly function that scrapes metadata from URLs provided in all employee expenses. Database entries will be made from the scraped URL data, the expense category, and the number of times a URL was used.
 
