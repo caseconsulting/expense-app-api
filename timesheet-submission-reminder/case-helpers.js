@@ -127,15 +127,15 @@ async function _getHoursSubmitted(employee, startDate, endDate, options = {}) {
   const statusSubmitted = ['SUBMITTED', 'LOCKED'];
   const statusSaved = [...statusSubmitted, 'INUSE'];
   const { employeeNumber, unanetPersonKey } = employee;
-  
-  try{
+
+  try {
     // Call lambda
     let payload = {
       employeeNumber,
       unanetPersonKey,
       periods: [{ startDate, endDate, title: 'timesheets' }],
       options: { status: allowSaved ? statusSaved : statusSubmitted }
-    }; 
+    };
     let params = {
       FunctionName: `mysterio-get-timesheet-data-${STAGE}`,
       Payload: JSON.stringify(payload),
@@ -147,8 +147,6 @@ async function _getHoursSubmitted(employee, startDate, endDate, options = {}) {
     let { status, code, body, message = 'Failed to load timesheet data' } = resultPayload;
     if (resultPayload.status !== 200) throw { status, code, message };
     let timesheets = body.timesheets[0].timesheets; // extract actual timesheets
-
-    if (employee.employeeNumber === 10079) console.log('timesheets', timesheets);
 
     // return timesheets or duration based on option
     let returnValue;
