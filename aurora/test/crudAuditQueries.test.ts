@@ -1,17 +1,9 @@
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '../.env', quiet: true });
-
-import { expect, test } from '@jest/globals';
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-
+import { expect, test } from '@jest/globals';
 import { db } from '../src';
-import { CrudAudit, DynamoTable, PortalRole } from '../src/models';
+import { CrudAudit, DynamoTable as DynamoTableEnum, PortalRole as PortalRoleEnum } from '../src/models';
 import { selectAudits } from '../src/queries/utils';
 import { fixTimeString } from './utils';
-
-test('Parse env file', () => {
-  expect(process.env.STAGE).toEqual('dev');
-});
 
 // largely to ensure that basic package setup is working, and that camelCase plugin is enabled
 test('Generic select all on a crud audit without filters', () => {
@@ -43,9 +35,9 @@ test('utils.selectAudits() on a crud audit', () => {
 
 // simulates creating a new employee without supplying a date
 test('CrudAudit.asInsertable without date', () => {
-  const creator = { id: 'actor-uuid', employeeRole: PortalRole.admin };
+  const creator = { id: 'actor-uuid', employeeRole: PortalRoleEnum.admin };
   const created = { id: 'receiver-uuid' };
-  const table = DynamoTable.employees;
+  const table = DynamoTableEnum.employees;
 
   const audit = new CrudAudit(
     1, // id should always be ignored when creating
@@ -76,9 +68,9 @@ test('CrudAudit.asInsertable without date', () => {
 
 // simulates creating a new employee with a supplied date
 test('CrudAudit.asInsertable without date', () => {
-  const creator = { id: 'actor-uuid', employeeRole: PortalRole.admin };
+  const creator = { id: 'actor-uuid', employeeRole: PortalRoleEnum.admin };
   const created = { id: 'receiver-uuid' };
-  const table = DynamoTable.employees;
+  const table = DynamoTableEnum.employees;
 
   const audit = new CrudAudit(
     1, // id should always be ignored when creating

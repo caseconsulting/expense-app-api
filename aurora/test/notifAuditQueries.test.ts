@@ -1,6 +1,5 @@
-import { expect, test } from '@jest/globals';
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-
+import { expect, test } from '@jest/globals';
 import { db } from '../src';
 import { NotificationAudit, NotificationReason } from '../src/models';
 import { fixTimeString } from './utils';
