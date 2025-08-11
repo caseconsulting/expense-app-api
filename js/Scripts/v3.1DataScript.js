@@ -19,7 +19,6 @@ const BUDGETS_TABLE = `${STAGE}-budgets`;
 const EMPLOYEES_TABLE = `${STAGE}-employees`;
 const EXPENSES_TABLE = `${STAGE}-expenses`;
 const EXPENSE_TYPES_TABLE = `${STAGE}-expense-types`;
-const TRAINING_URLS_TABLE = `${STAGE}-training-urls`;
 
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
@@ -27,7 +26,6 @@ const Budget = require('./../../models/budget.js');
 const Employee = require('./../../models/employee.js');
 const Expense = require('./../../models/expense.js');
 const ExpenseType = require('./../../models/expenseType.js');
-const TrainingUrl = require('./../../models/trainingUrls.js');
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
@@ -128,37 +126,19 @@ async function removeNull(table) {
     entries = _.map(entriesData, (entry) => {
       return new ExpenseType(entry);
     });
-  } else if (table == TRAINING_URLS_TABLE) {
-    entries = _.map(entriesData, (entry) => {
-      return new TrainingUrl(entry);
-    });
   }
 
-  if (table == TRAINING_URLS_TABLE) {
-    await asyncForEach(entries, async (entry) => {
-      let params = {
-        TableName: table,
-        Item: entry
-      };
-      ddb
-        .send(new PutCommand(params))
-        .then(() => console.log(`Removed null attributes from entry with id: ${entry.id} category: ${entry.category}`))
+  await asyncForEach(entries, async (entry) => {
+    let params = {
+      TableName: table,
+      Item: entry
+    };
+    ddb
+      .send(new PutCommand(params))
+      .then(() => console.log(`Removed null attributes from entry with id: ${entry.id}`))
 
-        .catch((err) => console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2)));
-    });
-  } else {
-    await asyncForEach(entries, async (entry) => {
-      let params = {
-        TableName: table,
-        Item: entry
-      };
-      ddb
-        .send(new PutCommand(params))
-        .then(() => console.log(`Removed null attributes from entry with id: ${entry.id}`))
-
-        .catch((err) => console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2)));
-    });
-  }
+      .catch((err) => console.error('Unable to remove null item. Error JSON:', JSON.stringify(err, null, 2)));
+  });
 
   console.log(`Finished removing empty attributes from ${table}`);
 } // removeNull
@@ -172,7 +152,6 @@ async function main() {
     await removeNull(EMPLOYEES_TABLE); // remove null attributes from employees table
     await removeNull(EXPENSES_TABLE); // remove null attributes from expenses table
     await removeNull(EXPENSE_TYPES_TABLE); // remove null attributes from expense type table
-    await removeNull(TRAINING_URLS_TABLE); // remove null attributes from training url table
   } else {
     console.log('Canceled Update');
   }
