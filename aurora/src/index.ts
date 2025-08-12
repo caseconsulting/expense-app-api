@@ -1,7 +1,6 @@
 import { RDSData } from '@aws-sdk/client-rds-data';
 import { CamelCasePlugin, Kysely } from 'kysely';
 import { DataApiDialect } from 'kysely-data-api';
-
 import { Database } from './types';
 
 export const db = new Kysely<Database>({
@@ -18,7 +17,7 @@ export const db = new Kysely<Database>({
 });
 
 /**
- * The log function used in this module. This has a default implementation but should be overidden.
+ * Logs a message to the console. Can be overidden by client
  *
  * @param priority Log priority level
  * @param func Name of the function in which this was called

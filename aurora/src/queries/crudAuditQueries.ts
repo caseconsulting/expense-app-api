@@ -60,6 +60,7 @@ function fromAuditLike(auditLike: CrudAuditLike) {
  */
 export async function record(audit: CrudAuditLike) {
   const insertable = fromAuditLike(audit).asInsertable;
+
   try {
     const query = db.insertInto('crudAudits').values(insertable).returning('id');
     const { id }: { id: number } = await execute(query, true);

@@ -1,9 +1,5 @@
-// In general, these are meant to be internal helper funcitons within this module and not intended for use elsewhere in
-// the codebase
-
 import { DatabaseResumingException } from '@aws-sdk/client-rds-data';
 import { InsertQueryBuilder, SelectQueryBuilder, sql } from 'kysely';
-
 import { db, log } from '..';
 import { AuditQueryFilters, Database } from '../types';
 
