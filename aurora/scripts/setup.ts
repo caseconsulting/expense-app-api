@@ -1,11 +1,16 @@
 // one-time setup for the entire database schema
 
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '../.env', quiet: true });
-
-import { sql } from 'kysely';
-import { db, log } from '../src';
+import { config as dotenv } from 'dotenv';
+import { Kysely, sql } from 'kysely';
+import { getDb, getLog, initialize } from '../src';
 import { wakeUp } from '../src/queries/utilQueries';
+import { Database } from '../src/types';
+
+dotenv({ path: '../.env', quiet: true });
+
+// these are initialized in main
+let db: Kysely<Database>;
+let log: (priority: number, func: string, ...args: any[]) => void;
 
 async function crudAuditSchema() {
   log(5, 'crudAuditSchema', 'Setting up crud audits schema...');
@@ -126,7 +131,10 @@ async function notifAuditSchema() {
 }
 
 async function main() {
-  await wakeUp(); // wake up database first
+  await initialize();
+  db = getDb();
+  log = getLog();
+  await wakeUp();
   await Promise.all([crudAuditSchema(), notifAuditSchema()]);
 }
 

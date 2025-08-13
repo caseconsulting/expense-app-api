@@ -1,9 +1,18 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-import { expect, test } from '@jest/globals';
-import { db } from '../src';
+import { beforeAll, expect, test } from '@jest/globals';
+import { Kysely } from 'kysely';
+import { getDb, initialize } from '../src';
 import { CrudAudit, DynamoTable as DynamoTableEnum, PortalRole as PortalRoleEnum } from '../src/models';
 import { selectAudits } from '../src/queries/utils';
+import { Database } from '../src/types';
 import { fixTimeString } from './utils';
+
+let db: Kysely<Database>;
+
+beforeAll(async () => {
+  await initialize();
+  db = getDb();
+});
 
 // largely to ensure that basic package setup is working, and that camelCase plugin is enabled
 test('Generic select all on a crud audit without filters', () => {

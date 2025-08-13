@@ -1,4 +1,4 @@
-import { db } from '../index';
+import { getDb } from '../index';
 import { NotificationAudit } from '../models';
 import { NotifAuditQueryFilters } from '../types';
 import { execute, selectAudits } from './utils';
@@ -10,7 +10,7 @@ import { execute, selectAudits } from './utils';
  * @returns The id of the new audit
  */
 export async function insert(audit: NotificationAudit): Promise<number> {
-  const query = db.insertInto('notifications').values(audit.asInsertable).returning('id');
+  const query = getDb().insertInto('notificationAudits').values(audit.asInsertable).returning('id');
   return await execute(query, true);
 }
 
@@ -23,7 +23,7 @@ export async function insert(audit: NotificationAudit): Promise<number> {
 export async function select(filters: NotifAuditQueryFilters): Promise<NotificationAudit[]> {
   const { receiver } = filters;
 
-  let query = db.selectFrom('notifications').selectAll();
+  let query = getDb().selectFrom('notificationAudits').selectAll();
   query = selectAudits(query, filters);
   if (receiver) query = query.where('receiverId', '=', receiver);
   return await execute(query);
