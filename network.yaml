@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Networking resources that are not meant to be updated frequently
+
+Parameters:
+  Stage:
+    Type: String
+    Description: Deployment environment (e.g., dev, test, or prod)
+    AllowedValues: [dev, test, prod]
+
+Conditions:
+  ProdDeployment: !Equals [!Ref Stage, prod]
+
+Resources:
+  AppVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  PrivateSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: "10.0.0.0/24"
+      AvailabilityZone: "us-east-1a"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  PrivateSubnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref AppVpc
+      CidrBlock: "10.0.1.0/24"
+      AvailabilityZone: "us-east-1b"
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+# export all resources for use in other stacks
+Outputs:
+  AppVpcId:
+    Value: !Ref AppVpc
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-vpc-id]]
+
+  PrivateSubnet1Id:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-subnet-1-id]]
+
+  PrivateSubnet2Id:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-subnet-2-id]]
