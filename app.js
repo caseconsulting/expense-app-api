@@ -29,9 +29,6 @@ const expenseTypeRoutes = new ExpenseTypeRoutes();
 const EmployeeRoutes = require('./routes/employeeRoutes');
 const employeeRoutes = new EmployeeRoutes();
 
-const TrainingUrlRoutes = require('./routes/trainingUrlRoutes');
-const trainingUrlRoutes = new TrainingUrlRoutes();
-
 const UtilityRoutes = require('./routes/utilityRoutes');
 const utilityRoutes = new UtilityRoutes();
 
@@ -108,7 +105,6 @@ app.use('/utility', utilityRoutes.router);
 app.use('/budgets', budget.router);
 app.use('/attachment', attachmentRoutes.router);
 app.use('/resume', resumeRoutes.router);
-app.use('/training-urls', trainingUrlRoutes.router);
 app.use('/timesheets', timesheetsRoutes.router);
 app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);

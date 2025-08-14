@@ -518,35 +518,6 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  trainingURLTable:
-    Type: "AWS::DynamoDB::Table"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      TableName: !Join
-        - "-"
-        - - !Ref Stage
-          - training-urls
-      BillingMode: PAY_PER_REQUEST
-      DeletionProtectionEnabled: true
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-        - AttributeName: category
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-        - AttributeName: category
-          KeyType: RANGE
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
   expenseTable:
     Type: "AWS::DynamoDB::Table"
     UpdateReplacePolicy: Retain
@@ -1155,68 +1126,6 @@ Resources:
           STAGE: !Ref Stage
           AWS: lambda
 
-  ChironLambdaRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Join
-        - ""
-        - - expense-api-lambda-chiron-
-          - !Ref Stage
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Path: /
-      Policies:
-        - PolicyName: DynamoDB
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "dynamodb:*"
-                Resource: "*"
-        - PolicyName: CloudWatchLogs
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "logs:*"
-                Resource: "*"
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  ChironFunction:
-    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      Description: Provides the nightly update to training section with extracted expense data.
-      Handler: chiron.handler
-      Layers:
-        - !Ref DependenciesLayer
-        - !Ref SharedLayer
-      Timeout: 900
-      MemorySize: 256
-      CodeUri: chiron/
-      Events:
-        ChironSchedule:
-          Type: Schedule
-          Properties:
-            Schedule: cron(1 5 * * ? *)
-      Environment:
-        Variables:
-          STAGE: !Ref Stage
-          AWS: lambda
-      Role: !GetAtt
-        - ChironLambdaRole
-        - Arn
-
   LeaderboardFunction:
     Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -1232,7 +1141,7 @@ Resources:
         LeaderboardSchedule:
           Type: Schedule
           Properties:
-            Schedule: cron(1 5 * * ? *)
+            Schedule: cron(1 10 * * ? *)
       Environment:
         Variables:
           STAGE: !Ref Stage
