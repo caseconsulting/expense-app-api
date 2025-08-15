@@ -1103,7 +1103,7 @@ describe('crudRoutes', () => {
         spyOn(crudRoutes, '_checkPermissionToCreate').and.returnValue(true);
       });
 
-      describe('creating something other than a Training URL', () => {
+      describe('creating something in the database', () => {
         beforeEach(() => {
           databaseModify.addToDB.and.returnValue(Promise.resolve(BODY_DATA));
         });
@@ -1118,7 +1118,7 @@ describe('crudRoutes', () => {
             done();
           });
         }); // should respond with a 200 and data
-      }); // creating something other than a Training URL
+      }); // creating something in the database
     }); // when called without error
 
     describe('when employee does not have permission to create', () => {
@@ -1567,7 +1567,7 @@ describe('crudRoutes', () => {
         }); // should respond with a 403 and error
       }); // when user and object read does not belong to user
 
-      describe('reading something other than a Training URL', () => {
+      describe('reading something from the database', () => {
         beforeEach(() => {
           spyOn(crudRoutes, '_checkPermissionToRead').and.returnValue(true);
           spyOn(crudRoutes, '_read').and.returnValue(Promise.resolve(BODY_DATA));
@@ -1582,7 +1582,7 @@ describe('crudRoutes', () => {
             done();
           });
         }); // should respond with a 200 and data
-      }); // reading something other than a Training URL
+      }); // reading something from the database
     }); //when called without error
 
     describe('when employee does not have permission to read', () => {

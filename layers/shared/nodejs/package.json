@@ -16,7 +16,6 @@
     "Logger": "file:../../../js/Logger.js",
     "tag": "file:../../../models/tag.js",
     "timesheetUtils": "file:../../../js/utils/timesheet.js",
-    "trainingUrls": "file:../../../models/trainingUrls.js",
     "utils": "file:../../../js/utils.js"
   }
 }
