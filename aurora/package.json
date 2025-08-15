@@ -31,7 +31,8 @@
     "db:setup": "ts-node scripts/setup.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-rds-data": "3.823.0",
+    "@aws-sdk/client-rds": "3.864.0",
+    "@aws-sdk/client-rds-data": "3.864.0",
     "kysely": "0.27.6",
     "kysely-data-api": "2.0.0"
   },

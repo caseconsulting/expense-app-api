@@ -1,16 +1,15 @@
 import { Generated, GeneratedAlways } from 'kysely';
-
 import {
-  DynamoTable as DynamoTableModel,
-  NotificationReason as NotifReasonModel,
-  PortalRole as PortalRoleModel
+  DynamoTable as DynamoTableEnum,
+  NotificationReason as NotifReasonEnum,
+  PortalRole as PortalRoleEnum
 } from './models';
 
 /**
  * Database type for Kysely. Specifies all the tables we use and associates them with a type.
  */
 export interface Database {
-  notifications: NotificationAudit;
+  notificationAudits: NotificationAudit;
   crudAudits: CrudAudit;
 }
 
@@ -38,8 +37,8 @@ export type CrudAuditLike = {
   newImage: { id: string };
 };
 
-export type PortalRole = (typeof PortalRoleModel)[keyof typeof PortalRoleModel]; // i.e. the values of PortalRoleModel
-export type DynamoTable = (typeof DynamoTableModel)[keyof typeof DynamoTableModel];
+export type PortalRole = (typeof PortalRoleEnum)[keyof typeof PortalRoleEnum]; // i.e. the values of PortalRoleModel
+export type DynamoTable = (typeof DynamoTableEnum)[keyof typeof DynamoTableEnum];
 
 /**
  * A row in the notifications table
@@ -52,7 +51,7 @@ export interface NotificationAudit {
   reason: NotificationReason;
 }
 
-export type NotificationReason = (typeof NotifReasonModel)[keyof typeof NotifReasonModel];
+export type NotificationReason = (typeof NotifReasonEnum)[keyof typeof NotifReasonEnum];
 
 /**
  * Common filters for select queries on all audit types

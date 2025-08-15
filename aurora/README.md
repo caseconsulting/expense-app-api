@@ -1,44 +1,66 @@
 # The Aurora Database Module
 
-Contains code for interacting with the [Aurora Serverless](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html) database, which uses [PostgreSQL](https://www.postgresql.org/docs/current/index.html) and the [RDS Data API](https://docs.aws.amazon.com/rdsdataservice/latest/APIReference/Welcome.html)
+This module acts as a wrapper for all interactions with the app's relational database. It entirely handles building postgres queries, setting up the database connection, communicating with the database, and providing types/models to write safer code.
 
 ## Todo List
 
-- Tests! The testing framework is already set up with some examples
-  - Might be good to use some kind of local dummy database (using docker?), so we can test actual postgres queries and have known database data for specific tests
-- (long term) Connect directly to the database instead of using data api. The direct connection would return clearer error messages and is generally more portable
-  - Requires knowledge of how to set up secure access into the vpc
-  - Migrating kysely requires using the pg driver instead of kysely-data-api, and some of the querying functionality (like `CrudAudit.asInsertable`) would need to be modified or ideally removed
-  - This could make it easier to use a better type-adapting system
+- Test queries with a local database in a docker container, the testcontainers library is designed for this
+- Connect directly to the database instead of using data api. The direct connection would return clearer error messages and is generally more portable
+  - Benefits:
+    - More portable
+    - Standard way of connecting to the database, integrates better with existing libraries/frameworks
+    - Enables the usage of kysely's pg adapter, which automatically (de)serializes more types between postgres and js
+  - Rough outline of how to implement this:
+    - Put all lambda functions in the vpc
+    - Create security group for lambda functions to access the open internet
+    - Create security group for lambda functions to access the aurora security group (which should not allow ingress from the open internet)
+    - Figure out how to run the app locally. This will likely require aws client vpn to connect to the database locally
+    - Use kysely's pg driver (already included in kysely) instead of kysely-data-api (which can be uninstalled)
+    - Revamp the querying functionality (like `CrudAudit.asInsertable`) to utilize the new types. Write tests to aid in developing this (seriously it made it so much easier to write this whole module)
 
 ## Usage
 
 ### Installation
 
-This module is a local npm package. It's in package.json for the entire project as well as in the shared lambda layer. The script `install-aurora.sh` packages this module and installs it without using a symlink (which caused issues with running lambda layers locally). It's already in `npm run reinstall`, so you shoudln't need to run the script directly.
+This module is a local npm package. It's in package.json for the entire project as well as in the dependency lambda layer. The script `npm run build:aurora` tests and builds this module. It's already in `npm run reinstall`. Calling `npm run build:aurora && npm i` is faster, but reinstall also installs in lambda layers.
 
-You should use this package like:
+In any app that uses this, you must first initialize the module, which is an asynchronous operation. The `STAGE` environment variable must also exist before calling initialize.
 
 ```js
-const { db } = require('expense-app-db');
+const { config: dotenv } = require('dotenv');
+const { initialize } = require('expense-app-db');
+const { CrudAuditQueries } = require('expense-app-db/queries');
+
+async function main() {
+  await initialize();
+  await CrudAuditQueries.record(...); // cannot be called before awaiting on `initialize`
+}
+
+dotenv(); // load STAGE from .env file
+main();
 ```
 
-> Note that the above code isn't very useful, as you'll see in the later sections
-
-This module depends on the following environment variables:
-
-- `AURORA_CLUSTER_ARN`
-- `AURORA_SECRET_ARN`
-- `AURORA_DB_NAME`
-
-These must exist before importing/requiring this module.
+This initialization process should happen exactly once, sometime very early on in any runtime this module is used in. This includes the main app, standalone scripts, lambda functions, etc.
 
 ### Querying
+
+There are prebuild queries in various namespaces in the queries submodule.
 
 ```js
 const { CrudAuditQueries, NotifAuditQueries } = require('expense-app-db/queries');
 
 const results = await CrudAuditQueries.select(...);
+```
+
+While `db` is exposed via `getDb()` in the main module, its usage should be avoided. Instead, make a query within the module and call the function.
+
+i.e. avoid this:
+
+```js
+const { getDb } = require('expense-app-db');
+
+const db = getDb();
+const result = await db.selectFrom(...).execute();
 ```
 
 ### Types
@@ -52,7 +74,8 @@ To access the types to type-annotate functions and variables, you can import the
 The models folder contains the real class definitions and some 'enums'
 
 ```js
-const { DynamoTable, CrudAudit } = require('expense-app-db/models');
+// I recommend aliasing the enums to avoid confusing them with the types
+const { DynamoTable: DynamoTableEnum, CrudAudit: CrudAuditEnum } = require('expense-app-db/models');
 const audit = new CrudAudit(...);
 ```
 
@@ -61,37 +84,40 @@ When writing code, vscode will give you suggestions for types that use these enu
 ## Examples
 
 - `routes/auditRoutesV2`
-- anything within this folder
-- the `initializeAurora.js` script (specifically for using transactions)
+- this module
 - [Kysely's recipes](https://kysely.dev/docs/category/recipes)
 - [Kysely's examples](https://kysely.dev/docs/category/examples)
 - [kysely-data-api tests](https://github.com/sst/kysely-data-api/blob/master/test/data-api-query-compiler.test.ts)
 
-## Modifying the Databse
-
-If you want to add (or modify) a table or type, a useful place to do that is the `initializeAurora.js` script (you can comment out the existing commands and put in your own, and run it with `npm run init:aurora`), or directly in the RDS console. If you do, save the commands in the `initializeAurora.js` script so that they can be used later if needed, or deployed to a new environment.
-
 ## Contributing
 
-After making changes to this package, run `npm run reinstall` in the project root (not this directory).
+> After making changes to this package, run `npm run reinstall` (or `npm run build:aurora && npm i`, if you're not working with the lambda functions) in the project root (not this directory).
+> When adding files, make sure to expose them as exports in the `index.ts` file found _in the same folder_. Some of them have different structures intentionally, make sure to follow that consistently.
 
-When adding files, make sure to expose them as exports in the `index.ts` file found _in the same folder_. Some of them have different structures intentionally, make sure to follow that consistently.
+If you want to add (or modify) a table or type, a useful place to do that is `scripts/setup.ts` (comment out the other setup function calls and write a new function to setup only the new additions). Make sure to commit the changes so that the schema is clearly defined and the script can be used later if needed.
 
 ### Creating tables in the database
 
-1. To be added to the `Database` type in `types.ts`
-2. Their own type defined similarly to the existing tables
-3. A class in the `models/` folder, and enums if applicable
-4. Queries for the backend to use (refer to the [examples](#examples))
+Add the following:
+
+1. A function to create the tables/types/indexes in the database, in `scripts.setup.ts`
+2. A new property in the `Database` type in `types.ts`
+3. Their own type defined similarly to the existing tables
+4. A class in the `models/` folder, and enums if applicable
+5. Queries in the `queries/` folder (refer to the [examples](#examples)). You don't have to anticipate potentially useful queries, rather just implement them as they are needed.
 
 ### Creating enums
 
-- keys and their corresponding values should be the same, and they should exactly match the enum value from the database
-- define a corresponding type in types.js based on the other examples
+- Make sure the values in the enum exactly match what they are in the postgres enum type
+- Define a corresponding type in `types.ts` based on the other examples
 
 ### Installing into lambda functions
 
 Lambda functions don't install dependencies of symlinked packages. To run a lambda function that depends on this module, you need to install without linking. Reference `timesheet-submission-reminder/invoke-local.sh` to see how this is done. You can copy and modify this script for any new lambda function that uses this module (and add it to .npmignore).
+
+### Tests
+
+In general, tests are most useful for the queries. Types can't really be tested, and models don't needed to be tested unless they're complex enough.
 
 ## Dependencies and Documentation
 
@@ -100,8 +126,9 @@ Lambda functions don't install dependencies of symlinked packages. To run a lamb
 - [PostgreSQL](https://www.postgresql.org/docs/current/index.html) - the database engine
 - [TypeScript](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
 - [Kysely](https://kysely.dev/docs/intro) - builds queries and interacts with the database
-- [Kysely Data API Adapter](https://www.npmjs.com/package/kysely-data-api) - provides support for using kysely via the rds data api
+- [Kysely Data API](https://www.npmjs.com/package/kysely-data-api) - provides support for using kysely via the rds data api
   - Note: this depends on Kysely version `0.27.x`. The latest version of Kysely cannot be used unless this is updated or a fork is made
+- [Jest](https://jestjs.io/docs/getting-started) - testing framework
 
 ## Other Notes
 
