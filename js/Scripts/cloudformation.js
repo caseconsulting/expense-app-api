@@ -98,7 +98,7 @@ async function pack() {
  * Runs the command to deploy a template
  */
 async function deploy() {
-  await wait('npm', ['run', `predeploy:${stage}`], { stdio: 'inherit' });
+  await wait(spawn('npm', ['run', `predeploy:${stage}`], { stdio: 'inherit' }));
 
   await wait(
     spawn(
@@ -133,7 +133,7 @@ async function deploy() {
     )
   );
 
-  await wait('npm', ['run', `postdeploy:${stage}`], { stdio: 'inherit' });
+  await wait(spawn('npm', ['run', `postdeploy:${stage}`], { stdio: 'inherit' }));
 }
 
 async function main() {
