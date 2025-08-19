@@ -1,8 +1,17 @@
 import { SqlParameter } from '@aws-sdk/client-rds-data';
-import { expect, test } from '@jest/globals';
-import { db } from '../src';
+import { beforeAll, expect, test } from '@jest/globals';
+import { Kysely } from 'kysely';
+import { getDb, initialize } from '../src';
 import { NotificationAudit, NotificationReason } from '../src/models';
+import { Database } from '../src/types';
 import { fixTimeString } from './utils';
+
+let db: Kysely<Database>;
+
+beforeAll(async () => {
+  await initialize();
+  db = getDb();
+});
 
 test('NotificationAudit.asInsertable without date', () => {
   const employee = { id: 'receiver-uuid' };
@@ -14,10 +23,10 @@ test('NotificationAudit.asInsertable without date', () => {
     NotificationReason.monthly_timesheet_reminder
   );
 
-  const query = db.insertInto('notifications').values(notif.asInsertable).returning('id').compile();
+  const query = db.insertInto('notificationAudits').values(notif.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "notifications" ("receiver_id", "sent_to", "reason") values (:0, :1, :2::notification_reason) returning "id"'
+    'insert into "notification_audits" ("receiver_id", "sent_to", "reason") values (:0, :1, :2::notification_reason) returning "id"'
   );
 
   expect(query.parameters).toEqual([
@@ -37,10 +46,10 @@ test('NotificationAudit.asInsertable with date', () => {
     NotificationReason.monthly_timesheet_reminder
   );
 
-  const query = db.insertInto('notifications').values(notif.asInsertable).returning('id').compile();
+  const query = db.insertInto('notificationAudits').values(notif.asInsertable).returning('id').compile();
 
   expect(query.sql).toEqual(
-    'insert into "notifications" ("created_at", "receiver_id", "sent_to", "reason") values (:0, :1, :2, :3::notification_reason) returning "id"'
+    'insert into "notification_audits" ("created_at", "receiver_id", "sent_to", "reason") values (:0, :1, :2, :3::notification_reason) returning "id"'
   );
 
   expect(query.parameters).toEqual([

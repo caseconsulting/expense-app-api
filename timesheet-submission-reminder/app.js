@@ -12,7 +12,7 @@ const { SNSClient, ListPhoneNumbersOptedOutCommand, PublishCommand } = require('
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 
-const ExpenseAppDb = require('expense-app-db');
+const aurora = require('expense-app-db');
 const { NotifAuditQueries } = require('expense-app-db/queries');
 const { NotificationReason, NotificationAudit } = require('expense-app-db/models');
 
@@ -26,9 +26,6 @@ const dbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dbClient);
 const snsClient = new SNSClient({});
 const STAGE = process.env.STAGE;
-
-const auroraLogger = new Logger('expense-app-db');
-ExpenseAppDb.log = auroraLogger.log.bind(auroraLogger);
 
 // only use your own employee number or people you know (don't send messages to random people/employees)
 // make sure the phone number attached to the employee number is your own number
@@ -321,6 +318,12 @@ async function _updateAttributeInDB(dynamoObj, attribute, tableName) {
 async function handler(event) {
   try {
     console.log(`Handler Event: ${JSON.stringify(event)}`);
+
+    const auroraLogger = new Logger('expense-app-db');
+    aurora.initialize({
+      log: auroraLogger.log.bind(auroraLogger)
+    });
+
     // only send reminders on last work day at 8pm
     // only send reminders on day after last work day at 7am and 4pm
     let resourceArr = event.resources?.[0]?.split('-');

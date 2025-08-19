@@ -1,6 +1,6 @@
-import { db, log } from '..';
+import { getDb, getLog } from '..';
 import { CrudAudit } from '../models';
-import { CrudAuditLike, CrudAuditQueryFilters, PortalRole as PortalRoleType } from '../types';
+import { CrudAuditLike, CrudAuditQueryFilters, PortalRole } from '../types';
 import { execute, selectAudits } from './utils';
 
 /**
@@ -10,7 +10,7 @@ import { execute, selectAudits } from './utils';
  * @returns The id of the new audit
  */
 export async function insert(audit: CrudAudit): Promise<{ id: number }> {
-  const query = db.insertInto('crudAudits').values(audit.asInsertable).returning('id');
+  const query = getDb().insertInto('crudAudits').values(audit.asInsertable).returning('id');
   return execute(query, true);
 }
 
@@ -24,7 +24,7 @@ export async function insert(audit: CrudAudit): Promise<{ id: number }> {
 export async function select(filters: CrudAuditQueryFilters): Promise<CrudAudit[]> {
   const { actor, table, tableItem } = filters;
 
-  let query = db.selectFrom('crudAudits').selectAll();
+  let query = getDb().selectFrom('crudAudits').selectAll();
   query = selectAudits(query, filters);
 
   if (actor) query = query.where('actorId', '=', actor);
@@ -44,7 +44,7 @@ function fromAuditLike(auditLike: CrudAuditLike) {
     undefined,
     undefined,
     employee.id,
-    employee.employeeRole as PortalRoleType,
+    employee.employeeRole as PortalRole,
     table,
     objectId,
     oldImage,
@@ -62,11 +62,11 @@ export async function record(audit: CrudAuditLike) {
   const insertable = fromAuditLike(audit).asInsertable;
 
   try {
-    const query = db.insertInto('crudAudits').values(insertable).returning('id');
+    const query = getDb().insertInto('crudAudits').values(insertable).returning('id');
     const { id }: { id: number } = await execute(query, true);
     return id;
   } catch (err) {
-    log(5, 'crudAuditQueries.record', 'Error executing query. Audit:', JSON.stringify(insertable), 'Error:', err);
+    getLog()(5, 'crudAuditQueries.record', 'Error executing query. Audit:', JSON.stringify(insertable), 'Error:', err);
     throw err;
   }
 }

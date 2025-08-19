@@ -1,6 +1,6 @@
 import { DatabaseResumingException } from '@aws-sdk/client-rds-data';
 import { InsertQueryBuilder, SelectQueryBuilder, sql } from 'kysely';
-import { db, log } from '..';
+import { getDb, getLog } from '..';
 import { AuditQueryFilters, Database } from '../types';
 
 /**
@@ -27,12 +27,12 @@ export async function execute<Table extends keyof Database, Return>(
     } catch (err) {
       // if database is resuming, retry
       if (err instanceof DatabaseResumingException) {
-        log(1, 'utils.execute', `Database is resuming. Trying again in ${waitFor} seconds...`);
+        getLog()(1, 'utils.execute', `Database is resuming. Trying again in ${waitFor} seconds...`);
         retry = true;
         await new Promise((resolve) => setTimeout(resolve, waitFor * 1000));
       } else {
         // log so we can know where the error originated
-        log(5, 'utils.execute', 'Error executing query:', err);
+        getLog()(5, 'utils.execute', 'Error executing query:', err);
         throw err; // propagate the error because we don't know how to handle it here
       }
     }
@@ -51,7 +51,7 @@ export function selectAudits<Table extends keyof Database, Return>(
   query: SelectQueryBuilder<Database, Table, Return>,
   filters: AuditQueryFilters
 ): SelectQueryBuilder<Database, Table, Return> {
-  const { ref } = db.dynamic;
+  const { ref } = getDb().dynamic;
   const { limit, startDate, endDate } = filters;
 
   if (startDate && endDate) query = query.where(sql<boolean>`${ref('createdAt')} between ${startDate} and ${endDate}`);
