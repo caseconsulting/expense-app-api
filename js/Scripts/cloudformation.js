@@ -23,7 +23,7 @@ const Stages = /** @type {const} */ ({
  *   typeof Stages[keyof Stages]
  * ]}
  */
-// eslint-disable-next-line no-unused-vars
+ 
 const [node, script, template, stage] = proc.argv;
 
 // validate args

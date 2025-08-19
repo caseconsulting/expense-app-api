@@ -1,7 +1,7 @@
 /**
  * Model for the notification_reason type in the audits database
  */
-// eslint-disable-next-line no-unused-vars
+ 
 const NotificationReason = Object.freeze({
   EXPENSE_REVISAL_REQUEST: 'expense_revisal_request',
   EXPENSE_REJECTION: 'expense_rejection',
@@ -14,7 +14,7 @@ const NotificationReason = Object.freeze({
 /**
  * Model for a notification in the audits database
  */
-// eslint-disable-next-line no-unused-vars
+ 
 class Notification {
   constructor(id, createdAt, receiverId, sentTo, reason) {
     /**
