@@ -11,6 +11,6 @@ coverage
 *.pid
 .vscode
 claudia.json
-packaged.yaml
+*packaged.yaml
 env-variables.json
 CSV*Downloads/

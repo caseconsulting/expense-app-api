@@ -4,10 +4,15 @@ const { getTodaysDate, format, isAfter, isValid, startOf, endOf, subtract } = re
   : '../../js/dateUtils');
 
 const { invokeLambda } = require(process.env.AWS ? 'utils' : '../../js/utils');
+const Logger = require(process.env.AWS ? 'Logger' : '../../js/Logger'); // from shared layer
+const logger = new Logger('timesheet');
 
 const STAGE = process.env.STAGE;
 
 async function getTimesheetsDataForEmployee(employee, tags, options = {}) {
+  logger.log(2, 'getTimesheetsDataForEmployee', `employee: ${JSON.stringify(employee)}`);
+  logger.log(2, 'getTimesheetsDataForEmployee', `tags: ${JSON.stringify(tags)}`);
+  logger.log(2, 'getTimesheetsDataForEmployee', `options: ${JSON.stringify(options)}`);
   let code = options.code;
   let periods = options.periods;
   if (!Array.isArray(periods)) periods = [periods];

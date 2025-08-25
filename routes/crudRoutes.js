@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const express = require('express');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
-const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
@@ -125,8 +124,8 @@ class Crud {
   } // calcLegacyCarryover
 
   /**
-   * Check employee permissions to create to a table. A user has permissions to create an expense or training url. An
-   * admin has permissions to create an expense, expense type, employee, or training url. Returns true if the employee
+   * Check employee permissions to create to a table. A user has permissions to create an expense. An
+   * admin has permissions to create an expense, expense type, or employee. Returns true if the employee
    * has permissions, otherwise returns false.
    *
    * @param employee - Employee to check
@@ -141,22 +140,13 @@ class Crud {
     );
 
     // compute method
-    let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'training-urls', 'pto-cashouts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
     let managerPermissions =
-      isManager(employee) &&
-      this._checkTableName(['training-urls', 'expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName([
-        'expenses',
-        'expense-types',
-        'employees',
-        'training-urls',
-        'contracts',
-        'pto-cashouts',
-        'tags'
-      ]);
-    let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'training-urls']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
@@ -226,9 +216,9 @@ class Crud {
   } // _checkPermissionToDelete
 
   /**
-   * Check employee permissions to read from a table. A user has permissions to read an expense, expnse type, or
-   * training url. An admin has permissions to read an expense, expense type, employee, or training url. Returns
-   * true if the employee has permissions, otherwise returns false.
+   * Check employee permissions to read from a table. A user has permissions to read an expense or expense type. An
+   * admin has permissions to read an expense, expense type, or employee. Returns true if the employee has permissions,
+   * otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee permission to read
@@ -242,31 +232,14 @@ class Crud {
     );
 
     // compute method
-    let userPermissions =
-      isUser(employee) && this._checkTableName(['expense-types', 'training-urls', 'contracts', 'pto-cashouts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['expense-types', 'contracts', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName([
-        'expenses',
-        'expense-types',
-        'employees',
-        'training-urls',
-        'contracts',
-        'pto-cashouts',
-        'tags'
-      ]);
-    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
     let managerPermissions =
       isManager(employee) &&
-      this._checkTableName([
-        'employees',
-        'training-urls',
-        'expense-types',
-        'expenses',
-        'contracts',
-        'pto-cashouts',
-        'tags'
-      ]);
+      this._checkTableName(['employees', 'expense-types', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -289,9 +262,9 @@ class Crud {
   } // _checkPermissionToRead
 
   /**
-   * Check employee permissions to read all entries from a table. User has permission to read all expense types,
-   * employees, or training urls. An admin has permissions to read all expenses, expense types, employees, and training
-   * urls. Returns true if the employee has permissions, otherwise returns false.
+   * Check employee permissions to read all entries from a table. User has permission to read all expense types or
+   * employees. An admin has permissions to read all expenses, expense types, and employees. Returns true if the
+   * employee has permissions, otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee permission to read all entries
@@ -304,7 +277,7 @@ class Crud {
       `Checking if employee ${employee.id} has permission to read all entries from the ${this._getTableName()} table`
     );
     // compute method
-    let userPermissions = isUser(employee) && this._checkTableName(['employees', 'training-urls', 'contracts', 'tags']);
+    let userPermissions = isUser(employee) && this._checkTableName(['employees', 'contracts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
       this._checkTableName([
@@ -312,18 +285,16 @@ class Crud {
         'expense-types',
         'employees',
         'employees-sensitive',
-        'training-urls',
         'contracts',
         'pto-cashouts',
         'tags'
       ]);
-    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'training-urls', 'contracts']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
     let managerPermissions =
       isManager(employee) &&
       this._checkTableName([
         'employees',
         'employees-sensitive',
-        'training-urls',
         'expense-types',
         'contracts',
         'pto-cashouts',
@@ -352,9 +323,9 @@ class Crud {
   } // _checkPermissionToReadAll
 
   /**
-   * Check employee permissions to update a table. A user has permissions to update an expense, employee, or training
-   * url. An admin has permissions to update an expense, expense type, employee, or training url. Returns true if the
-   * employee has permissions, otherwise returns false.
+   * Check employee permissions to update a table. A user has permissions to update an expense or employee. An admin
+   * has permissions to update an expense, expense type, or employee. Returns true if the employee has permissions,
+   * otherwise returns false.
    *
    * @param employee - Employee to check
    * @return boolean - employee permission to update
@@ -368,23 +339,13 @@ class Crud {
     );
 
     // compute method
-    let userPermissions =
-      isUser(employee) && this._checkTableName(['expenses', 'employees', 'training-urls', 'pto-cashouts']);
+    let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'employees', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName([
-        'expenses',
-        'expense-types',
-        'employees',
-        'training-urls',
-        'contracts',
-        'pto-cashouts',
-        'tags'
-      ]);
-    let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees', 'training-urls']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees']);
     let managerPermissions =
-      isManager(employee) &&
-      this._checkTableName(['employees', 'training-urls', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
+      isManager(employee) && this._checkTableName(['employees', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
 
     // log result
@@ -440,7 +401,7 @@ class Crud {
     return result;
   } // _checkTableName
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Create an object. Returns the object created.
@@ -452,7 +413,7 @@ class Crud {
     // This function must be overwritten
   } // _create
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Creates a new budget for a given employee and expense type. Returns the budget if successful, otherwise returns
@@ -573,7 +534,7 @@ class Crud {
     }
   } // _createWrapper
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Delete an object. Returns the object deleted.
@@ -585,7 +546,7 @@ class Crud {
     // This function must be overwritten
   } // _delete
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Delete object in database. If successful, sends 200 status request with the object deleted and returns the object.
@@ -767,7 +728,7 @@ class Crud {
     return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
   } // isIsoFormat
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Read an object. Returns the object read.
@@ -779,7 +740,7 @@ class Crud {
     // This function must be overwritten
   } // _read
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Read object in database. If successful, sends 200 status request with the object read and returns the object.
@@ -814,17 +775,7 @@ class Crud {
         }
 
         // log success
-        if (dataRead instanceof TrainingUrl) {
-          // read a training url
-          logger.log(
-            1,
-            '_readWrapper',
-            `Successfully read object ${dataRead.id} with category ${dataRead.category} from ${this._getTableName()}`
-          );
-        } else {
-          // read an expense, expense-type, or employee
-          logger.log(1, '_readWrapper', `Successfully read object ${dataRead.id} from ${this._getTableName()}`);
-        }
+        logger.log(1, '_readWrapper', `Successfully read object ${dataRead.id} from ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataRead);
@@ -934,7 +885,7 @@ class Crud {
     }
   } // _sendError
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Update an object. Returns the object updated.
@@ -946,7 +897,7 @@ class Crud {
     // This function must be overwritten
   } // _update
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
@@ -976,18 +927,7 @@ class Crud {
         }
 
         // log success
-        if (dataUpdated instanceof TrainingUrl) {
-          // updated a training url
-          logger.log(
-            1,
-            '_updateWrapper',
-            `Successfully updated object ${dataUpdated.id} with category ${dataUpdated.category} from`,
-            `${this._getTableName()}`
-          );
-        } else {
-          // updated an expense, expense-type, or employee
-          logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
-        }
+        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataUpdated);
@@ -1013,7 +953,7 @@ class Crud {
     }
   } // _updateWrapper
 
-  // eslint-disable-next-line no-unused-vars
+   
 
   /**
    * Updates an attribute of an object. Returns the object updated.
@@ -1021,7 +961,7 @@ class Crud {
    * @param body - data of object
    * @return Object - object updated
    */
-  // eslint-disable-next-line no-unused-vars
+   
   async _updateAttribute(body) {
     // This function must be overwritten
   } // _updateAttribute
@@ -1086,7 +1026,7 @@ class Crud {
    * @param req - request
    * @return Object - object updated
    */
-  // eslint-disable-next-line no-unused-vars
+   
   async _updateAttributes(req) {
     // This function must be overwritten
   } // _updateAttribute
