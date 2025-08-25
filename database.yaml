@@ -79,7 +79,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
-      DBInstanceIdentifier: expense-app-db-instance # no stage bc it's already in the cluster identifier
+      DBInstanceIdentifier: !Join ["-", [!Ref Stage, expense-app-db-instance]]
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: db.serverless
       Engine: aurora-postgresql
