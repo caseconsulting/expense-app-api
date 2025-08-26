@@ -1,52 +1,7 @@
 const _ = require('lodash');
 
-const REQUIRED_FIELDS = [
-  'id',
-  'email',
-  'employeeNumber',
-  'firstName',
-  'hireDate',
-  'lastName',
-  'workStatus'
-];
-
-const OPTIONAL_FIELDS = [
-  'agencyIdentificationNumber',
-  'awards',
-  'birthdayFeed',
-  'certifications',
-  'clearances',
-  'companies',
-  'contract',
-  'contracts',
-  'customerOrgExp',
-  'cykAoid',
-  'degrees',
-  'deptDate',
-  'education',
-  'github',
-  'icTimeFrames',
-  'jobRole',
-  'jobs',
-  'languages',
-  'lastLogin',
-  'linkedIn',
-  'middleName',
-  'nickname',
-  'noMiddleName',
-  'personalEmail',
-  'personalEmailHidden',
-  'plannedPto',
-  'prime',
-  'publicPhoneNumbers',
-  'schools',
-  'technologies',
-  'timesheetReminders',
-  'unanetPersonKey',
-  'twitter',
-  'mifiStatus',
-  'resumeUpdated',
-];
+const REQUIRED_FIELDS = [];
+const OPTIONAL_FIELDS = [];
 
 class Employee {
   constructor(data) {
@@ -78,12 +33,14 @@ class Employee {
     this.setOptionalAttribute(data, 'education');
     this.setOptionalAttribute(data, 'github');
     this.setOptionalAttribute(data, 'icTimeFrames');
+    this.setOptionalAttribute(data, 'internshipDate');
     this.setOptionalAttribute(data, 'jobRole');
     this.setOptionalAttribute(data, 'jobs');
     this.setOptionalAttribute(data, 'languages');
     this.setOptionalAttribute(data, 'lastLogin');
     this.setOptionalAttribute(data, 'legacyJobCodes');
     this.setOptionalAttribute(data, 'linkedIn');
+    this.setOptionalAttribute(data, 'mifiStatus');
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
@@ -92,13 +49,12 @@ class Employee {
     this.setOptionalAttribute(data, 'plannedPto');
     this.setOptionalAttribute(data, 'prime');
     this.setOptionalAttribute(data, 'publicPhoneNumbers');
+    this.setOptionalAttribute(data, 'resumeUpdated');
     this.setOptionalAttribute(data, 'schools');
     this.setOptionalAttribute(data, 'technologies');
     this.setOptionalAttribute(data, 'timesheetReminders');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'unanetPersonKey');
-    this.setOptionalAttribute(data, 'mifiStatus');
-    this.setOptionalAttribute(data, 'resumeUpdated');
   } // constructor
 
   /**
@@ -167,6 +123,7 @@ class Employee {
     if (!this._isEmpty(data[attribute])) {
       this[attribute] = data[attribute];
     }
+    OPTIONAL_FIELDS.push(attribute);
   } // setOptionalAttribute
 
   /**
@@ -180,6 +137,7 @@ class Employee {
     if (!this._isEmpty(data[attribute])) {
       this[attribute] = fixed ? Number(Number(data[attribute]).toFixed(fixed)) : Number(data[attribute]);
     }
+    OPTIONAL_FIELDS.push(attribute);
   } // setNumberAttribute
 
   /**
@@ -195,6 +153,7 @@ class Employee {
     } else {
       this[attribute] = defaultValue;
     }
+    REQUIRED_FIELDS.push(attribute);
   } // setRequiredAttribute
 
   /**
@@ -211,6 +170,7 @@ class Employee {
     } else {
       this[attribute] = defaultValue;
     }
+    REQUIRED_FIELDS.push(attribute);
   } // setRequiredNumberAttribute
 
   formatData(data) {

@@ -115,8 +115,8 @@ app.use(function (req, res, next) {
 
 // error handler
 //eslint is disabled because we need 4th param but never use it
-/*eslint-disable*/ app.use(function (err, req, res, next) {
-  /*eslint-enable*/
+app.use(function (err, req, res, next) {
+   
 
   // set locals, only providing error in development
   res.locals.message = err.message;
