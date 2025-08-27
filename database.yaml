@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Relational Database Stack. This is separated so snapshot-restorations can be done without affecting the rest of the stack.
+
+Parameters:
+  Stage:
+    Type: String
+    Description: Deployment environment (e.g., dev, test, or prod)
+    AllowedValues: [dev, test, prod]
+
+Conditions:
+  ProdDeployment: !Equals [!Ref Stage, prod]
+
+Resources:
+  # associate the private subnets with the database
+  AuroraSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for expense app database
+      DBSubnetGroupName:
+        !Join ["-", [!Ref Stage, "expense-app-db-subnet-group"]]
+      SubnetIds: [
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-subnet-1-id]],
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-subnet-2-id]], # from network.yaml exports
+        ] # from network.yaml exports
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for expense app aurora database
+      VpcId:
+        Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-vpc-id]] # from network.yaml exports
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # the cluster manages most of the permissions and authentication for its instances
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DatabaseName: !Join ["_", [!Ref Stage, expense_app_db]]
+      DBClusterIdentifier: !Join ["-", [!Ref Stage, expense-app-db-cluster]]
+      DBSubnetGroupName: !Ref AuroraSubnetGroup
+      DeletionProtection: true
+      EnableHttpEndpoint: true
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      ManageMasterUserPassword: true
+      MasterUsername: consultwithcase
+      Port: 5432
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0
+        MaxCapacity: !If [ProdDeployment, 64, 8] # reduce max on dev/test
+        SecondsUntilAutoPause: 1800 # 30 minutes
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+  # this is the actual database
+  AuroraInstance:
+    Type: AWS::RDS::DBInstance
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      DBInstanceIdentifier: !Join ["-", [!Ref Stage, expense-app-db-instance]]
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
+Outputs:
+  ClusterArn:
+    Value: !GetAtt AuroraCluster.DBClusterArn
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-cluster-arn]]
+  Secret:
+    Value: !GetAtt AuroraCluster.MasterUserSecret.SecretArn
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-cluster-secret-arn]]

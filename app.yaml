@@ -1,15 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
-Description: CloudFormation for expense app
+Description: Expense app business-logic resources that can be frequently redeployed
 
 Parameters:
   Stage:
     Type: String
     Description: Deployment environment (e.g., dev, test, or prod)
-    AllowedValues:
-      - dev
-      - test
-      - prod
+    AllowedValues: [dev, test, prod]
   AppCertificate:
     Description: The ARN for the app certificate saved in ACM
     Type: String
@@ -36,9 +33,7 @@ Globals:
       Stage: !Ref Stage
 
 Conditions:
-  ProdDeployment: !Equals
-    - !Ref Stage
-    - prod
+  ProdDeployment: !Equals [!Ref Stage, prod]
 
 Resources:
   cloudFrontOriginAccessIdentity:
@@ -518,35 +513,6 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  trainingURLTable:
-    Type: "AWS::DynamoDB::Table"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      TableName: !Join
-        - "-"
-        - - !Ref Stage
-          - training-urls
-      BillingMode: PAY_PER_REQUEST
-      DeletionProtectionEnabled: true
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-        - AttributeName: category
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-        - AttributeName: category
-          KeyType: RANGE
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
   expenseTable:
     Type: "AWS::DynamoDB::Table"
     UpdateReplacePolicy: Retain
@@ -845,124 +811,6 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  AppVpc:
-    Type: AWS::EC2::VPC
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      CidrBlock: "10.0.0.0/16"
-      EnableDnsHostnames: true
-      EnableDnsSupport: true
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  # first subnet for aurora db (aurora requires 2 subnets)
-  AuroraPrimarySubnet:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref AppVpc
-      CidrBlock: "10.0.0.0/24"
-      AvailabilityZone: "us-east-1a"
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  # second subnet
-  AuroraSecondarySubnet:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref AppVpc
-      CidrBlock: "10.0.1.0/24"
-      AvailabilityZone: "us-east-1b"
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  # associate the subnets with the database
-  AuroraSubnetGroup:
-    Type: "AWS::RDS::DBSubnetGroup"
-    Properties:
-      DBSubnetGroupDescription: "Subnet group for expense app database"
-      DBSubnetGroupName: !Join
-        - "-"
-        - - !Ref Stage
-          - "expense-app-db-subnet-group"
-      SubnetIds:
-        - !Ref AuroraPrimarySubnet
-        - !Ref AuroraSecondarySubnet
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  AuroraSecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
-    Properties:
-      GroupDescription: "Security group for expense app aurora database"
-      VpcId: !Ref AppVpc
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 3306
-          ToPort: 3306
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  # the cluster manages most of the permissions and authentication for its instances
-  AuroraCluster:
-    Type: "AWS::RDS::DBCluster"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      DBSubnetGroupName: !Ref AuroraSubnetGroup
-      DatabaseName: !Join
-        - "_"
-        - - !Ref Stage
-          - "expense_app_db"
-      DeletionProtection: true
-      EnableHttpEndpoint: true
-      Engine: "aurora-postgresql"
-      EngineMode: "provisioned"
-      MasterUsername: "consultwithcase"
-      ManageMasterUserPassword: true
-      ServerlessV2ScalingConfiguration:
-        MinCapacity: 0
-        MaxCapacity: 1
-        SecondsUntilAutoPause: 1800
-      VpcSecurityGroupIds:
-        - !Ref AuroraSecurityGroup
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  # this is the actual database
-  AuroraInstance:
-    Type: "AWS::RDS::DBInstance"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      DBClusterIdentifier: !Ref AuroraCluster
-      DBInstanceClass: "db.serverless"
-      Engine: "aurora-postgresql"
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
   ExpenseAppApiLambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -1030,6 +878,30 @@ Resources:
               - Effect: Allow
                 Action: "rekognition:*"
                 Resource: "*"
+        - PolicyName: RdsDataApi
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds-data:*
+                Resource:
+                  Fn::ImportValue: !Join [
+                      "-",
+                      [!Ref Stage, expense-app-cluster-arn],
+                    ] # from database.yaml exports
+        - PolicyName: AuroraSecretAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  Fn::ImportValue: !Join [
+                      "-",
+                      [!Ref Stage, expense-app-cluster-secret-arn],
+                    ] # from database.yaml exports
       Tags:
         - Key: Application
           Value: expense-app
@@ -1155,68 +1027,6 @@ Resources:
           STAGE: !Ref Stage
           AWS: lambda
 
-  ChironLambdaRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Join
-        - ""
-        - - expense-api-lambda-chiron-
-          - !Ref Stage
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Path: /
-      Policies:
-        - PolicyName: DynamoDB
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "dynamodb:*"
-                Resource: "*"
-        - PolicyName: CloudWatchLogs
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "logs:*"
-                Resource: "*"
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
-  ChironFunction:
-    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-    Properties:
-      Description: Provides the nightly update to training section with extracted expense data.
-      Handler: chiron.handler
-      Layers:
-        - !Ref DependenciesLayer
-        - !Ref SharedLayer
-      Timeout: 900
-      MemorySize: 256
-      CodeUri: chiron/
-      Events:
-        ChironSchedule:
-          Type: Schedule
-          Properties:
-            Schedule: cron(1 5 * * ? *)
-      Environment:
-        Variables:
-          STAGE: !Ref Stage
-          AWS: lambda
-      Role: !GetAtt
-        - ChironLambdaRole
-        - Arn
-
   LeaderboardFunction:
     Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -1331,6 +1141,24 @@ Resources:
                 - logs:PutLogEvents
               Effect: Allow
               Resource: "*"
+        # - Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - rds-data:*
+        #       Resource:
+        #         Fn::ImportValue: !Join [
+        #             "-",
+        #             [!Ref Stage, expense-app-cluster-arn],
+        #           ] # from database.yaml exports
+        # - Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - secretsmanager:GetSecretValue
+        #       Resource:
+        #         Fn::ImportValue: !Join [
+        #             "-",
+        #             [!Ref Stage, expense-app-cluster-secret-arn],
+        #           ] # from database.yaml exports
 
   TimesheetSubmissionReminderFunctionLogGroup:
     Type: AWS::Logs::LogGroup

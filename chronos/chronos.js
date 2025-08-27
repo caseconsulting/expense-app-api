@@ -247,7 +247,7 @@ async function start() {
  * @return Object - response
  */
 async function handler(event) {
-  console.info(JSON.stringify(event)); // eslint-disable-line no-console
+  console.info(JSON.stringify(event));  
 
   return lib.start();
 } // handler

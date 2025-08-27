@@ -13,7 +13,6 @@ const {
   QueryCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
-const TrainingUrl = require(process.env.AWS ? 'trainingUrls' : '../models/trainingUrls');
 const Logger = require(process.env.AWS ? 'Logger' : './Logger');
 
 const documentClient = DynamoDBDocumentClient.from(
@@ -570,31 +569,14 @@ class databaseModify {
     let tableName = this.tableName;
     logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
 
-    // compute method
-    if (newDyanmoObj instanceof TrainingUrl) {
-      // updating a training url
-      await this._readFromDBUrl(newDyanmoObj.id, newDyanmoObj.category).catch((err) => {
-        // log error
-        logger.log(
-          4,
-          'updateEntryInDB',
-          `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id} and category`,
-          `${newDyanmoObj.category}`
-        );
+    // updated an expense, expense-type, or employee
+    await this._readFromDB(newDyanmoObj.id).catch((err) => {
+      // log error
+      logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
 
-        // throw error
-        throw err;
-      });
-    } else {
-      // updated an expense, expense-type, or employee
-      await this._readFromDB(newDyanmoObj.id).catch((err) => {
-        // log error
-        logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
-
-        // throw error
-        throw err;
-      });
-    }
+      // throw error
+      throw err;
+    });
 
     const params = {
       TableName: tableName,
