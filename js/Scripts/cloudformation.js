@@ -6,7 +6,8 @@ const { spawn } = require('child_process');
 const Templates = /** @type {const} */ ({
   app: 'app',
   database: 'database',
-  network: 'network'
+  network: 'network',
+  support: 'support'
 });
 
 const Stages = /** @type {const} */ ({
@@ -23,7 +24,7 @@ const Stages = /** @type {const} */ ({
  *   typeof Stages[keyof Stages]
  * ]}
  */
- 
+
 const [node, script, template, stage] = proc.argv;
 
 // validate args
