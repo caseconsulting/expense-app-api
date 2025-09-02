@@ -8,7 +8,7 @@ const Templates = /** @type {const} */ ({
   database: 'database',
   network: 'network',
   support: 'support'
-});
+}); 
 
 const Stages = /** @type {const} */ ({
   dev: 'dev',
