@@ -56,7 +56,7 @@ class AuditRoutesV2 {
     logger.log(5, 'getCrudAudits', `Received query: ${req.query}`);
 
     try {
-      const results = await CrudAuditQueries.select(req.body);
+      const results = await CrudAuditQueries.select(req.query);
 
       logger.log(5, 'getCrudAudits', `The database responded with ${results.length} records`);
       res.status(200).json(results);
