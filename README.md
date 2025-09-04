@@ -195,7 +195,7 @@ npm run testLambdaLocal {LambdaOption}
 
 Add a new test
 
-1. In **testLocalScript.js** file in the Lambdas section add a new object key in the **lambdas** JSON object.
+1. In **test-local.js** file in the Lambdas section add a new object key in the **lambdas** JSON object.
 
 - For that new key create a JSON object with 2 key pairs: function and event.
 - **function** should be set to the pathTo the file location of the Lambda function you want to test
