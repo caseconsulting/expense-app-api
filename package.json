@@ -15,7 +15,7 @@
     "csvScripts:prod": "node ./js/Scripts/csvScripts.js prod",
     "csvScripts:test": "node ./js/Scripts/csvScripts.js test",
     "debug": "nodemon --trace-warnings --inspect bin/www",
-    "deploy:cloudformation": "node js/Scripts/cloudformation.js",
+    "deploy:cloudformation": "node scripts/aws/cloudformation/deploy.js",
     "deploy:cloudformation:dev": "aws cloudformation deploy --template-file packaged.yaml --s3-bucket case-expense-app-deployments-dev --s3-prefix cloudformation --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-dev --region us-east-1",
     "deploy:cloudformation:prod": "aws cloudformation deploy --template-file packaged.yaml --s3-bucket case-consulting-expense-app-deployments-prod --s3-prefix cloudformation --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-prod --region us-east-1",
     "deploy:cloudformation:test": "aws cloudformation deploy --template-file packaged.yaml --s3-bucket case-expense-app-deployments-test --s3-prefix cloudformation --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name expense-app-test --region us-east-1",
