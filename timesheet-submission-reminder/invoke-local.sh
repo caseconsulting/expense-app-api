@@ -12,7 +12,7 @@ cd $CWD
 sam local invoke TimesheetSubmissionReminderFunction \
   --env-vars env.json \
   --event ./timesheet-submission-reminder/timesheetEvent.json \
-  --template CloudFormation.yaml
+  --template app.yaml
 
 # install aurora normally again
 cd $CWD/layers/dependencies/nodejs
