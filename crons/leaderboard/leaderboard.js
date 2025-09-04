@@ -75,7 +75,7 @@ async function removeLeaderboardDataForEmployees(employees) {
  * @param event - request
  */
 async function handler(event) {
-  console.info(JSON.stringify(event)); // eslint-disable-line no-console
+  console.info(JSON.stringify(event));  
   if (['prod', 'test'].includes(STAGE)) {
     await getLeaderboardData();
   } else {

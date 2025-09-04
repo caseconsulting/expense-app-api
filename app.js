@@ -111,15 +111,14 @@ app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/tags', tagRoutes.router);
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
+app.use((_req, _res, next) => {
   const err = new Error(' No Route Found');
   err.status = 404;
   next(err);
 });
 
 // error handler
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

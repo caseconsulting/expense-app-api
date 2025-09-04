@@ -1,7 +1,0 @@
-.aws-sam
-.nyc_output
-coverage
-logs
-node_modules
-aurora/dist
-aurora/node_modules

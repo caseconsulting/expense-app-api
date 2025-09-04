@@ -427,7 +427,7 @@ class Crud {
     return result;
   } // _checkTableName
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Create an object. Returns the object created.
@@ -439,7 +439,7 @@ class Crud {
     // This function must be overwritten
   } // _create
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Creates a new budget for a given employee and expense type. Returns the budget if successful, otherwise returns
@@ -563,7 +563,7 @@ class Crud {
     }
   } // _createWrapper
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Delete an object. Returns the object deleted.
@@ -575,7 +575,7 @@ class Crud {
     // This function must be overwritten
   } // _delete
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Delete object in database. If successful, sends 200 status request with the object deleted and returns the object.
@@ -788,7 +788,7 @@ class Crud {
     return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
   } // isIsoFormat
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Read an object. Returns the object read.
@@ -800,7 +800,7 @@ class Crud {
     // This function must be overwritten
   } // _read
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Read object in database. If successful, sends 200 status request with the object read and returns the object.
@@ -945,7 +945,7 @@ class Crud {
     }
   } // _sendError
 
-  /* eslint-disable no-unused-vars */
+   
 
   /**
    * Update an object. Returns the object updated.
@@ -957,7 +957,7 @@ class Crud {
     // This function must be overwritten
   } // _update
 
-  /* eslint-enable no-unused-vars */
+   
 
   /**
    * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
@@ -1036,7 +1036,7 @@ class Crud {
     }
   } // _updateWrapper
 
-  // eslint-disable-next-line no-unused-vars
+   
 
   /**
    * Updates an attribute of an object. Returns the object updated.
@@ -1044,7 +1044,7 @@ class Crud {
    * @param body - data of object
    * @return Object - object updated
    */
-  // eslint-disable-next-line no-unused-vars
+   
   async _updateAttribute(body) {
     // This function must be overwritten
   } // _updateAttribute
@@ -1109,7 +1109,7 @@ class Crud {
    * @param req - request
    * @return Object - object updated
    */
-  // eslint-disable-next-line no-unused-vars
+   
   async _updateAttributes(req) {
     // This function must be overwritten
   } // _updateAttribute
