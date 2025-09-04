@@ -181,9 +181,6 @@ npm run receiptSync:prod
 
 ## Testing Lambda Functions Locally Without Docker
 
-In the main directory there should be a **testLocalScript.js** file.
-This file contains a script that helps test Lambda functions locally.
-
 You can see all the current lambda function tests by running command:
 
 ```

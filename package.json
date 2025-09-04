@@ -90,7 +90,7 @@
     "tag:test": "claudia tag --tags Application=expense-app,Stage=test",
     "test": "jasmine",
     "test-coverage": "nyc --reporter=text --reporter=html --exclude=spec/** jasmine",
-    "testLambdaLocal": "node testLocalScript.js",
+    "testLambdaLocal": "node scripts/aws/lambda/test-local.js",
     "update:dev": "node ./generateEnvJson.js && claudia update --runtime nodejs20.x --handler lambda.handler --use-s3-bucket case-expense-app-deployments-dev --s3-key claudiajs/file.zip --memory 256 --update-env-from-json ./env-variables.json --timeout 60 --version dev",
     "update:prod": "node ./generateEnvJson.js && claudia update --runtime nodejs20.x --handler lambda.handler --use-s3-bucket case-consulting-expense-app-deployments-prod --s3-key claudiajs/file.zip --memory 256 --update-env-from-json ./env-variables.json --timeout 60 --version prod",
     "update:test": "node ./generateEnvJson.js && claudia update --runtime nodejs20.x --handler lambda.handler --use-s3-bucket case-expense-app-deployments-test --s3-key claudiajs/file.zip --memory 256 --update-env-from-json ./env-variables.json --timeout 60 --version test",
