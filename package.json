@@ -117,6 +117,7 @@
     "@aws-sdk/client-ses": "3.864.0",
     "@aws-sdk/client-sns": "3.864.0",
     "@aws-sdk/client-textract": "3.864.0",
+    "@aws-sdk/credential-providers": "3.864.0",
     "@aws-sdk/lib-dynamodb": "3.868.0",
     "@aws-sdk/s3-request-presigner": "3.864.0",
     "atob": "2.1.2",
