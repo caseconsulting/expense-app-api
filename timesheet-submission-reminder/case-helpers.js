@@ -26,15 +26,18 @@ function _isCaseReminderDay(day) {
   // check for monthly reminder day
   let todaySubtracted = false;
   let today = getTodaysDate(DEFAULT_ISOFORMAT);
+
   if (isSame(today, startOf(today, 'month'), 'day')) {
     today = subtract(today, 1, 'day', DEFAULT_ISOFORMAT);
     todaySubtracted = true;
   }
+
   let lastDay = endOf(today, 'month');
   let isoWeekDay = getIsoWeekday(lastDay);
   let daysToSubtract = Math.max(isoWeekDay - 5, 0);
   let lastWorkDay = subtract(lastDay, daysToSubtract, 'day', DEFAULT_ISOFORMAT);
   let lastWorkDayPlusOne = add(lastWorkDay, 1, 'day', DEFAULT_ISOFORMAT);
+
   let isMonthlyReminderDay =
     (isSame(today, lastWorkDay, 'day') && !todaySubtracted && day === 1) ||
     (isSame(today, lastWorkDayPlusOne, 'day') && !todaySubtracted && day === 2) ||

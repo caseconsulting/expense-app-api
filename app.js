@@ -1,10 +1,10 @@
-var express = require('express');
-var path = require('path');
-var morganLogger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var cors = require('cors');
-var dateUtils = require('./js/dateUtils');
+const express = require('express');
+const path = require('path');
+const morganLogger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const dateUtils = require('./js/dateUtils');
 
 require('dotenv').config({
   silent: true
@@ -52,6 +52,9 @@ const googleMapRoutes = new GoogleMapRoutes();
 const AuditRoutes = require('./routes/auditRoutes');
 const auditRoutes = new AuditRoutes();
 
+const AuditRoutesV2 = require('./routes/auditRoutesV2');
+const auditRoutesV2 = new AuditRoutesV2();
+
 const ContractRoutes = require('./routes/contractRoutes');
 const contractRoutes = new ContractRoutes();
 
@@ -64,7 +67,7 @@ const ptoCashOutRoutes = new PTOCashOutRoutes();
 const TagRoutes = require('./routes/tagRoutes');
 const tagRoutes = new TagRoutes();
 
-var app = express();
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -102,22 +105,20 @@ app.use('/basecamp', basecampRoutes.router);
 app.use('/emsi', emsiRoutes.router);
 app.use('/googleMaps', googleMapRoutes.router);
 app.use('/audits', auditRoutes.router);
+app.use('/auditsV2', auditRoutesV2.router);
 app.use('/contracts', contractRoutes.router);
 app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/tags', tagRoutes.router);
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  var err = new Error(' No Route Found');
+app.use((_req, _res, next) => {
+  const err = new Error(' No Route Found');
   err.status = 404;
   next(err);
 });
 
 // error handler
-//eslint is disabled because we need 4th param but never use it
-app.use(function (err, req, res, next) {
-   
-
+app.use((err, req, res, _next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

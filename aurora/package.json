@@ -1,0 +1,46 @@
+{
+  "name": "expense-app-db",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./queries": {
+      "require": "./dist/queries/index.js",
+      "types": "./dist/queries/index.d.ts"
+    },
+    "./models": {
+      "require": "./dist/models/index.js",
+      "types": "./dist/models/index.d.ts"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo expense-app-db-*.tgz",
+    "test": "jest",
+    "db:setup": "ts-node scripts/setup.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-rds": "3.864.0",
+    "@aws-sdk/client-rds-data": "3.864.0",
+    "kysely": "0.27.6",
+    "kysely-data-api": "2.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.1",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

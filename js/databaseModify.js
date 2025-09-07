@@ -561,45 +561,98 @@ class databaseModify {
   /**
    * Updates an entry in the dynamodb table.
    *
-   * @param newDyanmoObj - object to update dynamodb entry to
-   * @return Object - object updated in dynamodb
+   * @param {*} newDynamoObj - object to update dynamodb entry to
+   * @return {*} object updated in dynamodb
    */
-  async updateEntryInDB(newDyanmoObj) {
+  async updateEntryInDB(newDynamoObj) {
     // log method
     let tableName = this.tableName;
-    logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+    logger.log(4, 'updateEntryInDB', `Attempting to update entry in ${tableName} with ID ${newDynamoObj.id}`);
 
-    // updated an expense, expense-type, or employee
-    await this._readFromDB(newDyanmoObj.id).catch((err) => {
-      // log error
-      logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDyanmoObj.id}`);
-
-      // throw error
+    try {
+      await this._readFromDB(newDynamoObj.id);
+    } catch (err) {
+      logger.log(4, 'updateEntryInDB', `Failed to find entry to update in ${tableName} with ID ${newDynamoObj.id}`);
       throw err;
-    });
+    }
 
-    const params = {
-      TableName: tableName,
-      Item: newDyanmoObj
-    };
-
-    const putCommand = new PutCommand(params);
+    const putCommand = new PutCommand({ TableName: tableName, Item: newDynamoObj });
     return documentClient
       .send(putCommand)
       .then(() => {
         // log success
-        logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDyanmoObj.id}`);
+        logger.log(4, 'updateEntryInDB', `Successfully updated entry in ${tableName} with ID ${newDynamoObj.id}`);
 
-        return newDyanmoObj;
+        return newDynamoObj;
       })
       .catch(function (err) {
         // log error
-        logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDyanmoObj.id}`);
+        logger.log(4, 'updateEntryInDB', `Failed to update entry in ${tableName} with ID ${newDynamoObj.id}`);
 
         // throw error
         throw err;
       });
   } // updateEntryInDB
+
+  /**
+   * Updates an entry (without creating a new one) and returns the original values of the changed fields. Uses the uuid
+   * of the object to identify which item to update. The uuid of an entry cannot be changed
+   *
+   * @template {{ id: string }} T
+   * @param {T} newDynamoObj The new value
+   * @returns {Promise<Partial<Omit<T, 'id'>>>} The old entry without the unmodified fields
+   */
+  async updateReturningOld(newDynamoObj) {
+    logger.log(
+      5,
+      'updateReturningOld',
+      `Attempting to update entry with id ${newDynamoObj.id} in table ${this.tableName}`
+    );
+    const keys = Object.keys(newDynamoObj).filter((key) => key !== 'id'); // remove id key, we don't want to change that
+
+    // build the update expression
+    const UpdateExpression = `set ${
+      keys
+        .map((key, i) => `#k${i} = :v${i}`) // enumerate placeholders to uniquely identify them
+        .join(', ') // separate with commas
+    }`;
+    const ExpressionAttributeNames = {};
+    const ExpressionAttributeValues = {};
+
+    // set expression names and values to correspond with palceholders set above
+    keys.forEach((key, i) => {
+      ExpressionAttributeNames[`#k${i}`] = key;
+      ExpressionAttributeValues[`:v${i}`] = newDynamoObj[key];
+    });
+
+    const updateCommand = new UpdateCommand({
+      TableName: this.tableName,
+      Key: { id: newDynamoObj.id },
+      UpdateExpression,
+      ExpressionAttributeNames,
+      ExpressionAttributeValues,
+      ConditionExpression: 'attribute_exists(id)',
+      ReturnValues: 'UPDATED_OLD'
+    });
+
+    try {
+      const { Attributes: oldAttributes } = await documentClient.send(updateCommand);
+      logger.log(
+        5,
+        'updateReturningOld',
+        `Successfully updated entry with id ${newDynamoObj.id} in table ${this.tableName}`
+      );
+      return oldAttributes;
+    } catch (err) {
+      logger.log(
+        5,
+        'updateReturningOld',
+        `Failed to update entry with id ${newDynamoObj.id} in table ${this.tableName} with error`,
+        err
+      );
+      throw err;
+    }
+  }
 
   /**
    * Updates an entry in the dynamodb table.
@@ -638,7 +691,7 @@ class databaseModify {
    * Updates multiple attributes for an entry in the dynamodb table.
    *
    * @param dynamoObj - object with values to update
-   * @param {[{table: string, attributes: string[]}]} table objects containing table name and attributes to update
+   * @param {[{table: string, attributes: string[]}]} tables objects containing table name and attributes to update
    * @return Object - object updated in dynamodb
    */
   static async updateAttributesInDB(dynamoObj, tables) {

@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { S3Client, CopyObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const { DynamoTable } = require('expense-app-db/models');
 const Budget = require(process.env.AWS ? 'budget' : '../models/budget');
 const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
 const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
@@ -25,15 +26,14 @@ class ExpenseRoutes extends Crud {
     this.s3Client = s3Client;
   } // constructor
 
-  
   /**
    * Helper to validate expenses with a monthlyLimit, eg used in _validateAdd and _validateUpdate.
-   * 
+   *
    * @param oldExpense old version of expense (optional, set to undefined if this is not an update)
    * @param expense expense to validate
    * @param employee employee attached to expense
    * @param expenseType type of expense
-   * 
+   *
    * @return true if expense if valid concerning monthlyLimit, else false
    */
   async _monthlyLimitValidate(oldExpense, expense, employee, expenseType) {
@@ -676,22 +676,38 @@ class ExpenseRoutes extends Crud {
 
         let objectCreated = await this._create(newExpense); // create expense
         let objectValidated = await this._validateInputs(objectCreated); // validate inputs
-        await this.databaseModify.addToDB(objectValidated); // add object to database
+        // add new expense to database
+        const createdExpense = await this.databaseModify.addToDB(objectValidated);
+        this.recordChange({
+          employee: req.employee,
+          table: DynamoTable.expenses,
+          oldImage: null,
+          newImage: createdExpense
+        });
+
         await this._updateBudgets(oldExpense, undefined, employee, oldExpenseType);
-        await this.databaseModify.removeFromDB(oldExpense.id); // remove old expense from database
+
+        // remove old expense from database
+        const deletedExpense = await this.databaseModify.removeFromDB(oldExpense.id);
+        this.recordChange({
+          employee: req.employee,
+          table: DynamoTable.expenses,
+          oldImage: deletedExpense,
+          newImage: null
+        });
 
         // log success
         logger.log(
           2,
           '_update',
-          `Successfully prepared to update old expense ${oldExpense.id} to new expense ${newExpense.id} for`,
+          `Successfully prepared to update old expense ${deletedExpense.id} to new expense ${createdExpense.id} for`,
           `expense type ${expenseType.id} for employee ${employee.id}`
         );
 
-        this._logUpdateType(oldExpense, newExpense);
+        this._logUpdateType(deletedExpense, createdExpense);
 
         // return expense updated
-        return newExpense;
+        return createdExpense;
       }
     } catch (err) {
       // log error
@@ -706,11 +722,11 @@ class ExpenseRoutes extends Crud {
    * Updates budgets when changing an expense. Updates all budgets affected by carry over and deletes a budget if the
    * budget does not have any pending or reimbursed expenses.
    *
-   * @param oldExpense - Expense being removed from budgets
-   * @param newExpense - Expense being added to budgets
-   * @param employee - Employee of budgets to remove from
-   * @param expenseType - Expense Type of budgets to remove from
-   * @return Array - Array of Budgets for the Employee Expense Type
+   * @param {*} oldExpense - Expense being removed from budgets
+   * @param {*} newExpense - Expense being added to budgets
+   * @param {*} employee - Employee of budgets to remove from
+   * @param {*} expenseType - Expense Type of budgets to remove from
+   * @return {Promise<any[]>} Array of Budgets for the Employee Expense Type
    */
   async _updateBudgets(oldExpense, newExpense, employee, expenseType) {
     // log method
@@ -834,6 +850,8 @@ class ExpenseRoutes extends Crud {
               expenseType,
               dateUtils.add(sortedBudgets[i].fiscalEndDate, 1, 'day', ISOFORMAT)
             );
+            // TODO: audit
+
             let newBudget = new Budget(newBudgetData);
             sortedBudgets.splice(i + 1, 0, newBudget);
             mapExpToBud.splice(i + 1, 0, {
@@ -1020,17 +1038,17 @@ class ExpenseRoutes extends Crud {
       }
 
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(undefined, expense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        undefined,
+        expense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
         console.log('F');
-        err.message = 'Expense cost of $'
-          + expense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message = `Expense cost of $${
+          expense.cost
+        } exceeds monthly limit. Monthly limit remaining is $${leftoverBudget.toFixed(2)}.`;
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }
@@ -1338,18 +1356,18 @@ class ExpenseRoutes extends Crud {
           ` ${oldBudget.fiscalStartDate} to ${oldBudget.fiscalEndDate}.`;
         throw err;
       }
-      
+
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(oldExpense, newExpense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        oldExpense,
+        newExpense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
-        err.message = 'Expense cost of $'
-          + newExpense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message = `Expense cost of $${
+          newExpense.cost
+        } exceeds monthly limit. Monthly limit remaining is $${leftoverBudget.toFixed(2)}.`;
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }

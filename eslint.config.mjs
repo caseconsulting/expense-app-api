@@ -3,12 +3,13 @@ export default [
     files: ['**/*.js'],
 
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2021,
       sourceType: 'module',
       globals: {},
     },
 
     ignores: [
+      'aurora/dist/**',
       '.aws-sam',
       '.nyc_output',
       'coverage',

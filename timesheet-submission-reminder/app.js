@@ -2,6 +2,8 @@
 // READ NOTE ABOVE TEST_EMPLOYEE_NUMBERS BEFORE DEVELOPING //
 /////////////////////////////////////////////////////////////
 
+/** @import { NotificationAudit } from 'expense-app-db/types' */
+
 const _filter = require('lodash/filter');
 const _find = require('lodash/find');
 const _map = require('lodash/map');
@@ -10,9 +12,15 @@ const { SNSClient, ListPhoneNumbersOptedOutCommand, PublishCommand } = require('
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 
+const aurora = require('expense-app-db');
+const { NotifAuditQueries } = require('expense-app-db/queries');
+const { NotificationReason, NotificationAudit } = require('expense-app-db/models');
+
 const { _isCaseReminderDay, _shouldSendCaseEmployeeReminder } = require('./case-helpers.js');
 const { asyncForEach } = require('utils');
 const { getTodaysDate } = require('dateUtils');
+/** @type {import('../js/Logger.js')} */
+const Logger = require('Logger');
 
 const dbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dbClient);
@@ -34,6 +42,7 @@ async function start(day) {
   let portalEmployees = await _getPortalEmployees();
   let portalContracts = await _getPortalContracts();
   await _manageEmployeesOptOutList(portalEmployees);
+
   let isCaseReminderDay = _isCaseReminderDay(day);
   if (isCaseReminderDay.any) {
     await asyncForEach(portalEmployees, async (e) => {
@@ -139,7 +148,7 @@ async function _getPortalContracts() {
  * @param {*} employee The entire employee object to whom the message was sent
  * @param {'month' | 'week'} type The type of reminder that was sent
  */
-async function _logMessageReminder(employee) {
+async function _logMessageReminder(employee, type) {
   // fetch old timesheetReminders array from employee (or make new empty one)
   let newTimesheetReminders = employee.timesheetReminders ?? [];
 
@@ -159,6 +168,20 @@ async function _logMessageReminder(employee) {
   let attribute = 'timesheetReminders';
   let tableName = `${STAGE}-employees`;
   await _updateAttributeInDB(newEmployeeObject, attribute, tableName);
+
+  // audit in aurora database
+  try {
+    const reason =
+      type == 'month' ? NotificationReason.monthly_timesheet_reminder : NotificationReason.weekly_timesheet_reminder;
+
+    const newId = await NotifAuditQueries.insert(
+      new NotificationAudit(undefined, new Date(), employee.id, employee.phoneNumber, reason)
+    );
+
+    console.log('Logged audit to aurora. New audit id:', newId);
+  } catch (err) {
+    console.log('Error logging audit to aurora:', err);
+  }
 } // _logMessageReminder
 
 /**
@@ -242,7 +265,7 @@ async function _sendReminder(employee, isCaseReminderDay) {
       console.log(`Successfully sent text message to employee number ${employee.employeeNumber}`);
 
       console.log(`Logging that message was sent to employee number ${employee.employeeNumber}`);
-      await _logMessageReminder(employee);
+      await _logMessageReminder(employee, type);
       console.log(`Successfully logged that message was sent to employee number ${employee.employeeNumber}`);
       return resp;
     }
@@ -295,6 +318,12 @@ async function _updateAttributeInDB(dynamoObj, attribute, tableName) {
 async function handler(event) {
   try {
     console.log(`Handler Event: ${JSON.stringify(event)}`);
+
+    const auroraLogger = new Logger('expense-app-db');
+    aurora.initialize({
+      log: auroraLogger.log.bind(auroraLogger)
+    });
+
     // only send reminders on last work day at 8pm
     // only send reminders on day after last work day at 7am and 4pm
     let resourceArr = event.resources?.[0]?.split('-');

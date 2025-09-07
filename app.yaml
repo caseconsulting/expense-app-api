@@ -1052,7 +1052,7 @@ Resources:
         - Arn
 
   TimesheetSubmissionReminderFunction:
-    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Serverless::Function"
     Properties:
       FunctionName: !Join
         - ""
@@ -1141,24 +1141,24 @@ Resources:
                 - logs:PutLogEvents
               Effect: Allow
               Resource: "*"
-        # - Statement:
-        #     - Effect: Allow
-        #       Action:
-        #         - rds-data:*
-        #       Resource:
-        #         Fn::ImportValue: !Join [
-        #             "-",
-        #             [!Ref Stage, expense-app-cluster-arn],
-        #           ] # from database.yaml exports
-        # - Statement:
-        #     - Effect: Allow
-        #       Action:
-        #         - secretsmanager:GetSecretValue
-        #       Resource:
-        #         Fn::ImportValue: !Join [
-        #             "-",
-        #             [!Ref Stage, expense-app-cluster-secret-arn],
-        #           ] # from database.yaml exports
+        - Statement:
+            - Effect: Allow
+              Action:
+                - rds-data:*
+              Resource:
+                Fn::ImportValue: !Join [
+                    "-",
+                    [!Ref Stage, expense-app-cluster-arn],
+                  ] # from database.yaml exports
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                Fn::ImportValue: !Join [
+                    "-",
+                    [!Ref Stage, expense-app-cluster-secret-arn],
+                  ] # from database.yaml exports
 
   TimesheetSubmissionReminderFunctionLogGroup:
     Type: AWS::Logs::LogGroup

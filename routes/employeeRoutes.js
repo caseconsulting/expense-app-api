@@ -8,18 +8,24 @@ const ExpenseType = require(process.env.AWS ? 'expenseType' : '../models/expense
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
 const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { SNSClient, OptInPhoneNumberCommand } = require('@aws-sdk/client-sns');
+const { DynamoTable } = require('expense-app-db/models');
+/** @import DatabaseModify from '../js/databaseModify' */
 
 const snsClient = new SNSClient({});
 
 const IsoFormat = 'YYYY-MM-DD';
 const logger = new Logger('employeeRoutes');
 const STAGE = process.env.STAGE;
+const EMPLOYEES_TABLE = 'employees';
+const EMPLOYEES_SENSITIVE_TABLE = 'employees-sensitive';
 
 class EmployeeRoutes extends Crud {
   constructor() {
     super();
-    this.databaseModify = new DatabaseModify('employees');
-    this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
+    /** @type {DatabaseModify} */
+    this.databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+    /** @type {DatabaseModify} */
+    this.employeeSensitiveDynamo = new DatabaseModify(EMPLOYEES_SENSITIVE_TABLE);
   } // constructor
 
   /**
@@ -60,9 +66,9 @@ class EmployeeRoutes extends Crud {
    * Creates employee and employee-sensitive object in database. If successful, sends 200 status
    * response with the newly created employee object and returns new employee object.
    *
-   * @param {*} req - api request
-   * @param {*} res - api response
-   * @returns Object - employee object created
+   * @param {Express.Request} req - api request
+   * @param {Express.Response} res - api response
+   * @returns {*} employee object created
    */
   async _createWrapper(req, res) {
     // log method
@@ -71,26 +77,38 @@ class EmployeeRoutes extends Crud {
     // compute method
     try {
       if (this._checkPermissionToCreate(req.employee)) {
-        // employee has permissions to create to table
         let employeeObjectCreated = await this._create(req.body); // create object
         let employeeObjectValidated = await this._validateInputs(employeeObjectCreated); // validate inputs
 
-        // log success
         let sensitiveData = new EmployeeSensitive(req.body);
         let sensitiveObjectValidated = await this._validateInputs(sensitiveData); // validate inputs
 
-        // Uses transact write items feature to execute API requests. If one invocation fails, all fails
+        // send both in a transaction. if one fails, neither are committed
         await this.addEmployeeToDB(employeeObjectValidated, sensitiveObjectValidated);
 
-        // created an entry for an employees sensitive data
         logger.log(
           1,
           '_createWrapper',
-          `Successfully created object ${employeeObjectValidated.id} in ${STAGE}-employees-sensitive`
+          `Successfully created object ${employeeObjectValidated.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
         );
 
         // send successful 200 status
         res.status(200).send(employeeObjectValidated);
+
+        // audit both changes asynchronously
+        this.recordChange({
+          employee: req.employee,
+          table: EMPLOYEES_TABLE,
+          oldImage: null,
+          newImage: employeeObjectValidated
+        });
+
+        this.recordChange({
+          employee: req.employee,
+          table: EMPLOYEES_SENSITIVE_TABLE,
+          oldImage: null,
+          newImage: sensitiveObjectValidated
+        });
 
         // return created data
         return employeeObjectValidated;
@@ -124,13 +142,13 @@ class EmployeeRoutes extends Crud {
     let items = [
       {
         Put: {
-          TableName: `${STAGE}-employees`,
+          TableName: `${STAGE}-${EMPLOYEES_TABLE}`,
           Item: employee
         }
       },
       {
         Put: {
-          TableName: `${STAGE}-employees-sensitive`,
+          TableName: `${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`,
           Item: employeeSensitive
         }
       }
@@ -184,24 +202,43 @@ class EmployeeRoutes extends Crud {
     try {
       if (this._checkPermissionToDelete(req.employee)) {
         // employee has permission to delete from table
-        let objectDeleted = await this._delete(req.params.id); // delete object
-        await this.deleteEmployeeFromDB(objectDeleted.id);
+        let toDelete = await this._delete(req.params.id); // the object to be deleted
+        const {
+          employee: [deletedEmployee],
+          employeeSensitive: [deletedSensitive]
+        } = await this.deleteEmployeeFromDB(toDelete.id);
+        logger.log(5, '_deleteWrapper', `Deleted employee: ${JSON.stringify(deletedEmployee)}`);
+        logger.log(5, '_deleteWrapper', `Deleted employee-sensitive: ${JSON.stringify(deletedSensitive)}`);
 
         // log success
-        logger.log(1, '_deleteWrapper', `Successfully deleted object ${objectDeleted.id} from ${this._getTableName()}`);
+        logger.log(1, '_deleteWrapper', `Successfully deleted object ${toDelete.id} from ${this._getTableName()}`);
 
         // deleted an entry of an employees sensitive data
         logger.log(
           1,
           '_deleteWrapper',
-          `Successfully deleted object ${objectDeleted.id} in ${STAGE}-employees-sensitive`
+          `Successfully deleted object ${toDelete.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
         );
 
         // send successful 200 status
-        res.status(200).send(objectDeleted);
+        res.status(200).send(toDelete);
+
+        await this.recordChange({
+          employee: req.employee,
+          table: DynamoTable.employees,
+          oldImage: deletedEmployee,
+          newImage: null
+        });
+
+        await this.recordChange({
+          employee: req.employee,
+          table: DynamoTable.employees_sensitive,
+          oldImage: deletedSensitive,
+          newImage: null
+        });
 
         // return object removed
-        return objectDeleted;
+        return toDelete;
       } else {
         // employee does not have permissions to delete from table
         throw {
@@ -226,13 +263,18 @@ class EmployeeRoutes extends Crud {
    * request fails.
    *
    * @param employeeId employee ID to delete
-   * @returns employee object
+   * @returns {Promise<{ employee: any[], employeeSensitive: any[] }>}
+   *          The values of the table entries before they were deleted
    */
   async deleteEmployeeFromDB(employeeId) {
+    // get the original values
+    const oldEmployee = await this.databaseModify._readFromDB(employeeId);
+    const oldSensitive = await this.employeeSensitiveDynamo._readFromDB(employeeId);
+
     let items = [
       {
         Delete: {
-          TableName: `${STAGE}-employees`,
+          TableName: `${STAGE}-${EMPLOYEES_TABLE}`,
           Key: {
             id: employeeId
           },
@@ -241,7 +283,7 @@ class EmployeeRoutes extends Crud {
       },
       {
         Delete: {
-          TableName: `${STAGE}-employees-sensitive`,
+          TableName: `${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`,
           Key: {
             id: employeeId
           },
@@ -249,7 +291,11 @@ class EmployeeRoutes extends Crud {
         }
       }
     ];
-    return await DatabaseModify.TransactItems(items);
+    // delete
+    await DatabaseModify.TransactItems(items);
+
+    // return original values
+    return { employee: oldEmployee, employeeSensitive: oldSensitive };
   } // deleteEmployeeFromDB
 
   /**
@@ -273,10 +319,9 @@ class EmployeeRoutes extends Crud {
    * Helper function to filter Employee object and remove any attributes
    * that the user does not have access to. This acts as a blacklist, so
    * attributes must be added in the role that must be blocked
-   * 
+   *
    * @param employee employee object to filter
    * @param user user making the request
-   * 
    */
   filterByPermissions(employee, user) {
     // blacklist items that each role should NOT be able to see
@@ -392,8 +437,8 @@ class EmployeeRoutes extends Crud {
         // created an entry for an employees sensitive data
         logger.log(
           1,
-          '_createWrapper',
-          `Successfully created object ${sensitiveData.id} in ${STAGE}-employees-sensitive`
+          '_readWrapper',
+          `Successfully created object ${sensitiveData.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
         );
 
         // send successful 200 status
@@ -619,8 +664,8 @@ class EmployeeRoutes extends Crud {
         // updated an entry for an employees sensitive data
         logger.log(
           1,
-          '_createWrapper',
-          `Successfully created object ${employeeValidated.id} in ${this.STAGE}-employees-sensitive`
+          '_updateWrapper',
+          `Successfully created object ${employeeValidated.id} in ${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`
         );
         employeeValidated = { ...employeeValidated, ...sensitiveData };
 
@@ -665,13 +710,13 @@ class EmployeeRoutes extends Crud {
     let items = [
       {
         Put: {
-          TableName: `${STAGE}-employees`,
+          TableName: `${STAGE}-${EMPLOYEES_TABLE}`,
           Item: employee
         }
       },
       {
         Put: {
-          TableName: `${STAGE}-employees-sensitive`,
+          TableName: `${STAGE}-${EMPLOYEES_SENSITIVE_TABLE}`,
           Item: employeeSensitive
         }
       }
@@ -721,6 +766,7 @@ class EmployeeRoutes extends Crud {
           // update budget in database
           try {
             promises.push(this.budgetDynamo.updateEntryInDB(budgets[i]));
+            // TODO: audit here
 
             // log budget update success
             logger.log(2, '_updateBudgets', `Successfully updated budget ${budgets[i].id}`);
@@ -1109,12 +1155,17 @@ class EmployeeRoutes extends Crud {
       }
 
       // fail safe to prevent any users from updating their employee role without permission on prod
-      if (oldEmployee.employeeRole != newEmployee.employeeRole && STAGE == 'prod'
-        && currentEmployee.employeeRole != 'admin'){
-        
+      if (
+        oldEmployee.employeeRole != newEmployee.employeeRole &&
+        STAGE == 'prod' &&
+        currentEmployee.employeeRole != 'admin'
+      ) {
         // log error
-        logger.log(3, '_validateUpdate',
-          `Cannot update your employee role, ${oldEmployee.id} does not have permissions to do so`);
+        logger.log(
+          3,
+          '_validateUpdate',
+          `Cannot update your employee role, ${oldEmployee.id} does not have permissions to do so`
+        );
 
         // throw error
         err.message = 'Only admins can change your employee role.';

@@ -110,7 +110,8 @@ describe('crudRoutes', () => {
       '_readFromDB',
       '_readFromDBUrl',
       'removeFromDB',
-      'updateEntryInDB'
+      'updateEntryInDB',
+      'updateReturningOld'
     ]);
     budgetDynamo = jasmine.createSpyObj('budgetDynamo', [
       'addToDB',
@@ -1766,14 +1767,14 @@ describe('crudRoutes', () => {
       describe('and updated object has the same id', () => {
         beforeEach(() => {
           spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(BODY_DATA));
-          databaseModify.updateEntryInDB.and.returnValue(Promise.resolve(BODY_DATA));
+          databaseModify.updateReturningOld.and.returnValue(Promise.resolve(BODY_DATA));
         });
 
         it('should respond with a 200 and data', (done) => {
           crudRoutes._updateWrapper(req, res).then((data) => {
             expect(data).toEqual(BODY_DATA);
             expect(crudRoutes._update).toHaveBeenCalledWith(req);
-            expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
+            expect(databaseModify.updateReturningOld).toHaveBeenCalledWith(BODY_DATA);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(BODY_DATA);
             done();
@@ -1882,14 +1883,14 @@ describe('crudRoutes', () => {
           message: 'Error updating object to database.'
         };
         spyOn(crudRoutes, '_update').and.returnValue(Promise.resolve(BODY_DATA));
-        databaseModify.updateEntryInDB.and.returnValue(Promise.reject(err));
+        databaseModify.updateReturningOld.and.returnValue(Promise.reject(err));
       });
 
       it('should respond with a 403 and error', (done) => {
         crudRoutes._updateWrapper(req, res).then((data) => {
           expect(data).toEqual(err);
           expect(crudRoutes._update).toHaveBeenCalledWith(req);
-          expect(databaseModify.updateEntryInDB).toHaveBeenCalledWith(BODY_DATA);
+          expect(databaseModify.updateReturningOld).toHaveBeenCalledWith(BODY_DATA);
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.send).toHaveBeenCalledWith(err);
           done();

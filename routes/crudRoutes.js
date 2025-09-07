@@ -8,6 +8,10 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const { generateUUID, getExpressJwt, isAdmin, isManager, isUser, isIntern } = require(process.env.AWS
   ? 'utils'
   : '../js/utils');
+const { CrudAuditQueries } = require('expense-app-db/queries');
+const { DynamoTable } = require('expense-app-db/models');
+/** @import databaseModify from '../js/databaseModify' */
+/** @import { DynamoTableType } from 'expense-app-db/types' */
 
 const ISOFORMAT = 'YYYY-MM-DD';
 const logger = new Logger('crudRoutes');
@@ -16,11 +20,29 @@ const STAGE = process.env.STAGE;
 // Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
 const checkJwt = getExpressJwt();
 
+/**
+ * Converts the table name to the format accepted by the aurora database. Accepts table names that are already
+ * formatted (i.e. "table_name") or as they appear in dynamodb (i.e. "dev-table-name")
+ *
+ * @param {string | DynamoTableType} table
+ */
+function sanitizeAuroraTable(table) {
+  // trim env prefix if it's there
+  if (table.startsWith(`${STAGE}-`)) {
+    table = table.slice(table.indexOf('-') + 1);
+  }
+
+  // replace hyphens with underscores
+  table = table.replaceAll('-', '_');
+  return table;
+}
+
 class Crud {
   constructor() {
     this._router = express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+
     this._router.post('/', this._checkJwt, this._getUserInfo, this._createWrapper.bind(this));
     this._router.get('/', this._checkJwt, this._getUserInfo, this._readAllWrapper.bind(this));
     this._router.get('/:id', this._checkJwt, this._getUserInfo, this._readWrapper.bind(this));
@@ -29,12 +51,16 @@ class Crud {
     this._router.patch('/attributes/:id', this._checkJwt, this._getUserInfo, this._updateAttributesWrapper.bind(this));
     this._router.put('/', this._checkJwt, this._getUserInfo, this._updateWrapper.bind(this));
     this._router.delete('/:id', this._checkJwt, this._getUserInfo, this._deleteWrapper.bind(this));
+
     this.employeeDynamo = new DatabaseModify('employees');
     this.employeeSensitiveDynamo = new DatabaseModify('employees-sensitive');
     this.budgetDynamo = new DatabaseModify('budgets');
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
+
+    /** @type {databaseModify} */
+    this.databaseModify;
   } // constructor
 
   /**
@@ -491,9 +517,9 @@ class Crud {
   /**
    * Create object in database. If successful, sends 200 status request with the object created and returns the object.
    *
-   * @param req - api request
-   * @param res - api response
-   * @return Object - object created
+   * @param {express.Request} req - api request
+   * @param {express.Response} res - api response
+   * @returns {*} object created
    */
   async _createWrapper(req, res) {
     // log method
@@ -512,6 +538,9 @@ class Crud {
 
         // send successful 200 status
         res.status(200).send(dataCreated);
+
+        // audit after sending response
+        await this.recordChange({ employee: req.employee, oldImage: null, newImage: dataCreated });
 
         // return created data
         return dataCreated;
@@ -571,6 +600,7 @@ class Crud {
 
         // send successful 200 status
         res.status(200).send(dataDeleted);
+        await this.recordChange({ employee: req.employee, oldImage: dataDeleted, newImage: null });
 
         // return object removed
         return dataDeleted;
@@ -592,6 +622,36 @@ class Crud {
       return err;
     }
   } // _deleteWrapper
+
+  /**
+   * Records a single change to the audits database
+   *
+   * @param {{
+   *   employee: { id: string; employeeRole: string }
+   *   table: string?;
+   *   oldImage: any?;
+   *   newImage: any?
+   * }} auditData Information about the change. If table is not specified, defaults to this._getTableName()
+   */
+  async recordChange(auditData) {
+    auditData.oldImage ??= null;
+    auditData.newImage ??= null;
+    auditData.table = sanitizeAuroraTable(auditData.table ?? this._getTableName());
+    auditData.employee.employeeRole = auditData.employee.employeeRole.toLowerCase();
+
+    const auditableTables = Object.values(DynamoTable);
+    if (!auditableTables.includes(auditData.table)) {
+      logger.log(5, 'recordChange', `The table ${auditData.table} does not accept audits`);
+      return;
+    }
+
+    try {
+      const id = await CrudAuditQueries.record(auditData);
+      logger.log(1, 'recordChange', `Successfully created audit with id ${id} on table ${auditData.table}`);
+    } catch (err) {
+      logger.log(5, 'recordChange', `Failed to create audit: ${JSON.stringify(err)}`);
+    }
+  }
 
   /**
    * Get the current annual budget start and end dates based on a given hire date.
@@ -647,7 +707,7 @@ class Crud {
   /**
    * Returns the database table name.
    *
-   * @return String - database table name
+   * @return {string} database table name
    */
   _getTableName() {
     // log method
@@ -916,24 +976,47 @@ class Crud {
         // employee has permission to update table
         let objectUpdated = await this._update(req); // update object
         let objectValidated = await this._validateInputs(objectUpdated); // validate inputs
-        let dataUpdated;
+
         // add object to database
+        let oldImage;
+        let newImage = {};
+
         if (objectValidated.id == req.body.id) {
           // update database if the id's are the same
-          dataUpdated = await this.databaseModify.updateEntryInDB(objectValidated);
+          try {
+            oldImage = await this.databaseModify.updateReturningOld(objectValidated);
+
+            // pick out keys that exist on the old object (which only contains the changed fields)
+            Object.keys(oldImage).forEach((key) => {
+              newImage[key] = objectValidated?.[key] ?? null;
+            });
+
+            // add back the id property
+            oldImage.id = objectValidated.id;
+            newImage.id = objectValidated.id;
+          } catch (err) {
+            logger.log(5, '_udpateWrapper', 'Error with update command:', err);
+            throw err;
+          }
         } else {
           // id's are different (database updated when changing expense types in expenseRoutes)
-          dataUpdated = objectValidated;
+          newImage = objectValidated;
+          oldImage = null;
         }
 
-        // log success
-        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
-
         // send successful 200 status
-        res.status(200).send(dataUpdated);
+        res.status(200).send(newImage);
+        logger.log(1, '_updateWrapper', `Successfully updated object ${newImage.id} from ${this._getTableName()}`);
+
+        // audit the change
+        this.recordChange({
+          employee: req.employee,
+          oldImage,
+          newImage
+        });
 
         // return updated data
-        return dataUpdated;
+        return newImage;
       } else {
         // employee does not have permissions to update table
         throw {
@@ -943,7 +1026,7 @@ class Crud {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}`);
+      logger.log(1, '_updateWrapper', `Failed to update object in ${this._getTableName()}:`, err);
 
       // send error status
       this._sendError(res, err);
