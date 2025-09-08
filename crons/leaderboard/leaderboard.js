@@ -1,10 +1,10 @@
 const _ = require('lodash');
-const { getEmployeesAndTags, asyncForEach } = require(process.env.AWS ? 'utils' : '../js/utils');
+const { getEmployeesAndTags, asyncForEach } = require(process.env.AWS ? 'utils' : '../../js/utils');
 const { getTimesheetsDataForEmployee, yearToDatePeriods, getBillableHours } = require(process.env.AWS
   ? 'timesheetUtils'
-  : '../js/utils/timesheet');
-const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
-const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
+  : '../../js/utils/timesheet');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../../js/databaseModify');
+const Logger = require(process.env.AWS ? 'Logger' : '../../js/Logger');
 const logger = new Logger('LeaderboardCron');
 const STAGE = process.env.STAGE;
 
@@ -75,7 +75,7 @@ async function removeLeaderboardDataForEmployees(employees) {
  * @param event - request
  */
 async function handler(event) {
-  console.info(JSON.stringify(event));  
+  console.info(JSON.stringify(event));
   if (['prod', 'test'].includes(STAGE)) {
     await getLeaderboardData();
   } else {
