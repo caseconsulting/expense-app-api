@@ -4,7 +4,7 @@ const { fromIni } = require('@aws-sdk/credential-providers');
 const SOURCE_PROFILE = 'prod';
 const SOURCE_STAGE = 'prod';
 const TARGET_PROFILE = 'dev';
-const TARGET_STAGE = 'sandbox'; // TODO
+const TARGET_STAGE = 'test';
 
 const REGION = 'us-east-1';
 const TABLES = [
