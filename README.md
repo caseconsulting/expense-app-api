@@ -268,95 +268,77 @@ npm run deploy:prod
 ```
 
 ## One Time Deployment for New Environment
+1. Request certificates through AWS Certificate Manager
 
-Temporarily comment out the entire 'ChronosFunction' configuration from `CloudFormation.yaml`
+   1. App Certificate: sandbox-app.consultwithcase.com
+   2. Api Certificate: sandbox-api.consultwithcase.com
 
-Create a `.env` set up for the new environment
+2. Add CNAME records to Netlify for certificates
 
-Using the AWS CloudFormation Console, where _{Stage}_ is the name of the new environment (e.g., test):
+   1. Notice that consultwithcase.com will be appended to the name, so when copying from AWS, remove that before saving
 
-1. Create stack with new resources
-2. Upload a template file (`CloudFormation.yaml`)
-3. Next
-4. Enter stack name (_expense-app-{Stage}_)
-5. Parameters:
-   1. **ApiCertificate**: <ARN of _{Stage}.api.consultwithcase.com_ certificate from Amazon Certificate Manager (ACM)>
-   2. **AppCertificate**: <ARN of _{Stage}.app.consultwithcase.com_ certificate from Amazon Certificate Manager (ACM)>
-   3. **AppDomain**: _{Stage}.app.consultwithcase.com_ (_NOTE_: PROD uses _app.consultwithcase.com_)
-   4. **Stage**: _{Stage}_
-6. Next
-7. Next
-8. Acknowledge all three Capabilities and transforms
-9. Create stack
-10. Wait for stack creation to complete
+3. Add sandbox to stage options
 
-Uncomment the 'ChronosFunction' configuration from `CloudFormation.yaml`
+   1. Add to AllowedValues of CloudFormation parameters
+      1. Stage: sandbox
+      2. AppDomain: sandbox-app.consultwithcase.com
+   2. Add to Stages constant cloudformation.js
 
-Upload `.env` to S3 bucket, where _{Stage}_ is the name of the new environment (e.g., test):
+4. Create the support stack
 
-```bash
-npm run upload:{Stage}:env
-```
+   1. **_npm run deploy:cloudformation support sandbox_**
 
-**Claudia.js** requires a one time initialization after the CloudFormation stack has been created.
-For example, run the following steps for the new environment,
-where _{Stage}_ is the name of the new environment (e.g., test):
+5. Update environment resource files
 
-_NOTE_: Make sure you do not have a `claudia.json` file and that you do have a `.env` set up for the environment.
+   1. Create and upload a new .env file
+   2. Remove claudia.json file
 
-```bash
-npm run package:cloudformation:{Stage}
-npm run deploy:cloudformation:{Stage}
-npm run create:claudia:{Stage}
-```
+6. Create network CloudFormation stack
 
-In the **API Gateway** console
+   1. **_npm run deploy:cloudformation network sandbox_**
 
-1. Select the API
-2. Settings
-3. Change Endpoint Type to Regional
-4. Save Changes
+7. Create database CloudFormation stack
 
-Run commands to deploy using **Claudia.js**, where _{Stage}_ is the name of the new environment (e.g., test):
+   1. **_npm run deploy:cloudformation database sandbox_**
 
-```bash
-npm run deploy:claudia #(PROD uses: npm run deploy:claudia:prod)
-npm run upload:{Stage}:claudia
-```
+8. Create the app CloudFormation stack
 
-Run the normal deployment, where _{Stage}_ is the name of the new environment (e.g., test):
+   1. Comment out all AWS::Serverless resources (functions and layers) as well as anything that depends on them (like log groups) from the template
+   2. Upload the template to the CloudFormation console
+   3. Use the ARNs from certificates made in Step 1 to fill in the parameters
 
-```bash
-npm run deploy:{Stage}
-```
+9. Deploy the app CloudFormation stack
 
-Create custom domain name to link to **Netlify DNS**
+   1. Uncomment the resources from Step 8
+   2. **_npm run deploy:cloudformation app sandbox_**
 
-Using the **Amazon API Gateway** Console:
+10. Create API Gateway
 
-1. Custom Domain Names
-2. Create Custom Domain Name
-3. Parameters:
-   1. Select REST
-   2. **Domain Name**: _{Stage}.api.consultwithcase.com_ (_NOTE_: PROD uses _api.consultwithcase.com_)
-   3. **Security Policy**: _TLS 1.2_
-   4. **Endpoint Configuration**: _Regional_
-   5. **ACM Certificate**: _{Stage}.api.consultwithcase.com_
-4. Save
-5. Edit
-6. Add mapping
-   1. **Path**: _/_
-   2. **Destination**: _expense-app-api-{Stage}_
-   3. **Stage**: _latest_
-7. Save
+    1. **_npm run create:claudia:sandbox_**
 
-Add the CNAME record in the **Netlify DNS** for _{Stage}.api.consultwithcase.com_
+11. Upload claudia.json file to S3
 
-To reset for local development, after a deployment:
+    1. **_aws s3 cp claudia.json s3://case-expense-app-resources-sandbox/claudia.json_**
 
-```bash
-npm run download:local:env
-```
+12. Update API Gateway in console
+
+    1. Change Endpoint Type to Regional
+    2. Create a custom domain name and API mapping for the API Gateway
+
+13. Add CNAME records to Netlify for for app and api
+
+    1. Again, notice that consultwithcase.com will be appended to the name, so when copying from AWS, remove that before saving
+
+14. Add callback URL to Auth0 settings
+
+    1. Sign in to Auth0 account
+    2. Add https://sandbox-app.consultwithcase.com/callback under Allowed Callback URLs and Allowed Web Origins settings
+
+15. Add lamda role ARN to KMS employees-sensitive-key key policy
+
+16. Create or import user records
+
+    1. For a user to be able to login they need to have a record in the employees and employees-sensitive tables
 
 ## Error Deploying
 

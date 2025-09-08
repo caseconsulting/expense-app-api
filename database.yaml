@@ -20,7 +20,7 @@ Resources:
         !Join ["-", [!Ref Stage, "expense-app-db-subnet-group"]]
       SubnetIds: [
           Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-subnet-1-id]],
-          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-subnet-2-id]], # from network.yaml exports
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-subnet-2-id]],
         ] # from network.yaml exports
       Tags:
         - Key: Application
