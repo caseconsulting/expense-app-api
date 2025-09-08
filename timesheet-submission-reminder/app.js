@@ -40,6 +40,7 @@ async function start(day) {
       try {
         let shouldSendReminder = await _shouldSendCaseEmployeeReminder(e, isCaseReminderDay, portalContracts);
         if (shouldSendReminder) {
+          console.log(`Sending reminder to employee number ${e.employeeNumber}`);
           _sendReminder(e, isCaseReminderDay);
           employeesReminded.push(e.employeeNumber);
         }
