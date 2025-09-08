@@ -6,7 +6,7 @@ Parameters:
   Stage:
     Type: String
     Description: Deployment environment (e.g., dev, test, or prod)
-    AllowedValues: [dev, test, prod]
+    AllowedValues: [sandbox, dev, test, prod]
   AppCertificate:
     Description: The ARN for the app certificate saved in ACM
     Type: String
@@ -20,6 +20,7 @@ Parameters:
     Type: String
     ConstraintDescription: Must match app certificate name
     AllowedValues:
+      - sandbox-app.consultwithcase.com
       - dev-app.consultwithcase.com
       - test-app.consultwithcase.com
       - app.consultwithcase.com
