@@ -1,10 +1,3 @@
-/* eslint-disable max-len */
-/**
- * node ./js/Scripts/attachmentScripts.js dev
- * node ./js/Scripts/attachmentScripts.js test
- * node ./js/Scripts/attachmentScripts.js prod (must set aws credentials for prod as default)
- */
-
 // handles unhandled rejection errors
 process.on('unhandledRejection', (error) => {
   console.error('unhandledRejection', error);
@@ -108,7 +101,8 @@ async function getTableDetails() {
     const response = await docClient.send(dynamoDBCommand);
     let items = response.Items;
     let count = response.Count;
-    //if table is too big, use pagination https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html#Scan.Pagination
+    // if table is too big, use pagination 
+    // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html#Scan.Pagination
     let LastEvaluatedKey = response.LastEvaluatedKey;
     while (LastEvaluatedKey) {
       Object.assign(ddbClientParams, { ExclusiveStartKey: LastEvaluatedKey });
@@ -191,21 +185,26 @@ async function deleteAllUnusedAttachments(unusedS3Attachments) {
     let deletedS3Objects = [];
     let length = unusedS3Attachments.length;
     let start = 0;
-    //deletion only supports up to 1000 objects to delete https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/command/DeleteObjectsCommand/
+    // deletion only supports up to 1000 objects to delete 
+    // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/command/DeleteObjectsCommand/
     if (length > BUCKET_DELETE_MAX_LENGTH) {
-      console.log(`Deleting in more than ${BUCKET_DELETE_MAX_LENGTH} objects, deletion in batches`);
+      console.log(`Deleting more than ${BUCKET_DELETE_MAX_LENGTH} objects, deletion in batches`);
     }
     while (start < length) {
-      const input = {
+      const deleteParams = {
         Bucket: BUCKET,
         Delete: {
-          Objects: unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH)
-        }
+          Objects: unusedS3Attachments
+            .slice(start, start + BUCKET_DELETE_MAX_LENGTH)
+            .map((obj) => ({ Key: obj.Key })),
+          Quiet: false,
+        },
       };
-      const command = new DeleteObjectsCommand(input);
-      const response = await s3Client.send(command);
+      console.log(
+        `Deleting items ${start + 1} to ${Math.min(start + BUCKET_DELETE_MAX_LENGTH, length)} from ${BUCKET}...`);
+      const response = await s3Client.send(new DeleteObjectsCommand(deleteParams));
       deletedS3Objects = deletedS3Objects.concat(response.Deleted);
-      // deletedS3Objects = deletedS3Objects.concat(unusedS3Attachments.slice(start, start + BUCKET_DELETE_MAX_LENGTH));
+      console.log(`Deleted ${response.Deleted.length} objects...`);
       start += BUCKET_DELETE_MAX_LENGTH;
     }
     return deletedS3Objects;
@@ -243,7 +242,8 @@ async function main() {
 
   console.log(
     `\n🟡-------------------------WARNING----------------------🟡
-    There are ${tableCount - validAttachmentCount} expense attachment keys that don't have a corresponding S3 object (dynamo item has receipt property but no bucket object).
+    There are ${tableCount - validAttachmentCount} expense attachment keys that don't have a corresponding S3 object
+    (dynamo item has receipt property but no bucket object).
     These items will not be factored into deletion of bucket objects.\n`
   );
 
