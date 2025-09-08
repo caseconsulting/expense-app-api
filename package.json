@@ -8,6 +8,7 @@
     "clean:dev": "export AWS_PROFILE=dev && node scripts/aws/lambda/cleanup-versions.js",
     "clean:test": "export AWS_PROFILE=dev && node scripts/aws/lambda/cleanup-versions.js",
     "clean:prod": "export AWS_PROFILE=prod && node scripts/aws/lambda/cleanup-versions.js",
+    "copy:data:test": "node scripts/dynamo/copy-data.js",
     "create:claudia:dev": "node script/claudia/generate-env-json.js && claudia create --handler lambda.handler --deploy-proxy-api --use-s3-bucket case-expense-app-deployments-dev --s3-key claudiajs/file.zip  --memory 256 --region us-east-1 --name expense-app-api-dev --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-dev --version dev",
     "create:claudia:prod": "node script/claudia/generate-env-json.js && claudia create --handler lambda.handler --deploy-proxy-api --use-s3-bucket case-consulting-expense-app-deployments-prod --s3-key claudiajs/file.zip  --memory 256 --region us-east-1 --name expense-app-api-prod --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-prod --version prod",
     "create:claudia:test": "node script/claudia/generate-env-json.js && claudia create --handler lambda.handler --deploy-proxy-api --use-s3-bucket case-expense-app-deployments-test --s3-key claudiajs/file.zip  --memory 256 --region us-east-1 --name expense-app-api-test --runtime nodejs20.x --set-env-from-json ./env-variables.json --role expense-api-lambda-test --version test",
