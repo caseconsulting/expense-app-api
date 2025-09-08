@@ -7,8 +7,14 @@ const TARGET_PROFILE = 'dev';
 const TARGET_STAGE = 'sandbox'; // TODO
 
 const REGION = 'us-east-1';
-
-const TABLES = ['budgets', 'contracts', 'employees', 'expense-types', 'leaderboard', 'pto-cashouts', 'tags'];
+const TABLES = [
+  'budgets',
+  'contracts',
+  'employees',
+  'expense-types',
+  'pto-cashouts',
+  'tags',
+];
 
 // --- Create Clients ---
 const sourceClient = new DynamoDBClient({
@@ -66,7 +72,7 @@ async function emptyTargetTable(targetTable) {
           })
         );
       } catch (err) {
-        console.error('Error deleting item:', err);
+        console.error(`Error deleting item in ${targetTable}:`, err);
       }
     }
   } while (ExclusiveStartKey);
@@ -96,25 +102,10 @@ async function writeItemsToEmployeeSensitive(items) {
   let tableName = `${TARGET_STAGE}-employees-sensitive`;
   console.log(`Writing data to ${tableName}...`);
   for (const item of items) {
-    let sanitizedItem = Object.assign(item, {
-      birthday: { S: '' },
-      city: { S: '' },
-      country: { S: '' },
-      currentCity: { S: '' },
-      currentState: { S: '' },
-      currentStreet: { S: '' },
-      currentZIP: { S: '' },
-      eeoGender: { M: {} },
-      eeoHasDisability: { BOOL: false },
-      eeoHispanicOrLatino: { M: {} },
-      eeoIsProtectedVeteran: { BOOL: false },
-      eeoJobCategory: { BOOL: false },
-      eeoRaceOrEthnicity: { M: {} },
-      emergencyContacts: { L: [] },
-      notes: { M: {} },
-      privatePhoneNumbers: { L: [] },
-      st: { S: '' }
-    });
+    let sanitizedItem = {
+      id: item.id,
+      employeeRole: item.employeeRole
+    };
     try {
       const putCommand = new PutItemCommand({
         TableName: tableName,
@@ -130,23 +121,46 @@ async function writeItemsToEmployeeSensitive(items) {
   console.log(`Data written to ${tableName}...`);
 }
 
+async function writeItemsToExpenses(items) {
+  let tableName = `${TARGET_STAGE}-expenses`;
+  console.log(`Writing data to ${tableName}...`);
+  for (const item of items) {
+    if (item.category && item.category.S.toLowerCase().includes('hours')) {
+      continue; // Skip hour conversion expenses
+    }
+    try {
+      const putCommand = new PutItemCommand({
+        TableName: tableName,
+        Item: item
+      });
+
+      await targetClient.send(putCommand);
+    } catch (err) {
+      console.error(`Error copying item to ${tableName}:`, err);
+    }
+  }
+
+  console.log(`Data written to ${tableName}...`);
+}
+
 (async () => {
   try {
     TABLES.forEach(async (table) => {
-      let sourceTable = `${SOURCE_STAGE}-${table}`;
+      const items = await getAllItemsFromSource(`${SOURCE_STAGE}-${table}`);
       let targetTable = `${TARGET_STAGE}-${table}`;
-
-      const items = await getAllItemsFromSource(sourceTable);
       await emptyTargetTable(targetTable);
       await writeItemsToTarget(targetTable, items);
     });
 
     // employee-sensitive
-    let sourceTable = `${SOURCE_STAGE}-employees-sensitive`;
-    let targetTable = `${TARGET_STAGE}-employees-sensitive`;
-    const items = await getAllItemsFromSource(sourceTable);
-    await emptyTargetTable(targetTable);
-    await writeItemsToEmployeeSensitive(items);
+    const employeeSensitiveItems = await getAllItemsFromSource(`${SOURCE_STAGE}-employees-sensitive`);
+    await emptyTargetTable(`${TARGET_STAGE}-employees-sensitive`);
+    await writeItemsToEmployeeSensitive(employeeSensitiveItems);
+
+    // expenses
+    const expenseItems = await getAllItemsFromSource(`${SOURCE_STAGE}-expenses`);
+    await emptyTargetTable(`${TARGET_STAGE}-expenses`);
+    await writeItemsToExpenses(expenseItems);
   } catch (err) {
     console.error('Error during copy:', err);
   }
