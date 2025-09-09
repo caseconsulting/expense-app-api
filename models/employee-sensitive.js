@@ -20,6 +20,7 @@ const OPTIONAL_FIELDS = [
   'currentStreet2',
   'currentZIP',
   'notes',
+  'personalEmail',
   'privatePhoneNumbers'
 ];
 
