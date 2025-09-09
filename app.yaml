@@ -48,7 +48,6 @@ Resources:
   cloudFrontDistribution:
     DependsOn:
       - s3FrontEndBucketPolicy
-      - s3Logs
     Type: AWS::CloudFront::Distribution
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
@@ -75,9 +74,8 @@ Resources:
         DefaultRootObject: index.html
         Logging:
           IncludeCookies: "false"
-          Bucket: !GetAtt
-            - s3Logs
-            - DomainName
+          Bucket:
+            Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-logging-bucket-domain-name]]
           Prefix: cf-logs/
         DefaultCacheBehavior:
           AllowedMethods:
@@ -120,7 +118,6 @@ Resources:
           Value: !Ref Stage
 
   s3FrontEnd:
-    DependsOn: s3Logs
     Type: "AWS::S3::Bucket"
     Properties:
       AccessControl: Private
@@ -132,7 +129,8 @@ Resources:
           - - case-expense-app-
             - !Ref Stage
       LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
+        DestinationBucketName:
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-logging-bucket-name]]
         LogFilePrefix: s3-logs/app/
       Tags:
         - Key: Application
@@ -166,33 +164,7 @@ Resources:
                 - cloudFrontOriginAccessIdentity
                 - S3CanonicalUserId
 
-  s3Resources:
-    DependsOn: s3Logs
-    Type: "AWS::S3::Bucket"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      AccessControl: Private
-      BucketName: !If
-        - ProdDeployment
-        - case-consulting-expense-app-resources-prod
-        - !Join
-          - ""
-          - - case-expense-app-resources-
-            - !Ref Stage
-      VersioningConfiguration:
-        Status: Enabled
-      LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
-        LogFilePrefix: s3-logs/resources/
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
   s3Attachments:
-    DependsOn: s3Logs
     Type: "AWS::S3::Bucket"
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
@@ -227,7 +199,8 @@ Resources:
             NoncurrentVersionExpirationInDays: 30
             Status: Enabled
       LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
+        DestinationBucketName:
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-logging-bucket-name]]
         LogFilePrefix: s3-logs/attachments/
       VersioningConfiguration:
         Status: Enabled
@@ -238,7 +211,6 @@ Resources:
           Value: !Ref Stage
 
   s3Resumes:
-    DependsOn: s3Logs
     Type: "AWS::S3::Bucket"
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
@@ -257,40 +229,14 @@ Resources:
             NoncurrentVersionExpirationInDays: 30
             Status: Enabled
       LoggingConfiguration:
-        DestinationBucketName: !Ref s3Logs
+        DestinationBucketName:
+          Fn::ImportValue: !Join ["-", [!Ref Stage, expense-app-logging-bucket-name]]
         LogFilePrefix: s3-logs/resumes/
       VersioningConfiguration:
         Status: Enabled
       Tags:
         - Key: Application
           Value: portal
-        - Key: Stage
-          Value: !Ref Stage
-
-  s3Logs:
-    Type: "AWS::S3::Bucket"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      AccessControl: LogDeliveryWrite
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: ObjectWriter
-      BucketName: !If
-        - ProdDeployment
-        - case-consulting-expense-app-logs-prod
-        - !Join
-          - ""
-          - - case-expense-app-logs-
-            - !Ref Stage
-      LifecycleConfiguration:
-        Rules:
-          - Id: Purge old log files
-            ExpirationInDays: 30
-            Status: Enabled
-      Tags:
-        - Key: Application
-          Value: expense-app
         - Key: Stage
           Value: !Ref Stage
 
@@ -1074,7 +1020,7 @@ Resources:
               - ""
               - - expense-app-
                 - !Ref Stage
-                - -timesheet-submission-reminder-message-1-day-1
+                - -timesheet-submission-reminder-message-1
         ReminderSchedule2:
           Type: Schedule
           Properties:
@@ -1083,7 +1029,7 @@ Resources:
               - ""
               - - expense-app-
                 - !Ref Stage
-                - -timesheet-submission-reminder-message-1-day-2
+                - -timesheet-submission-reminder-message-2
         ReminderSchedule3:
           Type: Schedule
           Properties:
@@ -1092,7 +1038,7 @@ Resources:
               - ""
               - - expense-app-
                 - !Ref Stage
-                - -timesheet-submission-reminder-message-2-day-2
+                - -timesheet-submission-reminder-message-3
       Environment:
         Variables:
           STAGE: !Ref Stage
