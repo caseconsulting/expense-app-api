@@ -16,6 +16,31 @@ Conditions:
     - prod
 
 Resources:
+  s3Resources:
+    DependsOn: s3Logs
+    Type: 'AWS::S3::Bucket'
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: Private
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-resources-prod
+        - !Join
+          - ''
+          - - case-expense-app-resources-
+            - !Ref Stage
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref s3Logs
+        LogFilePrefix: s3-logs/resources/
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   deployments:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -45,3 +70,42 @@ Resources:
           Value: expense-app
         - Key: Stage
           Value: !Ref Stage
+
+  s3Logs:
+    Type: 'AWS::S3::Bucket'
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      BucketName: !If
+        - ProdDeployment
+        - case-consulting-expense-app-logs-prod
+        - !Join
+          - ''
+          - - case-expense-app-logs-
+            - !Ref Stage
+      LifecycleConfiguration:
+        Rules:
+          - Id: Purge old log files
+            ExpirationInDays: 30
+            Status: Enabled
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+Outputs:
+  s3LogsBucketName:
+    Description: Name of the logging bucket
+    Value: !Ref s3Logs
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-logging-bucket-name]]
+
+  s3LogsDomainName:
+    Description: Domain name of the logging bucket
+    Value: !GetAtt s3Logs.DomainName
+    Export:
+      Name: !Join ["-", [!Ref Stage, expense-app-logging-bucket-domain-name]]
