@@ -12,11 +12,15 @@ const TABLES = [
   'contracts',
   'employees',
   'expense-types',
+  'leaderboard',
   'pto-cashouts',
   'tags',
 ];
 
-// --- Create Clients ---
+const TABLE_KEYS = {
+  leaderboard: 'employeeId',
+};
+
 const sourceClient = new DynamoDBClient({
   region: REGION,
   credentials: fromIni({ profile: SOURCE_PROFILE })
@@ -51,6 +55,7 @@ async function emptyTargetTable(targetTable) {
   console.log(`Emptying table: ${targetTable}...`);
 
   let ExclusiveStartKey = undefined;
+  let tableKey = TABLE_KEYS[targetTable.replace(`${TARGET_STAGE}-`, '')] || 'id';
 
   do {
     const scanCommand = new ScanCommand({
@@ -67,7 +72,7 @@ async function emptyTargetTable(targetTable) {
           new DeleteItemCommand({
             TableName: targetTable,
             Key: {
-              id: item.id // Adjust based on your table's key schema
+              [tableKey]: item[tableKey]
             }
           })
         );
