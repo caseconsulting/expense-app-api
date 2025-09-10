@@ -94,7 +94,7 @@ function getAllEntries(table) {
   let entries = getAllEntriesHelper(params);
   console.log('Finished getting all entries');
   return entries;
-} // getAllEntries
+}
 
 /**
  * Removes given attribute from all employee data
@@ -119,7 +119,7 @@ async function removeAttribute(attribute) {
       .then(() => console.log(`Refreshed Employee ID: ${employee.id}`))
       .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
-} // removeAttribute
+}
 
 /**
  * Used to convert degrees to the updated companies JSON structure
@@ -169,7 +169,7 @@ function calculateEducation(degrees) {
     }
   });
   return schools;
-} // calculateEducation
+}
 
 /**
  * updates the new discreet bi dates based on previous range values
@@ -189,7 +189,7 @@ function updateBIDates(clearances) {
     }
   });
   return clearances;
-} // updateBIDates
+}
 
 /**
  * Receives jobs object and converts its JSON structure to match the structure used on version 3.3,
@@ -233,7 +233,7 @@ function calculateCompanies(jobs) {
     }
   });
   return companies;
-} // calculateCompanies
+}
 
 /**
  * Takes the technologies object for each employee and calculates the date intervals
@@ -266,7 +266,7 @@ function calculateYears(technologies) {
     technology.years = Number(totalDiff.toFixed(2));
   });
   return technologies;
-} // calculateYears
+}
 
 /**
  * =================================================
@@ -316,21 +316,21 @@ async function workStatusActive() {
       )
       .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
-} // workStatusActive
+}
 
 /**
  * Removes isInactive attribute form all employees
  */
 async function removeIsInactive() {
   await removeAttribute('isInactive');
-} // removeIsInactive
+}
 
 /**
  * Removes expenseTypes attribute
  */
 async function removeExpenseTypes() {
   await removeAttribute('expenseTypes');
-} // removeExpenseTypes
+}
 
 /**
  * Removes given attribute from all employee data
@@ -366,7 +366,7 @@ async function setBirthdayFeed(attribute) {
       .then(() => console.log(`Refreshed Employee ID: ${employee.id}`))
       .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
   });
-} // setBirthdayFeed
+}
 
 /**
  * Used to replace the old technologies field with a new object excluding dateIntervals
@@ -393,7 +393,7 @@ async function addYearsToTechnologies() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // addYearsToTechnologies
+}
 
 /**
  * Used to convert the previous jobs attribute to a different JSON structure titled companies
@@ -421,7 +421,7 @@ async function convertJobsToCompanies() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} //convertJobsToCompanies
+}
 
 /**
  * Converts the BI dates so that if there was a range, the bidate gets replaced with just
@@ -450,7 +450,7 @@ async function convertBIDates() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // convertBIDates
+}
 
 /**
  * Used to convert the attribute 'degrees' JSON structure to an updated structure titled 'schools' in
@@ -478,14 +478,14 @@ async function convertEducation() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // convertEducation
+}
 
 /**
  * Removes the degrees list attribute from the database. Degrees is now found under the schools attribute.
  */
 async function deleteDegreesAttribute() {
   await removeAttribute('degrees');
-} // deleteDegreesAttribute
+}
 
 /**
  * Delete old contract data that is no longer used due to a new JSON data structure.
@@ -493,7 +493,7 @@ async function deleteDegreesAttribute() {
 async function deleteUnusedContractData() {
   await removeAttribute('contract');
   await removeAttribute('prime');
-} // deleteUnusedContractData
+}
 
 /**
  * Migrates the single phone number to the private phone numbers list.
@@ -520,14 +520,14 @@ async function migratePhoneNumbers() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // migratePhoneNumbers
+}
 
 /**
  * Removes the old phoneNumber attribute
  */
 async function removePhoneNumberAttribute() {
   await removeAttribute('phoneNumber');
-} // removePhoneNumberAttribute
+}
 
 /**
  * Deletes the clearance expiration date for each employee's clearances.
@@ -569,7 +569,7 @@ async function deleteUnusedClearanceExpirationDate() {
       hasChanged = false;
     }
   });
-} // deleteUnusedClearanceExpirationDate
+}
 
 /**
  * Change wording in level of proficiency for basic.
@@ -600,7 +600,7 @@ async function changeWordingForBasicProficiencyLevel() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // changeWordingForBasicProficiencyLevel
+}
 
 /**
  * Updates Github/Twitter profile information to replace URLs with just usernames.
@@ -645,14 +645,14 @@ async function replaceGithubTwitterUrls() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // replaceGithubTwitterUrls
+}
 
 /**
  * Removes the old schools attribute
  */
 async function removeSchoolsAttribute() {
   removeAttribute('schools');
-} // removeSchoolsAttribute
+}
 
 /**
  * Moves school attribute to education, adding type
@@ -687,7 +687,7 @@ async function moveSchoolsToEducation() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // moveSchoolsToEducation
+}
 
 /**
  * Replaces all employee's single prime string with a list of primes.
@@ -730,7 +730,7 @@ async function createPrimesList() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // createPrimesList
+}
 
 /**
  * Updates awards to have dates if they have no dates, fixing the stuck on activity feed issue.
@@ -766,7 +766,7 @@ async function addAwardDates() {
         .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
     }
   });
-} // addAwardDates
+}
 
 /**
  * Migrates sensitive PII data from the employees table to the new sensitive employees table.
@@ -801,7 +801,7 @@ async function migrateSensitiveData() {
     };
     databaseModify.addToDB(sens_data);
   });
-} // migrateSensitiveData
+}
 
 /**
  * Migrates sensitive PII data from the employees table to the new sensitive employees table.
@@ -830,7 +830,7 @@ async function removeSensitiveDataFromEmployees() {
     delete e.eeoIsProtectedVeteran;
     databaseModify.updateEntryInDB(e);
   });
-} // migrateSensitiveData
+}
 
 /**
  * Moves three fields from the sensitive table to the regular employees table.
@@ -851,7 +851,7 @@ async function moveLoginDepartureAndBirthdayFeed() {
     databaseModify.updateEntryInDB(emp);
     sensitiveModify.updateEntryInDB(sens_emp);
   });
-} // moveLoginDepartureAndBirthdayFeed
+}
 
 /**
  * Update employee EEO data to fix "Offcial" typo.
@@ -889,7 +889,7 @@ async function changeOffcialToOfficial() {
       sensitiveModify.updateEntryInDB(sens_emp);
     }
   });
-} // changeOffcialToOfficial
+}
 
 /**
  * Update old HIPPOLABS Virginia Tech name
@@ -909,7 +909,7 @@ async function updateVTInEducation() {
       }
     }
   });
-} // updateVTInEducation
+}
 
 /**
  * Update resume name in S3 and add date to employee object
@@ -961,7 +961,26 @@ async function updateResumeObject() {
     command = new DeleteObjectCommand(input);
     await client.send(command);
   }
-} // updateResumeObject
+}
+
+async function moveToSensitive(fields) {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let sensitiveModify = new DatabaseModify(SENSITIVE_TABLE);
+  let employees = await getAllEntries(TABLE);
+  let sens_employees = await getAllEntries(TABLE_SENS);
+  employees.forEach((emp) => {
+    let sens_emp = _.find(sens_employees, (e) => emp.id === e.id);
+    fields.forEach((field) => {
+      if (emp[field]) {
+        sens_emp[field] = _.clone(emp[field]);
+        delete emp[field];
+      }
+    });
+    databaseModify.updateEntryInDB(emp);
+    sensitiveModify.updateEntryInDB(sens_emp);
+  });
+
+}
 
 /**
  * =================================================
@@ -1179,6 +1198,12 @@ async function main() {
       desc: 'Update resume name in S3 and add date to employee object',
       action: async () => {
         await updateResumeObject();
+      }
+    },
+    {
+      desc: 'Move personalEmail to employees-sensitive table',
+      action: async () => {
+        await moveToSensitive(['personalEmail']);
       }
     }
   ];

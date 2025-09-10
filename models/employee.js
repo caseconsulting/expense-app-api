@@ -44,7 +44,6 @@ class Employee {
     this.setOptionalAttribute(data, 'middleName');
     this.setOptionalAttribute(data, 'nickname');
     this.setOptionalAttribute(data, 'noMiddleName');
-    this.setOptionalAttribute(data, 'personalEmail');
     this.setOptionalAttribute(data, 'personalEmailHidden');
     this.setOptionalAttribute(data, 'plannedPto');
     this.setOptionalAttribute(data, 'prime');
