@@ -20,7 +20,6 @@ const TABLES = [
 const TABLE_KEYS = {
   leaderboard: 'employeeId',
 };
-
 const sourceClient = new DynamoDBClient({
   region: REGION,
   credentials: fromIni({ profile: SOURCE_PROFILE })
