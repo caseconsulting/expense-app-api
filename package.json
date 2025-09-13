@@ -114,7 +114,7 @@
     "@aws-sdk/s3-request-presigner": "3.864.0",
     "atob": "2.1.2",
     "aws-serverless-express": "3.4.0",
-    "axios": "1.11.0",
+    "axios": "1.12.1",
     "axios-oauth-client": "2.2.0",
     "body-parser": "2.2.0",
     "cookie-parser": "1.4.7",
