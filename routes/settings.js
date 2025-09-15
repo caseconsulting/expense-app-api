@@ -9,6 +9,20 @@ class Settings extends Crud {
     this.databaseModify = new DatabaseModify('settings');
   }
 
+
+
+  /**
+   * Create an object. Returns the object created.
+   *
+   * @param body - data of object
+   * @return Object - object created
+   */
+  async _create(data) {
+    logger.log(2, '_create', `Preparing to create setting with id: ${data.id}`);
+
+    return data;
+  } // _create
+
   /**
    * Updates an attribute of an object. Returns the object updated.
    *

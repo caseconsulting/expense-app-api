@@ -145,7 +145,7 @@ class Crud {
       isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
