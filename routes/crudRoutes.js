@@ -287,6 +287,7 @@ class Crud {
         'employees-sensitive',
         'contracts',
         'pto-cashouts',
+        'settings',
         'tags'
       ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
@@ -342,7 +343,7 @@ class Crud {
     let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'employees', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees']);
     let managerPermissions =
       isManager(employee) && this._checkTableName(['employees', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
@@ -399,7 +400,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkTableName
+  }
 
    
 

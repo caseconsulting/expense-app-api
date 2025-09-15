@@ -1,40 +1,37 @@
-var express = require('express');
-const databaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
-const getUserInfo = require(process.env.AWS ? 'GetUserInfoMiddleware' : '../js/GetUserInfoMiddleware').getUserInfo;
+const Crud = require(process.env.AWS ? 'crudRoutes' : './crudRoutes');
+const DatabaseModify = require(process.env.AWS ? 'databaseModify' : '../js/databaseModify');
 const Logger = require(process.env.AWS ? 'Logger' : '../js/Logger');
-const { getExpressJwt } = require(process.env.AWS ? 'utils' : '../js/utils');
 
-const logger = new Logger('roles');
-
-// Authentication middleware. When used, the Access Token must exist and be verified against the Auth0 JSON Web Key Set
-const checkJwt = getExpressJwt();
-
-class Settings {
+const logger = new Logger('settings');
+class Settings extends Crud {
   constructor() {
-    this._router = express.Router();
-    this.settingsDynamo = new databaseModify('settings');
-
-    this._router.get('/', checkJwt, getUserInfo, this.getSettings.bind(this));
+    super();
+    this.databaseModify = new DatabaseModify('settings');
   }
- 
+
   /**
-   * Returns the instace express router.
+   * Updates an attribute of an object. Returns the object updated.
    *
-   * @return Router Object - express router
+   * @param body - data of object
+   * @return Object - object updated
    */
-  get router() {
-    return this._router;
-  }
+  async _updateAttribute(req) {
+    let data = req.body;
+    logger.log(2, '_update', `Preparing to update setting with id: ${data.id}`);
 
-  async getSettings(req, res) {
     try {
-      // log method
-      logger.log(1, 'getSettings', 'Attempting to get settings');
-      let settings = await this.settingsDynamo.getAllEntriesInDB();
-      res.status(200).send(settings);
+      let oldSettings = await this.databaseModify.getEntry(data.id);
+      let newSettings = { ...oldSettings, ...data };
+
+
+      return { objectUpdated: newSettings };
+
     } catch (err) {
-      logger.log(0, 'getSettings', `Error getting settings: ${err}`);
-      return res.status(500).json({ message: 'Error getting settings' });
+      // log error
+      logger.log(2, '_update', `Failed to prepare update for setting with id: ${data.id}`);
+
+      // return rejected promise
+      return Promise.reject(err);
     }
   }
 }
