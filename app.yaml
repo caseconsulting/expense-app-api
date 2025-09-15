@@ -757,6 +757,31 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
+  settingsTable:
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - "-"
+        - - !Ref Stage
+          - settings
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   ExpenseAppApiLambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
