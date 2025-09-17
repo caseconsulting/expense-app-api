@@ -921,7 +921,7 @@ class ExpenseRoutes extends Crud {
       `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`);
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
     // to test on dev/test envs, insert your own email in the env file for payroll address
-    let toSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursTo')
+    let toSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursTo');
     let toAddress = toSetting[0].setting;
     logger.log(
       2,
