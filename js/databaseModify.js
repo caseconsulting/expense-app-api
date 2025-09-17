@@ -408,12 +408,12 @@ class databaseModify {
     const params = {
       TableName: tableName,
       ExpressionAttributeNames: {
-        '#key': key
+        '#readKey': key
       },
       ExpressionAttributeValues: {
-        ':value': passedID
+        ':readValue': passedID
       },
-      KeyConditionExpression: '#key = :value'
+      KeyConditionExpression: '#readKey = :readValue'
     };
 
     return queryDB(params, documentClient)
