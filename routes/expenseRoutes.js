@@ -22,6 +22,7 @@ class ExpenseRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expenses');
+    this.settingsDynamo = new DatabaseModify('settings');
     this.s3Client = s3Client;
   } // constructor
 
@@ -632,7 +633,6 @@ class ExpenseRoutes extends Crud {
 
         if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
           // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
-          // if dev/test make sure APP_COMPANY_PAYROLL_ADDRESS in .env is not empty
           this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
         }
 
@@ -917,9 +917,9 @@ class ExpenseRoutes extends Crud {
   _emailPayroll(employee, expense) {
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
     // to test on dev/test envs, insert your own email in the env file for payroll address
-    let payrollAddress = process.env.APP_COMPANY_PAYROLL_ADDRESS;
-    if (source && payrollAddress) {
-      let toAddress = [payrollAddress];
+    let toAddress = settingsDynamo.getEntry('trainingHoursTo', 'key');
+    if (source && toAddress) {
+      toAddress = toAddress.split(',');
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
         employee.lastName
@@ -937,9 +937,12 @@ class ExpenseRoutes extends Crud {
         `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
         `${employee.employeeId}`
       );
-      utils.sendEmail(source, toAddress, subject, body);
+      utils.sendEmail(source, toAddress, subject, body, {
+        ccAddresses: settingsDynamo.getEntry('trainingHoursCc', 'key').split(','),
+        bccAddresses: settingsDynamo.getEntry('trainingHoursBcc', 'key').split(','),
+      });
     }
-  } // _emailPayroll
+  }
 
   _emailRejectedUser(employee, expense, expenseTypeName) {
     let source = process.env.APP_COMPANY_PAYROLL_ADDRESS;
@@ -964,7 +967,11 @@ class ExpenseRoutes extends Crud {
         Created On: ${expense.createdAt}
         URL: ${expense.url || 'None'}`;
       logger.log(2, '_emailRejectedUser', `Sending expense rejection email to user ${employee.id}`);
-      utils.sendEmail(source, toAddress, subject, body);
+      utils.sendEmail(source, toAddress, subject, body, {
+        ccAddresses: ['cvincent@consulwithcase.com'],
+        bccAddresses: ['abendele@consultwithcase.com'],
+        replyToAddresses: ['cvincent@consulwithcase.com']
+      });
     } else {
       logger.log(
         2,

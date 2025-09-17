@@ -143,12 +143,12 @@ class databaseModify {
    * @param passedID - ID of entry
    * @return Object - entry obtained
    */
-  async getEntry(passedID) {
+  async getEntry(passedID, key = 'id') {
     // log method
     logger.log(4, 'getEntry', `Attempting to get entry ${passedID} from database`);
 
     // compute method
-    return this._readFromDB(passedID)
+    return this._readFromDB(passedID, key)
       .then(function (data) {
         if (_.first(data)) {
           // entry found
@@ -396,7 +396,7 @@ class databaseModify {
    * @param passedID - ID of entry to read
    * @return Object - entries read
    */
-  async _readFromDB(passedID) {
+  async _readFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
     logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ID ${passedID}`);
@@ -404,10 +404,13 @@ class databaseModify {
     // compute method
     const params = {
       TableName: tableName,
-      ExpressionAttributeValues: {
-        ':id': passedID
+      ExpressionAttributeNames: {
+        '#key': key
       },
-      KeyConditionExpression: 'id = :id'
+      ExpressionAttributeValues: {
+        ':value': passedID
+      },
+      KeyConditionExpression: '#key = :value'
     };
 
     return queryDB(params, documentClient)
