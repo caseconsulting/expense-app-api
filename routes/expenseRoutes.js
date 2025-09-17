@@ -248,7 +248,7 @@ class ExpenseRoutes extends Crud {
 
       // TODO: don't hardcode this, but make it part of the expense type
       if (expense.category?.toLowerCase() === 'exchange for training hours') {
-        this._emailPayroll(employee, expense);
+        await this._emailPayroll(employee, expense);
       }
 
       // log success
@@ -914,12 +914,25 @@ class ExpenseRoutes extends Crud {
    * @param {Object} employee - The employee object of the submitted expense
    * @param {Object} expense - The submitted expense object
    */
-  _emailPayroll(employee, expense) {
+  async _emailPayroll(employee, expense) {
+    logger.log(
+      2,
+      '_emailPayroll',
+      `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`);
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
     // to test on dev/test envs, insert your own email in the env file for payroll address
-    let toAddress = settingsDynamo.getEntry('trainingHoursTo', 'key');
+    let toSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursTo')
+    let toAddress = toSetting[0].setting;
+    logger.log(
+      2,
+      '_emailPayroll',
+      `toAddress: ${toAddress}`);
     if (source && toAddress) {
       toAddress = toAddress.split(',');
+      logger.log(
+        2,
+        '_emailPayroll',
+        `toAddress: ${toAddress}`);
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
         employee.lastName
@@ -937,9 +950,11 @@ class ExpenseRoutes extends Crud {
         `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
         `${employee.employeeId}`
       );
+      let ccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursCc');
+      let bccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursBcc');
       utils.sendEmail(source, toAddress, subject, body, {
-        ccAddresses: settingsDynamo.getEntry('trainingHoursCc', 'key').split(','),
-        bccAddresses: settingsDynamo.getEntry('trainingHoursBcc', 'key').split(','),
+        ccAddresses: ccSetting[0].setting.split(','),
+        bccAddresses: bccSetting[0].setting.split(','),
       });
     }
   }

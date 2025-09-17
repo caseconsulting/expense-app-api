@@ -773,9 +773,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: key
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: key-index
+          KeySchema:
+            - AttributeName: key
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
       Tags:
         - Key: Application
           Value: expense-app

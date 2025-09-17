@@ -302,10 +302,13 @@ class databaseModify {
       {
         TableName: tableName,
         IndexName: secondaryIndex,
-        ExpressionAttributeValues: {
-          ':queryKey': queryParam
+        ExpressionAttributeNames: {
+          '#queryKey': queryKey
         },
-        KeyConditionExpression: `${queryKey} = :queryKey`
+        ExpressionAttributeValues: {
+          ':queryParam': queryParam
+        },
+        KeyConditionExpression: '#queryKey = :queryParam'
       },
       additionalParams
     );
@@ -399,7 +402,7 @@ class databaseModify {
   async _readFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ID ${passedID}`);
+    logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ${key}: ${passedID}`);
 
     // compute method
     const params = {
@@ -419,7 +422,7 @@ class databaseModify {
         logger.log(
           4,
           '_readFromDB',
-          `Successfully read ${entries.length} entries from ${tableName} with ID ${passedID}`
+          `Successfully read ${entries.length} entries from ${tableName} with ${key}: ${passedID}`
         );
 
         // return entries
@@ -427,7 +430,7 @@ class databaseModify {
       })
       .catch(function (err) {
         // log error
-        logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ID ${passedID}`);
+        logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ${key}: ${passedID}`);
 
         // throw error
         throw err;
