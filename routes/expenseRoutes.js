@@ -22,6 +22,7 @@ class ExpenseRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expenses');
+    this.settingsDynamo = new DatabaseModify('settings');
     this.s3Client = s3Client;
   } // constructor
 
@@ -247,7 +248,7 @@ class ExpenseRoutes extends Crud {
 
       // TODO: don't hardcode this, but make it part of the expense type
       if (expense.category?.toLowerCase() === 'exchange for training hours') {
-        this._emailPayroll(employee, expense);
+        await this._emailPayroll(employee, expense);
       }
 
       // log success
@@ -632,7 +633,6 @@ class ExpenseRoutes extends Crud {
 
         if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
           // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
-          // if dev/test make sure APP_COMPANY_PAYROLL_ADDRESS in .env is not empty
           this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
         }
 
@@ -914,12 +914,25 @@ class ExpenseRoutes extends Crud {
    * @param {Object} employee - The employee object of the submitted expense
    * @param {Object} expense - The submitted expense object
    */
-  _emailPayroll(employee, expense) {
+  async _emailPayroll(employee, expense) {
+    logger.log(
+      2,
+      '_emailPayroll',
+      `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`);
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
     // to test on dev/test envs, insert your own email in the env file for payroll address
-    let payrollAddress = process.env.APP_COMPANY_PAYROLL_ADDRESS;
-    if (source && payrollAddress) {
-      let toAddress = [payrollAddress];
+    let toSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursTo');
+    let toAddress = toSetting[0].setting;
+    logger.log(
+      2,
+      '_emailPayroll',
+      `toAddress: ${toAddress}`);
+    if (source && toAddress) {
+      toAddress = toAddress.split(',');
+      logger.log(
+        2,
+        '_emailPayroll',
+        `toAddress: ${toAddress}`);
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
         employee.lastName
@@ -937,9 +950,14 @@ class ExpenseRoutes extends Crud {
         `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
         `${employee.employeeId}`
       );
-      utils.sendEmail(source, toAddress, subject, body);
+      let ccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursCc');
+      let bccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursBcc');
+      utils.sendEmail(source, toAddress, subject, body, {
+        ccAddresses: ccSetting[0].setting.split(','),
+        bccAddresses: bccSetting[0].setting.split(','),
+      });
     }
-  } // _emailPayroll
+  }
 
   _emailRejectedUser(employee, expense, expenseTypeName) {
     let source = process.env.APP_COMPANY_PAYROLL_ADDRESS;
@@ -964,7 +982,11 @@ class ExpenseRoutes extends Crud {
         Created On: ${expense.createdAt}
         URL: ${expense.url || 'None'}`;
       logger.log(2, '_emailRejectedUser', `Sending expense rejection email to user ${employee.id}`);
-      utils.sendEmail(source, toAddress, subject, body);
+      utils.sendEmail(source, toAddress, subject, body, {
+        ccAddresses: ['cvincent@consulwithcase.com'],
+        bccAddresses: ['abendele@consultwithcase.com'],
+        replyToAddresses: ['cvincent@consulwithcase.com']
+      });
     } else {
       logger.log(
         2,
