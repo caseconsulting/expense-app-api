@@ -151,9 +151,10 @@ async function _getHoursSubmitted(employee, startDate, endDate, options = {}) {
     // return timesheets or duration based on option
     let returnValue;
     if (returnSheets) returnValue = timesheets;
-    else returnValue = timesheets.reduce((sum, t) => sum + t.duration, 0) / 60 / 60; // sumb and convert to hours
+    else returnValue = Object.values(timesheets).reduce((sum, t) => sum + t, 0) / 60 / 60; // sum and convert to hours
     return Promise.resolve(returnValue);
   } catch (err) {
+    console.error(`Error getting timesheets for employee number ${employeeNumber}:`, err);
     return Promise.reject(err);
   }
 } // _getHoursSubmitted
