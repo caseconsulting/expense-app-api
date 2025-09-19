@@ -1,7 +1,7 @@
 /*
- * node ./js/Scripts/v3.1DataScript.js dev
- * node ./js/Scripts/v3.1DataScript.js test
- * node ./js/Scripts/v3.1DataScript.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/v3.1DataScript.js dev
+ * node ./scripts/migrations/v3.1DataScript.js test
+ * node ./scripts/migrations/v3.1DataScript.js prod (must set aws credentials for prod as default)
  */
 
 // check for stage argument
@@ -22,10 +22,10 @@ const EXPENSE_TYPES_TABLE = `${STAGE}-expense-types`;
 
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
-const Budget = require('./../../models/budget.js');
-const Employee = require('./../../models/employee.js');
-const Expense = require('./../../models/expense.js');
-const ExpenseType = require('./../../models/expenseType.js');
+const Budget = require('../../models/budget.js');
+const Employee = require('../../models/employee.js');
+const Expense = require('../../models/expense.js');
+const ExpenseType = require('../../models/expenseType.js');
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');

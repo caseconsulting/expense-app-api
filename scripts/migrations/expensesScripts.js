@@ -1,7 +1,7 @@
 /**
- * node ./js/Scripts/expensesScripts.js dev
- * node ./js/Scripts/expensesScripts.js test
- * node ./js/Scripts/expensesScripts.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/expensesScripts.js dev
+ * node ./scripts/migrations/expensesScripts.js test
+ * node ./scripts/migrations/expensesScripts.js prod (must set aws credentials for prod as default)
  */
 
 // handles unhandled rejection errors
@@ -26,7 +26,7 @@ const ETTABLE = `${STAGE}-expense-types`;
 const BUDGETS_TABLE = `${STAGE}-budgets`;
 
 // imports
-const { generateUUID } = require('../utils');
+const { generateUUID } = require('../../js/utils');
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
 
@@ -351,7 +351,7 @@ async function changeAttributeName(oldName, newName) {
  */
 async function deletePendingMifi() {
   let expenses = await getAllEntries(TABLE);
-  const dateUtils = require('../dateUtils');
+  const dateUtils = require('../../js/dateUtils');
   const ExpenseRoutes = require('../../routes/expenseRoutes');
   const expenseRoutes = new ExpenseRoutes();
 
@@ -378,7 +378,7 @@ async function deletePendingMifi() {
 
 async function updateReimburseForMifi() {
   let expenses = await getAllEntries(TABLE);
-  const dateUtils = require('../dateUtils');
+  const dateUtils = require('../../js/dateUtils');
 
   _.forEach(expenses, async (expense) => {
     let expenseIsMifi = expense.cost === -150 && expense.receipt === 'MifiStatusChange.png';

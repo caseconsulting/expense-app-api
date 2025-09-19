@@ -1,7 +1,7 @@
 /**
- * node ./js/Scripts/expenseTypesScripts.js dev
- * node ./js/Scripts/expenseTypesScripts.js test
- * node ./js/Scripts/expenseTypesScripts.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/expenseTypesScripts.js dev
+ * node ./scripts/migrations/expenseTypesScripts.js test
+ * node ./scripts/migrations/expenseTypesScripts.js prod (must set aws credentials for prod as default)
  */
 
 // handles unhandled rejection errors
