@@ -287,6 +287,33 @@ async function addRequireURLAttrToCategories() {
   });
 } // addRequireURLAttrToCategories
 
+async function renameAttribute(oldName, newName) {
+  let expenseTypes = await getAllEntries();
+  _.forEach(expenseTypes, (expenseType) => {
+    let params = {
+      TableName: TABLE,
+      Key: {
+        id: expenseType.id
+      },
+      UpdateExpression: 'SET #newAttr = :val REMOVE #oldAttr',
+      ExpressionAttributeNames: {
+        '#newAttr': newName,
+        '#oldAttr': oldName
+      },
+      ExpressionAttributeValues: {
+        ':val': expenseType[oldName]
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    // update expense type
+    ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`Updated expense type id ${expenseType.id}`))
+      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+  });
+}
+
 /**
  * =================================================
  * |                                               |
@@ -391,6 +418,14 @@ async function main() {
       desc: 'Change Expense Types accessibilities?',
       action: async () => {
         await convertExpenseTypeAccessibilities();
+      }
+    },
+    {
+      desc: 'Rename budgetName, alwaysOnFeed and requiredFlag attributes to match Category naming?',
+      action: async () => {
+        await renameAttribute('budgetName', 'name');
+        await renameAttribute('alwaysOnFeed', 'showOnFeed');
+        await renameAttribute('requiredFlag', 'requireReceipt');
       }
     }
   ];
