@@ -41,7 +41,7 @@ describe('expenseTypeRoutes', () => {
   const START_DATE = '{startDate}';
   const END_DATE = '{endDate}';
   const OD_FLAG = '{odFlag}';
-  const REQUIRED_FLAG = '{requiredFlag}';
+  const REQUIRED_FLAG = '{requireReceipt}';
   const RECURRING_FLAG = '{recurringFlag}';
   const IS_INACTIVE = '{isInactive}';
   const ACCESSIBLE_BY = '{accessibleBy}';
@@ -88,12 +88,12 @@ describe('expenseTypeRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    budgetName: NAME,
+    name: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,
     odFlag: OD_FLAG,
-    requiredFlag: REQUIRED_FLAG,
+    requireReceipt: REQUIRED_FLAG,
     recurringFlag: RECURRING_FLAG,
     isInactive: IS_INACTIVE,
     description: DESCRIPTION,
@@ -388,7 +388,7 @@ describe('expenseTypeRoutes', () => {
 
       describe('and expense type name is changed', () => {
         beforeEach(() => {
-          oldExpenseType.budgetName = 'OTHER_NAME';
+          oldExpenseType.name = 'OTHER_NAME';
           databaseModify.getEntry.and.returnValue(Promise.resolve(oldExpenseType));
           spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.resolve(newExpenseType));
           spyOn(expenseTypeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newExpenseType));
@@ -1552,7 +1552,7 @@ describe('expenseTypeRoutes', () => {
       }); // should return a 403 rejected promise
     }); // when id is missing
 
-    describe('when budgetName is missing', () => {
+    describe('when name is missing', () => {
       let err;
 
       beforeEach(() => {
@@ -1561,7 +1561,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type budget name.'
         };
 
-        delete expenseType.budgetName;
+        delete expenseType.name;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1574,7 +1574,7 @@ describe('expenseTypeRoutes', () => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
-    }); // when budgetName is missing
+    }); // when name is missing
 
     describe('when budget is missing', () => {
       let err;

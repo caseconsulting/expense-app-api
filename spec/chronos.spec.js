@@ -11,7 +11,7 @@ const BUDGET = '{budget}';
 const START_DATE = '{startDate}';
 const END_DATE = '{endDate}';
 const OD_FLAG = '{odFlag}';
-const REQUIRED_FLAG = '{requiredFlag}';
+const REQUIRED_FLAG = '{requireReceipt}';
 const RECURRING_FLAG = '{recurringFlag}';
 const IS_INACTIVE = '{isInactive}';
 const DESCRIPTION = '{description}';
@@ -29,20 +29,20 @@ const REQUIRE_URL = false;
 
 const EXPENSE_TYPE_DATA = {
   id: ID,
-  budgetName: NAME,
+  name: NAME,
   budget: BUDGET,
   startDate: START_DATE,
   endDate: END_DATE,
   odFlag: OD_FLAG,
-  requiredFlag: REQUIRED_FLAG,
+  requireReceipt: REQUIRED_FLAG,
   recurringFlag: RECURRING_FLAG,
   isInactive: IS_INACTIVE,
   description: DESCRIPTION,
   categories: CATEGORIES,
   accessibleBy: ACCESSIBLE_BY,
   proRated: PRORATED,
-  alwaysOnFeed: ALWAYS_ON_FEED,
-  hasRecipeint: HAS_RECIPIENT,
+  showOnFeed: ALWAYS_ON_FEED,
+  hasRecipient: HAS_RECIPIENT,
   requireURL: REQUIRE_URL
 };
 

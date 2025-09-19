@@ -43,7 +43,7 @@ describe('utilityRoutes', () => {
   const START_DATE = '{startDate}';
   const END_DATE = '{endDate}';
   const OD_FLAG = '{odFlag}';
-  const REQUIRED_FLAG = '{requiredFlag}';
+  const REQUIRED_FLAG = '{requireReceipt}';
   const RECURRING_FLAG = '{recurringFlag}';
   const IS_INACTIVE = '{isInactive}';
   const ACCESSIBLE_BY = '{accessibleBy}';
@@ -105,12 +105,12 @@ describe('utilityRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    budgetName: NAME,
+    name: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,
     odFlag: OD_FLAG,
-    requiredFlag: REQUIRED_FLAG,
+    requireReceipt: REQUIRED_FLAG,
     recurringFlag: RECURRING_FLAG,
     isInactive: IS_INACTIVE,
     description: DESCRIPTION,
@@ -378,11 +378,11 @@ describe('utilityRoutes', () => {
       employee2.nickname = 'nick_2';
 
       expenseType1.id = 'ETID_1';
-      expenseType1.budgetName = 'budgetName_1';
+      expenseType1.name = 'budgetName_1';
       expenseType1.campfire = 'campfire_1';
 
       expenseType2.id = 'ETID_2';
-      expenseType2.budgetName = 'budgetName_2';
+      expenseType2.name = 'budgetName_2';
       expenseType2.campfire = 'campfire_2';
 
       aggregateExpense1.employeeId = 'EID_1';

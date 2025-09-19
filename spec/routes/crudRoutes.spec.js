@@ -36,7 +36,7 @@ describe('crudRoutes', () => {
   const START_DATE = '{startDate}';
   const END_DATE = '{endDate}';
   const OD_FLAG = '{odFlag}';
-  const REQUIRED_FLAG = '{requiredFlag}';
+  const REQUIRED_FLAG = '{requireReceipt}';
   const RECURRING_FLAG = '{recurringFlag}';
   const IS_INACTIVE = '{isInactive}';
   const ACCESSIBLE_BY = '{accessibleBy}';
@@ -68,12 +68,12 @@ describe('crudRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    budgetName: NAME,
+    name: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,
     odFlag: OD_FLAG,
-    requiredFlag: REQUIRED_FLAG,
+    requireReceipt: REQUIRED_FLAG,
     recurringFlag: RECURRING_FLAG,
     proRated: PRORATED,
     isInactive: IS_INACTIVE,
