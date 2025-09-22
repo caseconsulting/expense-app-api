@@ -37,19 +37,60 @@ class GoogleMapRoutes {
    * @param res - returns Google Maps API object according to the user's input in the street field
    */
   async _getLocation(req, res) {
-    let location = req.params.location;
-    location = location.replace(' ', '+');
-    let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
-    let baseURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${googleKey}`;
-    logger.log(1, '_getLocation', `Attempting to get requested location for ${location}`);
-    var config = {
-      method: 'get',
-      url: `${baseURL}&types=address&components=country:us&input=${location}`
-    };
+    // let location = req.params.location;
+    // location = location.replace(' ', '+');
+    // let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
+    // let baseURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${googleKey}`;
+    // logger.log(1, '_getLocation', `Attempting to get requested location for ${location}`);
+    // var config = {
+    //   method: 'get',
+    //   url: `${baseURL}&types=address&components=country:us&input=${location}`
+    // };
+    // try {
+    //   let response = await this.callAxios(config);
+    //   logger.log(1, '_getLocation', 'Successfully obtained location(s)!');
+    //   res.status(200).send(response.data);
+    // } catch (err) {
+    //   let error = {
+    //     code: 400,
+    //     message: err.message
+    //   };
+    //   this._sendError(res, error);
+    // }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // if you need the Google plus code, ID, or whatever else, you can see more info on field masks here:
+    // https://developers.google.com/maps/documentation/places/web-service/text-search#fieldmask
+
+
     try {
-      let response = await this.callAxios(config);
+      // grab location input
+      let location = req.params.location;
+      location = encodeURI(location);
+      if (!location) throw new Error('Parameter `location` missing or not parsable');
+
+      // vars to pass to the Google
+      let apiKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
+      let apiURL = 'https://places.googleapis.com/v1/places:searchText';
+      let fMasks = ['places.addressComponents'];
+      if (!apiKey) throw new Error('Failed to fetch Google Maps API key');
+
+      // build and send API request
+      const data = { textQuery: location };
+      const headers = {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': fMasks.join(',')
+        }
+      };
+      logger.log(1, '_getLocation', 'Making API call to Google...');
+      const response = await axios.post(apiURL, data, headers);
+
       logger.log(1, '_getLocation', 'Successfully obtained location(s)!');
-      res.status(200).send(response.data);
+      logger.log(1, '_getLocation', JSON.stringify(response));
+      return response;
     } catch (err) {
       let error = {
         code: 400,
@@ -57,6 +98,7 @@ class GoogleMapRoutes {
       };
       this._sendError(res, error);
     }
+
   } //_getLocation
 
   /**
