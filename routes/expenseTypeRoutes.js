@@ -149,6 +149,7 @@ class ExpenseTypeRoutes extends Crud {
     // compute method
     try {
       let newExpenseType = new ExpenseType(data);
+      logger.log(2, '_update', `QUAMP: ${JSON.stringify(newExpenseType)}`);
       let oldExpenseType = new ExpenseType(await this.databaseModify.getEntry(data.id));
 
       await Promise.all([
