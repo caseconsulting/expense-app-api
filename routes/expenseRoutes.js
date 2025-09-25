@@ -906,24 +906,18 @@ class ExpenseRoutes extends Crud {
   } // _updateBudgets
 
   /**
-   * Emails payroll of the exchange for training hours expense details submitted.
+   * Sends email based on expense type settings.
    *
    * @param {Object} employee - The employee object of the submitted expense
    * @param {Object} expense - The submitted expense object
    * @param {Object} expenseType - The expense type object
    */
   async _emailNotification(employee, expense, expenseType) {
-    logger.log(
-      2,
-      '_emailNotification',
-      `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`
-    );
+    logger.log(2, '_emailNotification', `Preparing to send email for employee ${expense.employeeId}`);
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
     let toAddress = expenseType.to || expense.category?.to;
-    logger.log(2, '_emailNotification', `toAddress: ${toAddress}`);
     if (source && toAddress) {
       toAddress = Array.isArray(toAddress) ? toAddress : [toAddress];
-      logger.log(2, '_emailNotification', `toAddress: ${toAddress}`);
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
         employee.lastName
@@ -935,12 +929,6 @@ class ExpenseRoutes extends Crud {
         URL: ${expense.url || 'None'}
         Category: ${expense.category}
         Created: ${expense.createdAt}`;
-      logger.log(
-        2,
-        '_emailNotification',
-        `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
-        `${employee.employeeId}`
-      );
       let ccAddress = expenseType.cc || expense.category?.cc;
       if (ccAddress) {
         ccAddress = Array.isArray(ccAddress) ? ccAddress : [ccAddress];
@@ -953,9 +941,17 @@ class ExpenseRoutes extends Crud {
       if (replyToAddress) {
         replyToAddress = Array.isArray(replyToAddress) ? replyToAddress : [replyToAddress];
       }
-      logger.log(2, '_emailNotification', `ccAddress: ${ccAddress}`);
-      logger.log(2, '_emailNotification', `bccAddress: ${bccAddress}`);
-      logger.log(2, '_emailNotification', `replyToAddress: ${replyToAddress}`);
+      logger.log(
+        2,
+        '_emailNotification',
+        `Sending email for expense submitted by employee ${expense.employeeId}`,
+        `${employee.employeeId}`
+      );
+      logger.log(
+        2,
+        '_emailNotification',
+        `from: ${source}, to: ${toAddress}, cc: ${ccAddress}, bcc: ${bccAddress}, replyTo: ${replyToAddress} `
+      );
       utils.sendEmail(source, toAddress, subject, body, {
         ccAddresses: ccAddress || [],
         bccAddresses: bccAddress || [],
