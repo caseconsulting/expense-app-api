@@ -983,11 +983,7 @@ class ExpenseRoutes extends Crud {
         Created On: ${expense.createdAt}
         URL: ${expense.url || 'None'}`;
       logger.log(2, '_emailRejectedUser', `Sending expense rejection email to user ${employee.id}`);
-      utils.sendEmail(source, toAddress, subject, body, {
-        ccAddresses: ['cvincent@consulwithcase.com'],
-        bccAddresses: ['abendele@consultwithcase.com'],
-        replyToAddresses: ['cvincent@consulwithcase.com']
-      });
+      utils.sendEmail(source, toAddress, subject, body, {});
     } else {
       logger.log(
         2,
