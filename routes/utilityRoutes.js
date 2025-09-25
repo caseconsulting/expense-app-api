@@ -200,7 +200,7 @@ class Utility {
         throw err;
       }
 
-      expense.budgetName = expenseType.budgetName;
+      expense.budgetName = expenseType.name;
       expense.employeeName = employee.fullName();
       expense.firstName = employee.firstName;
       expense.middleName = employee.middleName;
@@ -279,7 +279,7 @@ class Utility {
       }
 
       let aggregateBudget = {
-        expenseTypeName: expenseType.budgetName,
+        expenseTypeName: expenseType.name,
         description: expenseType.description,
         odFlag: expenseType.odFlag,
         expenseTypeId: expenseType.id,
@@ -1134,7 +1134,7 @@ class Utility {
         let expenseType = _.find(allExpenseTypes, ['id', budget.expenseTypeId]);
         if (expenseType) {
           return {
-            expenseTypeName: expenseType.budgetName,
+            expenseTypeName: expenseType.name,
             description: expenseType.description,
             odFlag: expenseType.odFlag,
             expenseTypeId: expenseType.id,
