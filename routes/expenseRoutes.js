@@ -22,19 +22,17 @@ class ExpenseRoutes extends Crud {
   constructor() {
     super();
     this.databaseModify = new DatabaseModify('expenses');
-    this.settingsDynamo = new DatabaseModify('settings');
     this.s3Client = s3Client;
   } // constructor
 
-  
   /**
    * Helper to validate expenses with a monthlyLimit, eg used in _validateAdd and _validateUpdate.
-   * 
+   *
    * @param oldExpense old version of expense (optional, set to undefined if this is not an update)
    * @param expense expense to validate
    * @param employee employee attached to expense
    * @param expenseType type of expense
-   * 
+   *
    * @return true if expense if valid concerning monthlyLimit, else false
    */
   async _monthlyLimitValidate(oldExpense, expense, employee, expenseType) {
@@ -246,9 +244,8 @@ class ExpenseRoutes extends Crud {
 
       await this._addToBudget(expense, null, expenseType, budget); // add expense to budget
 
-      // TODO: don't hardcode this, but make it part of the expense type
-      if (expense.category?.toLowerCase() === 'exchange for training hours') {
-        await this._emailPayroll(employee, expense);
+      if (expenseType.to || expense.category?.to) {
+        await this._emailNotification(employee, expense, expenseType);
       }
 
       // log success
@@ -913,26 +910,20 @@ class ExpenseRoutes extends Crud {
    *
    * @param {Object} employee - The employee object of the submitted expense
    * @param {Object} expense - The submitted expense object
+   * @param {Object} expenseType - The expense type object
    */
-  async _emailPayroll(employee, expense) {
+  async _emailNotification(employee, expense, expenseType) {
     logger.log(
       2,
-      '_emailPayroll',
-      `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`);
+      '_emailNotification',
+      `Preparing to email payroll for training exchange expense submitted by employee ${expense.employeeId}`
+    );
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
-    // to test on dev/test envs, insert your own email in the env file for payroll address
-    let toSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursTo');
-    let toAddress = toSetting[0].setting;
-    logger.log(
-      2,
-      '_emailPayroll',
-      `toAddress: ${toAddress}`);
+    let toAddress = expenseType.to || expense.category?.to;
+    logger.log(2, '_emailNotification', `toAddress: ${toAddress}`);
     if (source && toAddress) {
-      toAddress = toAddress.split(',');
-      logger.log(
-        2,
-        '_emailPayroll',
-        `toAddress: ${toAddress}`);
+      toAddress = Array.isArray(toAddress) ? toAddress : [toAddress];
+      logger.log(2, '_emailNotification', `toAddress: ${toAddress}`);
       let subject = 'New exchange for training hours expense submitted';
       let body = `${employee.nickname || employee.firstName} ${
         employee.lastName
@@ -946,15 +937,29 @@ class ExpenseRoutes extends Crud {
         Created: ${expense.createdAt}`;
       logger.log(
         2,
-        '_emailPayroll',
+        '_emailNotification',
         `Sending email to payroll from training exchange expense submitted by employee ${expense.employeeId}`,
         `${employee.employeeId}`
       );
-      let ccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursCc');
-      let bccSetting = await this.settingsDynamo.querySecondaryIndexInDB('key-index', 'key', 'trainingHoursBcc');
+      let ccAddress = expenseType.cc || expense.category?.cc;
+      if (ccAddress) {
+        ccAddress = Array.isArray(ccAddress) ? ccAddress : [ccAddress];
+      }
+      let bccAddress = expenseType.bcc || expense.category?.bcc;
+      if (bccAddress) {
+        bccAddress = Array.isArray(bccAddress) ? bccAddress : [bccAddress];
+      }
+      let replyToAddress = expenseType.replyTo || expense.category?.replyTo;
+      if (replyToAddress) {
+        replyToAddress = Array.isArray(replyToAddress) ? replyToAddress : [replyToAddress];
+      }
+      logger.log(2, '_emailNotification', `ccAddress: ${ccAddress}`);
+      logger.log(2, '_emailNotification', `bccAddress: ${bccAddress}`);
+      logger.log(2, '_emailNotification', `replyToAddress: ${replyToAddress}`);
       utils.sendEmail(source, toAddress, subject, body, {
-        ccAddresses: ccSetting[0].setting.split(','),
-        bccAddresses: bccSetting[0].setting.split(','),
+        ccAddresses: ccAddress || [],
+        bccAddresses: bccAddress || [],
+        replyToAddresses: replyToAddress || []
       });
     }
   }
@@ -1042,17 +1047,20 @@ class ExpenseRoutes extends Crud {
       }
 
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(undefined, expense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        undefined,
+        expense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
         console.log('F');
-        err.message = 'Expense cost of $'
-          + expense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message =
+          'Expense cost of $' +
+          expense.cost +
+          ' exceeds monthly limit. Monthly limit remaining is $' +
+          leftoverBudget.toFixed(2) +
+          '.';
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }
@@ -1176,8 +1184,7 @@ class ExpenseRoutes extends Crud {
 
         // throw error
         err.message =
-          `Purchase date is out of ${expenseType.name} range ${expenseType.startDate} to` +
-          ` ${expenseType.endDate}.`;
+          `Purchase date is out of ${expenseType.name} range ${expenseType.startDate} to` + ` ${expenseType.endDate}.`;
         throw err;
       }
 
@@ -1360,18 +1367,21 @@ class ExpenseRoutes extends Crud {
           ` ${oldBudget.fiscalStartDate} to ${oldBudget.fiscalEndDate}.`;
         throw err;
       }
-      
+
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(oldExpense, newExpense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        oldExpense,
+        newExpense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
-        err.message = 'Expense cost of $'
-          + newExpense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message =
+          'Expense cost of $' +
+          newExpense.cost +
+          ' exceeds monthly limit. Monthly limit remaining is $' +
+          leftoverBudget.toFixed(2) +
+          '.';
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }
