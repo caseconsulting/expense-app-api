@@ -7,18 +7,10 @@ const TARGET_PROFILE = 'dev';
 const TARGET_STAGE = 'test';
 
 const REGION = 'us-east-1';
-const TABLES = [
-  'budgets',
-  'contracts',
-  'employees',
-  'expense-types',
-  'leaderboard',
-  'pto-cashouts',
-  'tags',
-];
+const TABLES = ['budgets', 'contracts', 'employees', 'leaderboard', 'pto-cashouts', 'tags'];
 
 const TABLE_KEYS = {
-  leaderboard: 'employeeId',
+  leaderboard: 'employeeId'
 };
 const sourceClient = new DynamoDBClient({
   region: REGION,
@@ -147,6 +139,32 @@ async function writeItemsToExpenses(items) {
   console.log(`Data written to ${tableName}...`);
 }
 
+async function writeItemsToExpenseTypes(items) {
+  let tableName = `${TARGET_STAGE}-expense-types`;
+  console.log(`Writing data to ${tableName}...`);
+  for (const item of items) {
+    item = {
+      ...item,
+      to: '',
+      cc: '',
+      bcc: '',
+      replyTo: ''
+    }; // do not copy email fields
+    try {
+      const putCommand = new PutItemCommand({
+        TableName: tableName,
+        Item: item
+      });
+
+      await targetClient.send(putCommand);
+    } catch (err) {
+      console.error(`Error copying item to ${tableName}:`, err);
+    }
+  }
+
+  console.log(`Data written to ${tableName}...`);
+}
+
 (async () => {
   try {
     TABLES.forEach(async (table) => {
@@ -165,6 +183,11 @@ async function writeItemsToExpenses(items) {
     const expenseItems = await getAllItemsFromSource(`${SOURCE_STAGE}-expenses`);
     await emptyTargetTable(`${TARGET_STAGE}-expenses`);
     await writeItemsToExpenses(expenseItems);
+
+    // expense-types
+    const expenseTypeItems = await getAllItemsFromSource(`${SOURCE_STAGE}-expense-types`);
+    await emptyTargetTable(`${TARGET_STAGE}-expense-types`);
+    await writeItemsToExpenseTypes(`${TARGET_STAGE}-expense-types`, expenseTypeItems);
   } catch (err) {
     console.error('Error during copy:', err);
   }
