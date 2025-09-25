@@ -187,7 +187,7 @@ async function writeItemsToExpenseTypes(items) {
     // expense-types
     const expenseTypeItems = await getAllItemsFromSource(`${SOURCE_STAGE}-expense-types`);
     await emptyTargetTable(`${TARGET_STAGE}-expense-types`);
-    await writeItemsToExpenseTypes(`${TARGET_STAGE}-expense-types`, expenseTypeItems);
+    await writeItemsToExpenseTypes(expenseTypeItems);
   } catch (err) {
     console.error('Error during copy:', err);
   }
