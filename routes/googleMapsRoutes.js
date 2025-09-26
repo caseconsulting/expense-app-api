@@ -37,26 +37,89 @@ class GoogleMapRoutes {
    * @param res - returns Google Maps API object according to the user's input in the street field
    */
   async _getLocation(req, res) {
-    let location = req.params.location;
-    location = location.replace(' ', '+');
-    let googleKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
-    let baseURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${googleKey}`;
-    logger.log(1, '_getLocation', `Attempting to get requested location for ${location}`);
-    var config = {
-      method: 'get',
-      url: `${baseURL}&types=address&components=country:us&input=${location}`
-    };
     try {
-      let response = await this.callAxios(config);
-      logger.log(1, '_getLocation', 'Successfully obtained location(s)!');
-      res.status(200).send(response.data);
+      // get location input
+      let location = req.params.location;
+      if (!location) throw new Error('Parameter `location` missing or not parsable');
+
+      // vars to pass to the Google
+      let apiKey = process.env.NODE_ENV_GOOGLE_MAPS_KEY;
+      if (!apiKey) throw new Error('Failed to fetch Google Maps API key');
+      
+      // get all place predictions (no address)
+      // https://developers.google.com/maps/documentation/places/web-service/place-autocomplete
+      logger.log(1, '_getLocation', `Getting Google Maps suggestions for ${location}`);
+      let autocompleteURL = 'https://places.googleapis.com/v1/places:autocomplete';
+      const data = { input: location };
+      const aHeaders = {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': ['suggestions.placePrediction.placeId']
+        }
+      };
+      let response = await axios.post(autocompleteURL, data, aHeaders);
+      let suggestions = response.data.suggestions ?? [];
+      logger.log(1, '_getLocation', `Found ${suggestions.length ?? 0} suggestions`);
+      if (!suggestions.length) return [];
+
+      // fill in missing address data
+      // https://developers.google.com/maps/documentation/places/web-service/place-details
+      logger.log(1, '_getLocation', 'Fetching address details');
+      let placesUrl = 'https://places.googleapis.com/v1/places/';
+      let pHeaders = { headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': ['addressComponents'] } };
+      let promises = suggestions.map((s) => axios.get(placesUrl + s.placePrediction.placeId, pHeaders));
+      let responses = await Promise.all(promises);
+      logger.log(1, '_getLocation', 'Success fetching address details');
+
+      // extract address info
+      // if you add to this array, also update formattedData below
+      let parts = new Set([
+        'street_number',
+        'route',
+        'locality',
+        'administrative_area_level_1',
+        'postal_code',
+        'postal_code_suffix',
+        'country'
+      ]);
+      let longs = new Set(['administrative_area_level_1', 'country']);
+      let formattedAddresses = [];
+      let addresses = responses.map((r) => r.data);
+      for (let address of addresses) {
+        // get each part out of the address
+        let raw = {};
+        if (!address.addressComponents?.length) continue;
+        for (let c of address.addressComponents) {
+          if (!c.types?.length) continue;
+          for (let t of c.types) {
+            if (!parts.has(t)) continue;
+            raw[t] = longs.has(t) ? c.longText : c.shortText;
+          }
+        }
+        // make a new object with friendly names to return
+        let join = (glue, ...rest) => rest.filter(r => !!r).join(glue);
+        let formattedData = {
+          street1: join(' ', raw.street_number, raw.route),
+          city: raw.locality,
+          state: raw.administrative_area_level_1,
+          zip: join('-', raw.postal_code, raw.postal_code_suffix),
+          country: raw.country
+        };
+        let formattedAddress = join(', ', ...Object.values(formattedData));
+        formattedAddresses.push({formattedAddress, ...formattedData});
+      }
+
+      logger.log(1, '_getLocation', 'Success parsing all address data');
+      res.status(200).send(formattedAddresses);
     } catch (err) {
       let error = {
-        code: 400,
+        code: err.status || 400,
         message: err.message
       };
       this._sendError(res, error);
     }
+
   } //_getLocation
 
   /**
