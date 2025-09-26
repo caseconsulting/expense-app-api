@@ -73,10 +73,17 @@ class GoogleMapRoutes {
       logger.log(1, '_getLocation', 'Success fetching address details');
 
       // extract address info
+      // if you add to this array, also update formattedData below
       let parts = new Set([
-        'street_number', 'route', 'locality', 'administrative_area_level_1', 'postal_code', 'postal_code_suffix'
+        'street_number',
+        'route',
+        'locality',
+        'administrative_area_level_1',
+        'postal_code',
+        'postal_code_suffix',
+        'country'
       ]);
-      let longs = new Set(['administrative_area_level_1']);
+      let longs = new Set(['administrative_area_level_1', 'country']);
       let formattedAddresses = [];
       let addresses = responses.map((r) => r.data);
       for (let address of addresses) {
@@ -96,7 +103,8 @@ class GoogleMapRoutes {
           street1: join(' ', raw.street_number, raw.route),
           city: raw.locality,
           state: raw.administrative_area_level_1,
-          zip: join('-', raw.postal_code, raw.postal_code_suffix)
+          zip: join('-', raw.postal_code, raw.postal_code_suffix),
+          country: raw.country
         };
         let formattedAddress = join(', ', ...Object.values(formattedData));
         formattedAddresses.push({formattedAddress, ...formattedData});
