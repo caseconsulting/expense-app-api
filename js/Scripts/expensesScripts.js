@@ -26,31 +26,22 @@ const ETTABLE = `${STAGE}-expense-types`;
 const BUDGETS_TABLE = `${STAGE}-budgets`;
 
 // imports
-import { generateUUID } from '../utils.js';
-import _ from 'lodash';
-import readlineSync from 'readline-sync';
+const { generateUUID } = require('../utils');
+const _ = require('lodash');
+const readlineSync = require('readline-sync');
 
 // set up AWS DynamoDB
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import {
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
   DynamoDBDocumentClient,
   ScanCommand,
   UpdateCommand,
   PutCommand,
   DeleteCommand
-} from '@aws-sdk/lib-dynamodb';
+} = require('@aws-sdk/lib-dynamodb');
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
   marshallOptions: { convertClassInstanceToMap: true }
 });
-
-export const EXPENSE_STATES = {
-  CREATED: 'CREATED',
-  APPROVED: 'APPROVED',
-  REIMBURSED: 'REIMBURSED',
-  REJECTED: 'REJECTED',
-  RETURNED: 'RETURNED',
-  REVISED: 'REVISED'
-};
 
 // colors for console logging
 const colors = {
@@ -360,8 +351,8 @@ async function changeAttributeName(oldName, newName) {
  */
 async function deletePendingMifi() {
   let expenses = await getAllEntries(TABLE);
-  const dateUtils = await import('../dateUtils');
-  const ExpenseRoutes = await import('../../routes/expenseRoutes');
+  const dateUtils = require('../dateUtils');
+  const ExpenseRoutes = require('../../routes/expenseRoutes');
   const expenseRoutes = new ExpenseRoutes();
 
   await _.forEach(expenses, async (expense) => {
@@ -387,7 +378,7 @@ async function deletePendingMifi() {
 
 async function updateReimburseForMifi() {
   let expenses = await getAllEntries(TABLE);
-  const dateUtils = await import('../dateUtils');
+  const dateUtils = require('../dateUtils');
 
   _.forEach(expenses, async (expense) => {
     let expenseIsMifi = expense.cost === -150 && expense.receipt === 'MifiStatusChange.png';
@@ -422,51 +413,6 @@ async function updateReimburseForMifi() {
     }
   });
 } // updateReimburseForMifi
-
-async function updateAllStates() {
-  let expenses = await getAllEntries(TABLE);
-  let { CREATED, APPROVED, REIMBURSED, REJECTED, RETURNED, REVISED } = EXPENSE_STATES;
-
-  // helper to decide if an expense is approved
-  function isApproved(expense) {
-    let note = expense.note?.toLowerCase() ?? '';
-    // unapproved if there's no 'approved' message
-    if (!note.includes('approved')) return false;
-    // double-check if there's a signature from someone
-    let signatures = ['cv', 'ab', 'kc'];
-    for (let s of signatures) if (note.includes(s)) return true;
-    // return false if no signature was matched
-    return false;
-  }
-
-  let state, params;
-  let n = 1;
-  for (let expense of expenses) {
-    // decide which state expense is in
-    if (expense.reimbursedDate) state = REIMBURSED;
-    else if (expense.rejections?.hardRejections) state = REJECTED;
-    else if (expense.rejections?.softRejections?.revised) state = REVISED;
-    else if (expense.rejections?.softRejections) state = RETURNED;
-    else if (isApproved(expense)) state = APPROVED; 
-    else state = CREATED;
-
-    // update the state in DDB
-    params = {
-      TableName: TABLE,
-      Key: { id: expense.id },
-      UpdateExpression: 'set #st = :s',
-      ExpressionAttributeNames: { '#st': 'state' },
-      ExpressionAttributeValues: { ':s': state },
-      ReturnValues: 'UPDATED_NEW'
-    };
-
-    // update expense
-    await ddb
-      .send(new UpdateCommand(params))
-      .then(console.log(`(${n++}/${expenses.length}) Updated expense ${expense.id} to state ${state}`))
-      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
-  }
-}
 
 /**
  * =================================================
@@ -595,13 +541,6 @@ async function main() {
       desc: 'Update reimburse amounts for reimbursed MiFi expenses',
       action: async () => {
         await updateReimburseForMifi();
-      }
-    },
-
-    {
-      desc: 'Set each expense state based on expense data',
-      action: async () => {
-        await updateAllStates();
       }
     }
   ];
