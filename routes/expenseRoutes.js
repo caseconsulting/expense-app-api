@@ -919,7 +919,7 @@ class ExpenseRoutes extends Crud {
     let toAddress = expenseType.to || category?.to;
     if (source && toAddress) {
       toAddress = Array.isArray(toAddress) ? toAddress : [toAddress];
-      let subject = 'New expense submitted';
+      let subject = `New ${expenseType.name} expense submitted`;
       let body = `${employee.nickname || employee.firstName} ${employee.lastName} submitted an expense\n
         Expense details:
         Cost: $${expense.cost}
