@@ -228,6 +228,7 @@ class ExpenseRoutes extends Crud {
         return JSON.parse(category);
       });
       expenseType = new ExpenseType(expenseType);
+      let category = expenseType.categories.find((cat) => cat.name === expense.category);
 
       await Promise.all([
         await this._validateExpense(expense, employee, expenseType),
@@ -244,8 +245,8 @@ class ExpenseRoutes extends Crud {
 
       await this._addToBudget(expense, null, expenseType, budget); // add expense to budget
 
-      if (expenseType.to || expense.category?.to) {
-        await this._emailNotification(employee, expense, expenseType);
+      if (expenseType.to || category?.to) {
+        await this._emailNotification(employee, expense, expenseType, category);
       }
 
       // log success
@@ -912,10 +913,10 @@ class ExpenseRoutes extends Crud {
    * @param {Object} expense - The submitted expense object
    * @param {Object} expenseType - The expense type object
    */
-  async _emailNotification(employee, expense, expenseType) {
+  async _emailNotification(employee, expense, expenseType, category) {
     logger.log(2, '_emailNotification', `Preparing to send email for employee ${expense.employeeId}`);
     let source = process.env.APP_COMPANY_EMAIL_ADDRESS;
-    let toAddress = expenseType.to || expense.category?.to;
+    let toAddress = expenseType.to || category?.to;
     if (source && toAddress) {
       toAddress = Array.isArray(toAddress) ? toAddress : [toAddress];
       let subject = 'New exchange for training hours expense submitted';
@@ -929,15 +930,15 @@ class ExpenseRoutes extends Crud {
         URL: ${expense.url || 'None'}
         Category: ${expense.category}
         Created: ${expense.createdAt}`;
-      let ccAddress = expenseType.cc || expense.category?.cc;
+      let ccAddress = expenseType.cc || category?.cc;
       if (ccAddress) {
         ccAddress = Array.isArray(ccAddress) ? ccAddress : [ccAddress];
       }
-      let bccAddress = expenseType.bcc || expense.category?.bcc;
+      let bccAddress = expenseType.bcc || category?.bcc;
       if (bccAddress) {
         bccAddress = Array.isArray(bccAddress) ? bccAddress : [bccAddress];
       }
-      let replyToAddress = expenseType.replyTo || expense.category?.replyTo;
+      let replyToAddress = expenseType.replyTo || category?.replyTo;
       if (replyToAddress) {
         replyToAddress = Array.isArray(replyToAddress) ? replyToAddress : [replyToAddress];
       }
