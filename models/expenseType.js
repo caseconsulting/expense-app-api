@@ -7,11 +7,11 @@ class ExpenseType {
     this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'accessibleBy', ['FullTime']); // default: accessible by all employees
     this.setRequiredNumberAttribute(data, 'budget', undefined, 2); // fixed 2 decimal places
+    this.setRequiredAttribute(data, 'budgetName');
     this.setRequiredAttribute(data, 'categories', []); // default: no categories
     this.setRequiredAttribute(data, 'description');
     this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
     this.setRequiredAttribute(data, 'isInactive', false); // default: active
-    this.setRequiredAttribute(data, 'name');
     this.setRequiredAttribute(data, 'odFlag', false); // default: overdraft not allowed
     this.setRequiredAttribute(data, 'proRated', false);
     this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring

@@ -105,7 +105,7 @@ describe('utilityRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    name: NAME,
+    budgetName: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,
@@ -378,11 +378,11 @@ describe('utilityRoutes', () => {
       employee2.nickname = 'nick_2';
 
       expenseType1.id = 'ETID_1';
-      expenseType1.name = 'budgetName_1';
+      expenseType1.budgetName = 'budgetName_1';
       expenseType1.campfire = 'campfire_1';
 
       expenseType2.id = 'ETID_2';
-      expenseType2.name = 'budgetName_2';
+      expenseType2.budgetName = 'budgetName_2';
       expenseType2.campfire = 'campfire_2';
 
       aggregateExpense1.employeeId = 'EID_1';

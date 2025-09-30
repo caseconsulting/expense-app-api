@@ -88,7 +88,7 @@ describe('expenseTypeRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    name: NAME,
+    budgetName: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,
@@ -388,7 +388,7 @@ describe('expenseTypeRoutes', () => {
 
       describe('and expense type name is changed', () => {
         beforeEach(() => {
-          oldExpenseType.name = 'OTHER_NAME';
+          oldExpenseType.budgetName = 'OTHER_NAME';
           databaseModify.getEntry.and.returnValue(Promise.resolve(oldExpenseType));
           spyOn(expenseTypeRoutes, '_validateExpenseType').and.returnValue(Promise.resolve(newExpenseType));
           spyOn(expenseTypeRoutes, '_validateUpdate').and.returnValue(Promise.resolve(newExpenseType));
@@ -1552,7 +1552,7 @@ describe('expenseTypeRoutes', () => {
       }); // should return a 403 rejected promise
     }); // when id is missing
 
-    describe('when name is missing', () => {
+    describe('when budgetName is missing', () => {
       let err;
 
       beforeEach(() => {
@@ -1561,7 +1561,7 @@ describe('expenseTypeRoutes', () => {
           message: 'Invalid expense type budget name.'
         };
 
-        delete expenseType.name;
+        delete expenseType.budgetName;
       });
 
       it('should return a 403 rejected promise', () => {
@@ -1574,7 +1574,7 @@ describe('expenseTypeRoutes', () => {
             expect(error).toEqual(err);
           });
       }); // should return a 403 rejected promise
-    }); // when name is missing
+    }); // when budgetName is missing
 
     describe('when budget is missing', () => {
       let err;

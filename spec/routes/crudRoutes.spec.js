@@ -68,7 +68,7 @@ describe('crudRoutes', () => {
 
   const EXPENSE_TYPE_DATA = {
     id: ID,
-    name: NAME,
+    budgetName: NAME,
     budget: BUDGET,
     startDate: START_DATE,
     endDate: END_DATE,

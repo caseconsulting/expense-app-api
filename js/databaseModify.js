@@ -126,7 +126,7 @@ class databaseModify {
         // log success
         logger.log(4, 'getAllEntriesInDB', `Successfully read all ${items.length} entries from ${tableName}`);
 
-        return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'name', 'purchaseDate']);
+        return _.sortBy(items, ['lastName', 'middleName', 'firstName', 'budgetName', 'purchaseDate']);
       })
       .catch(function (err) {
         // log error

@@ -421,9 +421,8 @@ async function main() {
       }
     },
     {
-      desc: 'Rename budgetName, alwaysOnFeed and requiredFlag attributes to match Category naming?',
+      desc: 'Rename alwaysOnFeed and requiredFlag attributes to match Category naming?',
       action: async () => {
-        await renameAttribute('budgetName', 'name');
         await renameAttribute('alwaysOnFeed', 'showOnFeed');
         await renameAttribute('requiredFlag', 'requireReceipt');
       }

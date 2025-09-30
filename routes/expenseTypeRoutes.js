@@ -24,7 +24,7 @@ class ExpenseTypeRoutes extends Crud {
    */
   async _create(data) {
     // log method
-    logger.log(2, '_create', `Preparing to create expense type ${data.name} with ID ${data.id}`);
+    logger.log(2, '_create', `Preparing to create expense type ${data.budgetName} with ID ${data.id}`);
 
     // compute method
     try {
@@ -32,13 +32,13 @@ class ExpenseTypeRoutes extends Crud {
       await this._validateExpenseType(expenseType);
 
       // log success
-      logger.log(2, '_create', `Successfully prepared to create expense type ${data.name} with ID ${data.id}`);
+      logger.log(2, '_create', `Successfully prepared to create expense type ${data.budgetName} with ID ${data.id}`);
 
       // return created expense type
       return expenseType;
     } catch (err) {
       // log error
-      logger.log(2, '_create', `Failed to prepare create for expense type ${data.name} with ID ${data.id}`);
+      logger.log(2, '_create', `Failed to prepare create for expense type ${data.budgetName} with ID ${data.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -144,7 +144,7 @@ class ExpenseTypeRoutes extends Crud {
     let data = req.body;
 
     // log method
-    logger.log(2, '_update', `Preparing to update expense type ${data.name} with ID ${data.id}`);
+    logger.log(2, '_update', `Preparing to update expense type ${data.budgetName} with ID ${data.id}`);
 
     // compute method
     try {
@@ -159,18 +159,18 @@ class ExpenseTypeRoutes extends Crud {
       await this._updateBudgets(oldExpenseType, newExpenseType);
 
       // log success
-      if (oldExpenseType.name == newExpenseType.name) {
+      if (oldExpenseType.budgetName == newExpenseType.budgetName) {
         logger.log(
           2,
           '_update',
-          `Successfully prepared to update expense type ${oldExpenseType.name} with ID ${data.id}`
+          `Successfully prepared to update expense type ${oldExpenseType.budgetName} with ID ${data.id}`
         );
       } else {
         logger.log(
           2,
           '_update',
-          `Successfully prepared to update expense type ${oldExpenseType.name} to`,
-          `${newExpenseType.name} with ID ${data.id}`
+          `Successfully prepared to update expense type ${oldExpenseType.budgetName} to`,
+          `${newExpenseType.budgetName} with ID ${data.id}`
         );
       }
 
@@ -178,7 +178,7 @@ class ExpenseTypeRoutes extends Crud {
       return newExpenseType;
     } catch (err) {
       // log error
-      logger.log(2, '_update', `Failed to prepare update for expense type ${data.name} with ID ${data.id}`);
+      logger.log(2, '_update', `Failed to prepare update for expense type ${data.budgetName} with ID ${data.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -435,7 +435,7 @@ class ExpenseTypeRoutes extends Crud {
       // validate there are no expenses with this expense type
       if (expenses.length > 0) {
         // log error
-        logger.log(3, '_validateDelete', `Expenses exist for expense type ${expenseType.name}`);
+        logger.log(3, '_validateDelete', `Expenses exist for expense type ${expenseType.budgetName}`);
 
         // throw error
         err.message = 'Cannot delete an expense type with expenses.';
@@ -485,7 +485,7 @@ class ExpenseTypeRoutes extends Crud {
       }
 
       // validate budget name
-      if (_.isNil(expenseType.name)) {
+      if (_.isNil(expenseType.budgetName)) {
         // log error
         logger.log(3, '_validateExpenseType', 'Expense type budget name is empty');
 
@@ -639,7 +639,7 @@ class ExpenseTypeRoutes extends Crud {
           );
           // throw error
           err.message = `Cannot change expense type overdraft flag. \
-            There are existing overdrafted expenses for the ${newExpenseType.name} expense type.`;
+            There are existing overdrafted expenses for the ${newExpenseType.budgetName} expense type.`;
           throw err;
         }
       }

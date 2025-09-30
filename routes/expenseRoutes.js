@@ -631,7 +631,7 @@ class ExpenseRoutes extends Crud {
 
         if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
           // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
-          this._emailRejectedUser(employee, newExpense, expenseType.name);
+          this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
         }
 
         // log success
@@ -919,7 +919,7 @@ class ExpenseRoutes extends Crud {
     let toAddress = expenseType.to || category?.to;
     if (source && toAddress) {
       toAddress = Array.isArray(toAddress) ? toAddress : [toAddress];
-      let subject = `New ${expenseType.name} expense submitted`;
+      let subject = `New ${expenseType.budgetName} expense submitted`;
       let body = `${employee.nickname || employee.firstName} ${employee.lastName} submitted an expense\n
         Expense details:
         Cost: $${expense.cost}
@@ -1152,18 +1152,18 @@ class ExpenseRoutes extends Crud {
         logger.log(3, '_validateExpense', `Expense type ${expenseType.id} is inactive`);
 
         // throw error
-        err.message = `Expense type ${expenseType.name} is not active.`;
+        err.message = `Expense type ${expenseType.budgetName} is not active.`;
         throw err;
       }
 
       // validate receipt exists if required by expense type
       if (expenseType.requireReceipt && !expense.hasReceipt()) {
-        if (!(expenseType.name === 'Training' && expense.category === 'Exchange for training hours')) {
+        if (!(expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours')) {
           // log error
           logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
 
           // throw error
-          err.message = `Receipt is required for expense type ${expenseType.name}.`;
+          err.message = `Receipt is required for expense type ${expenseType.budgetName}.`;
           throw err;
         }
       }
@@ -1175,7 +1175,8 @@ class ExpenseRoutes extends Crud {
 
         // throw error
         err.message =
-          `Purchase date is out of ${expenseType.name} range ${expenseType.startDate} to` + ` ${expenseType.endDate}.`;
+          `Purchase date is out of ${expenseType.budgetName} range ${expenseType.startDate} to` +
+          ` ${expenseType.endDate}.`;
         throw err;
       }
 
@@ -1199,7 +1200,7 @@ class ExpenseRoutes extends Crud {
         );
 
         // throw error
-        err.message = `Employee ${employee.fullName()} does not have access to ${expenseType.name}.`;
+        err.message = `Employee ${employee.fullName()} does not have access to ${expenseType.budgetName}.`;
         throw err;
       }
 
@@ -1289,7 +1290,7 @@ class ExpenseRoutes extends Crud {
         );
 
         // throw error
-        err.message = `Error validating new expense for expense type ${expenseType.name}.`;
+        err.message = `Error validating new expense for expense type ${expenseType.budgetName}.`;
         throw err;
       }
 
