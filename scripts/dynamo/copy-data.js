@@ -143,17 +143,17 @@ async function writeItemsToExpenseTypes(items) {
   let tableName = `${TARGET_STAGE}-expense-types`;
   console.log(`Writing data to ${tableName}...`);
   for (const item of items) {
-    item = {
+    let sanitizedItem = {
       ...item,
-      to: '',
-      cc: '',
-      bcc: '',
-      replyTo: ''
+      to: { S: '' },
+      cc: { S: '' },
+      bcc: { S: '' },
+      replyTo: { S: '' }
     }; // do not copy email fields
     try {
       const putCommand = new PutItemCommand({
         TableName: tableName,
-        Item: item
+        Item: sanitizedItem
       });
 
       await targetClient.send(putCommand);
