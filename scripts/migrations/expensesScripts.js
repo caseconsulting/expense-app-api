@@ -361,11 +361,7 @@ async function changeAttributeName(oldName, newName) {
  */
 async function deletePendingMifi() {
   let expenses = await getAllEntries(TABLE);
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
   const dateUtils = await import('../../js/dateUtils');
-=======
-  const dateUtils = await import('../dateUtils');
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
   const ExpenseRoutes = await import('../../routes/expenseRoutes');
   const expenseRoutes = new ExpenseRoutes();
 
@@ -392,11 +388,7 @@ async function deletePendingMifi() {
 
 async function updateReimburseForMifi() {
   let expenses = await getAllEntries(TABLE);
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
   const dateUtils = await import('../../js/dateUtils');
-=======
-  const dateUtils = await import('../dateUtils');
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
 
   _.forEach(expenses, async (expense) => {
     let expenseIsMifi = expense.cost === -150 && expense.receipt === 'MifiStatusChange.png';
@@ -434,7 +426,6 @@ async function updateReimburseForMifi() {
 
 async function updateAllStates() {
   let expenses = await getAllEntries(TABLE);
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
   let employees = await getAllEntries(EMPLOYEES_TABLE);
   let { CREATED, APPROVED, REIMBURSED, REJECTED, RETURNED, REVISED } = EXPENSE_STATES;
 
@@ -452,22 +443,15 @@ async function updateAllStates() {
   }
 
   // helper to check who approved
-=======
-  let { CREATED, APPROVED, REIMBURSED, REJECTED, RETURNED, REVISED } = EXPENSE_STATES;
-
-  // helper to decide if an expense is approved
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
   function isApproved(expense) {
     let note = expense.note?.toLowerCase() ?? '';
     // unapproved if there's no 'approved' message
     if (!note.includes('approved')) return false;
     // double-check if there's a signature from someone
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
     for (let [key, val] of Object.entries(signers)) if (note.includes(key)) return val.id;
-=======
     let signatures = ['cv', 'ab', 'kc'];
     for (let s of signatures) if (note.includes(s)) return true;
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
+    for (let [key, val] of Object.entries(signers)) if (note.includes(key)) return val.id;
     // return false if no signature was matched
     return false;
   }
@@ -476,19 +460,14 @@ async function updateAllStates() {
   let n = 1;
   for (let expense of expenses) {
     // decide which state expense is in
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
     let approver = isApproved(expense);
-=======
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
     if (expense.reimbursedDate) state = REIMBURSED;
     else if (expense.rejections?.hardRejections) state = REJECTED;
     else if (expense.rejections?.softRejections?.revised) state = REVISED;
     else if (expense.rejections?.softRejections) state = RETURNED;
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
     else if (approver) state = APPROVED; 
-=======
     else if (isApproved(expense)) state = APPROVED; 
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
+    else if (approver) state = APPROVED; 
     else state = CREATED;
 
     // update the state in DDB
@@ -501,7 +480,6 @@ async function updateAllStates() {
       ReturnValues: 'UPDATED_NEW'
     };
 
-<<<<<<< HEAD:scripts/migrations/expensesScripts.js
     // get approved by if applicable
     if (state === APPROVED) {
       let approvedBy = employees.find((e) => e.id === approver);
@@ -510,8 +488,6 @@ async function updateAllStates() {
       params.ExpressionAttributeValues[':a'] = approvedBy?.id ?? '';
     }
 
-=======
->>>>>>> 015588cf (POR-3113: update expense script):js/Scripts/expensesScripts.js
     // update expense
     await ddb
       .send(new UpdateCommand(params))
