@@ -289,7 +289,10 @@ async function addRequireURLAttrToCategories() {
 
 async function renameAttribute(oldName, newName) {
   let expenseTypes = await getAllEntries();
-  _.forEach(expenseTypes, (expenseType) => {
+  expenseTypes.forEach((expenseType) => {
+    if (!expenseType.hasOwnProperty(oldName)) {
+      return;
+    }
     let params = {
       TableName: TABLE,
       Key: {
@@ -310,7 +313,10 @@ async function renameAttribute(oldName, newName) {
     ddb
       .send(new UpdateCommand(params))
       .then(() => console.log(`Updated expense type id ${expenseType.id}`))
-      .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+      .catch((err) => {
+        console.error(`Unable to update expense type with id ${expenseType.id}.`);
+        console.error('Error:', JSON.stringify(err, null, 2));
+      });
   });
 }
 
