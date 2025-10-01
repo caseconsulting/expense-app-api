@@ -24,6 +24,7 @@ if (STAGE != 'dev' && STAGE != 'test' && STAGE != 'prod') {
 const TABLE = `${STAGE}-expenses`;
 const ETTABLE = `${STAGE}-expense-types`;
 const BUDGETS_TABLE = `${STAGE}-budgets`;
+const EMPLOYEES_TABLE = `${STAGE}-employees`;
 
 // imports
 import { generateUUID } from '../utils.js';
@@ -425,16 +426,29 @@ async function updateReimburseForMifi() {
 
 async function updateAllStates() {
   let expenses = await getAllEntries(TABLE);
+  let employees = await getAllEntries(EMPLOYEES_TABLE);
   let { CREATED, APPROVED, REIMBURSED, REJECTED, RETURNED, REVISED } = EXPENSE_STATES;
 
   // helper to decide if an expense is approved
+  let signers = {
+    cv: { email: 'cvincent@consultwithcase.com' },
+    ab: { email: 'abendele@consultwithcase.com' },
+    kc: { email: 'kchernyak@consultwithcase.com' }
+  };
+
+  // fill in IDs of signers
+  for (let s of Object.values(signers)) {
+    let emp = employees.find((e) => e.email === s.email);
+    s.id = emp?.id ?? null;
+  }
+
+  // helper to check who approved
   function isApproved(expense) {
     let note = expense.note?.toLowerCase() ?? '';
     // unapproved if there's no 'approved' message
     if (!note.includes('approved')) return false;
     // double-check if there's a signature from someone
-    let signatures = ['cv', 'ab', 'kc'];
-    for (let s of signatures) if (note.includes(s)) return true;
+    for (let [key, val] of Object.entries(signers)) if (note.includes(key)) return val.id;
     // return false if no signature was matched
     return false;
   }
@@ -443,11 +457,12 @@ async function updateAllStates() {
   let n = 1;
   for (let expense of expenses) {
     // decide which state expense is in
+    let approver = isApproved(expense);
     if (expense.reimbursedDate) state = REIMBURSED;
     else if (expense.rejections?.hardRejections) state = REJECTED;
     else if (expense.rejections?.softRejections?.revised) state = REVISED;
     else if (expense.rejections?.softRejections) state = RETURNED;
-    else if (isApproved(expense)) state = APPROVED; 
+    else if (approver) state = APPROVED; 
     else state = CREATED;
 
     // update the state in DDB
@@ -459,6 +474,14 @@ async function updateAllStates() {
       ExpressionAttributeValues: { ':s': state },
       ReturnValues: 'UPDATED_NEW'
     };
+
+    // get approved by if applicable
+    if (state === APPROVED) {
+      let approvedBy = employees.find((e) => e.id === approver);
+      params.UpdateExpression += ', #ab = :a';
+      params.ExpressionAttributeNames['#ab'] = 'approvedBy';
+      params.ExpressionAttributeValues[':a'] = approvedBy?.id ?? '';
+    }
 
     // update expense
     await ddb
