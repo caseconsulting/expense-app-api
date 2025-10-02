@@ -143,12 +143,12 @@ class databaseModify {
    * @param passedID - ID of entry
    * @return Object - entry obtained
    */
-  async getEntry(passedID) {
+  async getEntry(passedID, key = 'id') {
     // log method
     logger.log(4, 'getEntry', `Attempting to get entry ${passedID} from database`);
 
     // compute method
-    return this._readFromDB(passedID)
+    return this._readFromDB(passedID, key)
       .then(function (data) {
         if (_.first(data)) {
           // entry found
@@ -302,10 +302,13 @@ class databaseModify {
       {
         TableName: tableName,
         IndexName: secondaryIndex,
-        ExpressionAttributeValues: {
-          ':queryKey': queryParam
+        ExpressionAttributeNames: {
+          '#queryKey': queryKey
         },
-        KeyConditionExpression: `${queryKey} = :queryKey`
+        ExpressionAttributeValues: {
+          ':queryParam': queryParam
+        },
+        KeyConditionExpression: '#queryKey = :queryParam'
       },
       additionalParams
     );
@@ -396,18 +399,21 @@ class databaseModify {
    * @param passedID - ID of entry to read
    * @return Object - entries read
    */
-  async _readFromDB(passedID) {
+  async _readFromDB(passedID, key = 'id') {
     // log method
     let tableName = this.tableName;
-    logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ID ${passedID}`);
+    logger.log(4, '_readFromDB', `Attempting to read entries from ${tableName} with ${key}: ${passedID}`);
 
     // compute method
     const params = {
       TableName: tableName,
-      ExpressionAttributeValues: {
-        ':id': passedID
+      ExpressionAttributeNames: {
+        '#readKey': key
       },
-      KeyConditionExpression: 'id = :id'
+      ExpressionAttributeValues: {
+        ':readValue': passedID
+      },
+      KeyConditionExpression: '#readKey = :readValue'
     };
 
     return queryDB(params, documentClient)
@@ -416,7 +422,7 @@ class databaseModify {
         logger.log(
           4,
           '_readFromDB',
-          `Successfully read ${entries.length} entries from ${tableName} with ID ${passedID}`
+          `Successfully read ${entries.length} entries from ${tableName} with ${key}: ${passedID}`
         );
 
         // return entries
@@ -424,7 +430,7 @@ class databaseModify {
       })
       .catch(function (err) {
         // log error
-        logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ID ${passedID}`);
+        logger.log(4, '_readFromDB', `Failed to read entries from ${tableName} with ${key}: ${passedID}`);
 
         // throw error
         throw err;

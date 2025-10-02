@@ -202,14 +202,24 @@ async function getEmployees() {
  * @param {Boolean} isHtml - Whether or not the body of the email is formatted with HTML
  * @returns Promise - The result of the email that is attempted to send
  */
-async function sendEmail(source, toAddresses, subject, body, isHtml = false) {
+async function sendEmail(source, toAddresses, subject, body, options = {}) {
+  options = {
+    isHtml: false,
+    ccAddresses: [],
+    bccAddresses: [],
+    replyToAddresses: [],
+    ...options
+  };
+  const { isHtml, ccAddresses, bccAddresses, replyToAddresses } = options;
   try {
     const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
     const sesClient = new SESClient({ region: 'us-east-1' });
     let emailCommand = new SendEmailCommand({
       Source: source,
       Destination: {
-        ToAddresses: toAddresses
+        ToAddresses: toAddresses,
+        CcAddresses: ccAddresses,
+        BccAddresses: bccAddresses
       },
       Message: {
         Subject: {
@@ -222,7 +232,8 @@ async function sendEmail(source, toAddresses, subject, body, isHtml = false) {
             Data: body
           }
         }
-      }
+      },
+      ReplyToAddresses: replyToAddresses ?? [source],
     });
     return Promise.resolve(await sesClient.send(emailCommand));
   } catch (err) {

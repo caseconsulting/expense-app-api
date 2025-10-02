@@ -1,7 +1,7 @@
 /**
- * node ./js/Scripts/employeeScripts.js dev
- * node ./js/Scripts/employeeScripts.js test
- * node ./js/Scripts/employeeScripts.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/employeeScripts.js dev
+ * node ./scripts/migrations/employeeScripts.js test
+ * node ./scripts/migrations/employeeScripts.js prod (must set aws credentials for prod as default)
  *
  * npm run employeeScripts:dev
  * npm run employeeScripts:prod
@@ -40,7 +40,7 @@ const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-08-10', region: 'us-east-1' }), {
   marshallOptions: { convertClassInstanceToMap: true }
 });
-const DatabaseModify = require('../databaseModify');
+const DatabaseModify = require('../../js/databaseModify');
 
 // set up s3
 const { CopyObjectCommand, ListObjectsCommand, DeleteObjectCommand, S3Client } = require('@aws-sdk/client-s3');

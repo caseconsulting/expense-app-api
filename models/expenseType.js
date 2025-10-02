@@ -4,27 +4,31 @@ const ISOFORMAT = 'YYYY-MM-DD';
 
 class ExpenseType {
   constructor(data) {
+    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'accessibleBy', ['FullTime']); // default: accessible by all employees
-    this.setRequiredAttribute(data, 'alwaysOnFeed', false); // default: do not show on feed
     this.setRequiredNumberAttribute(data, 'budget', undefined, 2); // fixed 2 decimal places
     this.setRequiredAttribute(data, 'budgetName');
     this.setRequiredAttribute(data, 'categories', []); // default: no categories
     this.setRequiredAttribute(data, 'description');
     this.setRequiredAttribute(data, 'hasRecipient', false); // default: no recipient
-    this.setRequiredAttribute(data, 'id');
     this.setRequiredAttribute(data, 'isInactive', false); // default: active
     this.setRequiredAttribute(data, 'odFlag', false); // default: overdraft not allowed
-    this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring
-    this.setRequiredAttribute(data, 'requiredFlag', true); // default: receipt required
-    this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
     this.setRequiredAttribute(data, 'proRated', false);
+    this.setRequiredAttribute(data, 'recurringFlag', false); // default: not recurring
+    this.setRequiredAttribute(data, 'requireReceipt', true); // default: receipt required
+    this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
+    this.setRequiredAttribute(data, 'showOnFeed', false); // default: do not show on feed
     this.setRequiredAttribute(data, 'tagBudgets', []);
 
+    this.setOptionalAttribute(data, 'bcc');
     this.setOptionalAttribute(data, 'campfire');
-    this.setOptionalAttribute(data, 'endDate');
-    this.setOptionalAttribute(data, 'startDate');
-    this.setOptionalAttribute(data, 'monthlyLimit');
+    this.setOptionalAttribute(data, 'cc');
     this.setOptionalAttribute(data, 'disabledEmployees');
+    this.setOptionalAttribute(data, 'endDate');
+    this.setOptionalAttribute(data, 'monthlyLimit');
+    this.setOptionalAttribute(data, 'replyTo');
+    this.setOptionalAttribute(data, 'startDate');
+    this.setOptionalAttribute(data, 'to');
   } // constructor
 
   /**
