@@ -882,6 +882,14 @@ Resources:
                       "-",
                       [!Ref Stage, expense-app-cluster-secret-arn],
                     ] # from database.yaml exports
+        - PolicyName: "SESSendEmailPolicy"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                Resource: "*"
       Tags:
         - Key: Application
           Value: expense-app
