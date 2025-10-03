@@ -9,6 +9,7 @@ Parameters:
       - dev
       - test
       - prod
+      - sandbox
 
 Conditions:
   ProdDeployment: !Equals

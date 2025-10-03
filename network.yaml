@@ -5,7 +5,7 @@ Parameters:
   Stage:
     Type: String
     Description: Deployment environment (e.g., dev, test, or prod)
-    AllowedValues: [dev, test, prod]
+    AllowedValues: [dev, test, prod, sandbox]
 
 Conditions:
   ProdDeployment: !Equals [!Ref Stage, prod]

@@ -13,7 +13,8 @@ const Templates = /** @type {const} */ ({
 const Stages = /** @type {const} */ ({
   dev: 'dev',
   test: 'test',
-  prod: 'prod'
+  prod: 'prod',
+  sandbox: 'sandbox'
 });
 
 /**
