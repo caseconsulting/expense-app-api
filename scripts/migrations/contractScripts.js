@@ -1,7 +1,7 @@
 /**
- * node ./js/Scripts/contractScripts.js dev
- * node ./js/Scripts/contractScripts.js test
- * node ./js/Scripts/contractScripts.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/contractScripts.js dev
+ * node ./scripts/migrations/contractScripts.js test
+ * node ./scripts/migrations/contractScripts.js prod (must set aws credentials for prod as default)
  */
 
 // handles unhandled rejection errors
@@ -27,7 +27,7 @@ const EMPLOYEES_TABLE = `${STAGE}-employees`;
 // imports
 const _ = require('lodash');
 const readlineSync = require('readline-sync');
-const { generateUUID } = require('../utils');
+const { generateUUID } = require('../../js/utils');
 
 // set up  AWS DynamoDB
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');

@@ -184,7 +184,7 @@ class HighFiveRoutes {
       let subject = 'CASE sent you an Amazon Gift Card for receiving a High Five!';
       let body = template;
       let isHtml = true;
-      await sendEmail(source, toAddresses, subject, body, isHtml);
+      await sendEmail(source, toAddresses, subject, body, { isHtml });
     } catch (err) {
       return Promise.reject(err);
     }

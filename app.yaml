@@ -758,6 +758,40 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
+  settingsTable:
+    Type: "AWS::DynamoDB::Table"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Join
+        - "-"
+        - - !Ref Stage
+          - settings
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: key-index
+          KeySchema:
+            - AttributeName: key
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Application
+          Value: expense-app
+        - Key: Stage
+          Value: !Ref Stage
+
   ExpenseAppApiLambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -849,6 +883,14 @@ Resources:
                       "-",
                       [!Ref Stage, expense-app-cluster-secret-arn],
                     ] # from database.yaml exports
+        - PolicyName: "SESSendEmailPolicy"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                Resource: "*"
       Tags:
         - Key: Application
           Value: expense-app

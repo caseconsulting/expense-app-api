@@ -1,6 +1,6 @@
 {
   "name": "expense-app-api",
-  "version": "4.18.0",
+  "version": "4.19.0",
   "private": true,
   "scripts": {
     "chronos": "node -e 'require(\"./chronos\").start()'",
@@ -59,9 +59,9 @@
     "download:test": "npm run download:test:env && npm run download:test:claudia",
     "download:test:claudia": "aws s3 cp s3://case-expense-app-resources-test/claudia.json claudia.json",
     "download:test:env": "echo .env chronos/.env thanos/.env timesheet-submission-reminder/.env | xargs -n 1 aws s3 cp s3://case-expense-app-resources-test/.env",
-    "employeeScripts:dev": "node ./js/Scripts/employeeScripts.js dev",
-    "employeeScripts:prod": "node ./js/Scripts/employeeScripts.js prod",
-    "employeeScripts:test": "node ./js/Scripts/employeeScripts.js test",
+    "employeeScripts:dev": "node ./scripts/migrations/employeeScripts.js dev",
+    "employeeScripts:prod": "node ./scripts/migrations/employeeScripts.js prod",
+    "employeeScripts:test": "node ./scripts/migrations/employeeScripts.js test",
     "eslint": "eslint . --ext .js --fix",
     "lint": "npm run eslint",
     "outdated": "npm outdated; npm run outdated:layers",
