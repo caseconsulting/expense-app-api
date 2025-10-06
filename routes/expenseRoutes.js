@@ -624,7 +624,7 @@ class ExpenseRoutes extends Crud {
           }
         } else {
           // changing expense
-          await this._validateExpense(newExpense, employee, expenseType); // validate expense
+          if (!onlyRejecting) await this._validateExpense(newExpense, employee, expenseType); // validate expense
           await this._validateUpdate(oldExpense, newExpense, employee, expenseType); // validate update
         }
         await this._updateBudgets(oldExpense, newExpense, employee, expenseType); // update budgets
