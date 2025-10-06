@@ -25,15 +25,14 @@ class ExpenseRoutes extends Crud {
     this.s3Client = s3Client;
   } // constructor
 
-  
   /**
    * Helper to validate expenses with a monthlyLimit, eg used in _validateAdd and _validateUpdate.
-   * 
+   *
    * @param oldExpense old version of expense (optional, set to undefined if this is not an update)
    * @param expense expense to validate
    * @param employee employee attached to expense
    * @param expenseType type of expense
-   * 
+   *
    * @return true if expense if valid concerning monthlyLimit, else false
    */
   async _monthlyLimitValidate(oldExpense, expense, employee, expenseType) {
@@ -625,7 +624,7 @@ class ExpenseRoutes extends Crud {
           }
         } else {
           // changing expense
-          await this._validateExpense(newExpense, employee, expenseType); // validate expense
+          if (!onlyRejecting) await this._validateExpense(newExpense, employee, expenseType); // validate expense
           await this._validateUpdate(oldExpense, newExpense, employee, expenseType); // validate update
         }
         await this._updateBudgets(oldExpense, newExpense, employee, expenseType); // update budgets
@@ -1020,17 +1019,20 @@ class ExpenseRoutes extends Crud {
       }
 
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(undefined, expense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        undefined,
+        expense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
         console.log('F');
-        err.message = 'Expense cost of $'
-          + expense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message =
+          'Expense cost of $' +
+          expense.cost +
+          ' exceeds monthly limit. Monthly limit remaining is $' +
+          leftoverBudget.toFixed(2) +
+          '.';
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }
@@ -1338,18 +1340,21 @@ class ExpenseRoutes extends Crud {
           ` ${oldBudget.fiscalStartDate} to ${oldBudget.fiscalEndDate}.`;
         throw err;
       }
-      
+
       // validate that the expense is within a monthlyLimit, if set
-      let {
-        monthlyLimitValid,
-        leftoverBudget
-      } = await this._monthlyLimitValidate(oldExpense, newExpense, employee, expenseType);
+      let { monthlyLimitValid, leftoverBudget } = await this._monthlyLimitValidate(
+        oldExpense,
+        newExpense,
+        employee,
+        expenseType
+      );
       if (!monthlyLimitValid) {
-        err.message = 'Expense cost of $'
-          + newExpense.cost
-          + ' exceeds monthly limit. Monthly limit remaining is $'
-          + leftoverBudget.toFixed(2)
-          + '.';
+        err.message =
+          'Expense cost of $' +
+          newExpense.cost +
+          ' exceeds monthly limit. Monthly limit remaining is $' +
+          leftoverBudget.toFixed(2) +
+          '.';
         logger.log(3, '_validateAdd', err.message);
         throw err;
       }
