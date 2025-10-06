@@ -1158,7 +1158,9 @@ class ExpenseRoutes extends Crud {
 
       // validate receipt exists if required by expense type
       if (expenseType.requireReceipt && !expense.hasReceipt()) {
-        if (!(expenseType.budgetName === 'Training' && expense.category === 'Exchange for training hours')) {
+        if (
+          !(expenseType.budgetName === 'Training' && expense.category?.toLowerCase() === 'exchange for training hours')
+        ) {
           // log error
           logger.log(3, '_validateExpense', `Expense ${expense.id} is missing a receipt`);
 
