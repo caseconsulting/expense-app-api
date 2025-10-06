@@ -35,7 +35,7 @@ class Crud {
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
-  } // constructor
+  }
 
   /**
    * Calculates the adjusted budget amount for an expense type based on an employee's work status or tag budget.
@@ -91,7 +91,7 @@ class Crud {
 
     // return result
     return result;
-  } // calcAdjustedAmount
+  }
 
   /**
    * Calculates the carry over amount to the next anniversary budget. If a user spent
@@ -121,7 +121,7 @@ class Crud {
       }
     }
     return 0;
-  } // calcLegacyCarryover
+  }
 
   /**
    * Check employee permissions to create to a table. A user has permissions to create an expense. An
@@ -145,7 +145,7 @@ class Crud {
       isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -167,7 +167,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkPermissionToCreate
+  }
 
   /**
    * Check employee permissions to delete from a table. A user has permissions to delete an expense or ptoCashOut.
@@ -213,7 +213,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkPermissionToDelete
+  }
 
   /**
    * Check employee permissions to read from a table. A user has permissions to read an expense or expense type. An
@@ -259,7 +259,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkPermissionToRead
+  }
 
   /**
    * Check employee permissions to read all entries from a table. User has permission to read all expense types or
@@ -287,6 +287,7 @@ class Crud {
         'employees-sensitive',
         'contracts',
         'pto-cashouts',
+        'settings',
         'tags'
       ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
@@ -320,7 +321,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkPermissionToReadAll
+  }
 
   /**
    * Check employee permissions to update a table. A user has permissions to update an expense or employee. An admin
@@ -342,7 +343,7 @@ class Crud {
     let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'employees', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees']);
     let managerPermissions =
       isManager(employee) && this._checkTableName(['employees', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
@@ -365,7 +366,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkPermissionToUpdate
+  }
 
   /**
    * Check if the database table is in a given list of table names. Returns true if the table is in the list, otherwise
@@ -399,7 +400,7 @@ class Crud {
 
     // return result
     return result;
-  } // _checkTableName
+  }
 
    
 
@@ -411,7 +412,7 @@ class Crud {
    */
   async _create(body) {
     // This function must be overwritten
-  } // _create
+  }
 
    
 
@@ -486,7 +487,7 @@ class Crud {
       // throw error
       throw err;
     }
-  } // createNewBudget
+  }
 
   /**
    * Create object in database. If successful, sends 200 status request with the object created and returns the object.
@@ -532,7 +533,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _createWrapper
+  }
 
    
 
@@ -544,7 +545,7 @@ class Crud {
    */
   async _delete(id) {
     // This function must be overwritten
-  } // _delete
+  }
 
    
 
@@ -591,7 +592,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _deleteWrapper
+  }
 
   /**
    * Get the current annual budget start and end dates based on a given hire date.
@@ -642,7 +643,7 @@ class Crud {
 
     // return result
     return result;
-  } // getBudgetDates
+  }
 
   /**
    * Returns the database table name.
@@ -661,7 +662,7 @@ class Crud {
 
     // return result
     return result;
-  } // _getTableName
+  }
 
   /**
    * Generates and returns a new uuid.
@@ -670,7 +671,7 @@ class Crud {
    */
   getUUID() {
     return generateUUID();
-  } // getUUID
+  }
 
   /**
    * Check if an employee has access to an expense type. Returns true if employee has access, otherwise returns false.
@@ -715,7 +716,7 @@ class Crud {
 
     // return result
     return result;
-  } // hasAccess
+  }
 
   /**
    * Checks if a value is a valid iso-format date (YYYY-MM-DD). Returns true if it is isoformat, otherwise returns
@@ -726,7 +727,7 @@ class Crud {
    */
   isIsoFormat(value) {
     return /[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]/.test(value);
-  } // isIsoFormat
+  }
 
    
 
@@ -738,7 +739,7 @@ class Crud {
    */
   async _read(params) {
     // This function must be overwritten
-  } // _read
+  }
 
    
 
@@ -796,7 +797,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _readWrapper
+  }
 
   // temporary
   /**
@@ -806,7 +807,7 @@ class Crud {
    */
   async _readAll() {
     return await this.databaseModify.getAllEntriesInDB();
-  } // _readAll
+  }
 
   /**
    * Read all objects in database. If successful, sends 200 status request with the objects read and returns the
@@ -850,7 +851,7 @@ class Crud {
 
       return err;
     }
-  } // _readAllWrapper
+  }
 
   /**
    * Returns the instace express router.
@@ -862,7 +863,7 @@ class Crud {
     logger.log(5, 'router', 'Getting router');
 
     return this._router;
-  } // router
+  }
 
   /**
    * Send api response error status.
@@ -883,7 +884,7 @@ class Crud {
       // return error status
       return res.status(500).send(err);
     }
-  } // _sendError
+  }
 
    
 
@@ -895,7 +896,7 @@ class Crud {
    */
   async _update(body) {
     // This function must be overwritten
-  } // _update
+  }
 
    
 
@@ -951,7 +952,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _updateWrapper
+  }
 
    
 
@@ -964,7 +965,7 @@ class Crud {
    
   async _updateAttribute(body) {
     // This function must be overwritten
-  } // _updateAttribute
+  }
 
   /**
    * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
@@ -994,7 +995,10 @@ class Crud {
           dataUpdated = objectValidated;
         }
         // updated an attribute expense, expense-type, or employee
-        logger.log(1, '_updateWrapper', `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
+        logger.log(
+          1,
+          '_updateAttributeWrapper',
+          `Successfully updated object ${dataUpdated.id} from ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataUpdated);
@@ -1010,7 +1014,7 @@ class Crud {
       }
     } catch (err) {
       // log error
-      logger.log(1, '_updateWrapper', `Failed to update attribute in ${this._getTableName()}`);
+      logger.log(1, '_updateAttributeWrapper', `Failed to update attribute in ${this._getTableName()}`);
 
       // send error status
       this._sendError(res, err);
@@ -1018,7 +1022,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _updateWrapper
+  }
 
   /**
    * Updates an attributes of an object. Returns the object updated.
@@ -1029,7 +1033,7 @@ class Crud {
    
   async _updateAttributes(req) {
     // This function must be overwritten
-  } // _updateAttribute
+  }
 
   /**
    * Update object in database. If successful, sends 200 status request with the object updated and returns the object.
@@ -1088,7 +1092,7 @@ class Crud {
       // return error
       return err;
     }
-  } // _updateAttributesWrapper
+  }
 
   /**
    * Validate inputs. Returns the object if all inputs are valid.
@@ -1142,7 +1146,7 @@ class Crud {
       // return rejected promise
       return Promise.reject(err);
     }
-  } // _validateInputs
-} // Crud
+  }
+}
 
 module.exports = Crud;

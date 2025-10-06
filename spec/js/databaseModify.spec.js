@@ -179,7 +179,7 @@ describe('databaseModify', () => {
       it('should return the entry obtained', (done) => {
         databaseModify.getEntry(ID).then((data) => {
           expect(data).toEqual('entry1');
-          expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID);
+          expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID, 'id');
           done();
         });
       }); // should return the entry obtained
@@ -196,7 +196,7 @@ describe('databaseModify', () => {
       it('should return the entry obtained', (done) => {
         databaseModify.getEntry(ID).then((data) => {
           expect(data).toEqual('entry1');
-          expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID);
+          expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID, 'id');
           done();
         });
       }); // should return the entry obtained
@@ -223,7 +223,7 @@ describe('databaseModify', () => {
           })
           .catch((error) => {
             expect(error).toEqual(err);
-            expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID);
+            expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID, 'id');
             done();
           });
       }); // should return a 404 rejected promise
@@ -250,7 +250,7 @@ describe('databaseModify', () => {
           })
           .catch((error) => {
             expect(error).toEqual(err);
-            expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID);
+            expect(databaseModify._readFromDB).toHaveBeenCalledWith(ID, 'id');
             done();
           });
       }); // should return a 404 rejected promise
