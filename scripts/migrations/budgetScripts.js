@@ -1,16 +1,16 @@
 /**
- * node ./js/Scripts/budgetScripts.js dev
- * node ./js/Scripts/budgetScripts.js test
- * node ./js/Scripts/budgetScripts.js prod (must set aws credentials for prod as default)
+ * node ./scripts/migrations/budgetScripts.js dev
+ * node ./scripts/migrations/budgetScripts.js test
+ * node ./scripts/migrations/budgetScripts.js prod (must set aws credentials for prod as default)
  */
 
 const ISOFORMAT = 'YYYY-MM-DD';
-const dateUtils = require('../dateUtils');
+const dateUtils = require('../../js/dateUtils');
 const fs = require('fs');
 const ExpenseRoutes = require('../../routes/expenseRoutes');
 const ExpenseTypeRoutes = require('../../routes/expenseTypeRoutes');
 const TagRoutes = require('../../routes/tagRoutes');
-const { generateUUID } = require('../utils');
+const { generateUUID } = require('../../js/utils');
 
 // handles unhandled rejection errors
 process.on('unhandledRejection', (error) => {
