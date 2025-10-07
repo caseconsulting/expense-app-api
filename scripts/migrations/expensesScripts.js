@@ -449,6 +449,9 @@ async function updateAllStates() {
     if (!note.includes('approved')) return false;
     // double-check if there's a signature from someone
     for (let [key, val] of Object.entries(signers)) if (note.includes(key)) return val.id;
+    let signatures = ['cv', 'ab', 'kc'];
+    for (let s of signatures) if (note.includes(s)) return true;
+    for (let [key, val] of Object.entries(signers)) if (note.includes(key)) return val.id;
     // return false if no signature was matched
     return false;
   }
