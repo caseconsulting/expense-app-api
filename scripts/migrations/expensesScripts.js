@@ -466,8 +466,6 @@ async function updateAllStates() {
     else if (expense.rejections?.softRejections?.revised) state = REVISED;
     else if (expense.rejections?.softRejections) state = RETURNED;
     else if (approver) state = APPROVED; 
-    else if (isApproved(expense)) state = APPROVED; 
-    else if (approver) state = APPROVED; 
     else state = CREATED;
 
     // update the state in DDB
