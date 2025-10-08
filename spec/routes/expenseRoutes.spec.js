@@ -39,7 +39,7 @@ describe('expenseRoutes', () => {
   const START_DATE = '{startDate}';
   const END_DATE = '{endDate}';
   const OD_FLAG = '{odFlag}';
-  const REQUIRED_FLAG = '{requiredFlag}';
+  const REQUIRED_FLAG = '{requireReceipt}';
   const RECURRING_FLAG = '{recurringFlag}';
   const IS_INACTIVE = '{isInactive}';
   const ACCESSIBLE_BY = '{accessibleBy}';
@@ -90,7 +90,7 @@ describe('expenseRoutes', () => {
     startDate: START_DATE,
     endDate: END_DATE,
     odFlag: OD_FLAG,
-    requiredFlag: REQUIRED_FLAG,
+    requireReceipt: REQUIRED_FLAG,
     recurringFlag: RECURRING_FLAG,
     isInactive: IS_INACTIVE,
     description: DESCRIPTION,
@@ -492,7 +492,7 @@ describe('expenseRoutes', () => {
       expenseType.startDate = '2000-08-01';
       expenseType.endDate = '2000-09-01';
       expenseType.isInactive = false;
-      expenseType.requiredFlag = false;
+      expenseType.requireReceipt = false;
       expenseType.accessibleBy = ['Intern', 'FullTime', 'PartTime'];
       expenseType.odFlag = false;
       expenseType.budget = 10;
@@ -1596,7 +1596,7 @@ describe('expenseRoutes', () => {
       newExpenseData.purchaseDate = '2000-08-18';
 
       expenseType.isInactive = false;
-      expenseType.requiredFlag = false;
+      expenseType.requireReceipt = false;
       expenseType.recurringFlag = false;
       expenseType.startDate = '2000-08-18';
       expenseType.endDate = '2001-08-17';
@@ -1834,8 +1834,8 @@ describe('expenseRoutes', () => {
 
         describe('that requires a receipt,', () => {
           beforeEach(() => {
-            expenseType.requiredFlag = true;
-            oldExpenseType.requiredFlag = true;
+            expenseType.requireReceipt = true;
+            oldExpenseType.requireReceipt = true;
           });
 
           describe('the old has a receipt,', () => {
@@ -1962,8 +1962,8 @@ describe('expenseRoutes', () => {
 
         describe('that does not require a receipt', () => {
           beforeEach(() => {
-            expenseType.requiredFlag = false;
-            oldExpenseType.requiredFlag = false;
+            expenseType.requireReceipt = false;
+            oldExpenseType.requireReceipt = false;
             delete newExpense.receipt;
           });
 
@@ -2011,7 +2011,7 @@ describe('expenseRoutes', () => {
 
       describe('and fails to', () => {
         beforeEach(() => {
-          expenseType.requiredFlag = false;
+          expenseType.requireReceipt = false;
           delete newExpense.receipt;
           expenseType.categories = CATEGORIES;
           delete newExpense.category;
@@ -2920,14 +2920,14 @@ describe('expenseRoutes', () => {
       expenseType.recurringFlag = true;
       employee.workStatus = 100;
       expenseType.accessibleBy = ['FullTime', 'PartTime', 'Intern'];
-      expenseType.requiredFlag = true;
+      expenseType.requireReceipt = true;
       expense.receipt = RECEIPT;
     });
 
     describe('when successfully validates expense', () => {
       describe('and receipt required', () => {
         beforeEach(() => {
-          expenseType.requiredFlag = true;
+          expenseType.requireReceipt = true;
           expense.receipt = RECEIPT;
         });
 
@@ -2940,7 +2940,7 @@ describe('expenseRoutes', () => {
 
       describe('and receipt not required', () => {
         beforeEach(() => {
-          expenseType.requiredFlag = false;
+          expenseType.requireReceipt = false;
         });
 
         it('should return the validated expense', () => {
@@ -3006,7 +3006,7 @@ describe('expenseRoutes', () => {
           code: 403,
           message: `Receipt is required for expense type ${NAME}.`
         };
-        expenseType.requiredFlag = true;
+        expenseType.requireReceipt = true;
         delete expense.receipt;
       });
 
