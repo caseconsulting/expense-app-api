@@ -3,7 +3,6 @@ const lambdaClient = new LambdaClient();
 import fs from 'fs';
 import path from 'path';
 
-
 /**
  * Invokes lambda function with given params
  *
@@ -64,6 +63,12 @@ async function getTimesheet(id) {
 
 let round = (n) => (Math.round(n * 1000) / 1000);
 async function main() {
+  // check env
+  if (process.env.AWS_PROFILE !== 'prod') {
+    console.log('Set AWS_PROFILE=prod to run this script');
+    return;
+  }
+
   let csvData = await parseCsv('csv.csv');
 
   for (let [id, csvBals] of Object.entries(csvData)) {
