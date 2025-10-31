@@ -959,7 +959,7 @@ class ExpenseRoutes extends Crud {
     }
   }
 
-  _emailRejectedUser(employee, expense, expenseTypeName) {
+  async _emailRejectedUser(employee, expense, expenseTypeName) {
     let source = process.env.APP_COMPANY_PAYROLL_ADDRESS;
     let userAddress = employee.email;
     if (source && userAddress) {
@@ -982,7 +982,16 @@ class ExpenseRoutes extends Crud {
         Created On: ${expense.createdAt}
         URL: ${expense.url || 'None'}`;
       logger.log(2, '_emailRejectedUser', `Sending expense rejection email to user ${employee.id}`);
-      utils.sendEmail(source, toAddress, subject, body, {});
+      const settingsDynamo = new DatabaseModify('settings');
+      const allSettings = await settingsDynamo.getAllEntriesInDB();
+      const ccSetting = allSettings.find((s) => s.key === 'Rejection CC Addresses');
+      const bccSetting = allSettings.find((s) => s.key === 'Rejection BCC Addresses');
+      const ccAddressesSetting = ccSetting?.setting?.split(',') || [];
+      const bccAddressesSetting = bccSetting?.setting?.split(',') || [];
+      utils.sendEmail(source, toAddress, subject, body, {
+        ccAddresses: ccAddressesSetting,
+        bccAddresses: bccAddressesSetting
+      });
     } else {
       logger.log(
         2,
