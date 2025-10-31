@@ -631,7 +631,7 @@ class ExpenseRoutes extends Crud {
 
         if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
           // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
-          this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
+          await this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
         }
 
         // log success
