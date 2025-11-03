@@ -986,8 +986,8 @@ class ExpenseRoutes extends Crud {
       const allSettings = await settingsDynamo.getAllEntriesInDB();
       const ccSetting = allSettings.find((s) => s.key === 'Rejection CC Addresses');
       const bccSetting = allSettings.find((s) => s.key === 'Rejection BCC Addresses');
-      const ccAddressesSetting = ccSetting?.setting?.split(',') || [];
-      const bccAddressesSetting = bccSetting?.setting?.split(',') || [];
+      const ccAddressesSetting = ccSetting?.setting?.split(',').map(addr => addr.trim()) || [];
+      const bccAddressesSetting = bccSetting?.setting?.split(',').map(addr => addr.trim()) || [];
       utils.sendEmail(source, toAddress, subject, body, {
         ccAddresses: ccAddressesSetting,
         bccAddresses: bccAddressesSetting
