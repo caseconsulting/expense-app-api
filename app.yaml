@@ -240,27 +240,6 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-  s3UnanetData:
-    Type: "AWS::S3::Bucket"
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      AccessControl: LogDeliveryWrite
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: ObjectWriter
-      BucketName: !Join
-        - "-"
-        - - case-expense-app-unanet-data
-          - !Ref Stage
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: Application
-          Value: expense-app
-        - Key: Stage
-          Value: !Ref Stage
-
   employeeTable:
     Type: "AWS::DynamoDB::Table"
     UpdateReplacePolicy: Retain

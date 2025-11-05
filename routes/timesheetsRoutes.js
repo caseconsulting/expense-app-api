@@ -18,7 +18,6 @@ const Papa = require('papaparse');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const multer = require('multer');
 const s3Client = new S3Client({ apiVersion: '2006-03-01' });
-const BUCKET = `case-expense-app-unanet-data-${process.env.STAGE}`;
 
 /** @type {import('../js/utils/timesheet')} */
 const { getTimesheetsDataForEmployee } = require(process.env.AWS ? 'timesheetUtils' : '../js/utils/timesheet');
@@ -180,40 +179,6 @@ async function validateFile(req, res, next) {
   }
 }
 
-/**
- * Middleware to upload the file to S3. We don't use multer directly because we had to validate the file contents, and
- * at this point the file was parsed out of the request body so multer won't work.
- *
- * @param {express.Request & { csvAsJson: PtoMap }} req
- * @param {express.Response} res
- */
-async function uploadAccruals(req, res) {
-  const file = Buffer.from(JSON.stringify(req.csvAsJson));
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: 'accruals.json',
-    Body: file,
-    ContentType: 'application/json',
-    ACL: 'bucket-owner-full-control',
-    ServerSideEncryption: 'AES256'
-  });
-
-  try {
-    logger.log(4, 'upload', 'Attempting to upload Unanet accruals to S3...');
-    await s3Client.send(command);
-    logger.log(
-      1,
-      'upload',
-      'Successfully uploaded Unanet accruals',
-      `(from file ${req.file.originalname}) to S3 bucket ${BUCKET}`
-    );
-    res.status(200).send();
-  } catch (err) {
-    logger.log(4, 'upload', err.message ?? err);
-    res.status(500).json({ error: 'upload', message: 'Error uploading file' });
-  }
-}
-
 class TimesheetsRoutes {
   constructor() {
     this._router = express.Router();
@@ -226,7 +191,6 @@ class TimesheetsRoutes {
 
     this._router.get('/leaderboard', this._checkJwt, this._getUserInfo, this._getLeaderboardData.bind(this));
     this._router.get('/:employeeNumber', this._checkJwt, this._getUserInfo, this._getTimesheetsData.bind(this));
-    this._router.post('/uploadAccruals', this._checkJwt, this._getUserInfo, storeFile, validateFile, uploadAccruals);
   } // constructor
 
   /**
