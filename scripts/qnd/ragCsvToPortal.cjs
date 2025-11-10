@@ -12,21 +12,26 @@ const employeeRoutes = new EmployeeRoutes();
 
 // Settings you might want to change
 const VERBOSE = 2; // 0 = none, 1 = summary, 2 = details
-const TESTING = true; // set to true to not make DB changes
+const TESTING = false; // set to true to not make DB changes
 const CSV_FILENAME = 'rag.csv';
-const EXCLUDE = [
-  { 'Email': 'rlitscher@consultwithcase.com' },
-  { 'Email': 'csantiago@consultwithcase.com' }
-]
+const EXCLUDE = [{ 'Email': 'example@consultwithcase.com' }];
 
 // Settings you probably don't want to change
 const DEFAULT_PART_TIME_PERCENTAGE = 50;
 const STAGE = process.env.STAGE || 'dev';
 const IDENTIFIER = 'email'; // constant identifier for employees, as id and employee number might not be the best
 
+function isEmpty(item) {
+  if (item == null) return true;
+  if (Array.isArray(item)) return item.length === 0;
+  if (typeof item === 'object') return Object.keys(item).length === 0;
+  if (typeof item === 'string') return item === "";
+  return false;
+}
+
 // Conversions of data, Portal Name -> CSV name, or function(csvData)
 const CONVERSIONS = {
-  'email': 'CASE Email',
+  'email': (csvItem) => csvItem['CASE Email'].toLowerCase(),
   'personalEmail': 'Home Email',
   'firstName': 'First Name',
   'middleName': 'Middle Name',
@@ -42,7 +47,7 @@ const CONVERSIONS = {
   'birthday': (csvItem) => convertDate(csvItem['Birth Date']),
   'hireDate': (csvItem) => convertDate(csvItem['Hire Date']),
   'clearances': (csvItem) => ([{
-    biDates: [csvItem['BI Date']],
+    biDates: [convertDate(csvItem['BI Date'])],
     polyDates: [csvItem['Last Poly Date']],
     badgeExpirationDate: csvItem['Badge Expiration Date']
   }]),
@@ -60,11 +65,17 @@ const CONVERSIONS = {
     'state': csvItem['Emergency Contact State'],
     'zipcode': csvItem['Emergency Contact ZIP Code']
   }]),
-  'education': (csvItem) => ([{
+  'education': (csvItem) => {
+    let item = {
       name: csvItem['College/Institution'],
       degreeType: csvItem['Degree']?.replaceAll('\'', '') || '',
       majors: [csvItem['Major/Specialization']]
-  }]),
+    };
+    if (isEmpty(item.name)) delete item.name;
+    if (isEmpty(item.degreeType)) delete item.degreeType;
+    if (isEmpty(item.majors[0])) delete item.majors;
+    return isEmpty(item) ? null : [item];
+  },
   'privatePhoneNumbers': (csvItem) => {
     let phoneNumbers = [];
     if (csvItem['Mobile Phone']) {
@@ -140,7 +151,20 @@ function log(level, msg) {
   else console.log(msg);
 }
 
-
+/**
+ * Uses default JS date parsing to convert to YYYY-MM-DD, regardless of input format
+ * 
+ * @param {String} rawDate 
+ * @returns {String} YYYY-MM-DD formatted date
+ */
+function convertDate(rawDate) {
+  if (isEmpty(rawDate)) return null;
+  let date = new Date(rawDate);
+  let year = date.getFullYear();
+  let month = (date.getMonth() + 1).toString().padStart(2, '0');
+  let day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 /**
  * Converts csv file into an array of objects, using the headers as the names of
@@ -161,20 +185,6 @@ async function getCsvData(filename) {
 }
 
 /**
- * Uses default JS date parsing to convert to YYYY-MM-DD, regardless of input format
- * 
- * @param {String} rawDate 
- * @returns {String} YYYY-MM-DD formatted date
- */
-function convertDate(rawDate) {
-  let date = new Date(rawDate);
-  let year = date.getFullYear();
-  let month = (date.getMonth() + 1).toString().padStart(2, '0');
-  let day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
  * Takes array of objects (converted from CSV by getCsvData()) and creates a DB-insertable
  * employee object of of them.
  * 
@@ -183,8 +193,7 @@ function convertDate(rawDate) {
  * @returns {Array} Array of employee objects for DB insertion
  */
 function createEmployees(csvLines, defaultList) {
-  let employees = defaultList ?? {};
-  
+  let employees = [];
   csv: for (let csvEmp of csvLines) {
     // skip employee if in exclude list
     for (let exclude of EXCLUDE)
@@ -192,23 +201,33 @@ function createEmployees(csvLines, defaultList) {
         if (csvEmp[k] == v)
           continue csv;
     // generate boilerplate info
-    let id = generateUUID();
+    id = generateUUID();
     if (STAGE === 'dev') id = 'ragnarok' + id.substring(8);
-    let basic = { id };
-    let sensitive = { id };
+    basic = { id };
+    sensitive = { id };
     // add all fields from CSV
     for (let [portalName, conversion] of Object.entries(CONVERSIONS)) {
-      let target = SENSITIVE_FIELDS.has(portalKey) ? sensitive : basic;
+      let target = SENSITIVE_FIELDS.has(portalName) ? sensitive : basic;
       let value = null;
       if (typeof conversion === 'function') value = conversion(csvEmp) ?? null; // run func
       else value = csvEmp[conversion] ?? null; // access by string
-      if (value != null) target[portalName] = value;
+      if (value != null && value != "") target[portalName] = value;
+    }
+    // combine with existing employee if exists
+    let existingEmp = defaultList[basic[IDENTIFIER].toLowerCase()];
+    if (existingEmp) {
+      let id = existingEmp.basic.id;
+      basic = { existed: true, ...existingEmp.basic, ...basic, id };
+      sensitive = { existed: true, ...existingEmp.sensitive, ...sensitive, id };
     }
     // add to list
     // this could be improved by doing a comparison and adding to arrays if they are different,
     // but with the current CSV only the emergency contacts are different
-    if (!employees[basic[IDENTIFIER]]) employees[basic.id] = { basic, sensitive };
-    else employees[basic[IDENTIFIER]].emergencyContacts.push(sensitive.emergencyContacts[0]);
+    if (!employees[basic[IDENTIFIER].toLowerCase()]) employees[basic[IDENTIFIER].toLowerCase()] = { basic, sensitive };
+    else {
+      employees[basic[IDENTIFIER].toLowerCase()].sensitive.emergencyContacts ??= [];
+      employees[basic[IDENTIFIER].toLowerCase()].sensitive.emergencyContacts.push(sensitive.emergencyContacts[0]);
+    }
   }
 
   return Object.values(employees);
@@ -246,7 +265,7 @@ async function submitPortalEmployee(employee) {
     await DatabaseModify.TransactItems(items);
     return Promise.resolve(employee);
   } catch (e) {
-    throw new Error(`Error creating employee ${basic.firstName} ${basic.lastName}: ${e.message}`);
+    console.log(e.basic?.firstName || '[No first name]', e.basic?.lastName || '[No last name]', e.message ?? JSON.stringify(e));
   }
 }
 
@@ -304,11 +323,14 @@ async function getExistingPortalEmployees() {
   let sensitiveData = await sensitiveDynamo.getAllEntriesInDB();
   // make object
   let employees = {};
-  for (let emp of basicData) employees[emp.id] = emp; // get basic
-  for (let emp of sensitiveData) employees[emp.id] = { ...employees[emp.id], ...emp } // get sensitive
-  // index by email
+  for (let emp of basicData)
+    employees[emp.id] = { basic: emp }; // get basic
+  for (let emp of sensitiveData)
+    if (employees[emp.id]) // there are extra employees in dev sensitive
+      employees[emp.id].sensitive = emp; // get sensitive
+  // index
   for (let [id, data] of Object.entries(employees)) {
-    employees[data[IDENTIFIER]] = data;
+    employees[data.basic[IDENTIFIER].toLowerCase()] = data;
     delete employees[id];
   }
   return employees;
@@ -317,12 +339,9 @@ async function getExistingPortalEmployees() {
 async function main() {
   // get employees and batch them
   let csvEmployees = await getCsvData(CSV_FILENAME);
-  let existingEmployees = getExistingPortalEmployees();
+  let existingEmployees = await getExistingPortalEmployees();
   let employeeObjs = createEmployees(csvEmployees, existingEmployees);
   let batches = batchify(employeeObjs, 50); // AWS should allow up to 50
-
-  console.log(batches);
-  return;
 
   // create batches, error handling by lower functions
   let successes = [];
