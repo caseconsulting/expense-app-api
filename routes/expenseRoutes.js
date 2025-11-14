@@ -339,6 +339,8 @@ class ExpenseRoutes extends Crud {
       });
 
       // find buget with given date
+      logger.log(3, '_findBudget', `N Budgets ${budgets.length}`);
+      logger.log(3, '_findBudget', budgets.map(b => b.id).join(', '));
       let budget = _.find(budgets, (currBudget) => {
         return currBudget.isDateInRange(date);
       });
@@ -855,9 +857,6 @@ class ExpenseRoutes extends Crud {
           sortedBudgets[i].reimbursedAmount = currReimbursed - carryReimbursed;
 
           if (currPending + currReimbursed == 0 && expenses.length == 0) {
-            // delete the current budget if it is empty
-            logger.log(3, '_updateBudgets', `Attempting to delete budget ${sortedBudgets[i].id}`);
-
             try {
               await this.budgetDynamo.removeFromDB(sortedBudgets[i].id);
               logger.log(3, '_updateBudgets', `Successfully deleted budget ${sortedBudgets[i].id}`);
