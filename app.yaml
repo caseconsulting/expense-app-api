@@ -191,7 +191,7 @@ Resources:
                   - - https://
                     - !Ref Stage
                     - -app.consultwithcase.com
-                - http://localhost:8080
+                - https://localhost:8080
             ExposedHeaders: []
       LifecycleConfiguration:
         Rules:

@@ -3,6 +3,9 @@
   "version": "4.20.0",
   "private": true,
   "scripts": {
+    "cert:setup": "mkcert -install || echo \"\\033[1;31mPlease run again after intalling mkcert: \\033[0;31mhttps://github.com/FiloSottile/mkcert#installation\\033[0m\"",
+    "cert:mkdir": "echo \"\\033[1;35mYou must be in the root of the backend to continue. Press ^C to exit or Enter to continue:\\033[0m\" && read -r cont && mkdir -p certificates",
+    "cert:generate": "npm run cert:mkdir && cd certificates && mkcert localhost",
     "chronos": "node -e 'require(\"./chronos\").start()'",
     "claudia": "claudia",
     "clean:dev": "export AWS_PROFILE=dev && node scripts/lambda/cleanup-versions.js",
