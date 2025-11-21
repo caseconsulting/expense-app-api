@@ -52,10 +52,10 @@
 //   };
 
 //   const PTO_BALANCES_PAYLOAD = {
-//     body: '{ptoBalances}'
+//     body: '{leaveBalances}'
 //   };
 
-//   const PTO_BALANCES = '{ptoBalances}';
+//   const PTO_BALANCES = '{leaveBalances}';
 
 //   const PTO_BALANCES_ERR = {
 //     body: '',
@@ -237,21 +237,21 @@
 //   }); // _getMonthlyHours
 
 //   describe('_getPTOBalances', () => {
-//     let req, ptoBalancesPayload, ptoBalances;
+//     let req, leaveBalancesPayload, leaveBalances;
 //     beforeEach(() => {
 //       req = _.cloneDeep(REQ_DATA);
-//       ptoBalancesPayload = _.cloneDeep(PTO_BALANCES_PAYLOAD);
-//       ptoBalances = _.cloneDeep(PTO_BALANCES);
+//       leaveBalancesPayload = _.cloneDeep(PTO_BALANCES_PAYLOAD);
+//       leaveBalances = _.cloneDeep(PTO_BALANCES);
 //     });
 //     describe('when successfully return pto balances', () => {
 //       beforeEach(() => {
-//         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(ptoBalancesPayload);
+//         spyOn(tSheetsRoutes, 'invokeLambda').and.returnValue(leaveBalancesPayload);
 //       });
 //       it('should respond with a 200 and pto balances', (done) => {
 //         tSheetsRoutes._getPTOBalances(req, res).then((data) => {
-//           expect(data).toEqual(ptoBalances);
+//           expect(data).toEqual(leaveBalances);
 //           expect(res.status).toHaveBeenCalledWith(200);
-//           expect(res.send).toHaveBeenCalledWith(ptoBalances);
+//           expect(res.send).toHaveBeenCalledWith(leaveBalances);
 //           expect(tSheetsRoutes.invokeLambda).toHaveBeenCalled();
 //           done();
 //         });

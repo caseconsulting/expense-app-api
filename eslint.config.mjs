@@ -3,9 +3,15 @@ export default [
     files: ['**/*.js'],
 
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {},
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+          experimentalObjectRestSpread: true,
+        },
+      },
     },
 
     ignores: [
