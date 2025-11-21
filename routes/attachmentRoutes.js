@@ -518,6 +518,8 @@ class Attachment {
   uploadAttachmentToS3(req, res) {
     // log method
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
+    // remove special chars to avoid errors in upload/download
+    req.files[i].originalname = req.files[i].originalname.replace(/[^a-zA-Z0-9 \.]/, '');
     // compute method
     upload(req, res, async (err) => {
       if (err) {
