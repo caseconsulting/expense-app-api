@@ -116,7 +116,7 @@
     "aws-serverless-express": "3.4.0",
     "axios": "1.12.2",
     "axios-oauth-client": "2.2.0",
-    "body-parser": "2.2.0",
+    "body-parser": "2.2.1",
     "cookie-parser": "1.4.7",
     "cors": "2.8.5",
     "dayjs": "1.11.18",
