@@ -1082,6 +1082,17 @@ class Crud {
         // send successful 200 status
         res.status(200).send(dataUpdated);
 
+        try {
+          this.recordChange({
+            employee: req.employee, 
+            table: table, 
+            oldImage: req.employee, 
+            newImage: dataUpdated
+          });
+        } catch (auditErr) {
+          logger.log(3, '_updateAttributesWrapper', `Audit logging failed ${auditErr.message}`);
+        }
+
         // return updated data
         return dataUpdated;
       } else {
@@ -1151,6 +1162,27 @@ class Crud {
 
         // send successful 200 status
         res.status(200).send(dataUpdated);
+
+        try {
+          if(tables[0]?.attributes?.length > 0) {
+            this.recordChange({
+              employee: req.employee, 
+              table: tables[0].table,
+              oldImage: req.employee, 
+              newImage: dataUpdated
+            });
+          }
+          if(tables[1]?.attributes?.length > 0) {
+            this.recordChange({
+              employee: req.employee, 
+              table: tables[1].table,
+              oldImage: req.employee, 
+              newImage: dataUpdated
+            });
+          }
+        } catch (auditErr) {
+          logger.log(3, '_updateAttributesWrapper', `Audit logging failed ${auditErr.message}`);
+        }
 
         // return updated data
         return dataUpdated;

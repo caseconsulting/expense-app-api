@@ -656,6 +656,8 @@ class EmployeeRoutes extends Crud {
           sameIds = true;
         }
 
+        let oldEmployeeBasic = new Employee(await this.databaseModify.getEntry(req.body.id));
+        let oldEmployeeSensitive = new EmployeeSensitive(await this.employeeSensitiveDynamo.getEntry(req.body.id));
         let basicData = new Employee(employeeValidated);
         let sensitiveData = new EmployeeSensitive(employeeValidated);
         if (sameIds) {
@@ -679,6 +681,23 @@ class EmployeeRoutes extends Crud {
         // send successful 200 status
         res.status(200).send(employeeValidated);
 
+        //only audit if the data changed
+        if(!_.isEqual(oldEmployeeBasic, basicData)) {
+          await this.recordChange({
+            employee: req.employee, 
+            table: EMPLOYEES_TABLE, 
+            oldImage: oldEmployeeBasic, 
+            newImage: basicData
+          });
+        }
+        if(!_.isEqual(oldEmployeeSensitive, sensitiveData)) {
+          await this.recordChange({
+            employee: req.employee, 
+            table: EMPLOYEES_SENSITIVE_TABLE, 
+            oldImage: oldEmployeeSensitive, 
+            newImage: sensitiveData
+          });
+        }
         // return updated data
         return employeeValidated;
       } else {
