@@ -290,7 +290,7 @@ class Crud {
         'settings',
         'tags'
       ]);
-    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
+    let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts', 'tags']);
     let managerPermissions =
       isManager(employee) &&
       this._checkTableName([
