@@ -2325,13 +2325,12 @@ describe('expenseRoutes', () => {
 
           expensesData = [expense1];
           budgetsData = [budget1];
-          expectedBudgets = [];
+          expectedBudgets = [expectedBudget1];
 
           oldExpense = new Expense(expense1);
 
           databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
           budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-          budgetDynamo.removeFromDB.and.returnValues(Promise.resolve(expectedBudget1));
         });
 
         it('should update and return the expected budgets', (done) => {
@@ -2692,53 +2691,6 @@ describe('expenseRoutes', () => {
           });
       }); // should return a 404 rejected promise
     }); // when fails to create a new budget
-
-    describe('when fails to remove budget from database', () => {
-      let err, expense1, budget1;
-
-      beforeEach(() => {
-        err = {
-          code: 404,
-          message: 'Error updating budgets.'
-        };
-
-        expense1 = _.cloneDeep(EXPENSE_DATA);
-        expense1.purchaseDate = '2000-08-18';
-        expense1.cost = 20;
-        expense1.reimbursedDate = '2000-08-18';
-
-        budget1 = _.cloneDeep(BUDGET_DATA);
-        budget1.fiscalStartDate = '2000-08-18';
-        budget1.fiscalEndDate = '2001-08-17';
-        budget1.amount = 100;
-        budget1.pendingAmount = 0;
-        budget1.reimbursedAmount = 20;
-
-        expensesData = [expense1];
-        budgetsData = [budget1];
-
-        oldExpense = new Expense(expense1);
-
-        databaseModify.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(expensesData));
-        budgetDynamo.queryWithTwoIndexesInDB.and.returnValue(Promise.resolve(budgetsData));
-        budgetDynamo.removeFromDB.and.returnValues(Promise.reject(err));
-      });
-
-      it('should return a 404 rejected promise', (done) => {
-        expenseRoutes
-          ._updateBudgets(oldExpense, undefined, employee, expenseType)
-          .then(() => {
-            fail('expected error to have been thrown');
-            done();
-          })
-          .catch((error) => {
-            expect(error).toEqual(err);
-            expect(databaseModify.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
-            expect(budgetDynamo.queryWithTwoIndexesInDB).toHaveBeenCalledWith(ID, ID);
-            done();
-          });
-      }); // should return a 404 rejected promise
-    }); // when fails to remove budget from database
 
     describe('when fails to update budget in database', () => {
       let err, expense1, budget1, expectedBudget1;
