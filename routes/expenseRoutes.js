@@ -339,6 +339,8 @@ class ExpenseRoutes extends Crud {
       });
 
       // find buget with given date
+      logger.log(3, '_findBudget', `N Budgets ${budgets.length}`);
+      logger.log(3, '_findBudget', budgets.map(b => b.id).join(', '));
       let budget = _.find(budgets, (currBudget) => {
         return currBudget.isDateInRange(date);
       });
