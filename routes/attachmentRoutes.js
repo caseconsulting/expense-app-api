@@ -518,6 +518,7 @@ class Attachment {
   uploadAttachmentToS3(req, res) {
     // log method
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
+
     // compute method
     upload(req, res, async (err) => {
       if (err) {
@@ -535,7 +536,8 @@ class Attachment {
         // return error
         return error;
       } else {
-        for(let i = 0; i < req.files.length; i++) {
+        for (let i = 0; i < req.files.length; i++) {
+          req.files[i].originalname = req.files[i].originalname.replace(/[^a-zA-Z0-9 \.]/, '');
           req.files[i].originalname = Buffer.from(req.files[i].originalname, 'latin1').toString('utf8');
           // log success
           logger.log(
