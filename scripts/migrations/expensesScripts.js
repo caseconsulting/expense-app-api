@@ -47,6 +47,8 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ apiVersion: '2012-0
 export const EXPENSE_STATES = {
   CREATED: 'CREATED',
   APPROVED: 'APPROVED',
+  PART_APPROVED: 'PART_APPROVED',
+  EXT_PROC: 'EXT_PROC',
   REIMBURSED: 'REIMBURSED',
   REJECTED: 'REJECTED',
   RETURNED: 'RETURNED',
