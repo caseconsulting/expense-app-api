@@ -414,12 +414,13 @@ class ExpenseRoutes extends Crud {
     return result;
   } // _isOnlyReimburseDateChange
 
-  _isOnlyRejectingExpenses(oldExpense, newExpense) {
+  _rejectingOrRevisal(oldExpense, newExpense) {
     let oldRejections = oldExpense.rejections;
     let newRejections = newExpense.rejections;
     return (
-      oldRejections?.softRejections?.reasons?.length !== newRejections?.softRejections?.reasons?.length ||
-      oldRejections?.hardRejections?.reasons?.length !== newRejections?.hardRejections?.reasons?.length
+      (newExpense.state === 'REJECTED' || newExpense.state === 'REVISED') &&
+      (oldRejections?.softRejections?.reasons?.length !== newRejections?.softRejections?.reasons?.length ||
+      oldRejections?.hardRejections?.reasons?.length !== newRejections?.hardRejections?.reasons?.length)
     );
   }
 
@@ -615,7 +616,7 @@ class ExpenseRoutes extends Crud {
       if (oldExpense.expenseTypeId == newExpense.expenseTypeId) {
         // expense types are the same
         let onlyReimbursing = this._isOnlyReimburseDateChange(oldExpense, newExpense); // check if only reimbursing
-        let onlyRejecting = this._isOnlyRejectingExpenses(oldExpense, newExpense);
+        let rejectedOrRevisal = this._rejectingOrRevisal(oldExpense, newExpense);
         if (onlyReimbursing) {
           // only need to validate date change
           if (dateUtils.isBefore(newExpense.reimbursedDate, newExpense.purchaseDate, 'd')) {
@@ -626,12 +627,12 @@ class ExpenseRoutes extends Crud {
           }
         } else {
           // changing expense
-          if (!onlyRejecting) await this._validateExpense(newExpense, employee, expenseType); // validate expense
+          if (!rejectedOrRevisal) await this._validateExpense(newExpense, employee, expenseType); // validate expense
           await this._validateUpdate(oldExpense, newExpense, employee, expenseType); // validate update
         }
         await this._updateBudgets(oldExpense, newExpense, employee, expenseType); // update budgets
 
-        if (onlyRejecting && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
+        if (rejectedOrRevisal && (isProd || (!isProd && req.employee.id === newExpense.employeeId))) {
           // send email to rejected user, if env is dev/test, users making rejections can only send emails to themselves
           await this._emailRejectedUser(employee, newExpense, expenseType.budgetName);
         }
@@ -951,8 +952,8 @@ class ExpenseRoutes extends Crud {
       let subject = 'Your expense submitted on the Portal has been rejected';
       let body = `Rejection reason: ${
         isHardRejected
-          ? hardRejections.reasons[hardRejections.reasons.length - 1] || 'No reason provided'
-          : softRejections.reasons[softRejections.reasons.length - 1] || 'No reason provided'
+          ? hardRejections?.reasons[hardRejections?.reasons?.length - 1]?.text || 'No reason provided'
+          : softRejections?.reasons[softRejections?.reasons?.length - 1]?.text || 'No reason provided'
       }
         ${!isHardRejected ? '\nPlease make revisions by editing the expense on the Portal, then resubmit.\n' : ''}`;
       body += `\nExpense details:
