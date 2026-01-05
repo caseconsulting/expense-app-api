@@ -11,6 +11,7 @@ const dateUtils = require(process.env.AWS ? 'dateUtils' : '../js/dateUtils');
 const utils = require(process.env.AWS ? 'utils' : '../js/utils');
 
 const ISOFORMAT = 'YYYY-MM-DD';
+const EXPENSE_STATES = utils.EXPENSE_STATES;
 const logger = new Logger('expenseRoutes');
 
 const STAGE = process.env.STAGE;
@@ -418,7 +419,7 @@ class ExpenseRoutes extends Crud {
     let oldRejections = oldExpense.rejections;
     let newRejections = newExpense.rejections;
     return (
-      (newExpense.state === 'REJECTED' || newExpense.state === 'REVISED') &&
+      (newExpense.state === EXPENSE_STATES.REJECTED || newExpense.state === EXPENSE_STATES.REVISED) &&
       (oldRejections?.softRejections?.reasons?.length !== newRejections?.softRejections?.reasons?.length ||
       oldRejections?.hardRejections?.reasons?.length !== newRejections?.hardRejections?.reasons?.length)
     );
@@ -945,11 +946,12 @@ class ExpenseRoutes extends Crud {
     let source = process.env.APP_COMPANY_PAYROLL_ADDRESS;
     let userAddress = employee.email;
     if (source && userAddress) {
-      let hardRejections = expense?.rejections?.hardRejections;
-      let softRejections = expense?.rejections?.softRejections;
-      let isHardRejected = hardRejections?.reasons?.length > 0;
+      let { hardRejections, softRejections } = expense?.rejections;
+      let isHardRejected = expnese.state === EXPENSE_STATES.REJECTED;
       let toAddress = [userAddress];
-      let subject = 'Your expense submitted on the Portal has been rejected';
+      let subject = isHardRejected ?
+        'Your expense submitted on the Portal has been rejected' :
+        'Your expense submitted on the Portal requires revisions';
       let body = `Rejection reason: ${
         isHardRejected
           ? hardRejections?.reasons[hardRejections?.reasons?.length - 1]?.text || 'No reason provided'
