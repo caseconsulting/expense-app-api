@@ -7,6 +7,18 @@ const logger = new Logger('utils');
 const lambdaClient = new LambdaClient();
 
 /**
+ * Consts for expense states
+ */
+const EXPENSE_STATES = {
+  CREATED: 'CREATED',
+  APPROVED: 'APPROVED',
+  REIMBURSED: 'REIMBURSED',
+  REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED',
+  REVISED: 'REVISED'
+};
+
+/**
  * Async function to loop an array.
  *
  * @param array - Array of elements to iterate over
@@ -242,6 +254,7 @@ async function sendEmail(source, toAddresses, subject, body, options = {}) {
 } // sendEmail
 
 module.exports = {
+  EXPENSE_STATES,
   asyncForEach,
   generateUUID,
   getExpressJwt,
