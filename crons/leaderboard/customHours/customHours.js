@@ -2,7 +2,9 @@ const Logger = require(process.env.AWS ? 'Logger' : '../../js/Logger');
 const { getEmployees, asyncForEach } = require(process.env.AWS ? 'utils' : '../../js/utils');
 const logger = new Logger('LeaderboardCron');
 const STAGE = process.env.STAGE;
+const EmployeeRoutes = require(process.env.AWS ? 'employeeRoutes' : '../../routes/employeeRoutes');
 
+const employeeRoutes = new EmployeeRoutes();
 
 async function resetCustomHours() {
   try {
@@ -15,7 +17,7 @@ async function resetCustomHours() {
         logger.log(1, 'resetCustomHours', `Resetting custom hours for employee ${employee.id}`);
         if (employee.preferences?.customNeeded) {
           delete employee.preferences.customNeeded;
-          await employee.save();
+          await employeeRoutes._update({ body: employee, employee: employee })
         }
         logger.log(1, 'resetCustomHours', `Successfully reset custom hours for employee ${employee.id}`);
       } catch (err) {
