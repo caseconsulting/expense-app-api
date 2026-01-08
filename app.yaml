@@ -1018,6 +1018,30 @@ Resources:
         - PortalDataSyncLambdaRole
         - Arn
 
+  CustomHoursFunction:
+    Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Description: Provides the yearly update to 1860 custom hours data.
+      Handler: customHours.handler
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref SharedLayer
+      Timeout: 900
+      MemorySize: 512
+      CodeUri: crons/customHours/
+      Events:
+        CustomHoursSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 5 1 1 ? *)
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+          AWS: lambda
+      Role: !GetAtt
+        - PortalDataSyncLambdaRole
+        - Arn
+
   TimesheetSubmissionReminderFunction:
     Type: "AWS::Serverless::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
