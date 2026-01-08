@@ -15,9 +15,9 @@ async function resetCustomHours() {
     await asyncForEach(employees, async (employee) => {
       try {
         logger.log(1, 'resetCustomHours', `Resetting custom hours for employee ${employee.id}`);
-        if (employee.preferences?.customNeeded) {
-          delete employee.preferences.customNeeded;
-          await employeeRoutes._update({ body: employee, employee: employee })
+        if (employee.preferences?.timesheetPreferences?.customNeeded) {
+          delete employee.preferences.timesheetPreferences.customNeeded;
+          await employeeRoutes._update({ body: employee, employee: employee });
         }
         logger.log(1, 'resetCustomHours', `Successfully reset custom hours for employee ${employee.id}`);
       } catch (err) {
