@@ -1,0 +1,6 @@
+{
+  "name": "customHours",
+  "version": "4.13.0",
+  "private": true,
+  "main": "customHours.js"
+}
