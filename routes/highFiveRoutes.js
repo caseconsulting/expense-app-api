@@ -22,6 +22,7 @@ class HighFiveRoutes {
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.post('/process', this._checkJwt, this._getUserInfo, this._processHighFive.bind(this));
+    this._router.get('/readAll', this._checkJwt, this._getUserInfo, this._readAllGiftCards.bind(this));
     this.employeeDynamo = new databaseModify('employees');
     this.giftCardDynamo = new databaseModify('gift-cards');
   } // constructor
@@ -63,6 +64,10 @@ class HighFiveRoutes {
     }
   } // _getGiftCard
 
+  async _cancelGiftCard() {
+    // TODO:
+  }
+
   /**
    * Processes the reimbursement of a high five.
    *
@@ -72,6 +77,82 @@ class HighFiveRoutes {
    */
   async _processHighFive(req, res) {
     let expense, giftCard, emailSent;
+
+    // on error: log what succeeded, what failed, and what didn't happen
+    // if gift card generated but not sent out, cancel the gift card (need cancel code maybe?)
+
+    // Generate gift card
+    try {
+      giftCard = await this._getGiftCard();
+      logger.log(2, '_processHighFive', 'Successfully generated gift card');
+    } catch (err) {
+      logger.log(
+        2,
+        '_processHighFive',
+        `Failed to generate gift card with error: ${err}`
+      );
+      Promise.reject({
+        code: 500,
+        message: 'Failed to generate gift card, please check balance and try again later. Expense not reimbursed.'
+      });
+    }
+
+    // Email gift card to recipient
+    try {
+      let isProd = STAGE === 'prod';
+      let [donor, recipient] = await Promise.all([
+        this.employeeDynamo.getEntry(req.body.employeeId),
+        this.employeeDynamo.getEntry(req.body.recipient)
+      ]);
+      if (isProd || (!isProd && req.employee.email === recipient.email)) {
+        await this._sendGiftCardEmail(giftCard, req.body.note, donor, recipient);
+        emailSent = true;
+        logger.log(2, '_processHighFive', `Successfully sent gift card information to user ${req.body.employeeId}.`);
+      }
+    } catch (err) {
+      emailSent = false;
+      logger.log(
+        2,
+        '_processHighFive',
+        `Failed to email gift card information to user ${req.body.employeeId} with error: ${err}`
+      );
+      Promise.reject({
+        code: 500,
+        message: `Failed to email code to employee ${req.body.employeeId}.`
+      });
+    }
+
+    // reimburse expense
+    try {
+      let expenseUpdated = await expenseRoutes._update(req);
+      expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
+    } catch (err) {
+      logger.log(2, '_processHighFive', `Failed to reimburse high five expense ${req.body.id}`);
+      Promise.reject({
+        code: 500,
+        message: 'Please manually reimburse expense. Gift Card was sent to employee.'
+      });
+    }
+
+    // log gift card to db
+    try {
+      let resp = await this._storeGiftCard(giftCard, expense, emailSent);
+      logger.log(2, '_processHighFive', `Successfully stored gift card information with ID ${resp.id}`);
+    } catch (e) {
+      logger.log(2, '_processHighFive',
+        `Failed to log gift card to DB: gcId: ${giftCard.gcId}, status: ${giftCard.status}, expenseId: ${expense.id}`
+      );
+      Promise.reject({
+        code: 500,
+        message: 'Everything succeeded, but gift card information failed to store.'
+      });
+    }
+
+    // return expense for frontend
+    expense['emailSent'] = emailSent;
+    res.status(200).send(expense);
+    return Promise.resolve(expense);
+
     // 1: reimburse high five expense
     try {
       // sometimes throws a CORS error if _update fails on non localhost env
@@ -189,6 +270,30 @@ class HighFiveRoutes {
       return Promise.reject(err);
     }
   } // _sendGiftCardEmail
+
+  async _readAllGiftCards(req, res) {
+    // log method
+    logger.log(2, '_readAllGiftCards', 'Attempting to read all gift cards');
+
+    // compute method
+    try {
+      let giftCardData = await this.giftCardDynamo.getAllEntriesInDB();
+      let giftCards = giftCardData.map((giftCard) => new GiftCard(giftCard));
+
+      // log success
+      logger.log(2, '_readAllGiftCards', 'Successfully read all gift cards');
+
+      // return all expenses
+      res.status(200).send(giftCards);
+      return Promise.resolve(giftCards);
+    } catch (err) {
+      // log error
+      logger.log(2, '_readAllGiftCards', 'Failed to read all gift cards');
+
+      // return error
+      return Promise.reject(err);
+    }
+  } // _readAll
 
   /**
    * Stores the gift card information and relevant high five data.
