@@ -110,6 +110,10 @@ class HighFiveRoutes {
         logger.log(2, '_processHighFive', `Successfully sent gift card information to user ${req.body.employeeId}.`);
       }
     } catch (err) {
+      // TODO:
+      // Cancel gift card, since there's no way to redeem it without the email being sent to the user.
+      // This was only not done because the story was de-prioritized. It absolutely should be done.
+      // https://developer.amazon.com/docs/incentives-api/gift-codes-on-demand.html#cancelgiftcard
       emailSent = false;
       logger.log(
         2,
@@ -144,101 +148,12 @@ class HighFiveRoutes {
       );
       Promise.reject({
         code: 500,
-        message: 'Everything succeeded, but gift card information failed to store.'
+        message: 'Everything succeeded, but gift card information failed to store in DB.'
       });
     }
 
     // return expense for frontend
     expense['emailSent'] = emailSent;
-    res.status(200).send(expense);
-    return Promise.resolve(expense);
-
-    // 1: reimburse high five expense
-    try {
-      // sometimes throws a CORS error if _update fails on non localhost env
-      let expenseUpdated = await expenseRoutes._update(req);
-      expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUpdated);
-    } catch (err) {
-      let error = {
-        code: 403,
-        message: 'Failed to reimburse High Five expense, gift card will not be generated.'
-      };
-      // log error
-      logger.log(2, '_processHighFive', `Failed to reimburse expense ${expense.id}`);
-      // early exit and return rejected promise
-      res.status(error.code).send(error);
-      return Promise.reject(error);
-    }
-    // 2: generate gift card
-    try {
-      giftCard = await this._getGiftCard();
-      logger.log(2, '_processHighFive', 'Successfully generated gift card');
-    } catch (err) {
-      let error = {
-        code: 403,
-        message:
-          'Failed to generate gift card, please check balance and try again later. Expense will remain unreimbursed.'
-      };
-      // gift card creation failed -> now unreimburse expense
-      try {
-        expense.reimbursedDate = null;
-        let expenseUnreimbursed = await expenseRoutes._update(expense);
-        expense = await expenseRoutes.databaseModify.updateEntryInDB(expenseUnreimbursed);
-        logger.log(
-          2,
-          '_processHighFive',
-          `Failed to create gift card then successfully unreimbursed expense ${expense.id}`
-        );
-        // early exit and return rejected promise
-        res.status(error.code).send(error);
-        return Promise.reject(error);
-      } catch (err) {
-        let error = {
-          code: 403,
-          message:
-            'Expense has been reimbursed but failed to generate gift card. ' +
-            'Please unreimburse expense, check account balance, and try again later.'
-        };
-        // gift card creation failed AND failed to unreimburse expense
-        logger.log(
-          2,
-          '_processHighFive',
-          `Failed to unreimburse expense ${expense.id} after gift card creation failed`
-        );
-        // early exit and return rejected promise
-        res.status(error.code).send(error);
-        return Promise.reject(error);
-      }
-    }
-    // 3: email user gift card info
-    try {
-      let isProd = STAGE === 'prod';
-      let [donor, recipient] = await Promise.all([
-        this.employeeDynamo.getEntry(expense.employeeId),
-        this.employeeDynamo.getEntry(expense.recipient)
-      ]);
-      if (isProd || (!isProd && req.employee.email === recipient.email)) {
-        await this._sendGiftCardEmail(giftCard, expense.note, donor, recipient);
-        emailSent = true;
-        logger.log(2, '_processHighFive', `Successfully sent gift card information to user ${expense.employeeId}`);
-      }
-    } catch (err) {
-      emailSent = false;
-      logger.log(
-        2,
-        '_processHighFive',
-        `Failed to email gift card information to user ${expense.employeeId} with error: ${err}`
-      );
-    }
-    // 4: store gift card info with expense and employee ID
-    try {
-      let resp = await this._storeGiftCard(giftCard, expense, emailSent);
-      logger.log(2, '_processHighFive', `Successfully stored gift card information with ID ${resp.id}`);
-    } catch (err) {
-      logger.log(2, '_processHighFive', 'Failed to store gift card information: ' + err);
-    }
-    expense['emailSent'] = emailSent;
-    // return reimbursed expense
     res.status(200).send(expense);
     return Promise.resolve(expense);
   } // _processHighFive
