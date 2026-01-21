@@ -128,7 +128,7 @@
     "express-jwt": "8.5.1",
     "got": "14.6.6",
     "jwks-rsa": "3.2.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "metadata-scraper": "0.2.61",
     "morgan": "1.10.1",
     "multer": "2.0.2",
