@@ -67,6 +67,9 @@ const tagRoutes = new TagRoutes();
 const Settings = require('./routes/settings');
 const settings = new Settings();
 
+const AccessGroupsRoutes = require('./routes/accessGroups');
+const accessGroupRoutes = new AccessGroupsRoutes();
+
 var app = express();
 
 // view engine setup
@@ -110,6 +113,7 @@ app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/settings', settings.router);
 app.use('/tags', tagRoutes.router);
+app.use('/accessGroups', accessGroupRoutes.router);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   var err = new Error(' No Route Found');

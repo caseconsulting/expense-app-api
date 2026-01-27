@@ -778,7 +778,7 @@ Resources:
       TableName: !Join
         - "-"
         - - !Ref Stage
-          - groups
+          - access-groups
       BillingMode: PAY_PER_REQUEST
       DeletionProtectionEnabled: true
       PointInTimeRecoverySpecification:
