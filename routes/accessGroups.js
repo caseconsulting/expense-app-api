@@ -200,6 +200,7 @@ class AccessGroups extends Crud {
       logger.log(2, 'getGroupedEmployees', `Finding employees for group ${group.name}`);
       // allow for custom filter
       if (filter && !filter(group)) continue;
+      logger.log(2, 'getGroupedEmployees', `Filter results: ${filter} && ${!filter(group)}`);
       for (let assignment of group.assignments) {
         logger.log(2, 'getGroupedEmployees', `Finding employees for assignment ${assignment.name}`);
         // skip assignments where user is not assigned on idType
