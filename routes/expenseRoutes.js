@@ -418,11 +418,13 @@ class ExpenseRoutes extends Crud {
   _rejectingOrRevisal(oldExpense, newExpense) {
     let oldRejections = oldExpense.rejections;
     let newRejections = newExpense.rejections;
-    return (
-      (newExpense.state === EXPENSE_STATES.REJECTED || newExpense.state === EXPENSE_STATES.REVISED) &&
+    let toReturn = (
+      (newExpense.state === EXPENSE_STATES.REJECTED || newExpense.state === EXPENSE_STATES.RETURNED) &&
       (oldRejections?.softRejections?.reasons?.length !== newRejections?.softRejections?.reasons?.length ||
       oldRejections?.hardRejections?.reasons?.length !== newRejections?.hardRejections?.reasons?.length)
     );
+    logger.log(4, '_rejectingOrRevisal', `Expense ${toReturn ? 'IS' : 'is NOT'} a rejection or revisal`);
+    return toReturn;
   }
 
   /**
