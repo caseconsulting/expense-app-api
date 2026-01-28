@@ -947,7 +947,7 @@ class ExpenseRoutes extends Crud {
     let userAddress = employee.email;
     if (source && userAddress) {
       let { hardRejections, softRejections } = expense?.rejections;
-      let isHardRejected = expnese.state === EXPENSE_STATES.REJECTED;
+      let isHardRejected = expense.state === EXPENSE_STATES.REJECTED;
       let toAddress = [userAddress];
       let subject = isHardRejected ?
         'Your expense submitted on the Portal has been rejected' :
