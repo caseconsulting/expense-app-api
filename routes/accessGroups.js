@@ -84,7 +84,41 @@ class AccessGroups extends Crud {
   }
 
   /**
+   * Prepares an access group to be deleted. Returns the group if it can be successfully deleted.
+   *
+   * @param id - id of group
+   * @return access group prepared to delete
+   */
+  async _delete(id) {
+    // log method
+    logger.log(2, '_delete', `Preparing to delete access group ${id}`);
+    try {
+      // get access group to delete
+      let group = await this.databaseModify.getEntry(id);
+      logger.log(2, '_delete', `Successfully prepared to delete access group ${id}`);
+      return group;
+    } catch (err) {
+      // log and return error
+      logger.log(2, '_delete', `Failed to prepare delete for access group ${id}`);
+      return Promise.reject(err);
+    }
+  } // _delete
+
+  /**
+   * Returns whether or not the given group is the admin group
+   */
+  isAdminGroup(group) {
+    let result = group.name === 'Admin';
+    logger.log(2, 'isAdminGroup', `${group.name} ${result ? 'IS' : 'is NOT'} the admin group`);
+    return result;
+  }
+
+  /**
    * Gets database data with caching
+   * 
+   * Note that this persists between executions, so database updates will be cached 
+   * with some persistence even if the db updates. The accessGroups database is
+   * excluded for this reason.
    */
   async getDatabase(type) {
     logger.log(2, 'getDatabase', `Running getDatabase for type ${type}`);
@@ -116,8 +150,31 @@ class AccessGroups extends Crud {
     // fetch, cache, return data
     logger.log(2, 'getDatabase', 'Setting cache and returning data');
     let data = await dynamo.getAllEntriesInDB();
-    DATABASES[type] = data;
+    if (type !== 'accessGroups') DATABASES[type] = data;
     return data;
+  }
+
+  /**
+   * Gets indexed data with caching
+   */
+  async getIndex(type, by = 'id') {
+    logger.log(2, 'getIndex', `Running getIndex for type ${type}`);
+
+    // return cache if possible
+    if (INDEXES[type]) {
+      logger.log(2, 'getIndex', 'Found index cache!');
+      return INDEXES[type];
+    }
+
+    // get dynamo data
+    logger.log(2, 'getIndex', 'Getting data from database');
+    let data = await this.getDatabase(type);
+
+    // index, cache, return data
+    logger.log(2, 'getIndex', 'Setting cache and returning data');
+    let indexed = indexBy(data, by);
+    INDEXES[type] = indexed;
+    return indexed;
   }
 
   /**
@@ -126,7 +183,9 @@ class AccessGroups extends Crud {
   async expand(id, type) {
     logger.log(2, 'expand', `Expanding type ${type} with ID ${id}`);
     let employeeIds = new Set();
-    let addArray = (array) => (array || []).forEach((a) => employeeIds.add(a));
+    let employeeIndex = await this.getIndex('employees');
+    let isActive = (eId) => employeeIndex[eId].workStatus > 0;
+    let addArray = (array) => (array || []).forEach((id) => { if (isActive(id)) employeeIds.add(id); });
 
     let employees, emps;
     switch (type) {
@@ -186,6 +245,22 @@ class AccessGroups extends Crud {
   }
 
   /**
+   * Helper to get all employees if the group is admin and the type is members,
+   * otherwise expand normally with expandAll
+   */
+  async expandAllWithAdmin(group, type, assignment) {
+    if (this.isAdminGroup(group) && type === 'members') {
+      let emps = await this.getDatabase('employees');
+      emps = emps.map(e => e.id);
+      logger.log(2, 'expandAllWithAdmin', `Group is admin and type is members, returning all ${emps.length} employees`);
+      return emps;
+    }
+
+    logger.log(2, 'expandAllWithAdmin', 'Group is not admin or type is not employees, using expandAll');
+    return await this.expandAll(assignment[type]);
+  }
+
+  /**
    * Finds the users/members that the eId is a member/user on. Groups them
    * by group, returning and object instead of array of IDs.
    */
@@ -196,19 +271,24 @@ class AccessGroups extends Crud {
     
     // get each group's employees as a set
     let groupEmployees = {};
+    let onType, assigned;
     for (let group of groups) {
       logger.log(2, 'getGroupedEmployees', `Finding employees for group ${group.name}`);
       // allow for custom filter
-      if (filter && !filter(group)) continue;
-      logger.log(2, 'getGroupedEmployees', `Filter results: ${filter} && ${!filter(group)}`);
+      if (filter && !filter(group)) {
+        logger.log(2, 'getGroupedEmployees', `Skipping group ${group.name} based on custom filter`);
+        continue;
+      }
+      logger.log(2, 'getGroupedEmployees', `Filter did not trigger for group ${group.name}`);
       for (let assignment of group.assignments) {
         logger.log(2, 'getGroupedEmployees', `Finding employees for assignment ${assignment.name}`);
         // skip assignments where user is not assigned on idType
-        let onType = await this.expandAll(assignment[idType]);
+        onType = await this.expandAllWithAdmin(group, idType, assignment);
         if (!onType.includes(eId)) continue;
-        // fetch all employees on otherType and add them to the group
-        let assigned = await this.expandAll(assignment[otherType]);
+        // fetch all employees on otherType
+        assigned = await this.expandAllWithAdmin(group, otherType, assignment);
         logger.log(2, 'getGroupedEmployees', `Found ${assigned.length} employees, adding`);
+        // add to group list
         if (assigned?.length) {
           groupEmployees[group.name] ??= new Set();
           assigned.forEach((id) => groupEmployees[group.name].add(id));
@@ -241,13 +321,19 @@ class AccessGroups extends Crud {
     let employeeIds = new Set();
 
     // get each group's employees
+    let onType, assigned;
     for (let group of groups) {
       for (let assignment of group.assignments) {
         // skip assignments where user is not assigned on idType
-        let onType = await this.expandAll(assignment[idType]);
+        onType = await this.expandAll(assignment[idType]);
         if (!onType.includes(eId)) continue;
-        // fetch all employees on otherType and add them to the group
-        let assigned = await this.expandAll(assignment[otherType]);
+        // 'members' is everyone if this is the admin group
+        // otherwise fetch all employees on 'otherType'
+        if (this.isAdminGroup(group) && otherType === 'members')
+          assigned = (await this.getDatabase('employees')).map(e => e.id);
+        else
+          assigned = await this.expandAll(assignment[otherType]);
+        // add to return list
         (assigned || []).forEach((id) => employeeIds.add(id));
       }
     }
