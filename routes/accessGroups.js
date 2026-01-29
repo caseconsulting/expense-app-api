@@ -20,7 +20,6 @@ class AccessGroups extends Crud {
     super();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    this.databaseModify = new DatabaseModify('access-groups');
     // get employees that are 'members' of the groups that an employee is in
     this._router.get(
       '/employee/members/:id',
@@ -47,6 +46,7 @@ class AccessGroups extends Crud {
     this.tagsDynamo = new DatabaseModify('tags');
     this.contractsDynamo = new DatabaseModify('contracts');
     this.employeesDynamo = new DatabaseModify('employees');
+    this.databaseModify = new DatabaseModify('access-groups');
   }
 
   /**
@@ -184,16 +184,21 @@ class AccessGroups extends Crud {
     logger.log(2, 'expand', `Expanding type ${type} with ID ${id}`);
     let employeeIds = new Set();
     let employeeIndex = await this.getIndex('employees');
+
+    // helpers
     let isActive = (eId) => employeeIndex[eId].workStatus > 0;
     let addArray = (array) => (array || []).forEach((id) => { if (isActive(id)) employeeIds.add(id); });
 
+    // add employees as needed based on type
     let employees, emps;
     switch (type) {
       case 'employees':
+        // already employee, just add the id
         logger.log(2, 'expand', 'Adding employee directly');
         employeeIds.add(id);
         break;
       case 'tags':
+        // tags have .employees listed by id, add the array
         logger.log(2, 'expand', 'Adding tags by tag.employees');
         let tags = await this.getDatabase('tags');
         for (let tag of tags) {
@@ -202,6 +207,7 @@ class AccessGroups extends Crud {
         }
         break;
       case 'contracts':
+        // contracts have a util, use that and add the returned array
         logger.log(2, 'expand', 'Adding projects util getContractEmployees');
         employees = await this.getDatabase('employees');
         emps = getContractEmployees({ id }, employees);
@@ -209,6 +215,7 @@ class AccessGroups extends Crud {
         addArray(emps);
         break;
       case 'projects':
+        // projects have a util, use that and add the returned array
         logger.log(2, 'expand', 'Adding projects util getProjectEmployees');
         employees = await this.getDatabase('employees');
         emps = getProjectEmployees({ id }, employees);
@@ -217,6 +224,7 @@ class AccessGroups extends Crud {
         break;
     }
 
+    // Return as array
     logger.log(2, 'expand', `Returning ${employeeIds.size} items`);
     return Array.from(employeeIds);
   }
@@ -230,6 +238,7 @@ class AccessGroups extends Crud {
     let employeeIds = new Set();
     let types = ['employees', 'tags', 'contracts', 'projects'];
 
+    // expand each type into employee ids
     let expanded;
     for (let type of types) {
       logger.log(2, 'expandAll', `Expanding type ${type}`);
@@ -249,13 +258,16 @@ class AccessGroups extends Crud {
    * otherwise expand normally with expandAll
    */
   async expandAllWithAdmin(group, type, assignment) {
+    // admins have all employees as their 'members', just return
+    // all employee ids
     if (this.isAdminGroup(group) && type === 'members') {
       let emps = await this.getDatabase('employees');
       emps = emps.map(e => e.id);
       logger.log(2, 'expandAllWithAdmin', `Group is admin and type is members, returning all ${emps.length} employees`);
       return emps;
     }
-
+  
+    // non-admins need to expand all types as needed
     logger.log(2, 'expandAllWithAdmin', 'Group is not admin or type is not employees, using expandAll');
     return await this.expandAll(assignment[type]);
   }
@@ -350,6 +362,7 @@ class AccessGroups extends Crud {
   async _getEmployeeGroupMembers(req, res) {
     try {
       logger.log(2, '_getEmployeeGroupMembers', 'Getting members for groups employee is a user on');
+      // get all members of group assignments that id is a user on
       const members = this.getEmployees(req.params.id, 'users');
       logger.log(2, '_getEmployeeGroupMembers', `Returning ${users.length} members`);
       res.status(200).send(members);
@@ -365,6 +378,7 @@ class AccessGroups extends Crud {
   async _getEmployeeGroupUsers(req, res) {
     try {
       logger.log(2, '_getEmployeeGroupUsers', 'Getting users for groups employee is a member on');
+      // get all users of group assignments that id is a member on
       const users = this.getEmployees(req.params.id, 'members');
       logger.log(2, '_getEmployeeGroupUsers', `Returning ${users.length} users`);
       res.status(200).send(users);
@@ -380,6 +394,8 @@ class AccessGroups extends Crud {
   async _getEmployeeShowOnProfileUsers(req, res) {
     try {
       logger.log(2, '_getEmployeeShowOnProfileUsers', 'Getting users for employee profile');
+      // for each item that the user id is a member on, get the users who have access to them
+      // only including those with the "show on profile" flag turned on
       const users = await this.getGroupedEmployees(req.params.id, 'members', (g) => g.flags?.showOnMemberProfile);
       logger.log(2, '_getEmployeeShowOnProfileUsers', `Returning ${users.length} users`);
       res.status(200).send(users);
@@ -388,6 +404,9 @@ class AccessGroups extends Crud {
     }
   }
 
+  /**
+   * Error helper
+   */
   _sendError(res, err) {
     let error = {
       code: err.status || 500,
