@@ -37,8 +37,11 @@ class ExpenseRoutes extends Crud {
    * @return true if expense if valid concerning monthlyLimit, else false
    */
   async _monthlyLimitValidate(oldExpense, expense, employee, expenseType) {
-    // exit early if no monthlyLimit
+    logger.log(2, '_monthlyLimitValidate', `Checking monthly limit for expense ${expense.id}`);
+    
+    // exit early if no monthly limit
     if (!expenseType.monthlyLimit) return { monthlyLimitValid: true, leftoverBudget: undefined };
+
     // get all expenses and add up ones from expense's createdAt month
     let expenses = await this.databaseModify.queryWithTwoIndexesInDB(employee.id, expenseType.id);
     let sum = 0;
@@ -46,10 +49,13 @@ class ExpenseRoutes extends Crud {
       let [start, end] = [dateUtils.startOf(e.createdAt, 'month'), dateUtils.endOf(e.createdAt, 'month')];
       if (dateUtils.isBetween(e.createdAt, start, end, '[]')) sum += e.cost;
     }
+
     // return whether or not the monthly limit is valid, and the leftover budget
-    let leftoverBudget = Number(expenseType.monthlyLimit) - sum - (oldExpense?.cost ?? 0);
+    let leftoverBudget = Number(expenseType.monthlyLimit) - (sum - (oldExpense?.cost ?? 0));
     let round = (n) => Math.round(n * 100) / 100;
     let monthlyLimitValid = round(expense.cost) <= round(leftoverBudget);
+
+    logger.log(2, '_monthlyLimitValidate', `Monthly limit ${monthlyLimitValid ? 'passed' : 'did NOT pass'} validation`);
     return { monthlyLimitValid, leftoverBudget };
   } // _monthlyLimitvalidate
 
