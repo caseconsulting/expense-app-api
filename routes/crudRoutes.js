@@ -35,6 +35,7 @@ class Crud {
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
+    this.accessGroupsDynamo = new DatabaseModify('access-groups');
   }
 
   /**
@@ -145,7 +146,16 @@ class Crud {
       isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'contracts',
+        'pto-cashouts',
+        'tags',
+        'settings',
+        'access-groups'
+      ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
 
     let result = userPermissions || adminPermissions || internPermissions || managerPermissions;
@@ -189,7 +199,15 @@ class Crud {
     let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'contracts',
+        'pto-cashouts',
+        'tags',
+        'access-groups'
+      ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses']);
     let managerPermissions =
       isManager(employee) && this._checkTableName(['expenses', 'employees', 'contracts', 'pto-cashouts', 'tags']);
@@ -235,7 +253,15 @@ class Crud {
     let userPermissions = isUser(employee) && this._checkTableName(['expense-types', 'contracts', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'contracts',
+        'pto-cashouts',
+        'tags',
+        'access-groups'
+      ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts']);
     let managerPermissions =
       isManager(employee) &&
@@ -288,7 +314,8 @@ class Crud {
         'contracts',
         'pto-cashouts',
         'settings',
-        'tags'
+        'tags',
+        'access-groups'
       ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['employees', 'contracts', 'tags']);
     let managerPermissions =
@@ -343,7 +370,16 @@ class Crud {
     let userPermissions = isUser(employee) && this._checkTableName(['expenses', 'employees', 'pto-cashouts']);
     let adminPermissions =
       isAdmin(employee) &&
-      this._checkTableName(['expenses', 'expense-types', 'employees', 'contracts', 'pto-cashouts', 'tags', 'settings']);
+      this._checkTableName([
+        'expenses',
+        'expense-types',
+        'employees',
+        'contracts',
+        'pto-cashouts',
+        'tags',
+        'settings',
+        'access-groups'
+      ]);
     let internPermissions = isIntern(employee) && this._checkTableName(['expenses', 'employees']);
     let managerPermissions =
       isManager(employee) && this._checkTableName(['employees', 'expenses', 'contracts', 'pto-cashouts', 'tags']);
