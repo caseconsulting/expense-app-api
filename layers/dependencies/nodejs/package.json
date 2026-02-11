@@ -6,7 +6,7 @@
     "@aws-sdk/client-ses": "3.980.0",
     "@aws-sdk/client-sns": "3.980.0",
     "@aws-sdk/lib-dynamodb": "3.980.0",
-    "axios": "1.13.4",
+    "axios": "1.13.5",
     "dayjs": "1.11.19",
     "dotenv": "17.2.3",
     "express": "4.22.1",
