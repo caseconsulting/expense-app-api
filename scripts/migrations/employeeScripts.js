@@ -982,6 +982,43 @@ async function moveToSensitive(fields) {
 
 }
 
+async function fixProjectEndDates() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let employees = await getAllEntries(TABLE);
+  let BATCH_SIZE = 10;
+  let batch = [];
+  let numErrors = 0;
+  let numFixes = 0;
+  let changes;
+  for (let emp of employees) {
+    changes = false;
+    for (let c of (emp.contracts || [])) {
+      for (let p of (c.projects || [])) {
+        if (p.presentDate != !p.endDate) {
+          p.presentDate = !p.endDate;
+          changes = true;
+        }
+      }
+    }
+    if (changes) batch.push(databaseModify.updateEntryInDB(emp));
+    if (batch.length >= BATCH_SIZE) {
+      try {
+        await Promise.all(batch);
+        numFixes += batch.length;
+        batch = [];
+      } catch (e) {
+        console.log('Error: ' + e.message ?? JSON.stringify(e));
+        numErrors += batch.length;
+        batch = [];
+      }
+    }
+  }
+
+  console.log('Fixed', numFixes, 'employees.');
+  if (numErrors > 0)
+    console.log('Errored for', numErrors, 'employees.');
+}
+
 /**
  * =================================================
  * |                                               |
@@ -1204,6 +1241,12 @@ async function main() {
       desc: 'Move personalEmail to employees-sensitive table',
       action: async () => {
         await moveToSensitive(['personalEmail']);
+      }
+    },
+    {
+      desc: 'Fix project end dates with checkbox',
+      action: async () => {
+        await fixProjectEndDates();
       }
     }
   ];
