@@ -35,7 +35,7 @@ class Crud {
     this.expenseDynamo = new DatabaseModify('expenses');
     this.expenseTypeDynamo = new DatabaseModify('expense-types');
     this.tagDynamo = new DatabaseModify('tags');
-    this.accessGroupsDynamo = new DatabaseModify('access-groups');
+    this.accessRolesDynamo = new DatabaseModify('access-groups');
   }
 
   /**
