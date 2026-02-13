@@ -15,32 +15,46 @@ const DATABASES = {};
 const INDEXES = {};
 
 const logger = new Logger('accessGroups');
-class AccessGroups extends Crud {
+class AccessRoles extends Crud {
   constructor() {
     super();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-    // get employees that are 'members' of the groups that an employee is in
+    // get employees that are 'members' of the roles that an employee is in
     this._router.get(
       '/employee/members/:id',
       this._checkJwt,
       this._getUserInfo,
-      this._getEmployeeGroupMembers.bind(this)
+      this._getEmployeeRoleMembers.bind(this)
     );
-    // get employees that are 'users' in groups that an employees is a 'member' of
+    // get employees that are 'users' in roles that an employees is a 'member' of
     this._router.get(
-      '/employee/groupUsers/:id',
+      '/employee/roleUsers/:id',
       this._checkJwt,
       this._getUserInfo,
-      this._getEmployeeGroupUsers.bind(this)
+      this._getEmployeeRoleUsers.bind(this)
     );
-    // get employees that are 'users' in groups that an employee is a 'member' of, only including
+    // get employees that are 'users' in roles that an employee is a 'member' of, only including
     // ones that have the "show on profile" flag active
     this._router.get(
-      '/employee/showOnProfile/:id',
+      '/link/showOnProfile/:id',
       this._checkJwt,
       this._getUserInfo,
       this._getEmployeeShowOnProfileUsers.bind(this)
+    );
+    // get linked contract leaders
+    this._router.get(
+      '/link/contracts',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getContractLinkedLeaders.bind(this)
+    );
+    // get linked project leaders
+    this._router.get(
+      '/link/projects',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getProjectLinkedLeaders.bind(this)
     );
 
     this.tagsDynamo = new DatabaseModify('tags');
@@ -56,7 +70,7 @@ class AccessGroups extends Crud {
    * @return Object - object created
    */
   async _create(data) {
-    logger.log(2, '_create', `Preparing to create access group with id: ${data.id}`);
+    logger.log(2, '_create', `Preparing to create access role with id: ${data.id}`);
     return data;
   }
 
@@ -68,15 +82,15 @@ class AccessGroups extends Crud {
    */
   async _updateAttribute(req) {
     let data = req.body;
-    logger.log(2, '_update', `Preparing to update access group with id: ${data.id}`);
+    logger.log(2, '_update', `Preparing to update access role with id: ${data.id}`);
 
     try {
-      let oldGroup = await this.databaseModify.getEntry(data.id);
-      let newGroup = { ...oldGroup, ...data };
-      return { objectUpdated: newGroup };
+      let oldRole = await this.databaseModify.getEntry(data.id);
+      let newRole = { ...oldRole, ...data };
+      return { objectUpdated: newRole };
     } catch (err) {
       // log error
-      logger.log(2, '_update', `Failed to prepare update for access group with id: ${data.id}`);
+      logger.log(2, '_update', `Failed to prepare update for access role with id: ${data.id}`);
 
       // return rejected promise
       return Promise.reject(err);
@@ -84,32 +98,32 @@ class AccessGroups extends Crud {
   }
 
   /**
-   * Prepares an access group to be deleted. Returns the group if it can be successfully deleted.
+   * Prepares an access role to be deleted. Returns the role if it can be successfully deleted.
    *
-   * @param id - id of group
-   * @return access group prepared to delete
+   * @param id - id of role
+   * @return access role prepared to delete
    */
   async _delete(id) {
     // log method
-    logger.log(2, '_delete', `Preparing to delete access group ${id}`);
+    logger.log(2, '_delete', `Preparing to delete access role ${id}`);
     try {
-      // get access group to delete
-      let group = await this.databaseModify.getEntry(id);
-      logger.log(2, '_delete', `Successfully prepared to delete access group ${id}`);
-      return group;
+      // get access role to delete
+      let role = await this.databaseModify.getEntry(id);
+      logger.log(2, '_delete', `Successfully prepared to delete access role ${id}`);
+      return role;
     } catch (err) {
       // log and return error
-      logger.log(2, '_delete', `Failed to prepare delete for access group ${id}`);
+      logger.log(2, '_delete', `Failed to prepare delete for access role ${id}`);
       return Promise.reject(err);
     }
   } // _delete
 
   /**
-   * Returns whether or not the given group is the admin group
+   * Returns whether or not the given role is the admin role
    */
-  isAdminGroup(group) {
-    let result = group.name === 'Admin';
-    logger.log(2, 'isAdminGroup', `${group.name} ${result ? 'IS' : 'is NOT'} the admin group`);
+  isAdminRole(role) {
+    let result = role.name === 'Admin';
+    logger.log(2, 'isAdminRole', `${role.name} ${result ? 'IS' : 'is NOT'} the admin role`);
     return result;
   }
 
@@ -254,70 +268,98 @@ class AccessGroups extends Crud {
   }
 
   /**
-   * Helper to get all employees if the group is admin and the type is members,
+   * Helper to get all employees if the role is admin and the type is members,
    * otherwise expand normally with expandAll
    */
-  async expandAllWithAdmin(group, type, assignment) {
+  async expandAllWithAdmin(role, type, assignment) {
     // admins have all employees as their 'members', just return
     // all employee ids
-    if (this.isAdminGroup(group) && type === 'members') {
+    if (this.isAdminRole(role) && type === 'members') {
       let emps = await this.getDatabase('employees');
       emps = emps.map(e => e.id);
-      logger.log(2, 'expandAllWithAdmin', `Group is admin and type is members, returning all ${emps.length} employees`);
+      logger.log(2, 'expandAllWithAdmin', `Role is admin and type is members, returning all ${emps.length} employees`);
       return emps;
     }
   
     // non-admins need to expand all types as needed
-    logger.log(2, 'expandAllWithAdmin', 'Group is not admin or type is not employees, using expandAll');
+    logger.log(2, 'expandAllWithAdmin', 'Role is not admin or type is not employees, using expandAll');
     return await this.expandAll(assignment[type]);
   }
 
   /**
-   * Finds the users/members that the eId is a member/user on. Groups them
-   * by group, returning and object instead of array of IDs.
+   * Gets users (aka leaders) of a given type.
+   * 
+   * @param id ID of item to filter by
+   * @param type type of ID
    */
-  async getGroupedEmployees(eId, idType, filter) {
-    logger.log(2, 'getGroupedEmployees', 'Getting group employees');
-    let groups = await this.getDatabase('accessGroups');
+  async getTypeLeaders(type) {
+    logger.log(2, 'getLeadersByType', `Getting leaders of all ${type}`);
+    let roles = await this.getDatabase('accessGroups');
+
+    let leaders = {};
+    for (let role of roles) {
+      // skip if none of given type
+      if (!role.assignments?.members?.[type] || role.assignments?.members?.[type].length === 0) continue;
+      // get all leaders on this assignment, skipping if there's nobody
+      let users = await this.expandAll(role.assignments?.users || []);
+      if (!users || users.length === 0) continue;
+      // add leaders to this item
+      for (let id of role.assignments?.members?.[type]) {
+        leaders[id] ??= [];
+        leaders[id].push(users);
+      }
+    }
+
+    logger.log(2, 'getLeadersByType', `Returning leaders for ${type}`);
+    return leaders;
+  }
+
+  /**
+   * Finds the users/members that the eId is a member/user on. Groups them
+   * by role, returning and object instead of array of IDs.
+   */
+  async getRoledEmployees(eId, idType, filter) {
+    logger.log(2, 'getRoledEmployees', 'Getting role employees');
+    let roles = await this.getDatabase('accessGroups');
     let otherType = idType === 'members' ? 'users' : 'members';
     
-    // get each group's employees as a set
-    let groupEmployees = {};
+    // get each role's employees as a set
+    let roleEmployees = {};
     let onType, assigned;
-    for (let group of groups) {
-      logger.log(2, 'getGroupedEmployees', `Finding employees for group ${group.name}`);
+    for (let role of roles) {
+      logger.log(2, 'getRoledEmployees', `Finding employees for role ${role.name}`);
       // allow for custom filter
-      if (filter && !filter(group)) {
-        logger.log(2, 'getGroupedEmployees', `Skipping group ${group.name} based on custom filter`);
+      if (filter && !filter(role)) {
+        logger.log(2, 'getRoledEmployees', `Skipping role ${role.name} based on custom filter`);
         continue;
       }
-      logger.log(2, 'getGroupedEmployees', `Filter did not trigger for group ${group.name}`);
-      for (let assignment of group.assignments) {
-        logger.log(2, 'getGroupedEmployees', `Finding employees for assignment ${assignment.name}`);
+      logger.log(2, 'getRoledEmployees', `Filter did not trigger for role ${role.name}`);
+      for (let assignment of role.assignments) {
+        logger.log(2, 'getRoledEmployees', `Finding employees for assignment ${assignment.name}`);
         // skip assignments where user is not assigned on idType
-        onType = await this.expandAllWithAdmin(group, idType, assignment);
+        onType = await this.expandAllWithAdmin(role, idType, assignment);
         if (!onType.includes(eId)) continue;
         // fetch all employees on otherType
-        assigned = await this.expandAllWithAdmin(group, otherType, assignment);
-        logger.log(2, 'getGroupedEmployees', `Found ${assigned.length} employees, adding`);
-        // add to group list
+        assigned = await this.expandAllWithAdmin(role, otherType, assignment);
+        logger.log(2, 'getRoledEmployees', `Found ${assigned.length} employees, adding`);
+        // add to role list
         if (assigned?.length) {
-          groupEmployees[group.name] ??= new Set();
-          assigned.forEach((id) => groupEmployees[group.name].add(id));
+          roleEmployees[role.name] ??= new Set();
+          assigned.forEach((id) => roleEmployees[role.name].add(id));
         }
       }
     }
 
-    let nGroups = Object.keys(groupEmployees).length;
+    let nRoles = Object.keys(roleEmployees).length;
 
-    // convert group sets to arrays
-    logger.log(2, 'getGroupedEmployees', `Converting ${nGroups} sets`);
-    for (let [k, v] of Object.entries(groupEmployees)) {
-      groupEmployees[k] = Array.from(v);
+    // convert role sets to arrays
+    logger.log(2, 'getRoledEmployees', `Converting ${nRoles} sets`);
+    for (let [k, v] of Object.entries(roleEmployees)) {
+      roleEmployees[k] = Array.from(v);
     }
 
-    logger.log(2, 'getGroupedEmployees', `Returning ${nGroups} groups`);
-    return groupEmployees;
+    logger.log(2, 'getRoledEmployees', `Returning ${nRoles} roles`);
+    return roleEmployees;
   }
 
   /**
@@ -328,20 +370,20 @@ class AccessGroups extends Crud {
    */
   async getEmployees(eId, idType) {
     logger.log(2, 'getEmployees', `Getting employees where ${eId} is in column ${idType}`);
-    let groups = await this.getDatabase('accessGroups');
+    let roles = await this.getDatabase('accessGroups');
     let otherType = idType === 'members' ? 'users' : 'members';
     let employeeIds = new Set();
 
-    // get each group's employees
+    // get each role's employees
     let onType, assigned;
-    for (let group of groups) {
-      for (let assignment of group.assignments) {
+    for (let role of roles) {
+      for (let assignment of role.assignments) {
         // skip assignments where user is not assigned on idType
         onType = await this.expandAll(assignment[idType]);
         if (!onType.includes(eId)) continue;
-        // 'members' is everyone if this is the admin group
+        // 'members' is everyone if this is the admin role
         // otherwise fetch all employees on 'otherType'
-        if (this.isAdminGroup(group) && otherType === 'members')
+        if (this.isAdminRole(role) && otherType === 'members')
           assigned = (await this.getDatabase('employees')).map(e => e.id);
         else
           assigned = await this.expandAll(assignment[otherType]);
@@ -356,15 +398,15 @@ class AccessGroups extends Crud {
   }
 
   /**
-   * Gets all members of all groups that an employee is a user on.
+   * Gets all members of all roles that an employee is a user on.
    * Eg. Gets employees that are on the project that this user is Manager for
    */
-  async _getEmployeeGroupMembers(req, res) {
+  async _getEmployeeRoleMembers(req, res) {
     try {
-      logger.log(2, '_getEmployeeGroupMembers', 'Getting members for groups employee is a user on');
-      // get all members of group assignments that id is a user on
+      logger.log(2, '_getEmployeeRoleMembers', 'Getting members for roles employee is a user on');
+      // get all members of role assignments that id is a user on
       const members = this.getEmployees(req.params.id, 'users');
-      logger.log(2, '_getEmployeeGroupMembers', `Returning ${users.length} members`);
+      logger.log(2, '_getEmployeeRoleMembers', `Returning ${users.length} members`);
       res.status(200).send(members);
     } catch (err) {
       this._sendError(res, err);
@@ -372,15 +414,15 @@ class AccessGroups extends Crud {
   }
 
   /**
-   * Gets all users of all groups that an employee is a member on.
+   * Gets all users of all roles that an employee is a member on.
    * Eg. Gets a user's Project Manager and Team Lead
    */
-  async _getEmployeeGroupUsers(req, res) {
+  async _getEmployeeRoleUsers(req, res) {
     try {
-      logger.log(2, '_getEmployeeGroupUsers', 'Getting users for groups employee is a member on');
-      // get all users of group assignments that id is a member on
+      logger.log(2, '_getEmployeeRoleUsers', 'Getting users for roles employee is a member on');
+      // get all users of role assignments that id is a member on
       const users = this.getEmployees(req.params.id, 'members');
-      logger.log(2, '_getEmployeeGroupUsers', `Returning ${users.length} users`);
+      logger.log(2, '_getEmployeeRoleUsers', `Returning ${users.length} users`);
       res.status(200).send(users);
     } catch (err) {
       this._sendError(res, err);
@@ -388,7 +430,7 @@ class AccessGroups extends Crud {
   }
 
   /**
-   * Gets all users of groups that an employee is on that also
+   * Gets all users of roles that an employee is on that also
    * have the "show on profile" flag turned on.
    */
   async _getEmployeeShowOnProfileUsers(req, res) {
@@ -396,9 +438,39 @@ class AccessGroups extends Crud {
       logger.log(2, '_getEmployeeShowOnProfileUsers', 'Getting users for employee profile');
       // for each item that the user id is a member on, get the users who have access to them
       // only including those with the "show on profile" flag turned on
-      const users = await this.getGroupedEmployees(req.params.id, 'members', (g) => g.flags?.showOnMemberProfile);
+      const users = await this.getRoledEmployees(req.params.id, 'members', (g) => g.flags?.showOnMemberProfile);
       logger.log(2, '_getEmployeeShowOnProfileUsers', `Returning ${users.length} users`);
       res.status(200).send(users);
+    } catch (err) {
+      this._sendError(res, err);
+    }
+  }
+
+  /**
+   * Gets an object of Contract IDs mapped to leaders of that contract, where the
+   * "link to contracts" checkbox is checked
+   */
+  async _getContractLinkedLeaders(req, res) {
+    try {
+      logger.log(2, '_getContractLinkedLeaders', 'Getting user map for contracts');
+      const mapped = await this.getTypeLeaders('contracts');
+      logger.log(2, '_getContractLinkedLeaders', 'Returning mapped users');
+      res.status(200).send(mapped);
+    } catch (err) {
+      this._sendError(res, err);
+    }
+  }
+
+  /**
+   * Gets an object of Project IDs mapped to leaders of that project, where the
+   * "link to projects" checkbox is checked
+   */
+  async _getProjectLinkedLeaders(req, res) {
+    try {
+      logger.log(2, '_getProjectLinkedLeaders', 'Getting user map for projects');
+      const mapped = await this.getTypeLeaders('projects');
+      logger.log(2, '_getProjectLinkedLeaders', 'Returning mapped users');
+      res.status(200).send(mapped);
     } catch (err) {
       this._sendError(res, err);
     }
@@ -419,4 +491,4 @@ class AccessGroups extends Crud {
   } // _sendError
 }
 
-module.exports = AccessGroups;
+module.exports = AccessRoles;
