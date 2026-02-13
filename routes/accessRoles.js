@@ -20,7 +20,6 @@ class AccessRoles extends Crud {
     super();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
-
     // get employees that are 'members' of the roles that an employee is in
     this._router.get(
       '/employee/members/:id',
