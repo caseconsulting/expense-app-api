@@ -20,6 +20,7 @@ class AccessRoles extends Crud {
     super();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+
     // get employees that are 'members' of the roles that an employee is in
     this._router.get(
       '/employee/members/:id',
@@ -319,8 +320,11 @@ class AccessRoles extends Crud {
     let leaders = {};
     for (let role of roles) {
       logger.log(2, 'getLeadersByType', `Checking role ${role.name}`);
+<<<<<<< HEAD
       // require flag to be set
       if (!role.flags[flags[type]]) continue;
+=======
+>>>>>>> b6358e33 (wild ride)
       // get all leaders on for each assignment
       for (let assignment of role.assignments) {
         let users = await this.expandAll(assignment.users || []);
@@ -336,6 +340,7 @@ class AccessRoles extends Crud {
     }
 
     logger.log(2, 'getLeadersByType', `Returning ${JSON.stringify(leaders)}`);
+<<<<<<< HEAD
     logger.log(2, 'getLeadersByType', `Returning leaders for ${type}`);
     return leaders;
   }
@@ -374,6 +379,8 @@ class AccessRoles extends Crud {
     }
 
     logger.log(2, 'getLeadersByType', `Returning ${JSON.stringify(leaders)}`);
+=======
+>>>>>>> b6358e33 (wild ride)
     logger.log(2, 'getLeadersByType', `Returning leaders for ${type}`);
     return leaders;
   }
