@@ -20,6 +20,7 @@ class AccessRoles extends Crud {
     super();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
+
     // get employees that are 'members' of the roles that an employee is in
     this._router.get(
       '/employee/members/:id',
@@ -44,17 +45,10 @@ class AccessRoles extends Crud {
     );
     // get linked contract leaders
     this._router.get(
-      '/link/contracts',
+      '/link/type/:type',
       this._checkJwt,
       this._getUserInfo,
-      this._getContractLinkedLeaders.bind(this)
-    );
-    // get linked project leaders
-    this._router.get(
-      '/link/projects',
-      this._checkJwt,
-      this._getUserInfo,
-      this._getProjectLinkedLeaders.bind(this)
+      this._getContractOrProjectLinkedLeaders.bind(this)
     );
 
     this.tagsDynamo = new DatabaseModify('tags');
@@ -72,6 +66,27 @@ class AccessRoles extends Crud {
   async _create(data) {
     logger.log(2, '_create', `Preparing to create access role with id: ${data.id}`);
     return data;
+  }
+
+  /**
+   * Reads an access role from the database. Returns the access role read.
+   *
+   * @param data - parameters of access role
+   * @return access role read
+   */
+  async _read(data) {
+    logger.log(2, '_read', `Attempting to read access role ${data.id}`);
+    try {
+      // fetch
+      let accessRole = await this.databaseModify.getEntry(data.id);
+      // log/return success
+      logger.log(2, '_read', `Successfully read access role ${data.id}`);
+      return accessRole;
+    } catch (err) {
+      // log/return error
+      logger.log(2, '_read', `Failed to read access role ${data.id}`);
+      return Promise.reject(err);
+    }
   }
 
   /**
@@ -298,18 +313,22 @@ class AccessRoles extends Crud {
 
     let leaders = {};
     for (let role of roles) {
-      // skip if none of given type
-      if (!role.assignments?.members?.[type] || role.assignments?.members?.[type].length === 0) continue;
-      // get all leaders on this assignment, skipping if there's nobody
-      let users = await this.expandAll(role.assignments?.users || []);
-      if (!users || users.length === 0) continue;
-      // add leaders to this item
-      for (let id of role.assignments?.members?.[type]) {
-        leaders[id] ??= [];
-        leaders[id].push(users);
+      logger.log(2, 'getLeadersByType', `Checking role ${role.name}`);
+      // get all leaders on for each assignment
+      for (let assignment of role.assignments) {
+        let users = await this.expandAll(assignment.users || []);
+        logger.log(2, 'getLeadersByType', `${role.name} has ${users?.length || 0} users`);
+        if (!users || users.length === 0) continue;
+        // add leaders to this item
+        for (let id of assignment.members?.[type] || []) {
+          logger.log(2, 'getLeadersByType', `${role.name}: adding id ${id}`);
+          leaders[id] ??= [];
+          leaders[id].push(...users);
+        }
       }
     }
 
+    logger.log(2, 'getLeadersByType', `Returning ${JSON.stringify(leaders)}`);
     logger.log(2, 'getLeadersByType', `Returning leaders for ${type}`);
     return leaders;
   }
@@ -450,11 +469,11 @@ class AccessRoles extends Crud {
    * Gets an object of Contract IDs mapped to leaders of that contract, where the
    * "link to contracts" checkbox is checked
    */
-  async _getContractLinkedLeaders(req, res) {
+  async _getContractOrProjectLinkedLeaders(req, res) {
     try {
-      logger.log(2, '_getContractLinkedLeaders', 'Getting user map for contracts');
-      const mapped = await this.getTypeLeaders('contracts');
-      logger.log(2, '_getContractLinkedLeaders', 'Returning mapped users');
+      logger.log(2, '_getContractOrProjectLinkedLeaders', 'Getting user map for type ' + req.params.type);
+      const mapped = await this.getTypeLeaders(req.params.type);
+      logger.log(2, '_getContractOrProjectLinkedLeaders', 'Returning mapped users');
       res.status(200).send(mapped);
     } catch (err) {
       this._sendError(res, err);
@@ -462,19 +481,16 @@ class AccessRoles extends Crud {
   }
 
   /**
-   * Gets an object of Project IDs mapped to leaders of that project, where the
-   * "link to projects" checkbox is checked
+   * Returns the instace express router.
+   *
+   * @return Router Object - express router
    */
-  async _getProjectLinkedLeaders(req, res) {
-    try {
-      logger.log(2, '_getProjectLinkedLeaders', 'Getting user map for projects');
-      const mapped = await this.getTypeLeaders('projects');
-      logger.log(2, '_getProjectLinkedLeaders', 'Returning mapped users');
-      res.status(200).send(mapped);
-    } catch (err) {
-      this._sendError(res, err);
-    }
-  }
+  get router() {
+    // log method
+    logger.log(5, 'router', 'Getting router');
+
+    return this._router;
+  } // router
 
   /**
    * Error helper

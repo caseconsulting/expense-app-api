@@ -17,8 +17,8 @@ const STAGE = process.env.STAGE;
 const checkJwt = getExpressJwt();
 
 class Crud {
-  constructor() {
-    this._router = express.Router();
+  constructor(opts) {
+    this._router = opts?.router ?? express.Router();
     this._checkJwt = checkJwt;
     this._getUserInfo = getUserInfo;
     this._router.post('/', this._checkJwt, this._getUserInfo, this._createWrapper.bind(this));
@@ -812,7 +812,7 @@ class Crud {
         }
 
         // log success
-        logger.log(1, '_readWrapper', `Successfully read object ${dataRead.id} from ${this._getTableName()}`);
+        logger.log(1, '_readWrapper', `Successfully read object ${dataRead?.id} from ${this._getTableName()}`);
 
         // send successful 200 status
         res.status(200).send(dataRead);
