@@ -22,7 +22,7 @@ class AuditRoutes {
     this._router.get('/:type/:startDate/:endDate', this._checkJwt, this._getuserInfo, this._readByType.bind(this));
 
     this.databaseModify = new DatabaseModify('audits');
-  } //constructor
+  } // constructor
 
   /**
    * Prepares an audit to be created.
