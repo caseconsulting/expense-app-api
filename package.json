@@ -1,6 +1,6 @@
 {
   "name": "expense-app-api",
-  "version": "4.23.0",
+  "version": "4.24.0",
   "private": true,
   "scripts": {
     "cert:setup": "mkcert -install || echo \"\\033[1;31mPlease run again after intalling mkcert: \\033[0;31mhttps://github.com/FiloSottile/mkcert#installation\\033[0m\"",
