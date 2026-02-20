@@ -10,9 +10,7 @@ const logger = new Logger('timesheet');
 const STAGE = process.env.STAGE;
 
 async function getTimesheetsDataForEmployee(employee, tags, options = {}) {
-  logger.log(2, 'getTimesheetsDataForEmployee', `employee: ${JSON.stringify(employee)}`);
-  logger.log(2, 'getTimesheetsDataForEmployee', `tags: ${JSON.stringify(tags)}`);
-  logger.log(2, 'getTimesheetsDataForEmployee', `options: ${JSON.stringify(options)}`);
+  logger.log(2, 'getTimesheetsDataForEmployee', 'Running util function to get timesheet data');
   let code = options.code;
   let periods = options.periods;
   if (!Array.isArray(periods)) periods = [periods];
@@ -56,6 +54,15 @@ async function getTimesheetsDataForEmployee(employee, tags, options = {}) {
 
   // invoke mysterio monthly hours lambda function
   let resultPayload = await invokeLambda(params);
+  
+  // retry up to three times before returning any error codes
+  // 200s and 300s allowed
+  if (resultPayload.status >= 400 && (options.retries ?? 0) < 3) {
+    options.retries ??= 0;
+    logger.log(2, 'getTimesheetsDataForEmployee', `Attempt ${options.retries} failed, trying again.`);
+    options.retries++;
+    return await getTimesheetsDataForEmployee(employee, tags, options);
+  }
 
   switch (resultPayload.status) {
     case 200:
