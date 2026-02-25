@@ -234,11 +234,22 @@ class ExpenseRoutes extends Crud {
     // compute method
     try {
       let expense = new Expense(data);
-      let [employee, expenseType, tags] = await Promise.all([
+      let [employee, expenseType, tags, sameDayExpenses] = await Promise.all([
         new Employee(await this.employeeDynamo.getEntry(expense.employeeId)),
         this.expenseTypeDynamo.getEntry(expense.expenseTypeId),
-        this.tagDynamo.getAllEntriesInDB()
+        this.tagDynamo.getAllEntriesInDB(),
+        this.databaseModify.querySecondaryIndexInDB('createdAt-employeeId-index', 'createdAt', expense.createdAt)
       ]);
+      // set human-readable ID, eg 011326-002
+      // loop check to avoid a middle-number expense being deleted, and later numbers being duplicated
+      sameDayExpenses ??= []; // in event employee is new and has 0 expenses
+      let n = sameDayExpenses.length + 1;
+      let date = dateUtils.getTodaysDate('MMDDYY-');
+      do {
+        expense.humanId = date + String(n).padStart(3, '0');
+        n++;
+      } while (sameDayExpenses.find(e => e.humanId === expense.humanId));
+
       expenseType.categories = _.map(expenseType.categories, (category) => {
         return JSON.parse(category);
       });

@@ -8,6 +8,7 @@ const _ = require('lodash');
 
 describe('expenseRoutes', () => {
   const ID = '{id}';
+  const HID = dateUtils.getTodaysDate('MMDDYY') + '-001';
   const DESCRIPTION = '{description}';
 
   const FIRST_NAME = '{firstName}';
@@ -70,6 +71,7 @@ describe('expenseRoutes', () => {
 
   const EXPENSE_DATA = {
     id: ID,
+    humanId: HID,
     purchaseDate: PURCHASE_DATE,
     reimbursedDate: REIMBURSED_DATE,
     note: NOTE,
@@ -532,6 +534,7 @@ describe('expenseRoutes', () => {
         beforeEach(() => {
           createdBudget = new Budget({
             id: ID,
+            humanId: HID,
             expenseTypeId: ID,
             employeeId: ID,
             reimbursedAmount: 0,

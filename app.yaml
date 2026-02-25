@@ -462,6 +462,8 @@ Resources:
           AttributeType: S
         - AttributeName: reimbursedDate
           AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -495,6 +497,14 @@ Resources:
             - AttributeName: expenseTypeId
               KeyType: HASH
             - AttributeName: reimbursedDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: createdAt-employeeId-index
+          KeySchema:
+            - AttributeName: createdAt
+              KeyType: HASH
+            - AttributeName: employeeId
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
