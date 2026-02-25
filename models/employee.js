@@ -55,6 +55,7 @@ class Employee {
     this.setOptionalAttribute(data, 'timesheetReminders');
     this.setOptionalAttribute(data, 'twitter');
     this.setOptionalAttribute(data, 'unanetPersonKey');
+    this.setOptionalAttribute(data, 'integrationData');
   } // constructor
 
   /**
