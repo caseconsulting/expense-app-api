@@ -45,6 +45,7 @@ class Expense {
     this.setOptionalAttribute(data, 'rejections');
     this.setOptionalAttribute(data, 'note');
     this.setOptionalAttribute(data, 'url');
+    this.setOptionalAttribute(data, 'humanId');
     this.setOptionalAttribute(data, 'canDelete');
     this.setOptionalAttribute(data, 'reimbursementWasSeen');
   } // constructor

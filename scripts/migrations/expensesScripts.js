@@ -494,6 +494,40 @@ async function updateAllStates() {
   }
 }
 
+async function addHumanId() {
+  try {
+    let expenses = await getAllEntries(TABLE);
+    const dateUtils = await import('../../js/dateUtils.js');
+
+    let count = {};
+    let expense, humanId, date, params;
+    let n = 1;
+    for (let i in expenses) {
+      // build ID
+      expense = expenses[i];
+      count[expense.createdAt] ??= 0;
+      date = dateUtils.format(expense.createdAt, null, 'MMDDYY-');
+      humanId = date + String(++count[expense.createdAt]).padStart(3, '0');
+
+      // update in Dynamo
+      params = {
+        TableName: TABLE,
+        Key: { id: expense.id },
+        UpdateExpression: 'set #hid = :h',
+        ExpressionAttributeNames: { '#hid': 'humanId' },
+        ExpressionAttributeValues: { ':h': humanId },
+        ReturnValues: 'UPDATED_NEW'
+      };
+      await ddb
+        .send(new UpdateCommand(params))
+        .then(console.log(`(${n++}/${expenses.length}) Updated expense ${expense.id} to humanId ${humanId}`))
+        .catch((err) => console.error('Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 /**
  * =================================================
  * |                                               |
@@ -629,6 +663,13 @@ async function main() {
       action: async () => {
         await updateAllStates();
       }
+    },
+
+    {
+      desc: 'Updates expenses to have a human readable ID',
+      action: async () => {
+        await addHumanId();
+      }
     }
   ];
 
@@ -640,7 +681,7 @@ async function main() {
   // get user input and run specified script
   let scriptNum = chooseAction(actions.length);
   if (confirmAction(scriptNum, actions[scriptNum].desc)) {
-    actions[scriptNum].action();
+    await actions[scriptNum].action();
     console.log(`${colors.GREEN}\nDone!${colors.NC}`);
   }
 } // main
