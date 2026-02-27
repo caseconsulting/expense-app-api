@@ -70,6 +70,9 @@ const settings = new Settings();
 const AccessGroupsRoutes = require('./routes/accessGroups');
 const accessGroupRoutes = new AccessGroupsRoutes();
 
+const UnanetRoutes = require('./routes/unanetRoutes');
+const unanetRoutes = new UnanetRoutes();
+
 var app = express();
 
 // view engine setup
@@ -114,6 +117,7 @@ app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/settings', settings.router);
 app.use('/tags', tagRoutes.router);
 app.use('/accessGroups', accessGroupRoutes.router);
+app.use('/unanet', unanetRoutes.router);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   var err = new Error(' No Route Found');
