@@ -215,6 +215,7 @@ async function getEmployees() {
  * @returns Promise - The result of the email that is attempted to send
  */
 async function sendEmail(source, toAddresses, subject, body, options = {}) {
+  // extract options
   options = {
     isHtml: false,
     ccAddresses: [],
@@ -223,9 +224,18 @@ async function sendEmail(source, toAddresses, subject, body, options = {}) {
     ...options
   };
   const { isHtml, ccAddresses, bccAddresses, replyToAddresses } = options;
+
+  // add in portal-wide email bcc by default
+  if (!options.disableAdminCopy) {
+    bccAddresses.push('hr@consultwithcase.com');
+  }
+
   try {
+    // build client
     const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
     const sesClient = new SESClient({ region: 'us-east-1' });
+
+    // send email
     let emailCommand = new SendEmailCommand({
       Source: source,
       Destination: {
