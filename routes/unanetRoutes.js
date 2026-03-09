@@ -26,12 +26,12 @@ class UnanetRoutes {
    *
    * @return - the basecamp token from mysterio
    */
-  async _getExpenseTypes() {
+  async _getExpenseTypes(req, res) {
     //log the attempt
-    logger.log(1, '_getBasecampToken', 'Attempting to get Basecamp Token');
+    logger.log(1, '_getExpenseTypes', 'Attempting to get Unanet expense types');
     try {
-      // lambda function paramters
-      let event = { action: 'getExpenseTypes' };
+      // lambda function paramtersu
+      let event = { actions: ['getExpenseTypes', 'getProjects'] };
       let params = {
         FunctionName: `mysterio-external-expense-${STAGE}`,
         Payload: JSON.stringify(event),
@@ -42,8 +42,8 @@ class UnanetRoutes {
       let response = await this._invokeLambda(params);
 
       if (response.body) {
-        logger.log(1, '_getBasecampToken', 'Successfully acquired token');
-        return response.body;
+        logger.log(1, '_getExpenseTypes', 'Successfully fetched Unanet expense types');
+        return res.status(200).send(response.body);
       } else {
         throw {
           code: 404,
@@ -51,7 +51,7 @@ class UnanetRoutes {
         };
       }
     } catch (err) {
-      logger.log(1, '_getBasecampToken', `${err.code}: ${err.message}`);
+      logger.log(1, '_getExpenseTypes', `${err.code}: ${err.message}`);
       return err;
     }
   }
