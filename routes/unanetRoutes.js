@@ -32,8 +32,8 @@ class UnanetRoutes {
     //log the attempt
     logger.log(1, '_getExpenseTypes', 'Attempting to get Unanet expense types');
     try {
-      // lambda function paramters
-      let event = { action: 'getExpenseTypes' };
+      // lambda function paramtersu
+      let event = { actions: ['getExpenseTypes', 'getProjects'] };
       let params = {
         FunctionName: `mysterio-external-expense-${STAGE}`,
         Payload: JSON.stringify(event),
