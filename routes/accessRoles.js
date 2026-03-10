@@ -311,9 +311,17 @@ class AccessRoles extends Crud {
     logger.log(2, 'getLeadersByType', `Getting leaders of all ${type}`);
     let roles = await this.getDatabase('accessGroups');
 
+    // flag mappings (type: flagName)
+    const flags = {
+      projects: 'projectLink',
+      contracts: 'contractLink'
+    };
+
     let leaders = {};
     for (let role of roles) {
       logger.log(2, 'getLeadersByType', `Checking role ${role.name}`);
+      // require flag to be set
+      if (!role.flags[flags[type]]) continue;
       // get all leaders on for each assignment
       for (let assignment of role.assignments) {
         let users = await this.expandAll(assignment.users || []);
