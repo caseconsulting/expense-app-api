@@ -52,6 +52,9 @@ class ExpenseRoutes extends Crud {
 
     // return whether or not the monthly limit is valid, and the leftover budget
     let leftoverBudget = Number(expenseType.monthlyLimit) - (sum - (oldExpense?.cost ?? 0));
+    logger.log(2, '_monthlyLimitValidate',
+      `Leftover budget: ${Number(expenseType.monthlyLimit)} - (${sum} - (${oldExpense?.cost} ?? 0))`
+    );
     let round = (n) => Math.round(n * 100) / 100;
     let monthlyLimitValid = round(expense.cost) <= round(leftoverBudget);
 
