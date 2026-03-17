@@ -42,12 +42,17 @@ class ExpenseRoutes extends Crud {
     // exit early if no monthly limit
     if (!expenseType.monthlyLimit) return { monthlyLimitValid: true, leftoverBudget: undefined };
 
-    // get all expenses and add up ones from expense's createdAt month
+    // get all expenses and add up ones from expense's date purchased month
+    let [start, end] = [
+      dateUtils.startOf(expense.purchaseDate, 'month'),
+      dateUtils.endOf(expense.purchaseDate, 'month')
+    ];
     let expenses = await this.databaseModify.queryWithTwoIndexesInDB(employee.id, expenseType.id);
     let sum = 0;
     for (let e of expenses) {
-      let [start, end] = [dateUtils.startOf(e.createdAt, 'month'), dateUtils.endOf(e.createdAt, 'month')];
-      if (dateUtils.isBetween(e.createdAt, start, end, '[]')) sum += e.cost;
+      if (dateUtils.isBetween(e.purchaseDate, start, end, '[]')) {
+        sum += e.cost;
+      }
     }
 
     // return whether or not the monthly limit is valid, and the leftover budget
