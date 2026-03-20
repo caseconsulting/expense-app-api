@@ -116,7 +116,7 @@ app.use('/highFives', highFiveRoutes.router);
 app.use('/ptoCashOuts', ptoCashOutRoutes.router);
 app.use('/settings', settings.router);
 app.use('/tags', tagRoutes.router);
-app.use('/accessGroups', accessGroupRoutes.router);
+app.use('/accessRoles', accessRoleRoutes.router);
 app.use('/unanet', unanetRoutes.router);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
