@@ -43,7 +43,13 @@ class Utility {
       this._getAllActiveEmployeeBudgets.bind(this)
     );
     this._router.get(
-      '/getEmployeeExpenseTypes',
+      '/getEmployeeExpenseTypes/',
+      this._checkJwt,
+      this._getUserInfo,
+      this._getEmployeeExpenseTypes.bind(this)
+    );
+    this._router.get(
+      '/getEmployeeExpenseTypes/:id',
       this._checkJwt,
       this._getUserInfo,
       this._getEmployeeExpenseTypes.bind(this)
@@ -1007,58 +1013,57 @@ class Utility {
    * @returns expense types for employee
    */
   async _getEmployeeExpenseTypes(req, res) {
+    const eId = req.params?.id ?? req.employee.id;
+    let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
     // log method
-    logger.log(1, '_getEmployeeExpenseTypes', `Attempting to get expense types for employee ${req.employee.id}`);
+    logger.log(
+      1, '_getEmployeeExpenseTypes',
+      `Attempting to get expense types for employee ${eId}`
+    );
     // compute method
     try {
-      let employee = req.employee;
-      let [expenseTypesData, tags] = await Promise.all([
+      // get data from db
+      logger.log(1, '_getEmployeeExpenseTypes', 'Getting data from db...');
+      let [empNorm, empSense, expenseTypesData, tags] = await Promise.all([
+        this.employeeDynamo.getEntry(eId),
+        this.employeeSensitiveDynamo.getEntry(eId),
         this.expenseTypeDynamo.getAllEntriesInDB(),
         this.tagDynamo.getAllEntriesInDB()
       ]);
-      let expenseTypes = _.map(expenseTypesData, (expenseType) => {
-        expenseType.categories = _.map(expenseType.categories, (category) => {
-          return JSON.parse(category);
-        });
-        expenseType.budget = this.calcAdjustedAmount(employee, expenseType, tags);
-        return new ExpenseType(expenseType);
-      });
 
+      // pull out employee info
+      logger.log(1, '_getEmployeeExpenseTypes', 'Extracting employee info...');
+      const employee = new Employee(empNorm);
+      const employeeSensitive = new EmployeeSensitive(empSense);
+      let employeeRole = capitalize(employeeSensitive.employeeRole);
       let workStatus;
-      if (employee.workStatus == 0) {
-        workStatus = 'Inactive';
-      } else if (employee.workStatus == 100) {
-        workStatus = 'FullTime';
-      } else if (employee.workStatus < 100) {
-        workStatus = 'PartTime';
+      if (employee.workStatus == 0) workStatus = 'Inactive';
+      else if (employee.workStatus == 100) workStatus = 'FullTime';
+      else if (employee.workStatus < 100) workStatus = 'PartTime';
+
+      // filter expense types
+      logger.log(1, '_getEmployeeExpenseTypes', 'Filtering expense types...');
+      let expenseTypes = [];
+      let accessible;
+      for (let et of expenseTypesData) {
+        et.categories = et.categories.map((c) => JSON.parse(c)); // categories are stored as string for some reason
+        et.budget = this.calcAdjustedAmount(employee, et, tags);
+        accessible = et.accessibleBy.find((by) => ((by === workStatus) || (by === employeeRole) || (by = employee.id)));
+        if (accessible && et.budget > 0) expenseTypes.push(new ExpenseType(et));
       }
-      let capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-      let employeeRole = capitalize(employee.employeeRole);
-      expenseTypes = expenseTypes.filter((expenseType) => {
-        return (
-          (expenseType.accessibleBy.includes(workStatus) ||
-            expenseType.accessibleBy.includes(employeeRole) ||
-            expenseType.accessibleBy.includes(employee.id)) &&
-          expenseType.budget > 0
-        );
-      });
 
       // log success
-      logger.log(1, '_getEmployeeExpenseTypes', `Successfully got expense types for employee ${req.params.id}`);
+      logger.log(1, '_getEmployeeExpenseTypes', `Successfully got expense types for employee ${eId}`);
 
-      // send successful 200 status
+      // 200 and return expense types
       res.status(200).send(expenseTypes);
-
-      // return budget
       return expenseTypes;
     } catch (err) {
       // log error
-      logger.log(1, '_getEmployeeExpenseTypes', `Failed to get expense types for employee ${req.params.id}`);
-
+      logger.log(1, '_getEmployeeExpenseTypes', `Failed to get expense types for employee ${eId}`);
       // send error status
       this._sendError(res, err);
-
-      // return error
       return err;
     }
   }
