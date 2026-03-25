@@ -1019,6 +1019,58 @@ async function fixProjectEndDates() {
     console.log('Errored for', numErrors, 'employees.');
 }
 
+async function addUnanetOrgCode() {
+  let databaseModify = new DatabaseModify(EMPLOYEES_TABLE);
+  let employees = await getAllEntries(TABLE);
+  let BATCH_SIZE = 10;
+  let batch = [];
+  let numErrors = 0;
+  let numFixes = 0;
+
+  let preset = {
+    10079: 'I_OPERATIONS',
+    20016: 'I_OPERATIONS',
+    10072: 'I_OPERATIONS',
+    10031: 'I_EXECUTIVE',
+    10122: 'I_EXECUTIVE',
+    10075: 'I_EXECUTIVE',
+    10001: 'I_EXECUTIVE',
+    10184: 'I_EXECUTIVE',
+    10186: 'I_EXECUTIVE',
+    10076: 'I_EXECUTIVE',
+    10187: 'I_EXECUTIVE',
+    10178: 'I_FINANCE',
+    10027: 'I_FINANCE',
+    10164: 'I_FINANCE',
+    10160: 'I_HR',
+    10141: 'I_HR',
+    10158: 'I_HR',
+  };
+
+
+  for (let emp of employees) {
+    emp.integrationData = {
+      unanet: {
+        projectOrgCode: preset[emp.employeeNumber] ?? 'I_CASE'
+      }
+    };
+    batch.push(databaseModify.updateEntryInDB(emp));
+    if (batch.length >= BATCH_SIZE) {
+      try {
+        await Promise.all(batch);
+        numFixes += batch.length;
+        batch = [];
+      } catch (e) {
+        console.log('Error: ' + e.message ?? JSON.stringify(e));
+        numErrors += batch.length;
+        batch = [];
+      }
+    }
+  }
+
+  if (numErrors > 0) console.log('Errored for', numErrors, 'employees.');
+}
+
 /**
  * =================================================
  * |                                               |
@@ -1248,7 +1300,13 @@ async function main() {
       action: async () => {
         await fixProjectEndDates();
       }
-    }
+    },
+    {
+      desc: 'Add default Unanet org code',
+      action: async () => {
+        await addUnanetOrgCode();
+      }
+    },
   ];
 
   // print all actions for user

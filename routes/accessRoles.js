@@ -343,6 +343,44 @@ class AccessRoles extends Crud {
 
   /**
    * Finds the users/members that the eId is a member/user on. Groups them
+   * by group, returning and object instead of array of IDs.
+   */
+  async getTypeLeaders(type) {
+    logger.log(2, 'getLeadersByType', `Getting leaders of all ${type}`);
+    let roles = await this.getDatabase('accessGroups');
+
+    // flag mappings (type: flagName)
+    const flags = {
+      projects: 'projectLink',
+      contracts: 'contractLink'
+    };
+
+    let leaders = {};
+    for (let role of roles) {
+      logger.log(2, 'getLeadersByType', `Checking role ${role.name}`);
+      // require flag to be set
+      if (!role.flags[flags[type]]) continue;
+      // get all leaders on for each assignment
+      for (let assignment of role.assignments) {
+        let users = await this.expandAll(assignment.users || []);
+        logger.log(2, 'getLeadersByType', `${role.name} has ${users?.length || 0} users`);
+        if (!users || users.length === 0) continue;
+        // add leaders to this item
+        for (let id of assignment.members?.[type] || []) {
+          logger.log(2, 'getLeadersByType', `${role.name}: adding id ${id}`);
+          leaders[id] ??= [];
+          leaders[id].push(...users);
+        }
+      }
+    }
+
+    logger.log(2, 'getLeadersByType', `Returning ${JSON.stringify(leaders)}`);
+    logger.log(2, 'getLeadersByType', `Returning leaders for ${type}`);
+    return leaders;
+  }
+
+  /**
+   * Finds the users/members that the eId is a member/user on. Groups them
    * by role, returning and object instead of array of IDs.
    */
   async getRoledEmployees(eId, idType, filter) {
