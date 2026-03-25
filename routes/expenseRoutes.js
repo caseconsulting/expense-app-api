@@ -968,7 +968,8 @@ class ExpenseRoutes extends Crud {
       let subject = isHardRejected ?
         'Your expense submitted on the Portal has been rejected' :
         'Your expense submitted on the Portal requires revisions';
-      let body = `Rejection reason: ${
+      let body = isHardRejected ? 'Rejection' : 'Revisal request';
+      body += ` reason: ${
         isHardRejected
           ? hardRejections?.reasons[hardRejections?.reasons?.length - 1]?.text || 'No reason provided'
           : softRejections?.reasons[softRejections?.reasons?.length - 1]?.text || 'No reason provided'
