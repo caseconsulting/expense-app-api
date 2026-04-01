@@ -124,7 +124,7 @@ async function _getHoursSubmitted(employee, startDate, endDate, options = {}) {
   const { allowSaved = false, returnSheets = false } = options;
 
   // utility vars
-  const statusSubmitted = ['SUBMITTED', 'LOCKED'];
+  const statusSubmitted = ['LOCKED', 'COMPLETED', 'EXTRACTED', 'APPROVING', 'SUBMITTED'];
   const statusSaved = [...statusSubmitted, 'INUSE'];
   const { employeeNumber, unanetPersonKey } = employee;
 
