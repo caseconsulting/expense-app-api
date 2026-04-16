@@ -47,6 +47,7 @@ class Expense {
     this.setOptionalAttribute(data, 'url');
     this.setOptionalAttribute(data, 'canDelete');
     this.setOptionalAttribute(data, 'reimbursementWasSeen');
+    this.setOptionalAttribute(data, 'unanetData');
   } // constructor
 
   /**
