@@ -29,6 +29,8 @@ class ExpenseType {
     this.setOptionalAttribute(data, 'replyTo');
     this.setOptionalAttribute(data, 'startDate');
     this.setOptionalAttribute(data, 'to');
+    this.setOptionalAttribute(data, 'unanetExpenseType');
+    this.setOptionalAttribute(data, 'unanetProject');
   } // constructor
 
   /**
