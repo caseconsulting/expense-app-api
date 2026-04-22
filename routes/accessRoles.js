@@ -14,7 +14,7 @@ const checkJwt = getExpressJwt();
 const DATABASES = {};
 const INDEXES = {};
 
-const logger = new Logger('accessGroups');
+const logger = new Logger('accessRoles');
 class AccessRoles extends Crud {
   constructor() {
     super();
@@ -271,7 +271,7 @@ class AccessRoles extends Crud {
     let expanded;
     for (let type of types) {
       logger.log(2, 'expandAll', `Expanding type ${type}`);
-      for (let id of obj[type]) {
+      for (let id of obj?.[type] ?? []) {
         logger.log(2, 'expandAll', `Expanding id ${id}`);
         expanded = await this.expand(id, type);
         expanded.forEach((id) => employeeIds.add(id));
