@@ -14,7 +14,7 @@ const checkJwt = getExpressJwt();
 const DATABASES = {};
 const INDEXES = {};
 
-const logger = new Logger('accessGroups');
+const logger = new Logger('accessRoles');
 class AccessRoles extends Crud {
   constructor() {
     super();
