@@ -273,10 +273,10 @@ function getContractEmployees(contract, employees) {
   let list = [];
 
   for (let e of employees) {
-    for (let c of (e.contracts || [])) {
-      if (contract.id !== c.contractId) continue;
-      for (let p of (c.projects || [])) {
-        if (!p.presentDate && p.endDate) continue;
+    for (let c of (e?.contracts || [])) {
+      if (contract.id !== c?.contractId) continue;
+      for (let p of (c?.projects || [])) {
+        if (!p?.presentDate && p?.endDate) continue;
         list.push(e);
       }
     }
@@ -295,10 +295,10 @@ function getProjectEmployees(project, employees) {
   let list = [];
 
   for (let e of employees) {
-    for (let c of e.contracts) {
-      for (let p of c.projects) {
+    for (let c of (e?.contracts || [])) {
+      for (let p of (c?.projects || [])) {
         if (project.id !== p.projectId) continue;
-        if (!p.presentDate && p.endDate) continue;
+        if (!p?.presentDate && p?.endDate) continue;
         list.push(e);
       }
     }
