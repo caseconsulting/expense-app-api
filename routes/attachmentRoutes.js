@@ -536,17 +536,26 @@ class Attachment {
         // return error
         return error;
       } else {
-        for (let i = 0; i < req.files.length; i++) {
-          req.files[i].originalname = req.files[i].originalname.replace(/[^a-zA-Z0-9 \.]/, '');
-          req.files[i].originalname = Buffer.from(req.files[i].originalname, 'latin1').toString('utf8');
+        for (let file of req.files || []) {
+          logger.log(
+            1,
+            'uploadAttachmentToS3',
+            `Ensuring filename is properly encoded for attachment ${file.originalname} with file key ${file.key}`,
+          );
+
+          if (!file.originalname) file.originalname = 'Attachment ' + i;
+          file.originalname = file.originalname.replace(/[^a-zA-Z0-9 \.]/, '');
+          file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
           // log success
           logger.log(
             1,
             'uploadAttachmentToS3',
-            `Successfully uploaded attachment ${req.files[i].originalname} with file key ${req.files[i].key}`,
-            `to S3 bucket ${req.files[i].bucket}`
+            `Successfully uploaded attachment ${file.originalname} with file key ${file.key}`,
+            `to S3 bucket ${file.bucket}`
           );
         }
+
         // set a successful 200 response with uploaded file
         res.status(200).send(req.files);
 
