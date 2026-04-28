@@ -520,7 +520,6 @@ class Attachment {
     logger.log(1, 'uploadAttachmentToS3', `Attempting to upload attachment for expense ${req.params.expenseId}`);
     // compute method
     upload(req, res, async (err) => {
-      req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       if (err) {
         // log error  
         logger.log(1, 'uploadAttachmentToS3', 'Failed to upload file(s)');
