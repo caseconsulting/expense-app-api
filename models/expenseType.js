@@ -29,13 +29,9 @@ class ExpenseType {
     this.setOptionalAttribute(data, 'replyTo');
     this.setOptionalAttribute(data, 'startDate');
     this.setOptionalAttribute(data, 'to');
-<<<<<<< HEAD
     this.setOptionalAttribute(data, 'unanetExpenseType'); // unanet expense type key
     this.setOptionalAttribute(data, 'unanetProject'); // unanet project key
-=======
-    this.setOptionalAttribute(data, 'unanetExpenseType');
-    this.setOptionalAttribute(data, 'unanetProject');
->>>>>>> 4a5215fb (saving)
+    this.setOptionalAttribute(data, 'unanetTask'); // unanet task key
   } // constructor
 
   /**
