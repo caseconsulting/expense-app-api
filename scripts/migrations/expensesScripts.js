@@ -529,6 +529,28 @@ async function addHumanId() {
 }
 
 /**
+ * Adds an attribute with given name and default value
+ */
+async function addAttribute(name, defaultVal) {
+  let expenses = await getAllEntries(TABLE);
+
+  for (let expense of expenses) {
+    let params = {
+      TableName: TABLE,
+      Key: { id: expense.id },
+      UpdateExpression: 'set #name = :v',
+      ExpressionAttributeNames: { '#name': name },
+      ExpressionAttributeValues: { ':v': defaultVal },
+      ReturnValues: 'UPDATED_NEW'
+    };
+    await ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`SUCCESS: Updated expense id ${expense.id}`))
+      .catch((err) => console.error('FAILURE: Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+  }
+}
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -669,6 +691,13 @@ async function main() {
       desc: 'Updates expenses to have a human readable ID',
       action: async () => {
         await addHumanId();
+      }
+    },
+
+    {
+      desc: 'Add company card attribute',
+      action: async () => {
+        await addAttribute('companyCard', { used: false });
       }
     }
   ];
