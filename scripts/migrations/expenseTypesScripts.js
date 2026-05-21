@@ -321,6 +321,28 @@ async function renameAttribute(oldName, newName) {
 }
 
 /**
+ * Adds an attribute with given name and default value
+ */
+async function addAttribute(name, defaultVal) {
+  let types = await getAllEntries();
+
+  for (let type of types) {
+    let params = {
+      TableName: TABLE,
+      Key: { id: type.id },
+      UpdateExpression: 'set #name = :v',
+      ExpressionAttributeNames: { '#name': name },
+      ExpressionAttributeValues: { ':v': defaultVal },
+      ReturnValues: 'UPDATED_NEW'
+    };
+    await ddb
+      .send(new UpdateCommand(params))
+      .then(() => console.log(`SUCCESS: Updated expense type id ${type.id}`))
+      .catch((err) => console.error('FAILURE: Unable to update item. Error JSON:', JSON.stringify(err, null, 2)));
+  }
+}
+
+/**
  * =================================================
  * |                                               |
  * |             End runnable scripts              |
@@ -432,6 +454,12 @@ async function main() {
         await renameAttribute('alwaysOnFeed', 'showOnFeed');
         await renameAttribute('requiredFlag', 'requireReceipt');
       }
+    },
+    {
+      desc: 'Add company card attribute?',
+      action: async () => {
+        await addAttribute('allowCompanyCard', false);
+      }
     }
   ];
 
@@ -443,7 +471,7 @@ async function main() {
   // get user input and run specified script
   let scriptNum = chooseAction(actions.length);
   if (confirmAction(scriptNum, actions[scriptNum].desc)) {
-    actions[scriptNum].action();
+    await actions[scriptNum].action();
     console.log(`${colors.GREEN}\nDone!${colors.NC}`);
   }
 } // main

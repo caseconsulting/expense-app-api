@@ -19,6 +19,7 @@ class ExpenseType {
     this.setRequiredAttribute(data, 'requireURL', false); // default: do not require URL
     this.setRequiredAttribute(data, 'showOnFeed', false); // default: do not show on feed
     this.setRequiredAttribute(data, 'tagBudgets', []);
+    this.setRequiredAttribute(data, 'allowCompanyCard', false); // default: do not allow company credit card
 
     this.setOptionalAttribute(data, 'bcc');
     this.setOptionalAttribute(data, 'campfire');
@@ -31,6 +32,7 @@ class ExpenseType {
     this.setOptionalAttribute(data, 'to');
     this.setOptionalAttribute(data, 'unanetExpenseType'); // unanet expense type key
     this.setOptionalAttribute(data, 'unanetProject'); // unanet project key
+    this.setOptionalAttribute(data, 'unanetTask'); // unanet task key
   } // constructor
 
   /**
