@@ -74,9 +74,8 @@ async function syncPortalAndBamboo() {
         logger.log(
           3,
           'syncPortalAndBamboo',
-          `Syncing data for employee #: ${
-            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-          }`
+          `Syncing data for employee #: ` +
+          `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
         );
         let bambooEmployeeUpdated = false;
         let bambooHRBodyParams = [];
@@ -130,9 +129,8 @@ async function syncPortalAndBamboo() {
         logger.log(
           3,
           'syncPortalAndBamboo',
-          `Finished syncing data for employee #: ${
-            EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-          }`
+          `Finished syncing data for employee #: ` +
+          `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
         );
       } else if (_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.CASE]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
         // employee is active on BambooHR AND does not exist on the Portal
@@ -143,33 +141,25 @@ async function syncPortalAndBamboo() {
           logger.log(
             3,
             'syncPortalAndBamboo',
-            `Attempting to create new CASE Portal employee for employee #: ${
-              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-            }`
+            `Attempting to create new CASE Portal employee for employee #: ` +
+            `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
           await createPortalEmployee();
           result.usersCreated.push(EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]);
           logger.log(
             3,
             'syncPortalAndBamboo',
-            `Successfully created new CASE Portal employee for employee #: ${
-              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-            }`
+            `Successfully created new CASE Portal employee for employee #: ` +
+            `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
         }
         // employee number exists on BambooHR but does NOT exist on the portal
       }
     } catch (err) {
       logger.log(3, 'syncPortalAndBamboo', `Error syncing employee: ${err}`);
-      if (err.messsage) {
-        result.failures.push({
-          [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err.message
-        });
-      } else {
-        result.failures.push({
-          [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err
-        });
-      }
+      result.failures.push({
+        [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err.message || String(err)
+      });
     }
     // reset data
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
@@ -216,9 +206,8 @@ async function syncBambooAndADP() {
           logger.log(
             3,
             'syncBambooAndADP',
-            `Syncing data for employee #: ${
-              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-            }`
+            `Syncing data for employee #: ` +
+            `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
           let adpEmployeeUpdated = false;
           let fieldsToUpdate = [];
@@ -280,15 +269,16 @@ async function syncBambooAndADP() {
           logger.log(
             3,
             'syncBambooAndADP',
-            `Finished syncing data for employee #: ${
-              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]
-            }`
+            `Finished syncing data for employee #: ` +
+            `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
         }
       }
     } catch (err) {
       logger.log(3, 'syncBambooAndADP', `Error syncing employee: ${err}`);
-      result.failures.push({ [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err });
+      result.failures.push({
+        [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err.message || String(err)
+      });
     }
     // reset data
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
