@@ -74,7 +74,7 @@ async function syncPortalAndBamboo() {
         logger.log(
           3,
           'syncPortalAndBamboo',
-          `Syncing data for employee #: ` +
+          'Syncing data for employee #: ' +
           `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
         );
         let bambooEmployeeUpdated = false;
@@ -129,7 +129,7 @@ async function syncPortalAndBamboo() {
         logger.log(
           3,
           'syncPortalAndBamboo',
-          `Finished syncing data for employee #: ` +
+          'Finished syncing data for employee #: ' +
           `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
         );
       } else if (_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.CASE]) && !_.isEmpty(EMPLOYEE_DATA[APPLICATIONS.BAMBOO])) {
@@ -141,7 +141,7 @@ async function syncPortalAndBamboo() {
           logger.log(
             3,
             'syncPortalAndBamboo',
-            `Attempting to create new CASE Portal employee for employee #: ` +
+            'Attempting to create new CASE Portal employee for employee #: ' +
             `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
           await createPortalEmployee();
@@ -149,7 +149,7 @@ async function syncPortalAndBamboo() {
           logger.log(
             3,
             'syncPortalAndBamboo',
-            `Successfully created new CASE Portal employee for employee #: ` +
+            'Successfully created new CASE Portal employee for employee #: ' +
             `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
         }
@@ -206,7 +206,7 @@ async function syncBambooAndADP() {
           logger.log(
             3,
             'syncBambooAndADP',
-            `Syncing data for employee #: ` +
+            'Syncing data for employee #: ' +
             `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
           let adpEmployeeUpdated = false;
@@ -269,7 +269,7 @@ async function syncBambooAndADP() {
           logger.log(
             3,
             'syncBambooAndADP',
-            `Finished syncing data for employee #: ` +
+            'Finished syncing data for employee #: ' +
             `${EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]}`
           );
         }
