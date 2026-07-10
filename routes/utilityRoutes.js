@@ -1221,6 +1221,13 @@ class Utility {
   async _syncPortalToBamboo(req, res) {
     logger.log(1, '_syncPortalToBamboo', 'Attempting to sync Portal to BambooHR');
     try {
+      // restrict access only to admin/manager roles
+      if (!isAdmin(req.employee) && !isManager(req.employee)) {
+        throw {
+          code: 403,
+          message: 'Unable to sync Portal to BambooHR due to insufficient employee permissions.'
+        };
+      }
       let params = {
         FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
         Payload: JSON.stringify({ syncType: 'bamboo' }),
@@ -1239,6 +1246,13 @@ class Utility {
   async _syncBambooToADP(req, res) {
     logger.log(1, '_syncBambooToADP', 'Attempting to sync BambooHR to ADP');
     try {
+      // restrict access only to admin/manager roles
+      if (!isAdmin(req.employee) && !isManager(req.employee)) {
+        throw {
+          code: 403,
+          message: 'Unable to sync BambooHR to ADP due to insufficient employee permissions.'
+        };
+      }
       let params = {
         FunctionName: `expense-app-${STAGE}-PortalDataSyncFunction`,
         Payload: JSON.stringify({ syncType: 'adp' }),
