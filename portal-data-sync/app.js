@@ -18,16 +18,33 @@ const Fields = require('./fields-synced');
 const fieldsArr = Object.values(Fields);
 const logger = new Logger('app-data-sync');
 
+const EMPTY_RESULT = { fields: [], fieldsUpdated: [], usersCreated: [], failures: [] };
+
 /**
- * Handler to execute lamba function.
+ * Handler to execute lambda function.
  *
- * @param event - request
+ * @param event - request (optional syncType: 'bamboo' | 'adp'; omit to run both for the cron)
  */
-async function handler() {
+async function handler(event) {
+  const syncType = event?.syncType;
+  if (syncType === 'bamboo') {
+    let result = await syncPortalAndBamboo();
+    return {
+      statusCode: 200,
+      body: { caseAndBambooSyncResult: result, bambooAndADPSyncResult: EMPTY_RESULT }
+    };
+  } else if (syncType === 'adp') {
+    let result = await syncBambooAndADP();
+    return {
+      statusCode: 200,
+      body: { caseAndBambooSyncResult: EMPTY_RESULT, bambooAndADPSyncResult: result }
+    };
+  }
+  // default: run both (used by the nightly cron)
   let result1 = await syncPortalAndBamboo();
   let result2 = await syncBambooAndADP();
   return {
-    statusCode: 200, // should change this to not default to 200
+    statusCode: 200,
     body: { caseAndBambooSyncResult: result1, bambooAndADPSyncResult: result2 }
   };
 } // handler
@@ -60,6 +77,9 @@ async function syncPortalAndBamboo() {
     result.failures.push(err);
     return result;
   }
+
+  // Phase 1: compare fields for each employee sequentially (uses global EMPLOYEE_DATA safely)
+  let pendingUpdates = [];
   await asyncForEach(bambooEmployees, async (bambooEmp) => {
     try {
       EMPLOYEE_DATA[APPLICATIONS.CASE] = _.find(
@@ -118,13 +138,11 @@ async function syncPortalAndBamboo() {
             }
           }
         });
-        // update bamboo employee
         if (bambooEmployeeUpdated) {
+          // collect update to be executed in parallel in phase 2
           let body = Object.assign({}, ...bambooHRBodyParams);
           let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.BAMBOO]);
-          logger.log(3, 'syncPortalAndBamboo', `Updating BambooHR employee id: ${employee.id}`);
-          await updateBambooHREmployee(employee.id, body, bambooHRTabularData);
-          result.fieldsUpdated.push(...tmpFieldsUpdated);
+          pendingUpdates.push({ employee, body, bambooHRTabularData, tmpFieldsUpdated });
         }
         logger.log(
           3,
@@ -165,6 +183,23 @@ async function syncPortalAndBamboo() {
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
     EMPLOYEE_DATA[APPLICATIONS.CASE] = null;
   });
+
+  // Phase 2: execute all BambooHR updates in parallel
+  await Promise.all(
+    pendingUpdates.map(async ({ employee, body, bambooHRTabularData, tmpFieldsUpdated }) => {
+      try {
+        logger.log(3, 'syncPortalAndBamboo', `Updating BambooHR employee id: ${employee.id}`);
+        await updateBambooHREmployee(employee.id, body, bambooHRTabularData);
+        result.fieldsUpdated.push(...tmpFieldsUpdated);
+      } catch (err) {
+        logger.log(3, 'syncPortalAndBamboo', `Error updating BambooHR employee: ${err}`);
+        result.failures.push({
+          [employee[Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: err.message || String(err)
+        });
+      }
+    })
+  );
+
   return result;
 } // syncPortalAndBamboo
 
@@ -191,6 +226,8 @@ async function syncBambooAndADP() {
     result.failures.push(err);
     return result;
   }
+  // Phase 1: compare fields for each employee sequentially (uses global EMPLOYEE_DATA safely)
+  let pendingUpdates = [];
   await asyncForEach(bambooEmployees, async (bambooEmp) => {
     try {
       EMPLOYEE_DATA[APPLICATIONS.ADP] = _.find(
@@ -231,9 +268,11 @@ async function syncBambooAndADP() {
               }
             }
           });
-          // update ADP employee
           if (adpEmployeeUpdated) {
+            // build update payload while EMPLOYEE_DATA is still set, collect for parallel execution in phase 2
             let employee = _.cloneDeep(EMPLOYEE_DATA[APPLICATIONS.ADP]);
+            let bambooEmpNum =
+              EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]];
             let legalAddressUpdated = false;
             let updatesToMake = [];
             let userFieldsUpdated = [];
@@ -259,12 +298,9 @@ async function syncBambooAndADP() {
                   `Updating ADP ${field.name} field for employee id: ${employee.associateOID}`
                 );
               }
-              userFieldsUpdated.push({
-                [EMPLOYEE_DATA[APPLICATIONS.BAMBOO][Fields.EMPLOYEE_NUMBER[APPLICATIONS.BAMBOO]]]: field.name
-              });
+              userFieldsUpdated.push({ [bambooEmpNum]: field.name });
             });
-            await updateADPEmployee(updatesToMake);
-            result.fieldsUpdated.push(...userFieldsUpdated);
+            pendingUpdates.push({ bambooEmpNum, updatesToMake, userFieldsUpdated });
           }
           logger.log(
             3,
@@ -284,6 +320,20 @@ async function syncBambooAndADP() {
     EMPLOYEE_DATA[APPLICATIONS.BAMBOO] = null;
     EMPLOYEE_DATA[APPLICATIONS.ADP] = null;
   });
+
+  // Phase 2: execute all ADP updates in parallel
+  await Promise.all(
+    pendingUpdates.map(async ({ bambooEmpNum, updatesToMake, userFieldsUpdated }) => {
+      try {
+        await updateADPEmployee(updatesToMake);
+        result.fieldsUpdated.push(...userFieldsUpdated);
+      } catch (err) {
+        logger.log(3, 'syncBambooAndADP', `Error updating ADP employee: ${err}`);
+        result.failures.push({ [bambooEmpNum]: err.message || String(err) });
+      }
+    })
+  );
+
   return result;
 } // syncApplicationData
 
